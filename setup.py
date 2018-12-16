@@ -2,12 +2,11 @@
 # python setup.py --dry-run --verbose install
 
 from distutils.core import setup
-import setuptools
 
 
 setup(
     name='pyatmo',
-    version='1.4',  # Should be updated with new versions
+    version='1.5',  # Should be updated with new versions
     author='Hugo Dupras',
     author_email='jabesq@gmail.com',
     py_modules=['pyatmo'],

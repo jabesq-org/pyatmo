@@ -42,7 +42,6 @@ class HomeData:
             if 'modules' in self.rawData[i]:
                 if nameHome not in self.modules:
                     self.modules[nameHome] = dict()
-                self.default_home = self.rawData[i]['name']
                 for m in self.rawData[i]['modules']:
                     self.modules[nameHome][m['id']] = m
                 if nameHome not in self.rooms:
@@ -54,19 +53,23 @@ class HomeData:
                 if nameHome not in self.setpoint_duration:
                     self.setpoint_duration[nameHome] = dict()
                 if 'therm_setpoint_default_duration' in self.rawData[i]:
-                    self.setpoint_duration[nameHome] = self.rawData[i]['therm_setpoint_default_duration']
+                    self.setpoint_duration[nameHome] = self.rawData[i][
+                        'therm_setpoint_default_duration']
                 if 'rooms' in self.rawData[i]:
                     for r in self.rawData[i]['rooms']:
                         self.rooms[nameHome][r['id']] = r
                 if 'therm_schedules' in self.rawData[i]:
+                    self.default_home = self.rawData[i]['name']
                     for s in self.rawData[i]['therm_schedules']:
                         self.schedules[nameHome][s['id']] = s
-                for t in range(len(self.rawData[i]['therm_schedules'])):
-                    nameSchedule = self.rawData[i]['therm_schedules'][t]['name']
-                    if nameSchedule not in self.zones[nameHome]:
-                        self.zones[nameHome][nameSchedule] = dict()
-                    for z in self.rawData[i]['therm_schedules'][t]['zones']:
-                        self.zones[nameHome][nameSchedule][z['id']] = z
+                    for t in range(len(self.rawData[i]['therm_schedules'])):
+                        nameSchedule = self.rawData[i]['therm_schedules'][
+                                       t]['name']
+                        if nameSchedule not in self.zones[nameHome]:
+                            self.zones[nameHome][nameSchedule] = dict()
+                        for z in self.rawData[i]['therm_schedules'][t][
+                            'zones']:
+                            self.zones[nameHome][nameSchedule][z['id']] = z
 
     def homeById(self, hid):
         return None if hid not in self.homes else self.homes[hid]
@@ -85,7 +88,8 @@ class HomeData:
             if value['name'] == home:
                 # print(self.homes[key]['id'])
                 # print(self.default_home)
-                return self.homes[key]['id']
+                if 'therm_schedules' in self.homes[key]:
+                    return self.homes[key]['id']
 
     def getSelectedschedule(self, home=None):
         if not home:

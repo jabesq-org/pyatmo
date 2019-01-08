@@ -27,15 +27,16 @@ _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 
 
 class PublicData:
-
-    def __init__(self,
-                 auth_data,
-                 LAT_NE=_LAT_NE,
-                 LON_NE=_LON_NE,
-                 LAT_SW=_LAT_SW,
-                 LON_SW=_LON_SW,
-                 required_data_type=None,  # comma-separated list from above _STATION or _ACCESSORY values
-                 filtering=False):
+    def __init__(
+        self,
+        auth_data,
+        LAT_NE=_LAT_NE,
+        LON_NE=_LON_NE,
+        LAT_SW=_LAT_SW,
+        LON_SW=_LON_SW,
+        required_data_type=None,  # comma-separated list from above _STATION or _ACCESSORY values
+        filtering=False,
+    ):
         self.getAuthToken = auth_data.accessToken
         post_params = {
             "access_token": self.getAuthToken,
@@ -43,17 +44,17 @@ class PublicData:
             "lon_ne": LON_NE,
             "lat_sw": LAT_SW,
             "lon_sw": LON_SW,
-            "filter": filtering
-            }
+            "filter": filtering,
+        }
 
         if required_data_type:
-            post_params['required_data'] = required_data_type
+            post_params["required_data"] = required_data_type
 
         resp = postRequest(_GETPUBLIC_DATA, post_params)
-        self.raw_data = resp['body']
-        self.status = resp['status']
-        self.time_exec = toTimeString(resp['time_exec'])
-        self.time_server = toTimeString(resp['time_server'])
+        self.raw_data = resp["body"]
+        self.status = resp["status"]
+        self.time_exec = toTimeString(resp["time_exec"])
+        self.time_server = toTimeString(resp["time_server"])
 
     def CountStationInArea(self):
         return len(self.raw_data)
@@ -127,7 +128,7 @@ class PublicData:
     def getLocations(self):
         locations = {}
         for station in self.raw_data:
-            locations[station['_id']] = station['place']['location']
+            locations[station["_id"]] = station["place"]["location"]
         return locations
 
     # Backwards compatibility for < 1.2
@@ -143,19 +144,26 @@ class PublicData:
     def getLatestStationMeasures(self, type):
         measures = {}
         for station in self.raw_data:
-            for _, module in station['measures'].items():
-                if 'type' in module and type in module['type'] and 'res' in module and module['res']:
-                    measure_index = module['type'].index(type)
-                    latest_timestamp = sorted(module['res'], reverse=True)[0]
-                    measures[station['_id']] = module['res'][latest_timestamp][measure_index]
+            for _, module in station["measures"].items():
+                if (
+                    "type" in module
+                    and type in module["type"]
+                    and "res" in module
+                    and module["res"]
+                ):
+                    measure_index = module["type"].index(type)
+                    latest_timestamp = sorted(module["res"], reverse=True)[0]
+                    measures[station["_id"]] = module["res"][latest_timestamp][
+                        measure_index
+                    ]
         return measures
 
     def getAccessoryMeasures(self, type):
         measures = {}
         for station in self.raw_data:
-            for _, module in station['measures'].items():
+            for _, module in station["measures"].items():
                 if type in module:
-                    measures[station['_id']] = module[type]
+                    measures[station["_id"]] = module[type]
         return measures
 
 

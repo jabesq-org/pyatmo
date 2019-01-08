@@ -25,16 +25,19 @@ from smart_home import _BASE_URL, postRequest, NoDevice
 # a Netatmo app in your Netatmo account. All you have to do is to give it a name (whatever) and you will be
 # returned a client_id and secret that your app has to supply to access netatmo servers.
 
-_CLIENT_ID     = ""   # Your client ID from Netatmo app registration at http://dev.netatmo.com/dev/listapps
-_CLIENT_SECRET = ""   # Your client app secret   '     '
-_USERNAME      = ""   # Your netatmo account username
-_PASSWORD      = ""   # Your netatmo account password
+_CLIENT_ID = (
+    ""
+)  # Your client ID from Netatmo app registration at http://dev.netatmo.com/dev/listapps
+_CLIENT_SECRET = ""  # Your client app secret   '     '
+_USERNAME = ""  # Your netatmo account username
+_PASSWORD = ""  # Your netatmo account password
 
 #########################################################################
 
 
 # Common definitions
-_AUTH_REQ       = _BASE_URL + "oauth2/token"
+_AUTH_REQ = _BASE_URL + "oauth2/token"
+
 
 class ClientAuth:
     """
@@ -55,41 +58,44 @@ class ClientAuth:
             Several value can be used at the same time, ie: 'read_station read_camera'
     """
 
-    def __init__(self, clientId=_CLIENT_ID,
-                       clientSecret=_CLIENT_SECRET,
-                       username=_USERNAME,
-                       password=_PASSWORD,
-                       scope="read_station"):
+    def __init__(
+        self,
+        clientId=_CLIENT_ID,
+        clientSecret=_CLIENT_SECRET,
+        username=_USERNAME,
+        password=_PASSWORD,
+        scope="read_station",
+    ):
         postParams = {
-                "grant_type": "password",
-                "client_id": clientId,
-                "client_secret": clientSecret,
-                "username": username,
-                "password": password,
-                "scope": scope
-                }
+            "grant_type": "password",
+            "client_id": clientId,
+            "client_secret": clientSecret,
+            "username": username,
+            "password": password,
+            "scope": scope,
+        }
         resp = postRequest(_AUTH_REQ, postParams)
         self._clientId = clientId
         self._clientSecret = clientSecret
-        self._accessToken = resp['access_token']
-        self.refreshToken = resp['refresh_token']
-        self._scope = resp['scope']
-        self.expiration = int(resp['expire_in'] + time.time() - 1800)
+        self._accessToken = resp["access_token"]
+        self.refreshToken = resp["refresh_token"]
+        self._scope = resp["scope"]
+        self.expiration = int(resp["expire_in"] + time.time() - 1800)
 
     @property
     def accessToken(self):
 
         if self.expiration < time.time():  # Token should be renewed
             postParams = {
-                    "grant_type": "refresh_token",
-                    "refresh_token": self.refreshToken,
-                    "client_id": self._clientId,
-                    "client_secret": self._clientSecret
-                    }
+                "grant_type": "refresh_token",
+                "refresh_token": self.refreshToken,
+                "client_id": self._clientId,
+                "client_secret": self._clientSecret,
+            }
             resp = postRequest(_AUTH_REQ, postParams)
-            self._accessToken = resp['access_token']
-            self.refreshToken = resp['refresh_token']
-            self.expiration = int(resp['expire_in'] + time.time() - 1800)
+            self._accessToken = resp["access_token"]
+            self.refreshToken = resp["refresh_token"]
+            self.expiration = int(resp["expire_in"] + time.time() - 1800)
         return self._accessToken
 
 
@@ -99,14 +105,14 @@ class User:
     Args:
         authData (ClientAuth): Authentication information with a working access Token
     """
+
     def __init__(self, authData):
-        postParams = {
-                "access_token" : authData.accessToken
-                }
+        postParams = {"access_token": authData.accessToken}
         resp = postRequest(_GETSTATIONDATA_REQ, postParams)
-        self.rawData = resp['body']
-        self.devList = self.rawData['devices']
-        self.ownerMail = self.rawData['user']['mail']
+        self.rawData = resp["body"]
+        self.devList = self.rawData["devices"]
+        self.ownerMail = self.rawData["user"]["mail"]
+
 
 # auto-test when executed directly
 
@@ -114,33 +120,35 @@ if __name__ == "__main__":
 
     from sys import exit, stdout, stderr
 
-    if not _CLIENT_ID or not _CLIENT_SECRET or not _USERNAME or not _PASSWORD :
-           stderr.write("Library source missing identification arguments to check lnetatmo.py (user/password/etc...)")
-           exit(1)
+    if not _CLIENT_ID or not _CLIENT_SECRET or not _USERNAME or not _PASSWORD:
+        stderr.write(
+            "Library source missing identification arguments to check lnetatmo.py (user/password/etc...)"
+        )
+        exit(1)
 
-    authorization = ClientAuth(scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence")  # Test authentication method
+    authorization = ClientAuth(
+        scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence"
+    )  # Test authentication method
 
     try:
-        devList = DeviceList(authorization)         # Test DEVICELIST
+        devList = DeviceList(authorization)  # Test DEVICELIST
     except NoDevice:
         if stdout.isatty():
             print("lnetatmo.py : warning, no weather station available for testing")
     else:
-        devList.MinMaxTH()                          # Test GETMEASUR
-
+        devList.MinMaxTH()  # Test GETMEASUR
 
     try:
         Camera = CameraData(authorization)
-    except NoDevice :
+    except NoDevice:
         if stdout.isatty():
             print("lnetatmo.py : warning, no camera available for testing")
 
     try:
         Thermostat = ThermostatData(authorization)
-    except NoDevice :
+    except NoDevice:
         if stdout.isatty():
             print("lnetatmo.py : warning, no thermostat available for testing")
-
 
     PublicData(authorization)
 

@@ -14,5 +14,6 @@ class HomeCoachData(WeatherStationData):
     Args:
         authData (ClientAuth): Authentication information with a working access Token
     """
+
     def __init__(self, authData):
-       super(HomeCoachData, self).__init__(authData, urlReq=_GETHOMECOACHDATA_REQ)
+        super(HomeCoachData, self).__init__(authData, urlReq=_GETHOMECOACHDATA_REQ)

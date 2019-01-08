@@ -6,7 +6,7 @@ import time
 from . import NoDevice, postRequest, _BASE_URL
 
 _SETTEMP_REQ = _BASE_URL + "api/setthermpoint"
-_GETTHERMOSTATDATA_REQ  = _BASE_URL + "api/getthermostatsdata"
+_GETTHERMOSTATDATA_REQ = _BASE_URL + "api/getthermostatsdata"
 _GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
 _GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
 _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
@@ -21,15 +21,14 @@ class HomeData:
     Args:
         authData (ClientAuth): Authentication information with a working access Token
     """
+
     def __init__(self, authData):
         self.getAuthToken = authData.accessToken
-        postParams = {
-                "access_token": self.getAuthToken
-                }
+        postParams = {"access_token": self.getAuthToken}
         resp = postRequest(_GETHOMESDATA_REQ, postParams)
 
-        self.rawData = resp['body']['homes']
-        self.homes = {d['id']: d for d in self.rawData}
+        self.rawData = resp["body"]["homes"]
+        self.homes = {d["id"]: d for d in self.rawData}
         if not self.homes:
             raise NoDevice("No thermostat available")
         self.modules = dict()
@@ -38,12 +37,12 @@ class HomeData:
         self.zones = dict()
         self.setpoint_duration = dict()
         for i in range(len(self.rawData)):
-            nameHome = self.rawData[i]['name']
-            if 'modules' in self.rawData[i]:
+            nameHome = self.rawData[i]["name"]
+            if "modules" in self.rawData[i]:
                 if nameHome not in self.modules:
                     self.modules[nameHome] = dict()
-                for m in self.rawData[i]['modules']:
-                    self.modules[nameHome][m['id']] = m
+                for m in self.rawData[i]["modules"]:
+                    self.modules[nameHome][m["id"]] = m
                 if nameHome not in self.rooms:
                     self.rooms[nameHome] = dict()
                 if nameHome not in self.schedules:
@@ -52,24 +51,23 @@ class HomeData:
                     self.zones[nameHome] = dict()
                 if nameHome not in self.setpoint_duration:
                     self.setpoint_duration[nameHome] = dict()
-                if 'therm_setpoint_default_duration' in self.rawData[i]:
+                if "therm_setpoint_default_duration" in self.rawData[i]:
                     self.setpoint_duration[nameHome] = self.rawData[i][
-                        'therm_setpoint_default_duration']
-                if 'rooms' in self.rawData[i]:
-                    for r in self.rawData[i]['rooms']:
-                        self.rooms[nameHome][r['id']] = r
-                if 'therm_schedules' in self.rawData[i]:
-                    self.default_home = self.rawData[i]['name']
-                    for s in self.rawData[i]['therm_schedules']:
-                        self.schedules[nameHome][s['id']] = s
-                    for t in range(len(self.rawData[i]['therm_schedules'])):
-                        nameSchedule = self.rawData[i]['therm_schedules'][
-                                       t]['name']
+                        "therm_setpoint_default_duration"
+                    ]
+                if "rooms" in self.rawData[i]:
+                    for r in self.rawData[i]["rooms"]:
+                        self.rooms[nameHome][r["id"]] = r
+                if "therm_schedules" in self.rawData[i]:
+                    self.default_home = self.rawData[i]["name"]
+                    for s in self.rawData[i]["therm_schedules"]:
+                        self.schedules[nameHome][s["id"]] = s
+                    for t in range(len(self.rawData[i]["therm_schedules"])):
+                        nameSchedule = self.rawData[i]["therm_schedules"][t]["name"]
                         if nameSchedule not in self.zones[nameHome]:
                             self.zones[nameHome][nameSchedule] = dict()
-                        for z in self.rawData[i]['therm_schedules'][t][
-                            'zones']:
-                            self.zones[nameHome][nameSchedule][z['id']] = z
+                        for z in self.rawData[i]["therm_schedules"][t]["zones"]:
+                            self.zones[nameHome][nameSchedule][z["id"]] = z
 
     def homeById(self, hid):
         return None if hid not in self.homes else self.homes[hid]
@@ -78,31 +76,32 @@ class HomeData:
         if not home:
             home = self.default_home
         for key, value in self.homes.items():
-            if value['name'] == home:
+            if value["name"] == home:
                 return self.homes[key]
 
     def gethomeId(self, home=None):
         if not home:
             home = self.default_home
         for key, value in self.homes.items():
-            if value['name'] == home:
+            if value["name"] == home:
                 # print(self.homes[key]['id'])
                 # print(self.default_home)
-                if 'therm_schedules' in self.homes[key]:
-                    return self.homes[key]['id']
+                if "therm_schedules" in self.homes[key]:
+                    return self.homes[key]["id"]
 
     def getSelectedschedule(self, home=None):
         if not home:
             home = self.default_home
         self.schedule = self.schedules[home]
         for key in self.schedule.keys():
-            if 'selected' in self.schedule[key].keys():
+            if "selected" in self.schedule[key].keys():
                 return self.schedule[key]
 
 
 class HomeStatus(HomeData):
     """
     """
+
     def __init__(self, authData, home_id=None, home=None):
         self.getAuthToken = authData.accessToken
         # print(self.modules())
@@ -115,38 +114,35 @@ class HomeStatus(HomeData):
             self.home_id = self.home_data.gethomeId(home=home)
         else:
             self.home_id = self.home_data.gethomeId(home=self.home_data.default_home)
-        postParams = {
-            "access_token": self.getAuthToken,
-            "home_id": self.home_id
-            }
+        postParams = {"access_token": self.getAuthToken, "home_id": self.home_id}
 
         resp = postRequest(_GETHOMESTATUS_REQ, postParams)
-        self.rawData = resp['body']['home']
+        self.rawData = resp["body"]["home"]
         self.rooms = dict()
         self.thermostats = dict()
         self.valves = dict()
         self.relays = dict()
-        for r in self.rawData['rooms']:
-            self.rooms[r['id']] = r
-        for t in range(len(self.rawData['modules'])):
-            if self.rawData['modules'][t]['type'] == 'NATherm1':
-                thermostatId = self.rawData['modules'][t]['id']
+        for r in self.rawData["rooms"]:
+            self.rooms[r["id"]] = r
+        for t in range(len(self.rawData["modules"])):
+            if self.rawData["modules"][t]["type"] == "NATherm1":
+                thermostatId = self.rawData["modules"][t]["id"]
                 if thermostatId not in self.thermostats:
                     self.thermostats[thermostatId] = dict()
-                self.thermostats[thermostatId] = self.rawData['modules'][t]
+                self.thermostats[thermostatId] = self.rawData["modules"][t]
             # self.thermostats[t['id']] = t
-        for v in range(len(self.rawData['modules'])):
-            if self.rawData['modules'][v]['type'] == 'NRV':
-                valveId = self.rawData['modules'][v]['id']
+        for v in range(len(self.rawData["modules"])):
+            if self.rawData["modules"][v]["type"] == "NRV":
+                valveId = self.rawData["modules"][v]["id"]
                 if valveId not in self.valves:
                     self.valves[valveId] = dict()
-                self.valves[valveId] = self.rawData['modules'][v]
-        for r in range(len(self.rawData['modules'])):
-            if self.rawData['modules'][r]['type'] == 'NAPlug':
-                relayId = self.rawData['modules'][r]['id']
+                self.valves[valveId] = self.rawData["modules"][v]
+        for r in range(len(self.rawData["modules"])):
+            if self.rawData["modules"][r]["type"] == "NAPlug":
+                relayId = self.rawData["modules"][r]["id"]
                 if relayId not in self.relays:
                     self.relays[relayId] = dict()
-                self.relays[relayId] = self.rawData['modules'][r]
+                self.relays[relayId] = self.rawData["modules"][r]
         if self.rooms != {}:
             self.default_room = list(self.rooms.values())[0]
         if self.relays != {}:
@@ -161,28 +157,28 @@ class HomeStatus(HomeData):
         if not rid:
             return self.default_room
         for key, value in self.rooms.items():
-            if value['id'] == rid:
+            if value["id"] == rid:
                 return self.rooms[key]
 
     def thermostatById(self, rid):
         if not rid:
             return self.default_thermostat
         for key, value in self.thermostats.items():
-            if value['id'] == rid:
+            if value["id"] == rid:
                 return self.thermostats[key]
 
     def relayById(self, rid):
         if not rid:
             return self.default_relay
         for key, value in self.relays.items():
-            if value['id'] == rid:
+            if value["id"] == rid:
                 return self.relays[key]
 
     def valveById(self, rid):
         if not rid:
             return self.default_valve
         for key, value in self.valves.items():
-            if value['id'] == rid:
+            if value["id"] == rid:
                 return self.valves[key]
 
     def setPoint(self, rid=None):
@@ -195,7 +191,7 @@ class HomeStatus(HomeData):
         else:
             room_data = self.roomById(rid=None)
         if room_data:
-            setpoint = room_data['therm_setpoint_temperature']
+            setpoint = room_data["therm_setpoint_temperature"]
         return setpoint
 
     def setPointmode(self, rid=None):
@@ -208,7 +204,7 @@ class HomeStatus(HomeData):
         else:
             room_data = self.roomById(rid=None)
         if room_data:
-            setpointmode = room_data['therm_setpoint_mode']
+            setpointmode = room_data["therm_setpoint_mode"]
         return setpointmode
 
     def getAwaytemp(self, home=None):
@@ -216,13 +212,13 @@ class HomeStatus(HomeData):
             home = self.home_data.default_home
             # print(self.home_data.default_home)
         data = self.home_data.getSelectedschedule(home=home)
-        return data['away_temp']
+        return data["away_temp"]
 
     def getHgtemp(self, home=None):
         if not home:
             home = self.home_data.default_home
         data = self.home_data.getSelectedschedule(home=home)
-        return data['hg_temp']
+        return data["hg_temp"]
 
     def measuredTemperature(self, rid=None):
         """
@@ -235,7 +231,7 @@ class HomeStatus(HomeData):
         else:
             room_data = self.roomById(rid=None)
         if room_data:
-            temperature = room_data['therm_measured_temperature']
+            temperature = room_data["therm_measured_temperature"]
         return temperature
 
     def boilerStatus(self, rid=None):
@@ -246,14 +242,14 @@ class HomeStatus(HomeData):
         else:
             relay_status = self.thermostatById(rid=None)
         if relay_status:
-            boiler_status = relay_status['boiler_status']
+            boiler_status = relay_status["boiler_status"]
         return boiler_status
 
     def thermostatType(self, home, rid):
         module_id = None
         for key in self.home_data.rooms[home]:
             if key == rid:
-                for module_id in self.home_data.rooms[home][rid]['module_ids']:
+                for module_id in self.home_data.rooms[home][rid]["module_ids"]:
                     self.module_id = module_id
                     if module_id in self.thermostats:
                         return "NATherm1"
@@ -264,8 +260,8 @@ class HomeStatus(HomeData):
         postParams = {
             "access_token": self.getAuthToken,
             "home_id": home_id,
-            "mode": mode
-            }
+            "mode": mode,
+        }
         resp = postRequest(_SETTHERMMODE_REQ, postParams)
         print(resp)
 
@@ -275,9 +271,9 @@ class HomeStatus(HomeData):
             "home_id": home_id,
             "room_id": room_id,
             "mode": mode,
-            }
+        }
         if temp is not None:
-            postParams['temp'] = temp
+            postParams["temp"] = temp
         return postRequest(_SETROOMTHERMPOINT_REQ, postParams)
 
 
@@ -288,81 +284,95 @@ class ThermostatData:
     Args:
         authData (ClientAuth): Authentication information with a working access Token
     """
+
     def __init__(self, authData):
         self.getAuthToken = authData.accessToken
-        postParams = {
-                "access_token" : self.getAuthToken
-                }
+        postParams = {"access_token": self.getAuthToken}
         resp = postRequest(_GETTHERMOSTATDATA_REQ, postParams)
 
-        self.rawData = resp['body']
-        self.devList = self.rawData['devices']
-        if not self.devList : raise NoDevice("No thermostat available")
-        self.devId = self.devList[0]['_id']
-        self.modList = self.devList[0]['modules']
-        self.modId = self.modList[0]['_id']
-        self.temp = self.modList[0]['measured']['temperature']
-        self.setpoint_mode = self.modList[0]['setpoint']['setpoint_mode']
-        if self.setpoint_mode == 'manual':
-            self.setpoint_temp = self.modList[0]['setpoint']['setpoint_temp']
+        self.rawData = resp["body"]
+        self.devList = self.rawData["devices"]
+        if not self.devList:
+            raise NoDevice("No thermostat available")
+        self.devId = self.devList[0]["_id"]
+        self.modList = self.devList[0]["modules"]
+        self.modId = self.modList[0]["_id"]
+        self.temp = self.modList[0]["measured"]["temperature"]
+        self.setpoint_mode = self.modList[0]["setpoint"]["setpoint_mode"]
+        if self.setpoint_mode == "manual":
+            self.setpoint_temp = self.modList[0]["setpoint"]["setpoint_temp"]
         else:
-            self.setpoint_temp = self.modList[0]['measured']['setpoint_temp']
-        self.relay_cmd = int(self.modList[0]['therm_relay_cmd'])
-        self.devices = { d['_id'] : d for d in self.rawData['devices'] }
+            self.setpoint_temp = self.modList[0]["measured"]["setpoint_temp"]
+        self.relay_cmd = int(self.modList[0]["therm_relay_cmd"])
+        self.devices = {d["_id"]: d for d in self.rawData["devices"]}
         self.modules = dict()
         self.therm_program_list = dict()
         self.zones = dict()
         self.timetable = dict()
-        for i in range(len(self.rawData['devices'])):
-            nameDevice=self.rawData['devices'][i]['station_name']
+        for i in range(len(self.rawData["devices"])):
+            nameDevice = self.rawData["devices"][i]["station_name"]
             if nameDevice not in self.modules:
-                self.modules[nameDevice]=dict()
-            for m in self.rawData['devices'][i]['modules']:
-                self.modules[nameDevice][ m['_id'] ] = m
-            for p in self.rawData['devices'][i]['modules'][0]['therm_program_list']:
-                self.therm_program_list[p['program_id']] = p
-            for z in self.rawData['devices'][i]['modules'][0]['therm_program_list'][0]['zones']:
-                self.zones[z['id']] = z
-            for o in self.rawData['devices'][i]['modules'][0]['therm_program_list'][0]['timetable']:
-                self.timetable[o['m_offset']] = o
-        self.default_device = list(self.devices.values())[0]['station_name']
+                self.modules[nameDevice] = dict()
+            for m in self.rawData["devices"][i]["modules"]:
+                self.modules[nameDevice][m["_id"]] = m
+            for p in self.rawData["devices"][i]["modules"][0]["therm_program_list"]:
+                self.therm_program_list[p["program_id"]] = p
+            for z in self.rawData["devices"][i]["modules"][0]["therm_program_list"][0][
+                "zones"
+            ]:
+                self.zones[z["id"]] = z
+            for o in self.rawData["devices"][i]["modules"][0]["therm_program_list"][0][
+                "timetable"
+            ]:
+                self.timetable[o["m_offset"]] = o
+        self.default_device = list(self.devices.values())[0]["station_name"]
 
-        self.default_module = list(self.modules[self.default_device].values())[0]['module_name']
+        self.default_module = list(self.modules[self.default_device].values())[0][
+            "module_name"
+        ]
 
     def lastData(self, device=None, exclude=0):
         s = self.deviceByName(device)
-        if not s : return None
+        if not s:
+            return None
         lastD = dict()
         zones = dict()
         # Define oldest acceptable sensor measure event
         limit = (time.time() - exclude) if exclude else 0
-        dm = s['modules'][0]['measured']
-        ds = s['modules'][0]['setpoint']['setpoint_mode']
-        dz = s['modules'][0]['therm_program_list'][0]['zones']
-        for module in s['modules']:
-            dm = module['measured']
-            ds = module['setpoint']['setpoint_mode']
-            dz = module['therm_program_list'][0]['zones']
-            if dm['time'] > limit :
-                lastD[module['module_name']] = dm.copy()
-                lastD[module['module_name']]['setpoint_mode'] = ds
+        dm = s["modules"][0]["measured"]
+        ds = s["modules"][0]["setpoint"]["setpoint_mode"]
+        dz = s["modules"][0]["therm_program_list"][0]["zones"]
+        for module in s["modules"]:
+            dm = module["measured"]
+            ds = module["setpoint"]["setpoint_mode"]
+            dz = module["therm_program_list"][0]["zones"]
+            if dm["time"] > limit:
+                lastD[module["module_name"]] = dm.copy()
+                lastD[module["module_name"]]["setpoint_mode"] = ds
                 # For potential use, add battery and radio coverage information to module data if present
-                for i in ('battery_vp', 'rf_status', 'therm_relay_cmd', 'battery_percent') :
-                    if i in module : lastD[module['module_name']][i] = module[i]
-                zones[module['module_name']] = dz.copy()
+                for i in (
+                    "battery_vp",
+                    "rf_status",
+                    "therm_relay_cmd",
+                    "battery_percent",
+                ):
+                    if i in module:
+                        lastD[module["module_name"]][i] = module[i]
+                zones[module["module_name"]] = dz.copy()
         return lastD
 
     def deviceById(self, did):
         return None if did not in self.devices else self.devices[did]
 
     def deviceByName(self, device):
-        if not device: device = self.default_device
-        for key,value in self.devices.items():
-            if value['station_name'] == device:
+        if not device:
+            device = self.default_device
+        for key, value in self.devices.items():
+            if value["station_name"] == device:
                 return self.devices[key]
 
     def moduleById(self, mid):
-        for device,mod in self.modules.items():
+        for device, mod in self.modules.items():
             if mid in self.modules[device]:
                 return self.modules[device][mid]
         return None
@@ -374,12 +384,12 @@ class ThermostatData:
             if device not in self.modules:
                 return None
             for mod_id in self.modules[device]:
-                if self.modules[device][mod_id]['module_name'] == module:
+                if self.modules[device][mod_id]["module_name"] == module:
                     return self.modules[device][mod_id]
         elif not device and module:
             for device, mod_ids in self.modules.items():
                 for mod_id in mod_ids:
-                    if self.modules[device][mod_id]['module_name'] == module:
+                    if self.modules[device][mod_id]["module_name"] == module:
                         return self.modules[device][mod_id]
         else:
             return list(self.modules[device].values())[0]
@@ -387,10 +397,10 @@ class ThermostatData:
 
     def setthermpoint(self, mode, temp, endTimeOffset):
         postParams = {"access_token": self.getAuthToken}
-        postParams['device_id'] = self.devId
-        postParams['module_id'] = self.modId
-        postParams['setpoint_mode'] = mode
+        postParams["device_id"] = self.devId
+        postParams["module_id"] = self.modId
+        postParams["setpoint_mode"] = mode
         if mode == "manual":
-            postParams['setpoint_endtime'] = time.time() + endTimeOffset
-            postParams['setpoint_temp'] = temp
+            postParams["setpoint_endtime"] = time.time() + endTimeOffset
+            postParams["setpoint_temp"] = temp
         return postRequest(_SETTEMP_REQ, postParams)

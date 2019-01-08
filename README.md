@@ -1,5 +1,6 @@
 netatmo-api-python
 ==================
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 Simple API to access Netatmo weather station data from any python script
 For more detailed information see http://dev.netatmo.com

@@ -13,8 +13,6 @@ _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
 _SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
 _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
 
-_MAX_RETRIES = 10
-
 class HomeData:
     """
     List the Energy devices (relays, thermostat modules and valves)

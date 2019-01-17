@@ -13,6 +13,7 @@ _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
 _SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
 _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
 
+_MAX_RETRIES = 10
 
 class HomeData:
     """
@@ -117,6 +118,9 @@ class HomeStatus(HomeData):
         postParams = {"access_token": self.getAuthToken, "home_id": self.home_id}
 
         resp = postRequest(_GETHOMESTATUS_REQ, postParams)
+        if "body" in resp and "errors" in resp["body"] or "body" not in resp or "home" not in resp["body"]:
+            raise NoDevice("No device found, errors in response")
+            return None
         self.rawData = resp["body"]["home"]
         self.rooms = dict()
         self.thermostats = dict()

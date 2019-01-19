@@ -130,8 +130,6 @@ class WeatherStationData:
                 for i in ("rf_status", "battery_vp", "battery_percent"):
                     if i in module:
                         lastD[module["module_name"]][i] = module[i]
-            else:
-                return None
         return lastD
 
     def checkNotUpdated(self, station=None, delay=3600):

@@ -121,7 +121,7 @@ class WeatherStationData:
             lastD[s["module_name"]]["When"] = lastD[s["module_name"]].pop("time_utc")
             lastD[s["module_name"]]["wifi_status"] = s["wifi_status"]
         for module in s["modules"]:
-            if "dashboard_data" not in module:
+            if "dashboard_data" not in module or "module_name" not in module:
                 continue
             ds = module["dashboard_data"]
             if "time_utc" in ds and ds["time_utc"] > limit:

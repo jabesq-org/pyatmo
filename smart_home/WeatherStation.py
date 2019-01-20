@@ -110,7 +110,7 @@ class WeatherStationData:
     def lastData(self, station=None, exclude=0):
         s = self.stationByName(station)
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
-        if not s or 'dashboard_data' not in s:
+        if not s or "dashboard_data" not in s:
             return None
         lastD = dict()
         # Define oldest acceptable sensor measure event

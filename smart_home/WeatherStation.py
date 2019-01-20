@@ -31,7 +31,10 @@ class WeatherStationData:
                 self.rawData[i]["modules"] = [self.rawData[i]]
             for m in self.rawData[i]["modules"]:
                 if "module_name" not in m:
-                    continue
+                    if m["type"] == "NHC":
+                        m["module_name"] = m["station_name"]
+                    else:
+                        continue
                 self.modules[m["_id"]] = m
                 self.modules[m["_id"]]["main_device"] = self.rawData[i]["_id"]
         self.default_station = list(self.stations.values())[0]["station_name"]
@@ -96,7 +99,7 @@ class WeatherStationData:
                 )
             else:
                 conditions.append(cond.lower())
-        if mod["type"] == "NAMain":
+        if mod["type"] == "NAMain" or mod["type"] == "NHC":
             # the main module has wifi_status
             conditions.append("wifi_status")
         else:
@@ -127,7 +130,7 @@ class WeatherStationData:
                     "time_utc"
                 )
                 # For potential use, add battery and radio coverage information to module data if present
-                for i in ("rf_status", "battery_vp", "battery_percent"):
+                for i in ("rf_status", "battery_vp", "battery_percent", "wifi_status"):
                     if i in module:
                         lastD[module["module_name"]][i] = module[i]
         return lastD

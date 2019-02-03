@@ -11,6 +11,7 @@ PythonAPI Netatmo REST data access
 coding=utf-8
 """
 import time
+import logging
 
 from smart_home.WeatherStation import WeatherStationData, DeviceList
 from smart_home.Camera import CameraData
@@ -18,6 +19,8 @@ from smart_home.Thermostat import ThermostatData, HomeData, HomeStatus
 from smart_home.PublicData import PublicData
 from smart_home.HomeCoach import HomeCoachData
 from smart_home import _BASE_URL, postRequest, NoDevice
+
+LOG = logging.getLogger(__name__)
 
 ######################## USER SPECIFIC INFORMATION ######################
 
@@ -37,6 +40,8 @@ _PASSWORD = ""  # Your netatmo account password
 
 # Common definitions
 _AUTH_REQ = _BASE_URL + "oauth2/token"
+_WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
+_WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
 
 
 class ClientAuth:
@@ -81,6 +86,23 @@ class ClientAuth:
         self.refreshToken = resp["refresh_token"]
         self._scope = resp["scope"]
         self.expiration = int(resp["expire_in"] + time.time() - 1800)
+
+    def addwebhook(self, webhook_url):
+        postParams = {
+            "access_token": self._accessToken,
+            "url": webhook_url,
+            "app_types": "app_security"
+        }
+        resp = postRequest(_WEBHOOK_URL_ADD, postParams)
+        LOG.debug("addwebhook: %s", resp)
+
+    def dropwebhook(self):
+        postParams = {
+            "access_token": self._accessToken,
+            "app_types": "app_security"
+        }
+        resp = postRequest(_WEBHOOK_URL_DROP, postParams)
+        LOG.debug("dropwebhook: %s", resp)
 
     @property
     def accessToken(self):

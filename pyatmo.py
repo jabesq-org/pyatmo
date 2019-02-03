@@ -91,16 +91,13 @@ class ClientAuth:
         postParams = {
             "access_token": self._accessToken,
             "url": webhook_url,
-            "app_types": "app_security"
+            "app_types": "app_security",
         }
         resp = postRequest(_WEBHOOK_URL_ADD, postParams)
         LOG.debug("addwebhook: %s", resp)
 
     def dropwebhook(self):
-        postParams = {
-            "access_token": self._accessToken,
-            "app_types": "app_security"
-        }
+        postParams = {"access_token": self._accessToken, "app_types": "app_security"}
         resp = postRequest(_WEBHOOK_URL_DROP, postParams)
         LOG.debug("dropwebhook: %s", resp)
 

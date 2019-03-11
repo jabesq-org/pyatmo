@@ -139,13 +139,30 @@ if __name__ == "__main__":
 
     from sys import exit, stdout, stderr
 
+    try:
+        import os
+        if (os.environ["CLIENT_ID"] and os.environ["CLIENT_SECRET"] and
+            os.environ["USERNAME"] and os.environ["PASSWORD"]):
+            _CLIENT_ID = os.environ["CLIENT_ID"]
+            _CLIENT_SECRET = os.environ["CLIENT_SECRET"]
+            _USERNAME = os.environ["USERNAME"]
+            _PASSWORD = os.environ["PASSWORD"]
+    except KeyError:
+        stderr.write(
+            "No credentials passed to pyatmo.py (client_id, client_secret, username, password)\n"
+        )
+
     if not _CLIENT_ID or not _CLIENT_SECRET or not _USERNAME or not _PASSWORD:
         stderr.write(
-            "Library source missing identification arguments to check lnetatmo.py (user/password/etc...)"
+            "Library source missing identification arguments to check pyatmo.py (user/password/etc...)\n"
         )
         exit(1)
 
     authorization = ClientAuth(
+        clientId = _CLIENT_ID,
+        clientSecret = _CLIENT_SECRET,
+        username = _USERNAME,
+        password = _PASSWORD,
         scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence"
     )  # Test authentication method
 
@@ -153,7 +170,7 @@ if __name__ == "__main__":
         devList = DeviceList(authorization)  # Test DEVICELIST
     except NoDevice:
         if stdout.isatty():
-            print("lnetatmo.py : warning, no weather station available for testing")
+            print("pyatmo.py : warning, no weather station available for testing")
     else:
         devList.MinMaxTH()  # Test GETMEASUR
 
@@ -161,13 +178,13 @@ if __name__ == "__main__":
         Camera = CameraData(authorization)
     except NoDevice:
         if stdout.isatty():
-            print("lnetatmo.py : warning, no camera available for testing")
+            print("pyatmo.py : warning, no camera available for testing")
 
     try:
         Thermostat = ThermostatData(authorization)
     except NoDevice:
         if stdout.isatty():
-            print("lnetatmo.py : warning, no thermostat available for testing")
+            print("pyatmo.py : warning, no thermostat available for testing")
 
     PublicData(authorization)
 
@@ -175,6 +192,6 @@ if __name__ == "__main__":
 
     # If launched interactively, display OK message
     if stdout.isatty():
-        print("lnetatmo.py : OK")
+        print("pyatmo.py : OK")
 
     exit(0)

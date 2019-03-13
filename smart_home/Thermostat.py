@@ -63,11 +63,11 @@ class HomeData:
                     for s in self.rawData[i]["therm_schedules"]:
                         self.schedules[nameHome][s["id"]] = s
                     for t in range(len(self.rawData[i]["therm_schedules"])):
-                        nameSchedule = self.rawData[i]["therm_schedules"][t]["name"]
-                        if nameSchedule not in self.zones[nameHome]:
-                            self.zones[nameHome][nameSchedule] = dict()
+                        idSchedule = self.rawData[i]["therm_schedules"][t]["id"]
+                        if idSchedule not in self.zones[nameHome]:
+                            self.zones[nameHome][idSchedule] = dict()
                         for z in self.rawData[i]["therm_schedules"][t]["zones"]:
-                            self.zones[nameHome][nameSchedule][z["id"]] = z
+                            self.zones[nameHome][idSchedule][z["id"]] = z
 
     def homeById(self, hid):
         return None if hid not in self.homes else self.homes[hid]

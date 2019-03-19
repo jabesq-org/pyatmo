@@ -157,7 +157,7 @@ class HomeStatus(HomeData):
             self.default_relay = list(self.relays.values())[0]
         if self.thermostats != {}:
             self.default_thermostat = list(self.thermostats.values())[0]
-        print(self.thermostats)
+        # print(self.thermostats)
         if self.valves != {}:
             self.default_valve = list(self.valves.values())[0]
 
@@ -233,7 +233,7 @@ class HomeStatus(HomeData):
         Return the measured temperature of a given room.
         """
         temperature = None
-        print(rid)
+        # print(rid)
         if rid:
             room_data = self.roomById(rid=rid)
         else:
@@ -244,7 +244,7 @@ class HomeStatus(HomeData):
 
     def boilerStatus(self, rid=None):
         boiler_status = None
-        print(rid)
+        # print(rid)
         if rid:
             relay_status = self.thermostatById(rid=rid)
         else:
@@ -271,7 +271,7 @@ class HomeStatus(HomeData):
             "mode": mode,
         }
         resp = postRequest(_SETTHERMMODE_REQ, postParams)
-        print(resp)
+        # print(resp)
 
     def setroomThermpoint(self, home_id, room_id, mode, temp=None):
         postParams = {

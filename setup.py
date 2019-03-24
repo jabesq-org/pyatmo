@@ -6,7 +6,7 @@ import setuptools
 
 setup(
     name="pyatmo",
-    version="1.8",  # Should be updated with new versions
+    version="1.9",  # Should be updated with new versions
     author="Hugo Dupras",
     author_email="jabesq@gmail.com",
     py_modules=["pyatmo"],

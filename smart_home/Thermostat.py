@@ -2,8 +2,12 @@
 coding=utf-8
 """
 import time
+import logging
 
 from . import NoDevice, postRequest, _BASE_URL
+
+
+LOG = logging.getLogger(__name__)
 
 _SETTEMP_REQ = _BASE_URL + "api/setthermpoint"
 _GETTHERMOSTATDATA_REQ = _BASE_URL + "api/getthermostatsdata"
@@ -84,8 +88,8 @@ class HomeData:
             home = self.default_home
         for key, value in self.homes.items():
             if value["name"] == home:
-                # print(self.homes[key]['id'])
-                # print(self.default_home)
+                LOG.debug(self.homes[key]['id'])
+                LOG.debug(self.default_home)
                 if "therm_schedules" in self.homes[key]:
                     return self.homes[key]["id"]
 
@@ -109,7 +113,7 @@ class HomeStatus(HomeData):
         # print(home_data.modules)
         if home_id:
             self.home_id = home_id
-            # print('home_id', self.home_id)
+            LOG.debug('home_id', self.home_id)
         elif home:
             self.home_id = self.home_data.gethomeId(home=home)
         else:
@@ -157,7 +161,7 @@ class HomeStatus(HomeData):
             self.default_relay = list(self.relays.values())[0]
         if self.thermostats != {}:
             self.default_thermostat = list(self.thermostats.values())[0]
-        # print(self.thermostats)
+        LOG.debug(self.thermostats)
         if self.valves != {}:
             self.default_valve = list(self.valves.values())[0]
 
@@ -218,7 +222,7 @@ class HomeStatus(HomeData):
     def getAwaytemp(self, home=None):
         if not home:
             home = self.home_data.default_home
-            # print(self.home_data.default_home)
+            LOG.debug(self.home_data.default_home)
         data = self.home_data.getSelectedschedule(home=home)
         return data["away_temp"]
 
@@ -233,7 +237,7 @@ class HomeStatus(HomeData):
         Return the measured temperature of a given room.
         """
         temperature = None
-        # print(rid)
+        LOG.debug(rid)
         if rid:
             room_data = self.roomById(rid=rid)
         else:
@@ -244,7 +248,7 @@ class HomeStatus(HomeData):
 
     def boilerStatus(self, rid=None):
         boiler_status = None
-        # print(rid)
+        LOG.debug(rid)
         if rid:
             relay_status = self.thermostatById(rid=rid)
         else:
@@ -271,7 +275,7 @@ class HomeStatus(HomeData):
             "mode": mode,
         }
         resp = postRequest(_SETTHERMMODE_REQ, postParams)
-        # print(resp)
+        LOG.debug(resp)
 
     def setroomThermpoint(self, home_id, room_id, mode, temp=None):
         postParams = {

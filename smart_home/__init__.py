@@ -2,6 +2,10 @@ import time
 import traceback
 from sys import version_info
 import json
+import logging
+
+
+LOG = logging.getLogger(__name__)
 
 # Common definitions
 _BASE_URL = "https://api.netatmo.com/"
@@ -36,7 +40,7 @@ def postRequest(url, params=None, timeout=10):
                 else urllib.request.urlopen(req, timeout=timeout)
             )
         except urllib.error.URLError:
-            print(traceback.format_exc())
+            LOG.error(traceback.format_exc())
             return None
     else:
         if params:

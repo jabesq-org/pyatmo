@@ -3,9 +3,13 @@ coding=utf-8
 """
 import imghdr
 import time
+import logging
 
 from urllib.error import URLError
 from . import NoDevice, postRequest, _BASE_URL
+
+
+LOG = logging.getLogger(__name__)
 
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
 _GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"
@@ -279,7 +283,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("personSeenByCamera: Camera name or home is unknown")
+            LOG.error("personSeenByCamera: Camera name or home is unknown")
             return False
         # Check in the last event is someone known has been seen
         if exclude:
@@ -321,7 +325,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("someoneKnownSeen: Camera name or home is unknown")
+            LOG.error("someoneKnownSeen: Camera name or home is unknown")
             return False
 
         if exclude:
@@ -350,7 +354,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("someoneUnknownSeen: Camera name or home is unknown")
+            LOG.error("someoneUnknownSeen: Camera name or home is unknown")
             return False
 
         if exclude:
@@ -379,7 +383,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("motionDetected: Camera name or home is unknown")
+            LOG.error("motionDetected: Camera name or home is unknown")
             return False
 
         if exclude:
@@ -402,7 +406,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("outdoormotionDetected: Camera name or home is unknown")
+            LOG.error("outdoormotionDetected: Camera name or home is unknown")
             return False
         if cam_id in self.lastEvent:
             if self.lastEvent[cam_id]["type"] == "movement":
@@ -421,7 +425,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("personSeenByCamera: Camera name or home is unknown")
+            LOG.error("personSeenByCamera: Camera name or home is unknown")
             return False
         if self.outdoor_lastEvent[cam_id]["video_status"] == "recording":
             for e in self.outdoor_lastEvent[cam_id]["event_list"]:
@@ -436,7 +440,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("animalDetected: Camera name or home is unknown")
+            LOG.error("animalDetected: Camera name or home is unknown")
             return False
 
         if self.outdoor_lastEvent[cam_id]["video_status"] == "recording":
@@ -452,7 +456,7 @@ class CameraData:
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
-            print("carDetected: Camera name or home is unknown")
+            LOG.error("carDetected: Camera name or home is unknown")
             return False
 
         if self.outdoor_lastEvent[cam_id]["video_status"] == "recording":
@@ -470,7 +474,7 @@ class CameraData:
             mod_id = mod["id"]
             cam_id = mod["cam_id"]
         except TypeError:
-            print(
+            LOG.error(
                 "moduleMotionDetected: Module name or" "Camera name or home is unknown"
             )
             return False
@@ -503,7 +507,7 @@ class CameraData:
             mod_id = mod["id"]
             cam_id = mod["cam_id"]
         except TypeError:
-            print("moduleOpened: Camera name, or home, or module is unknown")
+            LOG.error("moduleOpened: Camera name, or home, or module is unknown")
             return False
 
         if exclude:

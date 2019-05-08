@@ -16,6 +16,12 @@ _GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
 _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
 _SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
 _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
+_SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
+
+
+
+class NoSchedule(Exception):
+    pass
 
 
 class HomeData:
@@ -100,6 +106,32 @@ class HomeData:
         for key in self.schedule.keys():
             if "selected" in self.schedule[key].keys():
                 return self.schedule[key]
+
+    def switchHomeSchedule(self, schedule_id=None, schedule=None, home=None):
+        if home is None:
+            home = self.default_home
+        home_id = self.gethomeId(home=home)
+        schedules = {
+            self.schedules[home][s]["name"]: self.schedules[home][s]["id"]
+            for s in self.schedules[home]
+        }
+        if schedule is None and schedule_id is not None:
+            if schedule_id not in schedules.items():
+                raise NoSchedule("%s is not a valid schedule" % schedule_id)
+        elif schedule_id is None and schedule is not None:
+            if schedule not in schedules.keys():
+                raise NoSchedule("%s is not a valid schedule" % schedule)
+            schedule_id = schedules[schedule]
+        else:
+            raise NoSchedule("No schedule specified")
+        postParams = {
+            "access_token": self.getAuthToken,
+            "home_id": home_id,
+            "schedule_id": schedule_id,
+        }
+        resp = postRequest(_SWITCHHOMESCHEDULE_REQ, postParams)
+        LOG.debug("Response: %s", resp)
+
 
 
 class HomeStatus(HomeData):

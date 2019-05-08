@@ -98,9 +98,7 @@ class WeatherStationData:
                     ["windangle", "windstrength", "gustangle", "guststrength"]
                 )
             elif cond == "Rain":
-                conditions.extend(
-                    ["Rain", "sum_rain_24", "sum_rain_1"]
-                )
+                conditions.extend(["Rain", "sum_rain_24", "sum_rain_1"])
             else:
                 conditions.append(cond.lower())
         if mod["type"] == "NAMain" or mod["type"] == "NHC":

@@ -19,7 +19,6 @@ _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
 _SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 
-
 class NoSchedule(Exception):
     pass
 
@@ -94,7 +93,7 @@ class HomeData:
             home = self.default_home
         for key, value in self.homes.items():
             if value["name"] == home:
-                LOG.debug(self.homes[key]['id'])
+                LOG.debug(self.homes[key]["id"])
                 LOG.debug(self.default_home)
                 if "therm_schedules" in self.homes[key]:
                     return self.homes[key]["id"]
@@ -133,7 +132,6 @@ class HomeData:
         LOG.debug("Response: %s", resp)
 
 
-
 class HomeStatus(HomeData):
     """
     """
@@ -145,7 +143,7 @@ class HomeStatus(HomeData):
         # print(home_data.modules)
         if home_id:
             self.home_id = home_id
-            LOG.debug('home_id', self.home_id)
+            LOG.debug("home_id", self.home_id)
         elif home:
             self.home_id = self.home_data.gethomeId(home=home)
         else:

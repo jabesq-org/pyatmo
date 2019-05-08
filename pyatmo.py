@@ -141,8 +141,13 @@ if __name__ == "__main__":
 
     try:
         import os
-        if (os.environ["CLIENT_ID"] and os.environ["CLIENT_SECRET"] and
-            os.environ["USERNAME"] and os.environ["PASSWORD"]):
+
+        if (
+            os.environ["CLIENT_ID"]
+            and os.environ["CLIENT_SECRET"]
+            and os.environ["USERNAME"]
+            and os.environ["PASSWORD"]
+        ):
             _CLIENT_ID = os.environ["CLIENT_ID"]
             _CLIENT_SECRET = os.environ["CLIENT_SECRET"]
             _USERNAME = os.environ["USERNAME"]
@@ -159,11 +164,11 @@ if __name__ == "__main__":
         exit(1)
 
     authorization = ClientAuth(
-        clientId = _CLIENT_ID,
-        clientSecret = _CLIENT_SECRET,
-        username = _USERNAME,
-        password = _PASSWORD,
-        scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence"
+        clientId=_CLIENT_ID,
+        clientSecret=_CLIENT_SECRET,
+        username=_USERNAME,
+        password=_PASSWORD,
+        scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence",
     )  # Test authentication method
 
     try:

@@ -99,7 +99,7 @@ class WeatherStationData:
                 )
             elif cond == "Rain":
                 conditions.extend(
-                    ["sum_rain_24", "sum_rain_1"]
+                    ["Rain", "sum_rain_24", "sum_rain_1"]
                 )
             else:
                 conditions.append(cond.lower())

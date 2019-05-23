@@ -1,9 +1,9 @@
+import json
+import logging
+import socket
 import time
 import traceback
 from sys import version_info
-import json
-import logging
-
 
 LOG = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def postRequest(url, params=None, timeout=10):
                 if params
                 else urllib.request.urlopen(req, timeout=timeout)
             )
-        except urllib.error.URLError:
+        except (urllib.error.URLError, socket.timeout):
             LOG.error(traceback.format_exc())
             return None
     else:

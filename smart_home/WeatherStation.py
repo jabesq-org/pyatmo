@@ -21,7 +21,9 @@ class WeatherStationData:
         self.getAuthToken = authData.accessToken
         postParams = {"access_token": self.getAuthToken}
         resp = postRequest(self.urlReq, postParams)
-        self.rawData = resp["body"]["devices"]
+        if resp is None:
+            raise NoDevice("No weather station available")
+        self.rawData = resp["body"].get("devices")
         if not self.rawData:
             raise NoDevice("No weather station available")
         self.stations = {d["_id"]: d for d in self.rawData}

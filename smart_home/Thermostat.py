@@ -51,8 +51,7 @@ class HomeData:
         for i in range(len(self.rawData)):
             nameHome = self.rawData[i].get("name")
             if not nameHome:
-                raise NoDevice("No key [\"name\"] in %s",
-                               self.rawData[i].keys())
+                raise NoDevice('No key ["name"] in %s', self.rawData[i].keys())
             if "modules" in self.rawData[i]:
                 if nameHome not in self.modules:
                     self.modules[nameHome] = dict()

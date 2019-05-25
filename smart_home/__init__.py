@@ -39,9 +39,7 @@ def postRequest(url, params=None, timeout=10):
     for buff in iter(lambda: resp.read(65535), b""):
         data += buff
     # Return values in bytes if not json data to handle properly camera images
-    returnedContentType = (
-        resp.getheader("Content-Type")
-    )
+    returnedContentType = resp.getheader("Content-Type")
     return (
         json.loads(data.decode("utf-8"))
         if "application/json" in returnedContentType

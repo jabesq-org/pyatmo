@@ -29,10 +29,12 @@ class CameraData:
         self.getAuthToken = authData.accessToken
         postParams = {"access_token": self.getAuthToken, "size": size}
         resp = postRequest(_GETHOMEDATA_REQ, postParams)
-        if "body" not in resp:
-            raise URLError("No data returned by Netatmo server")
-        self.rawData = resp["body"]
-        self.homes = {d["id"]: d for d in self.rawData["homes"]}
+        if resp is None:
+            raise URLError("No camera data returned by Netatmo server")
+        self.rawData = resp["body"].get("homes")
+        if not self.rawData:
+            raise NoDevice("No camera data available")
+        self.homes = {d["id"]: d for d in self.rawData}
         if not self.homes:
             raise NoDevice("No camera available")
         self.persons = dict()
@@ -45,17 +47,20 @@ class CameraData:
         self.types = dict()
         self.default_home = None
         self.default_camera = None
-        for i in range(len(self.rawData["homes"])):
-            nameHome = self.rawData["homes"][i]["name"]
+        for i in range(len(self.rawData)):
+            nameHome = self.rawData[i].get("name")
+            if not nameHome:
+                raise NoDevice("No key [\"name\"] in %s" %
+                               self.rawData[i].keys())
             if nameHome not in self.cameras:
                 self.cameras[nameHome] = dict()
             if nameHome not in self.types:
                 self.types[nameHome] = dict()
-            for p in self.rawData["homes"][i]["persons"]:
+            for p in self.rawData[i]["persons"]:
                 self.persons[p["id"]] = p
-            if "events" in self.rawData["homes"][i]:
-                self.default_home = self.rawData["homes"][i]["name"]
-                for e in self.rawData["homes"][i]["events"]:
+            if "events" in self.rawData[i]:
+                self.default_home = self.rawData[i]["name"]
+                for e in self.rawData[i]["events"]:
                     if e["type"] == "outdoor":
                         if e["camera_id"] not in self.outdoor_events:
                             self.outdoor_events[e["camera_id"]] = dict()
@@ -64,13 +69,13 @@ class CameraData:
                         if e["camera_id"] not in self.events:
                             self.events[e["camera_id"]] = dict()
                         self.events[e["camera_id"]][e["time"]] = e
-            for c in self.rawData["homes"][i]["cameras"]:
+            for c in self.rawData[i]["cameras"]:
                 self.cameras[nameHome][c["id"]] = c
                 if c["type"] == "NACamera" and "modules" in c:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
                         self.modules[m["id"]]["cam_id"] = c["id"]
-            for t in self.rawData["homes"][i]["cameras"]:
+            for t in self.rawData[i]["cameras"]:
                 self.types[nameHome][t["type"]] = t
         for camera in self.events:
             self.lastEvent[camera] = self.events[camera][

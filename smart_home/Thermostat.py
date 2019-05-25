@@ -35,8 +35,11 @@ class HomeData:
         self.getAuthToken = authData.accessToken
         postParams = {"access_token": self.getAuthToken}
         resp = postRequest(_GETHOMESDATA_REQ, postParams)
-
-        self.rawData = resp["body"]["homes"]
+        if resp is None:
+            raise NoDevice("No thermostat data returned by Netatmo server")
+        self.rawData = resp["body"].get("homes")
+        if not self.rawData:
+            raise NoDevice("No thermostat data available")
         self.homes = {d["id"]: d for d in self.rawData}
         if not self.homes:
             raise NoDevice("No thermostat available")
@@ -46,7 +49,10 @@ class HomeData:
         self.zones = dict()
         self.setpoint_duration = dict()
         for i in range(len(self.rawData)):
-            nameHome = self.rawData[i]["name"]
+            nameHome = self.rawData[i].get("name")
+            if not nameHome:
+                raise NoDevice("No key [\"name\"] in %s",
+                               self.rawData[i].keys())
             if "modules" in self.rawData[i]:
                 if nameHome not in self.modules:
                     self.modules[nameHome] = dict()

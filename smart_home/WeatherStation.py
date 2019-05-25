@@ -22,7 +22,7 @@ class WeatherStationData:
         postParams = {"access_token": self.getAuthToken}
         resp = postRequest(self.urlReq, postParams)
         if resp is None:
-            raise NoDevice("No weather station available")
+            raise NoDevice("No weather station data returned by Netatmo server")
         self.rawData = resp["body"].get("devices")
         if not self.rawData:
             raise NoDevice("No weather station available")

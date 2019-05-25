@@ -3,19 +3,12 @@ import logging
 import socket
 import time
 import traceback
-from sys import version_info
+import urllib.parse, urllib.request
 
 LOG = logging.getLogger(__name__)
 
 # Common definitions
 _BASE_URL = "https://api.netatmo.com/"
-
-# HTTP libraries depends upon Python 2 or 3
-if version_info.major == 3:
-    import urllib.parse, urllib.request
-else:
-    from urllib import urlencode
-    import urllib2
 
 
 class NoDevice(Exception):
@@ -26,45 +19,28 @@ class NoDevice(Exception):
 
 
 def postRequest(url, params=None, timeout=10):
-    if version_info.major == 3:
-        req = urllib.request.Request(url)
-        if params:
-            req.add_header(
-                "Content-Type", "application/x-www-form-urlencoded;charset=utf-8"
-            )
-            params = urllib.parse.urlencode(params).encode("utf-8")
-        try:
-            resp = (
-                urllib.request.urlopen(req, params, timeout=timeout)
-                if params
-                else urllib.request.urlopen(req, timeout=timeout)
-            )
-        except (urllib.error.URLError, socket.timeout):
-            LOG.error(traceback.format_exc())
-            return None
-    else:
-        if params:
-            params = urlencode(params)
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
-            }
-        req = (
-            urllib2.Request(url=url, data=params, headers=headers)
-            if params
-            else urllib2.Request(url)
+    req = urllib.request.Request(url)
+    if params:
+        req.add_header(
+            "Content-Type", "application/x-www-form-urlencoded;charset=utf-8"
         )
-        try:
-            resp = urllib2.urlopen(req, timeout=timeout)
-        except urllib2.URLError:
-            return None
+        params = urllib.parse.urlencode(params).encode("utf-8")
+    try:
+        resp = (
+            urllib.request.urlopen(req, params, timeout=timeout)
+            if params
+            else urllib.request.urlopen(req, timeout=timeout)
+        )
+    except (urllib.error.URLError, socket.timeout):
+        LOG.debug("params: %s", params)
+        LOG.error(traceback.format_exc())
+        return None
     data = b""
     for buff in iter(lambda: resp.read(65535), b""):
         data += buff
     # Return values in bytes if not json data to handle properly camera images
     returnedContentType = (
         resp.getheader("Content-Type")
-        if version_info.major == 3
-        else resp.info()["Content-Type"]
     )
     return (
         json.loads(data.decode("utf-8"))

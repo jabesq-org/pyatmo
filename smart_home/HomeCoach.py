@@ -1,9 +1,8 @@
 """
 coding=utf-8
 """
-from .WeatherStation import WeatherStationData
-
 from . import _BASE_URL
+from .WeatherStation import WeatherStationData
 
 _GETHOMECOACHDATA_REQ = _BASE_URL + "api/gethomecoachsdata"
 

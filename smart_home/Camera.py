@@ -2,12 +2,11 @@
 coding=utf-8
 """
 import imghdr
-import time
 import logging
-
+import time
 from urllib.error import URLError
-from . import NoDevice, postRequest, _BASE_URL
 
+from . import _BASE_URL, NoDevice, postRequest
 
 LOG = logging.getLogger(__name__)
 

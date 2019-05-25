@@ -10,15 +10,15 @@ require anything else than standard libraries
 PythonAPI Netatmo REST data access
 coding=utf-8
 """
-import time
 import logging
+import time
 
-from smart_home.WeatherStation import WeatherStationData, DeviceList
+from smart_home import _BASE_URL, NoDevice, postRequest
 from smart_home.Camera import CameraData
-from smart_home.Thermostat import ThermostatData, HomeData, HomeStatus
-from smart_home.PublicData import PublicData
 from smart_home.HomeCoach import HomeCoachData
-from smart_home import _BASE_URL, postRequest, NoDevice
+from smart_home.PublicData import PublicData
+from smart_home.Thermostat import HomeData, HomeStatus, ThermostatData
+from smart_home.WeatherStation import DeviceList, WeatherStationData
 
 LOG = logging.getLogger(__name__)
 

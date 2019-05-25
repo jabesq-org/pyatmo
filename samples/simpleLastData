@@ -16,4 +16,3 @@ print ("Current temperature (inside/outside): %s / %s °C" %
         ( devList.lastData()['internal']['Temperature'],
           devList.lastData()['external']['Temperature'])
       )
-

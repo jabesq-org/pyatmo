@@ -10,6 +10,7 @@
 #  significant)
 
 import time
+
 import lnetatmo
 
 authorization = lnetatmo.ClientAuth()

@@ -1,8 +1,8 @@
 # python setup.py --dry-run --verbose install
 
 from distutils.core import setup
-import setuptools
 
+import setuptools
 
 setup(
     name="pyatmo",

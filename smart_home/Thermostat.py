@@ -1,11 +1,10 @@
 """
 coding=utf-8
 """
-import time
 import logging
+import time
 
-from . import NoDevice, postRequest, _BASE_URL
-
+from . import _BASE_URL, NoDevice, postRequest
 
 LOG = logging.getLogger(__name__)
 

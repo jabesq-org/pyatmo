@@ -3,7 +3,7 @@ coding=utf-8
 """
 import time
 
-from . import postRequest, _BASE_URL
+from . import _BASE_URL, postRequest
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652

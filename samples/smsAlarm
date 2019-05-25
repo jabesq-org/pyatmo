@@ -8,8 +8,11 @@
 # peoples (here phone1 and phone2 are two mobile phone numbers)
 # Note : lsms is my personnal library to send SMS using a GSM modem, you have to use your method/library
 
-import sys, os
-import lnetatmo,lsms
+import os
+import sys
+
+import lnetatmo
+import lsms
 
 MARKER_FILE = "/<somewhere>/TempAlarm"   # This flag file will be used to avoid sending multiple SMS on the same event
                                          # Remember that the user who run the cron job must have the rights to create the file

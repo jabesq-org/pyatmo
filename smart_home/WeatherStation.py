@@ -1,9 +1,10 @@
 """
 coding=utf-8
 """
-import warnings, time
+import time
+import warnings
 
-from . import NoDevice, postRequest, todayStamps, _BASE_URL
+from . import _BASE_URL, NoDevice, postRequest, todayStamps
 
 _GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
 _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"

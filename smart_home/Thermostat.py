@@ -119,8 +119,8 @@ class HomeData:
             for s in self.schedules[home]
         }
         if schedule is None and schedule_id is not None:
-            if schedule_id not in schedules.items():
-                raise NoSchedule("%s is not a valid schedule" % schedule_id)
+            if schedule_id not in schedules.values():
+                raise NoSchedule("%s is not a valid schedule id" % schedule_id)
         elif schedule_id is None and schedule is not None:
             if schedule not in schedules.keys():
                 raise NoSchedule("%s is not a valid schedule" % schedule)

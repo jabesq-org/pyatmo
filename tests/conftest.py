@@ -1,18 +1,12 @@
-"""Define tests for authentication."""
+"""Define shared fixtures."""
 import json
 import pytest
 import pyatmo
 
 
-def test_ClientAuth(auth, requests_mock):
-    assert (
-        auth.accessToken == "91763b24c43d3e344f424e8b|880b55a08c758e87ff8755a00c6b8a12"
-    )
-
-
-@pytest.mark.xfail(raises=KeyError)
-def test_ClientAuth_invalid(requests_mock):
-    with open("fixtures/invalid_grant.json") as f:
+@pytest.fixture(scope="function")
+def auth(requests_mock):
+    with open("fixtures/oauth2_token.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
         pyatmo._AUTH_REQ,
@@ -24,4 +18,8 @@ def test_ClientAuth_invalid(requests_mock):
         clientSecret="CLIENT_SECRET",
         username="USERNAME",
         password="PASSWORD",
+        scope="read_station read_camera access_camera "
+        "read_thermostat write_thermostat "
+        "read_presence access_presence read_homecoach",
     )
+    return authorization

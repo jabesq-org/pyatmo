@@ -3,7 +3,8 @@ import logging
 import socket
 import time
 import traceback
-import urllib.parse, urllib.request
+
+import requests
 
 LOG = logging.getLogger(__name__)
 
@@ -19,31 +20,11 @@ class NoDevice(Exception):
 
 
 def postRequest(url, params=None, timeout=10):
-    req = urllib.request.Request(url)
-    if params:
-        req.add_header(
-            "Content-Type", "application/x-www-form-urlencoded;charset=utf-8"
-        )
-        params = urllib.parse.urlencode(params).encode("utf-8")
-    try:
-        resp = (
-            urllib.request.urlopen(req, params, timeout=timeout)
-            if params
-            else urllib.request.urlopen(req, timeout=timeout)
-        )
-    except (urllib.error.URLError, socket.timeout):
-        LOG.debug("params: %s", params)
-        LOG.error(traceback.format_exc())
-        return None
-    data = b""
-    for buff in iter(lambda: resp.read(65535), b""):
-        data += buff
-    # Return values in bytes if not json data to handle properly camera images
-    returnedContentType = resp.getheader("Content-Type")
+    resp = requests.post(url, data=params, timeout=timeout)
     return (
-        json.loads(data.decode("utf-8"))
-        if "application/json" in returnedContentType
-        else data
+        resp.json()
+        if "application/json" in resp.headers.get("content-type")
+        else resp.content
     )
 
 

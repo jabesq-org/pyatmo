@@ -2,7 +2,7 @@ netatmo-api-python
 ==================
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-Simple API to access Netatmo devices and data like weather station or camera data from python.
+Simple API to access Netatmo devices and data like weather station or camera data from Python 3.
 For more detailed information see http://dev.netatmo.com
 
 This project has no relation with the Netatmo company.
@@ -14,7 +14,7 @@ To install pyatmo simply run:
     pip install pyatmo
 
 Depending on your permissions you might be required to use sudo.
-Once installed you can simple add `pyatmo` to your python scripts by including:
+Once installed you can simple add `pyatmo` to your Python 3 scripts by including:
 
     import pyatmo
 

@@ -16,7 +16,7 @@ setup(
     data_files=[],
     url="https://github.com/jabesq/netatmo-api-python",
     license="MIT",
-    description="Simple API to access Netatmo weather station data from any python script. "
+    description="Simple API to access Netatmo weather station data from any Python 3 script. "
     "Design for Home-Assitant (but not only)",
     long_description=open("README.md").read(),
 )

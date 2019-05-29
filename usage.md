@@ -12,9 +12,7 @@ Python Netatmo API programmers guide
 >2016-12-09 Update documentation for all Netatmo cameras
 
 
-No additional library other than standard Python library is required.
-
-Both Python V2.7x and V3.x.x are supported without change.
+No additional library other than standard Python 3 library is required.
 
 More information about the Netatmo REST API can be obtained from http://dev.netatmo.com/doc/
 
@@ -40,28 +38,19 @@ In the netatmo philosophy, both the application itself and the user have to be r
 
 
 
-Copy the lnetatmo.py file in your work directory (or your platform choice of user libraries or virtualenv or ...).
+Install `pyatmo` as described in the `README.md`.
 
-To ease future uses, I suggest that you hardcode in the library your application and user credentials. This is not mandatory as this parameters can be explicitly passed at authentication phase but will save you parameters each time you write a new tool.
-
-If you want to do it, just edit the source file and hard code required values for :
-
-
-```python
-_CLIENT_ID     = "<your client_id>"
-_CLIENT_SECRET = "<your client_secret>"
-_USERNAME      = "<netatmo username>"
-_PASSWORD      = "<netatmo user password>"
-```
-
-
-If you provide all the values, you can test that everything is working properly by simply running the package as a standalone program.
+If you provide your credentials, you can test if everything is working properly by simply running the package as a standalone program.
 
 This will run a full access test to the account and stations and return 0 as return code if everything works well. If run interactively, it will also display an OK message.
 
 ```bash
-$ python3 lnetatmo.py  # or python2 as well
-lnetatmo.py : OK
+$ export CLIENT_ID="<your client_id>"
+$ export CLIENT_SECRET="<your client_secret>"
+$ export USERNAME="<netatmo username>"
+$ export PASSWORD="<netatmo user password>"
+$ python3 pyatmo.py
+pyatmo.py : OK
 $ echo $?
 0
 ```
@@ -82,25 +71,34 @@ Most of the time, the sequence of operations will be :
 Example :
 
 ```python
-#!/usr/bin/python3
-# encoding=utf-8
-
-import lnetatmo
+import pyatmo
 
 # 1 : Authenticate
-authorization = lnetatmo.ClientAuth()
+CLIENT_ID = '123456789abcd1234'
+CLIENT_SECRET = '123456789abcd1234'
+USERNAME = 'your@account.com'
+PASSWORD = 'abcdef-123456-ghijkl'
+authorization = pyatmo.ClientAuth(
+    clientId=CLIENT_ID,
+    clientSecret=CLIENT_SECRET,
+    username=USERNAME,
+    password=PASSWORD,
+)
 
 # 2 : Get devices list
-weatherData = lnetatmo.WeatherStationData(authorization)
+weatherData = pyatmo.WeatherStationData(authorization)
 
 # 3 : Access most fresh data directly
-print ("Current temperature (inside/outside): %s / %s °C" %
-            ( weatherData.lastData()['indoor']['Temperature'],
-              weatherData.lastData()['outdoor']['Temperature'])
+print(
+    "Current temperature (inside/outside): %s / %s °C"
+    % (
+        weatherData.lastData()["indoor"]["Temperature"],
+        weatherData.lastData()["outdoor"]["Temperature"],
+    )
 )
 ```
 
-In this example, no init parameters are supplied to ClientAuth, the library is supposed to have been customized with the required values (see §2). The user must have named the sensors indoor and outdoor through the Web interface (or any other name as long as the program is requesting the same name).
+The user must have named the sensors indoor and outdoor through the Web interface (or any other name as long as the program is requesting the same name).
 
 The Netatmo design is based on stations (usually the in-house module) and modules (radio sensors reporting to a station, usually an outdoor sensor).
 
@@ -129,11 +127,6 @@ The results are Python data structures, mostly dictionaries as they mirror easil
 
 
 ```python
-_CLIENT_ID, _CLIENT_SECRET = Application ID and secret provided by Netatmo
-application registration in your user account
-
-_USERNAME, _PASSWORD : Username and password of your netatmo account
-
 _BASE_URL and _*_REQ : Various URL to access Netatmo web services. They are
 documented in http://dev.netatmo.com/doc/ They should not be changed unless
 Netatmo API changes.
@@ -148,16 +141,17 @@ Netatmo API changes.
 Constructor
 
 ```python
-    authorization = lnetatmo.ClientAuth( clientId = _CLIENT_ID,
-                                         clientSecret = _CLIENT_SECRET,
-                                         username = _USERNAME,
-                                         password = _PASSWORD,
-                                         scope = "read_station"
-                                        )
+authorization = pyatmo.ClientAuth(
+    clientId=CLIENT_ID,
+    clientSecret=CLIENT_SECRET,
+    username=USERNAME,
+    password=PASSWORD,
+    scope="read_station",
+)
 ```
 
 
-Requires : Application and User credentials to access Netatmo API. if all this parameters are put in global variables they are not required (in library source code or in the main program through lnetatmo._CLIENT_ID = …)
+Requires : Application and User credentials to access Netatmo API.
 
 
 Return : an authorization object that will supply the access token required by other web services. This class will handle the renewal of the access token if expiration is reached.
@@ -183,43 +177,14 @@ Several value can be used at the same time, ie: 'read_station read_camera'
 
 
 
-#### 4-3 User class ####
+#### 4-3 WeatherStationData class ####
 
 
 
 Constructor
 
 ```python
-    user = lnetatmo.User( authorization )
-```
-
-
-Requires : an authorization object (ClientAuth instance)
-
-
-Return : a User object. This object provides multiple informations on the user account such as the mail address of the user, the preferred language, …
-
-
-Properties, all properties are read-only unless specified :
-
-
-  * **rawData** : Full dictionary of the returned JSON GETUSER Netatmo API service
-  * **ownerMail** : eMail address associated to the user account
-  * **devList** : List of Station's id accessible to the user account
-
-
-In most cases, you will not need to use this class that is oriented toward an application that would use the other authentication method to an unknown user and then get information about him.
-
-
-
-#### 4-4 WeatherStationData class ####
-
-
-
-Constructor
-
-```python
-    weatherData = lnetatmo.WeatherStationData( authorization )
+weatherData = pyatmo.WeatherStationData(authorization)
 ```
 
 
@@ -228,7 +193,7 @@ Requires : an authorization object (ClientAuth instance)
 
 Return : a WeatherStationData object. This object contains most administration properties of stations and modules accessible to the user and the last data pushed by the station to the Netatmo servers.
 
-Raise a lnetatmo.NoDevice exception if no weather station is available for the given account.
+Raise a pyatmo.NoDevice exception if no weather station is available for the given account.
 
 Properties, all properties are read-only unless specified:
 
@@ -279,11 +244,11 @@ Methods :
 # Last data access example
 
 theData = weatherData.lastData()
-print('Available modules : ', theData.keys() )
-print('In-house CO2 level : ', theData['indoor']['Co2'] )
-print('Outside temperature : ', theData['outdoor']['Temperature'] )
+print('Available modules : ', theData.keys())
+print('In-house CO2 level : ', theData['indoor']['Co2'])
+print('Outside temperature : ', theData['outdoor']['Temperature'])
 print('External module battery : ', "OK" if int(theData['outdoor']['battery_vp']) > 5000 \
-                                     else "NEEDS TO BE REPLACED" )
+                                         else "NEEDS TO BE REPLACED")
 ```
   * **checkNotUpdated** (station=None, delay=3600) :
     * Input : optional station name (else default_station is used)
@@ -322,14 +287,14 @@ for m in weatherData.checkNotUpdated("<optional station name>"):
 at all if you slip over two days as required in a shifting 24 hours window.
 
 
-#### 4-5 CameraData class ####
+#### 4-4 CameraData class ####
 
 
 
 Constructor
 
 ```python
-    cameraData = lnetatmo.CameraData( authorization )
+cameraData = pyatmo.CameraData( authorization )
 ```
 
 
@@ -338,7 +303,7 @@ Requires : an authorization object (ClientAuth instance)
 
 Return : a CameraData object. This object contains most administration properties of Netatmo cameras accessible to the user and the last data pushed by the cameras to the Netatmo servers.
 
-Raise a lnetatmo.NoDevice exception if no camera is available for the given account.
+Raise a pyatmo.NoDevice exception if no camera is available for the given account.
 
 Properties, all properties are read-only unless specified:
 
@@ -410,14 +375,16 @@ Methods :
 
   * **carDetected** (home=None, camera=None) : Return True if a car has been detected in the last outdoor events
 
-  #### 4-6 ThermostatData class ####
+
+
+  #### 4-5 ThermostatData class ####
 
 
 
   Constructor
 
   ```python
-      thermostatData = lnetatmo.ThermostatData( authorization )
+  thermostatData = pyatmo.ThermostatData(authorization)
   ```
 
 
@@ -426,7 +393,7 @@ Methods :
 
   Return : a ThermostatData object. This object contains most administration properties of Netatmo thermostats accessible to the user and the last data pushed by the thermostats to the Netatmo servers.
 
-  Raise a lnetatmo.NoDevice exception if no thermostat is available for the given account.
+  Raise a pyatmo.NoDevice exception if no thermostat is available for the given account.
 
   Properties, all properties are read-only unless specified:
 
@@ -464,28 +431,12 @@ Methods :
       * Input : device_id and module_id and setpoint_mode
 
 
-#### 4-7 Utilities functions ####
+
+
+#### 4-6 Utilities functions ####
 
 
   * **toTimeString** (timestamp) : Convert a Netatmo time stamp to a readable date/time format.
   * **toEpoch**( dateString) : Convert a date string (form YYYY-MM-DD_HH:MM:SS) to timestamp
   * **todayStamps**() : Return a couple of epoch time (start, end) for the current day
 
-
-#### 4-8 All-in-One function ####
-
-
-If you just need the current temperature and humidity reported by a sensor with associated min and max values on the last 24 hours, you can get it all with only one call that handle all required steps including authentication :
-
-
-**getStationMinMaxTH**(station=None, module=None) :
-  * Input : optional station name and/or module name (if no station name is provided, default_station will be used, if no module name is provided, station sensor will be reported).
-  * Output : A tuple of 6 values (Temperature, Humidity, minT, MaxT, minH, maxH)
-
-```python
->>> import lnetatmo
->>> print(lnetatmo.getStationMinMaxTH())
-[20, 33, 18.1, 20, 30, 34]
->>>
->>> print(lnetatmo.getStationMinMaxTH(module='outdoor'))
-[2, 53, 1.2, 5.4, 51, 74]

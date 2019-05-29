@@ -5,8 +5,7 @@
 """
 This API provides access to the Netatmo weather station or/and the Netatmo
 cameras or/and the Netatmo smart thermostat
-This package can be used with Python2 or Python3 applications and do not
-require anything else than standard libraries
+This package can be used with Python3 applications
 PythonAPI Netatmo REST data access
 coding=utf-8
 """
@@ -21,21 +20,6 @@ from smart_home.Thermostat import HomeData, HomeStatus, ThermostatData
 from smart_home.WeatherStation import DeviceList, WeatherStationData
 
 LOG = logging.getLogger(__name__)
-
-######################## USER SPECIFIC INFORMATION ######################
-
-# To be able to have a program accessing your netatmo data, you have to register your program as
-# a Netatmo app in your Netatmo account. All you have to do is to give it a name (whatever) and you will be
-# returned a client_id and secret that your app has to supply to access netatmo servers.
-
-_CLIENT_ID = (
-    ""
-)  # Your client ID from Netatmo app registration at http://dev.netatmo.com/dev/listapps
-_CLIENT_SECRET = ""  # Your client app secret   '     '
-_USERNAME = ""  # Your netatmo account username
-_PASSWORD = ""  # Your netatmo account password
-
-#########################################################################
 
 
 # Common definitions
@@ -64,12 +48,7 @@ class ClientAuth:
     """
 
     def __init__(
-        self,
-        clientId=_CLIENT_ID,
-        clientSecret=_CLIENT_SECRET,
-        username=_USERNAME,
-        password=_PASSWORD,
-        scope="read_station",
+        self, clientId, clientSecret, username, password, scope="read_station"
     ):
         postParams = {
             "grant_type": "password",
@@ -118,21 +97,6 @@ class ClientAuth:
         return self._accessToken
 
 
-class User:
-    """
-    This class returns basic information about the user
-    Args:
-        authData (ClientAuth): Authentication information with a working access Token
-    """
-
-    def __init__(self, authData):
-        postParams = {"access_token": authData.accessToken}
-        resp = postRequest(_GETSTATIONDATA_REQ, postParams)
-        self.rawData = resp["body"]
-        self.devList = self.rawData["devices"]
-        self.ownerMail = self.rawData["user"]["mail"]
-
-
 # auto-test when executed directly
 
 if __name__ == "__main__":
@@ -148,26 +112,21 @@ if __name__ == "__main__":
             and os.environ["USERNAME"]
             and os.environ["PASSWORD"]
         ):
-            _CLIENT_ID = os.environ["CLIENT_ID"]
-            _CLIENT_SECRET = os.environ["CLIENT_SECRET"]
-            _USERNAME = os.environ["USERNAME"]
-            _PASSWORD = os.environ["PASSWORD"]
+            CLIENT_ID = os.environ["CLIENT_ID"]
+            CLIENT_SECRET = os.environ["CLIENT_SECRET"]
+            USERNAME = os.environ["USERNAME"]
+            PASSWORD = os.environ["PASSWORD"]
     except KeyError:
         stderr.write(
             "No credentials passed to pyatmo.py (client_id, client_secret, username, password)\n"
         )
-
-    if not _CLIENT_ID or not _CLIENT_SECRET or not _USERNAME or not _PASSWORD:
-        stderr.write(
-            "Library source missing identification arguments to check pyatmo.py (user/password/etc...)\n"
-        )
         exit(1)
 
     authorization = ClientAuth(
-        clientId=_CLIENT_ID,
-        clientSecret=_CLIENT_SECRET,
-        username=_USERNAME,
-        password=_PASSWORD,
+        clientId=CLIENT_ID,
+        clientSecret=CLIENT_SECRET,
+        username=USERNAME,
+        password=PASSWORD,
         scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence",
     )  # Test authentication method
 

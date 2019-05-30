@@ -197,6 +197,7 @@
                         "hg_temp": 7,
                         "away_temp": 14,
                         "name": "Default",
+                        "selected": true,
                         "id": "591b54a2764ff4d50d8b5795",
                         "type": "therm"
                     }
@@ -380,6 +381,7 @@
                         "away_temp": 14,
                         "name": "Default",
                         "id": "591b54a2764ff4d50d8b5795",
+                        "selected": true,
                         "type": "therm"
                     }
                 ],

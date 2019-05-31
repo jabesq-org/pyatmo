@@ -33,7 +33,7 @@
                     {
                         "id": "12:34:56:00:fa:d0",
                         "type": "NAPlug",
-                        "name": "Raumthermostat",
+                        "name": "Thermostat",
                         "setup_date": 1494963356,
                         "modules_bridged": [
                             "12:34:56:00:01:ae"

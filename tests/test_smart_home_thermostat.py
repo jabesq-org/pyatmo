@@ -1,4 +1,5 @@
 """Define tests for Thermostat module."""
+import pytest
 
 
 def test_HomeData(homeData):
@@ -11,7 +12,7 @@ def test_HomeData(homeData):
         "12:34:56:00:fa:d0": {
             "id": "12:34:56:00:fa:d0",
             "type": "NAPlug",
-            "name": "Raumthermostat",
+            "name": "Thermostat",
             "setup_date": 1494963356,
             "modules_bridged": ["12:34:56:00:01:ae"],
         },
@@ -134,3 +135,53 @@ def test_HomeStatus_boilerStatus(homeStatus):
 
 def test_HomeStatus_thermostatType(homeStatus, homeData):
     assert homeStatus.thermostatType("MYHOME", "2746182631") == "NATherm1"
+
+
+def test_ThermostatData(thermostatData):
+    assert thermostatData.default_device == "Thermostat"
+    assert thermostatData.default_module == "Livingroom"
+    assert thermostatData.temp == 19.8
+
+
+def test_ThermostatData_lastData(thermostatData):
+    expected = {
+        "Livingroom": {
+            "time": 1559297836,
+            "temperature": 19.8,
+            "setpoint_temp": 12,
+            "setpoint_mode": "away",
+            "battery_vp": 3798,
+            "rf_status": 59,
+            "therm_relay_cmd": 0,
+            "battery_percent": 53,
+        }
+    }
+    assert thermostatData.lastData() == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected", [("station_name", "Thermostat"), ("type", "NAPlug")]
+)
+def test_ThermostatData_deviceById(thermostatData, test_input, expected):
+    assert thermostatData.deviceById("12:34:56:00:fa:d0")[test_input] == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected", [("_id", "12:34:56:00:fa:d0"), ("type", "NAPlug")]
+)
+def test_ThermostatData_deviceByName(thermostatData, test_input, expected):
+    assert thermostatData.deviceByName("Thermostat")[test_input] == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected", [("module_name", "Livingroom"), ("type", "NATherm1")]
+)
+def test_ThermostatData_moduleById(thermostatData, test_input, expected):
+    assert thermostatData.moduleById("12:34:56:00:01:ae")[test_input] == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected", [("_id", "12:34:56:00:01:ae"), ("type", "NATherm1")]
+)
+def test_ThermostatData_moduleByName(thermostatData, test_input, expected):
+    assert thermostatData.moduleByName("Livingroom")[test_input] == expected

@@ -57,3 +57,15 @@ def homeStatus(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     return pyatmo.HomeStatus(auth)
+
+
+@pytest.fixture(scope="function")
+def thermostatData(auth, requests_mock):
+    with open("fixtures/thermostat_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        th._GETTHERMOSTATDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    return pyatmo.ThermostatData(auth)

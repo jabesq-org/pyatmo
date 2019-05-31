@@ -1,5 +1,9 @@
 """Define tests for Thermostat module."""
+import json
+
 import pytest
+
+import smart_home.Thermostat as th
 
 
 def test_HomeData(homeData):
@@ -185,3 +189,25 @@ def test_ThermostatData_moduleById(thermostatData, test_input, expected):
 )
 def test_ThermostatData_moduleByName(thermostatData, test_input, expected):
     assert thermostatData.moduleByName("Livingroom")[test_input] == expected
+
+
+@pytest.mark.parametrize(
+    "mode, temp, endTimeOffset, expected",
+    [
+        (
+            "manual",
+            19,
+            3600,
+            {"status": "ok", "time_exec": 0.020781993865967, "time_server": 1559162635},
+        )
+    ],
+)
+def test_ThermostatData_setthermpoint(
+    thermostatData, requests_mock, mode, temp, endTimeOffset, expected
+):
+    with open("fixtures/status_ok.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        th._SETTEMP_REQ, json=json_fixture, headers={"content-type": "application/json"}
+    )
+    assert thermostatData.setthermpoint(mode, temp, endTimeOffset) == expected

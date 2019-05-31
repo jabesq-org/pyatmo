@@ -1,0 +1,268 @@
+{
+    "body": {
+        "devices": [
+            {
+                "_id": "12:34:56:00:fa:d0",
+                "firmware": 174,
+                "last_bilan": {
+                    "y": 2019,
+                    "m": 4
+                },
+                "last_setup": 1494963356,
+                "last_status_store": 1559297986,
+                "place": {
+                    "altitude": 112,
+                    "city": "Berlin",
+                    "country": "DE",
+                    "improveLocProposed": true,
+                    "location": [
+                        52.516263,
+                        13.377726
+                    ],
+                    "timezone": "Europe/Berlin",
+                    "trust_location": true
+                },
+                "plug_connected_boiler": 1,
+                "type": "NAPlug",
+                "udp_conn": true,
+                "wifi_status": 42,
+                "modules": [
+                    {
+                        "_id": "12:34:56:00:01:ae",
+                        "module_name": "Livingroom",
+                        "type": "NATherm1",
+                        "firmware": 65,
+                        "last_message": 1559297976,
+                        "rf_status": 59,
+                        "battery_vp": 3798,
+                        "therm_orientation": 3,
+                        "therm_relay_cmd": 0,
+                        "anticipating": false,
+                        "battery_percent": 53,
+                        "event_history": {
+                            "boiler_not_responding_events": [
+                                {
+                                    "K": 1506103090
+                                },
+                                {
+                                    "K": 1514496738
+                                },
+                                {
+                                    "K": 1514583682
+                                },
+                                {
+                                    "K": 1518695843
+                                },
+                                {
+                                    "K": 1518813960
+                                }
+                            ],
+                            "boiler_responding_events": [
+                                {
+                                    "K": 1506281109
+                                },
+                                {
+                                    "K": 1514552830
+                                },
+                                {
+                                    "K": 1514757686
+                                },
+                                {
+                                    "K": 1518798339
+                                },
+                                {
+                                    "K": 1518965265
+                                }
+                            ]
+                        },
+                        "setpoint_history": [
+                            {
+                                "setpoint": {
+                                    "setpoint_mode": "hg"
+                                },
+                                "timestamp": 1559229554
+                            },
+                            {
+                                "setpoint": {
+                                    "setpoint_mode": "program"
+                                },
+                                "timestamp": 1559229565
+                            },
+                            {
+                                "setpoint": {
+                                    "setpoint_mode": "away"
+                                },
+                                "timestamp": 1559229567
+                            }
+                        ],
+                        "last_therm_seen": 1559297976,
+                        "setpoint": {
+                            "setpoint_mode": "away"
+                        },
+                        "therm_program_list": [
+                            {
+                                "zones": [
+                                    {
+                                        "type": 0,
+                                        "name": "Comfort",
+                                        "id": 0,
+                                        "temp": 21
+                                    },
+                                    {
+                                        "type": 1,
+                                        "name": "Night",
+                                        "id": 1,
+                                        "temp": 17
+                                    },
+                                    {
+                                        "type": 5,
+                                        "name": "Eco",
+                                        "id": 4,
+                                        "temp": 17
+                                    },
+                                    {
+                                        "type": 2,
+                                        "id": 2,
+                                        "temp": 14
+                                    },
+                                    {
+                                        "type": 3,
+                                        "id": 3,
+                                        "temp": 7
+                                    }
+                                ],
+                                "timetable": [
+                                    {
+                                        "m_offset": 0,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 360,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 420,
+                                        "id": 4
+                                    },
+                                    {
+                                        "m_offset": 960,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 1410,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 1800,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 1860,
+                                        "id": 4
+                                    },
+                                    {
+                                        "m_offset": 2400,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 2850,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 3240,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 3300,
+                                        "id": 4
+                                    },
+                                    {
+                                        "m_offset": 3840,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 4290,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 4680,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 4740,
+                                        "id": 4
+                                    },
+                                    {
+                                        "m_offset": 5280,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 5730,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 6120,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 6180,
+                                        "id": 4
+                                    },
+                                    {
+                                        "m_offset": 6720,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 7170,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 7620,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 8610,
+                                        "id": 1
+                                    },
+                                    {
+                                        "m_offset": 9060,
+                                        "id": 0
+                                    },
+                                    {
+                                        "m_offset": 10050,
+                                        "id": 1
+                                    }
+                                ],
+                                "name": "Default",
+                                "program_id": "591b54a2764ff4d50d8b5795",
+                                "selected": true
+                            }
+                        ],
+                        "measured": {
+                            "time": 1559297836,
+                            "temperature": 19.8,
+                            "setpoint_temp": 12
+                        }
+                    }
+                ],
+                "station_name": "Thermostat",
+                "last_plug_seen": 1559297986
+            }
+        ],
+        "user": {
+            "mail": "john@doe.com",
+            "administrative": {
+                "lang": "de-DE",
+                "reg_locale": "de-DE",
+                "country": "DE",
+                "unit": 0,
+                "windunit": 0,
+                "pressureunit": 0,
+                "feel_like_algo": 0
+            }
+        }
+    },
+    "status": "ok",
+    "time_exec": 0.12061500549316,
+    "time_server": 1559300497
+}

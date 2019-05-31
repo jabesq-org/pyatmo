@@ -1,6 +1,8 @@
 """Define shared fixtures."""
 import json
+
 import pytest
+
 import pyatmo
 import smart_home.Thermostat as th
 

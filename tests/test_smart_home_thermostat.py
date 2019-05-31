@@ -1,8 +1,4 @@
 """Define tests for Thermostat module."""
-import json
-import pytest
-import pyatmo
-import smart_home.Thermostat as th
 
 
 def test_HomeData(auth, homeData, requests_mock):

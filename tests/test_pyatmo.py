@@ -1,6 +1,8 @@
 """Define tests for authentication."""
 import json
+
 import pytest
+
 import pyatmo
 
 

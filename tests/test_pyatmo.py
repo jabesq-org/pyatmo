@@ -7,8 +7,8 @@ import pyatmo
 
 
 def test_ClientAuth(auth, requests_mock):
-    assert (
-        auth.accessToken == "91763b24c43d3e344f424e8b|880b55a08c758e87ff8755a00c6b8a12"
+    assert auth.accessToken == (
+        "91763b24c43d3e344f424e8b|880b55a08c758e87ff8755a00c6b8a12"
     )
 
 
@@ -21,7 +21,7 @@ def test_ClientAuth_invalid(requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    authorization = pyatmo.ClientAuth(
+    pyatmo.ClientAuth(
         clientId="CLIENT_ID",
         clientSecret="CLIENT_SECRET",
         username="USERNAME",

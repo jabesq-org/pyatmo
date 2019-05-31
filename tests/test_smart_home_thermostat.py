@@ -1,7 +1,7 @@
 """Define tests for Thermostat module."""
 
 
-def test_HomeData(auth, homeData, requests_mock):
+def test_HomeData(homeData):
     assert homeData.default_home == "MYHOME"
     assert len(homeData.rooms[homeData.default_home]) == 2
 
@@ -34,18 +34,18 @@ def test_HomeData(auth, homeData, requests_mock):
     assert homeData.modules[homeData.default_home] == expected_modules
 
 
-def test_HomeData_homeById(auth, homeData, requests_mock):
+def test_HomeData_homeById(homeData):
     home_id = "91763b24c43d3e344f424e8b"
     assert homeData.homeById(home_id)["name"] == "MYHOME"
 
 
-def test_HomeData_homeByName(auth, homeData, requests_mock):
+def test_HomeData_homeByName(homeData):
     assert homeData.homeByName()["name"] == "MYHOME"
 
 
-def test_HomeData_gethomeId(auth, homeData, requests_mock):
+def test_HomeData_gethomeId(homeData):
     assert homeData.gethomeId() == "91763b24c43d3e344f424e8b"
 
 
-def test_HomeData_getSelectedschedule(auth, homeData, requests_mock):
+def test_HomeData_getSelectedschedule(homeData):
     assert homeData.getSelectedschedule()["name"] == "Default"

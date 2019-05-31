@@ -38,3 +38,22 @@ def homeData(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     return pyatmo.HomeData(auth)
+
+
+@pytest.fixture(scope="function")
+def homeStatus(auth, requests_mock):
+    with open("fixtures/home_status_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        th._GETHOMESTATUS_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with open("fixtures/home_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        th._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    return pyatmo.HomeStatus(auth)

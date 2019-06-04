@@ -12,7 +12,7 @@ def test_ClientAuth(auth, requests_mock):
     )
 
 
-@pytest.mark.xfail(raises=KeyError)
+@pytest.mark.xfail(raises=pyatmo.NoDevice)
 def test_ClientAuth_invalid(requests_mock):
     with open("fixtures/invalid_grant.json") as f:
         json_fixture = json.load(f)

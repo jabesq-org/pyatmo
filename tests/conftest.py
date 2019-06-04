@@ -4,7 +4,7 @@ import json
 import pytest
 
 import pyatmo
-import smart_home.Thermostat as th
+import smart_home.Thermostat
 
 
 @pytest.fixture(scope="function")
@@ -33,7 +33,7 @@ def homeData(auth, requests_mock):
     with open("fixtures/home_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        th._GETHOMESDATA_REQ,
+        smart_home.Thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -45,14 +45,14 @@ def homeStatus(auth, requests_mock):
     with open("fixtures/home_status_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        th._GETHOMESTATUS_REQ,
+        smart_home.Thermostat._GETHOMESTATUS_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        th._GETHOMESDATA_REQ,
+        smart_home.Thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -64,7 +64,7 @@ def thermostatData(auth, requests_mock):
     with open("fixtures/thermostat_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        th._GETTHERMOSTATDATA_REQ,
+        smart_home.Thermostat._GETTHERMOSTATDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

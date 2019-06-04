@@ -1,0 +1,58 @@
+{
+    "status": "ok",
+    "time_server": 1559649219,
+    "time_exec": 0,
+    "body": [
+        {
+            "_id": "70:ee:50:19:d7:0e",
+            "place": {
+                "location": [
+                    52.516263,
+                    13.377726
+                ],
+                "timezone": "Europe/Zurich",
+                "country": "CH",
+                "altitude": 1025
+            },
+            "mark": 1,
+            "measures": {
+                "02:00:00:19:e3:b6": {
+                    "res": {
+                        "1559648910": [
+                            28.5,
+                            33
+                        ]
+                    },
+                    "type": [
+                        "temperature",
+                        "humidity"
+                    ]
+                },
+                "70:ee:50:19:d7:0e": {
+                    "res": {
+                        "1559648915": [
+                            1008.2
+                        ]
+                    },
+                    "type": [
+                        "pressure"
+                    ]
+                },
+                "05:00:00:02:37:90": {
+                    "rain_60min": 0,
+                    "rain_24h": 0,
+                    "rain_live": 0,
+                    "rain_timeutc": 1559648904
+                }
+            },
+            "modules": [
+                "02:00:00:19:e3:b6",
+                "05:00:00:02:37:90"
+            ],
+            "module_types": {
+                "02:00:00:19:e3:b6": "NAModule1",
+                "05:00:00:02:37:90": "NAModule3"
+            }
+        }
+    ]
+}

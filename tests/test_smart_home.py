@@ -28,14 +28,12 @@ def test_postRequest_binary(requests_mock):
     assert resp == b"Success"
 
 
-def test_postRequest_invalid_response(requests_mock):
-    """Test wrapper for posting requests against the Netatmo API."""
-    requests_mock.post(
-        smart_home._BASE_URL,
-        status_code=200,
-    )
+@pytest.mark.parametrize("test_input,expected", [(200, None), (404, None)])
+def test_postRequest_fail(requests_mock, test_input, expected):
+    """Test failing requests against the Netatmo API."""
+    requests_mock.post(smart_home._BASE_URL, status_code=test_input)
     resp = smart_home.postRequest(smart_home._BASE_URL, None)
-    assert resp is None
+    assert resp is expected
 
 
 @pytest.mark.parametrize(

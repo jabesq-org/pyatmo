@@ -6,7 +6,7 @@ import pytest
 import smart_home
 
 
-def test_postRequest(requests_mock):
+def test_postRequest_json(requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
         smart_home._BASE_URL,
@@ -16,6 +16,9 @@ def test_postRequest(requests_mock):
     resp = smart_home.postRequest(smart_home._BASE_URL, None)
     assert resp == {"a": "b"}
 
+
+def test_postRequest_binary(requests_mock):
+    """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
         smart_home._BASE_URL,
         text="Success",
@@ -23,6 +26,16 @@ def test_postRequest(requests_mock):
     )
     resp = smart_home.postRequest(smart_home._BASE_URL, None)
     assert resp == b"Success"
+
+
+def test_postRequest_invalid_response(requests_mock):
+    """Test wrapper for posting requests against the Netatmo API."""
+    requests_mock.post(
+        smart_home._BASE_URL,
+        status_code=200,
+    )
+    resp = smart_home.postRequest(smart_home._BASE_URL, None)
+    assert resp is None
 
 
 @pytest.mark.parametrize(

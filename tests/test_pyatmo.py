@@ -12,7 +12,6 @@ def test_ClientAuth(auth, requests_mock):
     )
 
 
-@pytest.mark.xfail(raises=pyatmo.NoDevice)
 def test_ClientAuth_invalid(requests_mock):
     with open("fixtures/invalid_grant.json") as f:
         json_fixture = json.load(f)
@@ -21,9 +20,10 @@ def test_ClientAuth_invalid(requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    pyatmo.ClientAuth(
-        clientId="CLIENT_ID",
-        clientSecret="CLIENT_SECRET",
-        username="USERNAME",
-        password="PASSWORD",
-    )
+    with pytest.raises(pyatmo.NoDevice):
+        pyatmo.ClientAuth(
+            clientId="CLIENT_ID",
+            clientSecret="CLIENT_SECRET",
+            username="USERNAME",
+            password="PASSWORD",
+        )

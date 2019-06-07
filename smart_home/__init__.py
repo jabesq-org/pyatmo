@@ -21,11 +21,17 @@ class NoDevice(Exception):
 
 def postRequest(url, params=None, timeout=10):
     resp = requests.post(url, data=params, timeout=timeout)
-    return (
-        resp.json()
-        if "application/json" in resp.headers.get("content-type")
-        else resp.content
-    )
+    if not resp.ok:
+        LOG.error("The Netatmo API returned %s", resp.status_code)
+    try:
+        return (
+            resp.json()
+            if "application/json" in resp.headers.get("content-type")
+            else resp.content
+        )
+    except TypeError:
+        LOG.debug("Invalid response %s", resp)
+    return None
 
 
 def toTimeString(value):

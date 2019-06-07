@@ -1,10 +1,13 @@
 """
 coding=utf-8
 """
+import logging
 import time
 import warnings
 
 from . import _BASE_URL, NoDevice, postRequest, todayStamps
+
+LOG = logging.getLogger(__name__)
 
 _GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
 _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
@@ -24,7 +27,11 @@ class WeatherStationData:
         resp = postRequest(self.urlReq, postParams)
         if resp is None:
             raise NoDevice("No weather station data returned by Netatmo server")
-        self.rawData = resp["body"].get("devices")
+        try:
+            self.rawData = resp["body"].get("devices")
+        except KeyError:
+            LOG.debug("No <body> in response %s", resp)
+            raise NoDevice("No weather station data returned by Netatmo server")
         if not self.rawData:
             raise NoDevice("No weather station available")
         self.stations = {d["_id"]: d for d in self.rawData}

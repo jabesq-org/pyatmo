@@ -40,9 +40,10 @@ class ClientAuth:
             read_station: to retrieve weather station data (Getstationsdata, Getmeasure)
             read_camera: to retrieve Welcome data (Gethomedata, Getcamerapicture)
             access_camera: to access the camera, the videos and the live stream.
-            read_thermostat: to retrieve thermostat data ( Getmeasure, Getthermostatsdata)
+            read_thermostat: to retrieve thermostat data (Getmeasure, Getthermostatsdata)
             write_thermostat: to set up the thermostat (Syncschedule, Setthermpoint)
             read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
+            read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
             access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
             Several value can be used at the same time, ie: 'read_station read_camera'
     """

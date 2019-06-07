@@ -3,7 +3,7 @@ coding=utf-8
 """
 import time
 
-from . import _BASE_URL, postRequest
+from . import _BASE_URL, NoDevice, postRequest
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652
@@ -51,7 +51,10 @@ class PublicData:
             post_params["required_data"] = required_data_type
 
         resp = postRequest(_GETPUBLIC_DATA, post_params)
-        self.raw_data = resp["body"]
+        try:
+            self.raw_data = resp["body"]
+        except (KeyError, TypeError):
+            raise NoDevice("No public weather data returned by Netatmo server")
         self.status = resp["status"]
         self.time_exec = toTimeString(resp["time_exec"])
         self.time_server = toTimeString(resp["time_server"])

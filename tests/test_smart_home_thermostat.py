@@ -1,4 +1,9 @@
 """Define tests for Thermostat module."""
+import json
+
+import pytest
+
+import smart_home.Thermostat
 
 
 def test_HomeData(homeData):
@@ -32,6 +37,24 @@ def test_HomeData(homeData):
         },
     }
     assert homeData.modules[homeData.default_home] == expected
+
+
+def test_HomeData_noData(auth, requests_mock):
+    requests_mock.post(smart_home.Thermostat._GETHOMESDATA_REQ, text="None")
+    with pytest.raises(smart_home.PublicData.NoDevice):
+        assert smart_home.Thermostat.HomeData(auth)
+
+
+def test_HomeData_noBody(auth, requests_mock):
+    with open("fixtures/home_data_empty.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with pytest.raises(smart_home.PublicData.NoDevice):
+        assert smart_home.Thermostat.HomeData(auth)
 
 
 def test_HomeData_homeById(homeData):

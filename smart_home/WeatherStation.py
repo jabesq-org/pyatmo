@@ -1,9 +1,5 @@
-"""
-coding=utf-8
-"""
 import logging
 import time
-import warnings
 
 from . import _BASE_URL, NoDevice, postRequest, todayStamps
 
@@ -233,14 +229,3 @@ class WeatherStationData:
             return min(T), max(T), min(H), max(H)
         else:
             return None
-
-
-class DeviceList(WeatherStationData):
-    """
-    This class is now deprecated. Use WeatherStationData directly instead
-    """
-
-    warnings.warn(
-        "The 'DeviceList' class was renamed 'WeatherStationData'", DeprecationWarning
-    )
-    pass

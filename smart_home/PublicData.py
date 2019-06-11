@@ -1,6 +1,3 @@
-"""
-coding=utf-8
-"""
 import time
 
 from . import _BASE_URL, NoDevice, postRequest

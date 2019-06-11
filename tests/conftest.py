@@ -61,18 +61,6 @@ def homeStatus(auth, requests_mock):
 
 
 @pytest.fixture(scope="function")
-def thermostatData(auth, requests_mock):
-    with open("fixtures/thermostat_data_simple.json") as f:
-        json_fixture = json.load(f)
-    requests_mock.post(
-        smart_home.Thermostat._GETTHERMOSTATDATA_REQ,
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
-    return pyatmo.ThermostatData(auth)
-
-
-@pytest.fixture(scope="function")
 def publicData(auth, requests_mock):
     with open("fixtures/public_data_simple.json") as f:
         json_fixture = json.load(f)

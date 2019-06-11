@@ -7,3 +7,5 @@ pyatmo.egg-info/
 
 *.pyc
 .DS_Store
+
+venv/

@@ -17,6 +17,11 @@ def test_PublicData(auth, requests_mock):
     publicData = smart_home.PublicData.PublicData(auth)
     assert publicData.status == "ok"
 
+    publicData = smart_home.PublicData.PublicData(
+        auth, required_data_type="temperature,rain_live"
+    )
+    assert publicData.status == "ok"
+
 
 def test_PublicData_unavailable(auth, requests_mock):
     requests_mock.post(smart_home.PublicData._GETPUBLIC_DATA, status_code=404)
@@ -296,6 +301,7 @@ def test_PublicData_toTimeString(test_input, expected):
             },
             22.725,
         ),
+        ({}, 0),
     ],
 )
 def test_PublicData_averageMeasure(test_input, expected):

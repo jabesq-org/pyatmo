@@ -5,6 +5,7 @@ import pytest
 
 import pyatmo
 import smart_home.Thermostat
+import smart_home.PublicData
 
 
 @pytest.fixture(scope="function")
@@ -69,3 +70,15 @@ def thermostatData(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     return pyatmo.ThermostatData(auth)
+
+
+@pytest.fixture(scope="function")
+def publicData(auth, requests_mock):
+    with open("fixtures/public_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.PublicData._GETPUBLIC_DATA,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    return pyatmo.PublicData(auth)

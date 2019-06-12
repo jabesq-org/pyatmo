@@ -5,6 +5,13 @@ import pytest
 
 import smart_home.Thermostat
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def does_not_raise():
+    yield
+
 
 def test_HomeData(homeData):
     assert homeData.default_home == "MYHOME"
@@ -57,6 +64,18 @@ def test_HomeData_noBody(auth, requests_mock):
         assert smart_home.Thermostat.HomeData(auth)
 
 
+def test_HomeData_noHomeName(auth, requests_mock):
+    with open("fixtures/home_data_nohomename.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with pytest.raises(smart_home.PublicData.NoDevice):
+        assert smart_home.Thermostat.HomeData(auth)
+
+
 def test_HomeData_homeById(homeData):
     home_id = "91763b24c43d3e344f424e8b"
     assert homeData.homeById(home_id)["name"] == "MYHOME"
@@ -72,6 +91,30 @@ def test_HomeData_gethomeId(homeData):
 
 def test_HomeData_getSelectedschedule(homeData):
     assert homeData.getSelectedschedule()["name"] == "Default"
+
+
+@pytest.mark.parametrize(
+    "t_home, t_sched_id, t_sched, expected",
+    [
+        (None, None, None, pytest.raises(smart_home.Thermostat.NoSchedule)),
+        (None, None, "Default", does_not_raise()),
+        (None, "591b54a2764ff4d50d8b5795", None, does_not_raise()),
+    ],
+)
+def test_HomeData_switchHomeSchedule(
+    homeData, requests_mock, t_home, t_sched_id, t_sched, expected
+):
+    with open("fixtures/status_ok.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._SWITCHHOMESCHEDULE_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with expected:
+        homeData.switchHomeSchedule(
+            schedule_id=t_sched_id, schedule=t_sched, home=t_home
+        )
 
 
 def test_HomeStatus(homeStatus):

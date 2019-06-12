@@ -1,5 +1,4 @@
 import logging
-import time
 
 from . import _BASE_URL, NoDevice, postRequest
 
@@ -195,29 +194,21 @@ class HomeStatus(HomeData):
             self.default_valve = list(self.valves.values())[0]
 
     def roomById(self, rid):
-        if not rid:
-            return self.default_room
         for key, value in self.rooms.items():
             if value["id"] == rid:
                 return self.rooms[key]
 
     def thermostatById(self, rid):
-        if not rid:
-            return self.default_thermostat
         for key, value in self.thermostats.items():
             if value["id"] == rid:
                 return self.thermostats[key]
 
     def relayById(self, rid):
-        if not rid:
-            return self.default_relay
         for key, value in self.relays.items():
             if value["id"] == rid:
                 return self.relays[key]
 
     def valveById(self, rid):
-        if not rid:
-            return self.default_valve
         for key, value in self.valves.items():
             if value["id"] == rid:
                 return self.valves[key]

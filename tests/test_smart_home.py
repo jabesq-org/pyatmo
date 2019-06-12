@@ -3,6 +3,8 @@ import time
 
 import pytest
 
+import requests
+
 import smart_home
 
 
@@ -34,6 +36,13 @@ def test_postRequest_fail(requests_mock, test_input, expected):
     requests_mock.post(smart_home._BASE_URL, status_code=test_input)
     resp = smart_home.postRequest(smart_home._BASE_URL, None)
     assert resp is expected
+
+
+def test_postRequest_timeout(requests_mock):
+    """Test failing requests against the Netatmo API with timeouts."""
+    requests_mock.post(smart_home._BASE_URL, exc=requests.exceptions.ConnectTimeout)
+    with pytest.raises(requests.exceptions.ConnectTimeout):
+        assert smart_home.postRequest(smart_home._BASE_URL, None)
 
 
 @pytest.mark.parametrize(

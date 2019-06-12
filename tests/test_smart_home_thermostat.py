@@ -15,9 +15,9 @@ def does_not_raise():
 
 def test_HomeData(homeData):
     assert homeData.default_home == "MYHOME"
-    assert len(homeData.rooms[homeData.default_home]) == 2
+    assert len(homeData.rooms[homeData.default_home]) == 4
 
-    assert len(homeData.modules[homeData.default_home]) == 3
+    assert len(homeData.modules[homeData.default_home]) == 5
 
     expected = {
         "12:34:56:00:fa:d0": {
@@ -25,7 +25,11 @@ def test_HomeData(homeData):
             "type": "NAPlug",
             "name": "Thermostat",
             "setup_date": 1494963356,
-            "modules_bridged": ["12:34:56:00:01:ae"],
+            "modules_bridged": [
+                "12:34:56:00:01:ae",
+                "12:34:56:03:a0:ac",
+                "12:34:56:03:a5:54",
+            ],
         },
         "12:34:56:00:01:ae": {
             "id": "12:34:56:00:01:ae",
@@ -33,6 +37,22 @@ def test_HomeData(homeData):
             "name": "Livingroom",
             "setup_date": 1494963356,
             "room_id": "2746182631",
+            "bridge": "12:34:56:00:fa:d0",
+        },
+        "12:34:56:03:a5:54": {
+            "id": "12:34:56:03:a5:54",
+            "type": "NRV",
+            "name": "Valve1",
+            "setup_date": 1554549767,
+            "room_id": "2833524037",
+            "bridge": "12:34:56:00:fa:d0",
+        },
+        "12:34:56:03:a0:ac": {
+            "id": "12:34:56:03:a0:ac",
+            "type": "NRV",
+            "name": "Valve2",
+            "setup_date": 1554554444,
+            "room_id": "2940411577",
             "bridge": "12:34:56:00:fa:d0",
         },
         "12:34:56:00:f1:62": {
@@ -99,6 +119,13 @@ def test_HomeData_getSelectedschedule(homeData):
         (None, None, None, pytest.raises(smart_home.Thermostat.NoSchedule)),
         (None, None, "Default", does_not_raise()),
         (None, "591b54a2764ff4d50d8b5795", None, does_not_raise()),
+        (None, None, "Summer", pytest.raises(smart_home.Thermostat.NoSchedule)),
+        (
+            None,
+            "123456789abcdefg12345678",
+            None,
+            pytest.raises(smart_home.Thermostat.NoSchedule),
+        ),
     ],
 )
 def test_HomeData_switchHomeSchedule(
@@ -118,7 +145,7 @@ def test_HomeData_switchHomeSchedule(
 
 
 def test_HomeStatus(homeStatus):
-    assert len(homeStatus.rooms) == 1
+    assert len(homeStatus.rooms) == 3
     assert homeStatus.default_room["id"] == "2746182631"
 
     expexted = {
@@ -172,6 +199,20 @@ def test_HomeStatus_relayById(homeStatus):
         "wifi_strength": 42,
     }
     assert homeStatus.relayById("12:34:56:00:fa:d0") == expexted
+
+
+def test_HomeStatus_valveById(homeStatus):
+    expexted = {
+        "id": "12:34:56:03:a5:54",
+        "reachable": True,
+        "type": "NRV",
+        "firmware_revision": 79,
+        "rf_strength": 51,
+        "battery_level": 3025,
+        "bridge": "12:34:56:00:fa:d0",
+        "battery_state": "full",
+    }
+    assert homeStatus.valveById("12:34:56:03:a5:54") == expexted
 
 
 def test_HomeStatus_setPoint(homeStatus):

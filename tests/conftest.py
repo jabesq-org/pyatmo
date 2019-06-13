@@ -6,6 +6,14 @@ import pytest
 import pyatmo
 import smart_home.Thermostat
 import smart_home.PublicData
+import smart_home.WeatherStation
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def does_not_raise():
+    yield
 
 
 @pytest.fixture(scope="function")
@@ -70,3 +78,15 @@ def publicData(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     return pyatmo.PublicData(auth)
+
+
+@pytest.fixture(scope="function")
+def weatherStationData(auth, requests_mock):
+    with open("fixtures/weatherstation_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.WeatherStation._GETSTATIONDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    return pyatmo.WeatherStationData(auth)

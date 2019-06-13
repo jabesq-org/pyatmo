@@ -160,6 +160,25 @@ def test_HomeStatus(homeStatus):
     assert homeStatus.default_room == expexted
 
 
+def test_HomeStatus_error(auth, requests_mock):
+    with open("fixtures/home_status_empty.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._GETHOMESTATUS_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with open("fixtures/home_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with pytest.raises(smart_home.Thermostat.NoDevice):
+        assert smart_home.Thermostat.HomeStatus(auth)
+
+
 def test_HomeStatus_roomById(homeStatus):
     expexted = {
         "id": "2746182631",
@@ -239,5 +258,6 @@ def test_HomeStatus_boilerStatus(homeStatus):
     assert homeStatus.boilerStatus() is False
 
 
-def test_HomeStatus_thermostatType(homeStatus, homeData):
+def test_HomeStatus_thermostatType(homeStatus):
     assert homeStatus.thermostatType("MYHOME", "2746182631") == "NATherm1"
+    assert homeStatus.thermostatType("MYHOME", "2833524037") == "NRV"

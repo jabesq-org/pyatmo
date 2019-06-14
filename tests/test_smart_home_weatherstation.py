@@ -3,6 +3,8 @@ import json
 
 import pytest
 
+from freezegun import freeze_time
+
 from .conftest import does_not_raise
 
 import smart_home.WeatherStation
@@ -40,3 +42,212 @@ def test_WeatherStationData_no_data(auth, requests_mock):
     )
     with pytest.raises(smart_home.WeatherStation.NoDevice):
         assert smart_home.WeatherStation.WeatherStationData(auth)
+
+
+@pytest.mark.parametrize(
+    "station, expected",
+    [
+        (
+            None,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        (
+            "MyStation",
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        pytest.param(
+            "NoValidStation",
+            None,
+            marks=pytest.mark.skip("Invalid station names are not handled yet."),
+        ),
+    ],
+)
+def test_WeatherStationData_modulesNamesList(weatherStationData, station, expected):
+    assert sorted(weatherStationData.modulesNamesList(station)) == expected
+
+
+def test_WeatherStationData_stationByName(weatherStationData):
+    result = weatherStationData.stationByName()
+    assert result["_id"] == "12:34:56:37:11:ca"
+    assert result["station_name"] == "MyStation"
+    assert result["module_name"] == "NetatmoIndoor"
+    assert result["type"] == "NAMain"
+    assert result["data_type"] == [
+        "Temperature",
+        "CO2",
+        "Humidity",
+        "Noise",
+        "Pressure",
+    ]
+    assert weatherStationData.stationByName("NoValidStation") is None
+
+
+@pytest.mark.parametrize(
+    "module, station, expected",
+    [
+        ("Kitchen", None, "12:34:56:07:bb:3e"),
+        ("Kitchen", "MyStation", "12:34:56:07:bb:3e"),
+        ("Kitchen", "NoValidStation", None),
+        ("NetatmoIndoor", None, "12:34:56:37:11:ca"),
+        ("NetatmoIndoor", "MyStation", "12:34:56:37:11:ca"),
+        ("", None, None),
+        ("", "", None),
+        (None, None, None),
+    ],
+)
+def test_WeatherStationData_moduleByName(weatherStationData, module, station, expected):
+    mod = weatherStationData.moduleByName(module, station)
+    if mod:
+        assert mod["_id"] == expected
+    else:
+        assert mod is expected
+
+
+@pytest.mark.parametrize(
+    "mid, sid, expected",
+    [
+        ("12:34:56:07:bb:3e", None, "12:34:56:07:bb:3e"),
+        ("12:34:56:07:bb:3e", "12:34:56:37:11:ca", "12:34:56:07:bb:3e"),
+        ("", None, None),
+        ("", "", None),
+        (None, None, None),
+    ],
+)
+def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
+    mod = weatherStationData.moduleById(mid, sid)
+    if mod:
+        assert mod["_id"] == expected
+    else:
+        assert mod is expected
+
+
+@pytest.mark.parametrize(
+    "module, expected",
+    [
+        (
+            "Kitchen",
+            [
+                "battery_percent",
+                "battery_vp",
+                "co2",
+                "humidity",
+                "rf_status",
+                "temperature",
+            ],
+        ),
+        (
+            "Garden",
+            [
+                "battery_percent",
+                "battery_vp",
+                "gustangle",
+                "guststrength",
+                "rf_status",
+                "windangle",
+                "windstrength",
+            ],
+        ),
+        (
+            "Yard",
+            [
+                "Rain",
+                "battery_percent",
+                "battery_vp",
+                "rf_status",
+                "sum_rain_1",
+                "sum_rain_24",
+            ],
+        ),
+        (
+            "NetatmoIndoor",
+            ["co2", "humidity", "noise", "pressure", "temperature", "wifi_status"],
+        ),
+        pytest.param(
+            "12:34:56:07:bb:3e",
+            None,
+            marks=pytest.mark.skip("Invalid module names are not handled yet."),
+        ),
+        pytest.param(
+            "",
+            None,
+            marks=pytest.mark.skip("Invalid module names are not handled yet."),
+        ),
+        pytest.param(
+            None,
+            None,
+            marks=pytest.mark.skip("Invalid module names are not handled yet."),
+        ),
+    ],
+)
+def test_WeatherStationData_monitoredConditions(weatherStationData, module, expected):
+    assert sorted(weatherStationData.monitoredConditions(module)) == expected
+
+
+@freeze_time("2019-06-11")
+@pytest.mark.parametrize(
+    "station, exclude, expected",
+    [
+        (
+            "MyStation",
+            None,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        (
+            "",
+            None,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        ("NoValidStation", None, None),
+        (
+            None,
+            1000000,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        (
+            None,
+            798103,
+            ["Garden", "Kitchen", "NetatmoIndoor", "NetatmoOutdoor", "Yard"],
+        ),
+    ],
+)
+def test_WeatherStationData_lastData(weatherStationData, station, exclude, expected):
+    mod = weatherStationData.lastData(station, exclude)
+    if mod:
+        assert sorted(mod) == expected
+    else:
+        assert mod is expected

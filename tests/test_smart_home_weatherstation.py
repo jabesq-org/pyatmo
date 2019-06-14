@@ -40,6 +40,3 @@ def test_WeatherStationData_no_data(auth, requests_mock):
     )
     with pytest.raises(smart_home.WeatherStation.NoDevice):
         assert smart_home.WeatherStation.WeatherStationData(auth)
-
-
-

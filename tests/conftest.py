@@ -7,6 +7,7 @@ import pyatmo
 import smart_home.Thermostat
 import smart_home.PublicData
 import smart_home.WeatherStation
+import smart_home.HomeCoach
 
 from contextlib import contextmanager
 
@@ -90,3 +91,16 @@ def weatherStationData(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     return pyatmo.WeatherStationData(auth)
+
+
+@pytest.fixture(scope="function")
+def homeCoachData(auth, requests_mock):
+    with open("fixtures/home_coach_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.HomeCoach._GETHOMECOACHDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    return pyatmo.HomeCoachData(auth)
+

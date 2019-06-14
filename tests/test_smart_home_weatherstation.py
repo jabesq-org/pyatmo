@@ -251,3 +251,93 @@ def test_WeatherStationData_lastData(weatherStationData, station, exclude, expec
         assert sorted(mod) == expected
     else:
         assert mod is expected
+
+
+@freeze_time("2019-06-11")
+@pytest.mark.parametrize(
+    "station, delay, expected",
+    [
+        (
+            "MyStation",
+            3600,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        (
+            None,
+            3600,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        (
+            "",
+            3600,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        pytest.param(
+            "NoValidStation",
+            3600,
+            None,
+            marks=pytest.mark.skip("Invalid station name not handled yet"),
+        ),
+    ],
+)
+def test_WeatherStationData_checkNotUpdated(
+    weatherStationData, station, delay, expected
+):
+    mod = weatherStationData.checkNotUpdated(station, delay)
+    assert sorted(mod) == expected
+
+
+@freeze_time("2019-06-11")
+@pytest.mark.parametrize(
+    "station, delay, expected",
+    [
+        (
+            "MyStation",
+            798500,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+        (
+            None,
+            798500,
+            [
+                "Garden",
+                "Kitchen",
+                "Livingroom",
+                "NetatmoIndoor",
+                "NetatmoOutdoor",
+                "Yard",
+            ],
+        ),
+    ],
+)
+def test_WeatherStationData_checkUpdated(weatherStationData, station, delay, expected):
+    mod = weatherStationData.checkUpdated(station, delay)
+    assert sorted(mod) == expected

@@ -104,3 +104,14 @@ def homeCoachData(auth, requests_mock):
     )
     return pyatmo.HomeCoachData(auth)
 
+
+@pytest.fixture(scope="function")
+def cameraHomeData(auth, requests_mock):
+    with open("fixtures/camera_home_data.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Camera._GETHOMEDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    return pyatmo.CameraData(auth)

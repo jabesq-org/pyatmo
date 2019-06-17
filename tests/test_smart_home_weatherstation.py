@@ -72,7 +72,9 @@ def test_WeatherStationData_no_data(auth, requests_mock):
         pytest.param(
             "NoValidStation",
             None,
-            marks=pytest.mark.skip("Invalid station names are not handled yet."),
+            marks=pytest.mark.xfail(
+                reason="Invalid station names are not handled yet."
+            ),
         ),
     ],
 )
@@ -179,17 +181,17 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
         pytest.param(
             "12:34:56:07:bb:3e",
             None,
-            marks=pytest.mark.skip("Invalid module names are not handled yet."),
+            marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
         pytest.param(
             "",
             None,
-            marks=pytest.mark.skip("Invalid module names are not handled yet."),
+            marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
         pytest.param(
             None,
             None,
-            marks=pytest.mark.skip("Invalid module names are not handled yet."),
+            marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
     ],
 )
@@ -297,7 +299,7 @@ def test_WeatherStationData_lastData(weatherStationData, station, exclude, expec
             "NoValidStation",
             3600,
             None,
-            marks=pytest.mark.skip("Invalid station name not handled yet"),
+            marks=pytest.mark.xfail(reason="Invalid station name not handled yet"),
         ),
     ],
 )
@@ -341,3 +343,23 @@ def test_WeatherStationData_checkNotUpdated(
 def test_WeatherStationData_checkUpdated(weatherStationData, station, delay, expected):
     mod = weatherStationData.checkUpdated(station, delay)
     assert sorted(mod) == expected
+
+
+@freeze_time("2019-06-11")
+@pytest.mark.parametrize(
+    "device_id, scale, mtype, expected", [("MyStation", "scale", "type", [28.1])]
+)
+def test_WeatherStationData_getMeasure(
+    weatherStationData, requests_mock, device_id, scale, mtype, expected
+):
+    with open("fixtures/weatherstation_measure.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.WeatherStation._GETMEASURE_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    assert (
+        weatherStationData.getMeasure(device_id, scale, mtype)["body"]["1544558433"]
+        == expected
+    )

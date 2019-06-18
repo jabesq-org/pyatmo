@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": 21,
+        "message": "mode not authorized"
+    }
+}

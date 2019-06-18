@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": 10,
+        "message": "mode is missing"
+    }
+}

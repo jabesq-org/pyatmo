@@ -1,5 +1,6 @@
 """Define tests for Thermostat module."""
 import json
+import logging
 
 import pytest
 
@@ -256,3 +257,135 @@ def test_HomeStatus_boilerStatus(homeStatus):
 def test_HomeStatus_thermostatType(homeStatus):
     assert homeStatus.thermostatType("MYHOME", "2746182631") == "NATherm1"
     assert homeStatus.thermostatType("MYHOME", "2833524037") == "NRV"
+
+
+@pytest.mark.parametrize(
+    "home_id, mode, json_fixture, expected",
+    [
+        (None, None, "home_status_error_mode_is_missing.json", "mode is missing"),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            "home_status_error_mode_is_missing.json",
+            "mode is missing",
+        ),
+        ("invalidID", "away", "home_status_error_invalid_id.json", "Invalid id"),
+        ("91763b24c43d3e344f424e8b", "away", "status_ok.json", "ok"),
+    ],
+)
+def test_HomeData_setThermmode(
+    homeStatus, requests_mock, caplog, home_id, mode, json_fixture, expected
+):
+    with open("fixtures/%s" % json_fixture) as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._SETTHERMMODE_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with caplog.at_level(logging.DEBUG):
+        homeStatus.setThermmode(home_id=home_id, mode=mode)
+        assert expected in caplog.text
+
+
+@pytest.mark.parametrize(
+    "home_id, room_id, mode, temp, json_fixture, expected",
+    [
+        ("91763b24c43d3e344f424e8b", "2746182631", "home", 14, "status_ok.json", "ok"),
+        (
+            "91763b24c43d3e344f424e8b",
+            "2746182631",
+            "home",
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+    ],
+)
+def test_HomeData_setroomThermpoint(
+    homeStatus,
+    requests_mock,
+    caplog,
+    home_id,
+    room_id,
+    mode,
+    temp,
+    json_fixture,
+    expected,
+):
+    with open("fixtures/%s" % json_fixture) as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._SETROOMTHERMPOINT_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    assert (
+        homeStatus.setroomThermpoint(
+            home_id=home_id, room_id=room_id, mode=mode, temp=temp
+        )["status"]
+        == expected
+    )
+
+
+@pytest.mark.parametrize(
+    "home_id, room_id, mode, temp, json_fixture, expected",
+    [
+        (
+            None,
+            None,
+            None,
+            None,
+            "home_status_error_missing_home_id.json",
+            "Missing home_id",
+        ),
+        (
+            None,
+            None,
+            "home",
+            None,
+            "home_status_error_missing_home_id.json",
+            "Missing home_id",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            "home",
+            None,
+            "home_status_error_missing_parameters.json",
+            "Missing parameters",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "2746182631",
+            "home",
+            None,
+            "home_status_error_missing_parameters.json",
+            "Missing parameters",
+        ),
+    ],
+)
+def test_HomeData_setroomThermpoint_error(
+    homeStatus,
+    requests_mock,
+    caplog,
+    home_id,
+    room_id,
+    mode,
+    temp,
+    json_fixture,
+    expected,
+):
+    with open("fixtures/%s" % json_fixture) as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._SETROOMTHERMPOINT_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    assert (
+        homeStatus.setroomThermpoint(
+            home_id=home_id, room_id=room_id, mode=mode, temp=temp
+        )["error"]["message"]
+        == expected
+    )

@@ -1,0 +1,15 @@
+{
+    "access_token": "91763b24c43d3e344f424e8b|880b55a08c758e87ff8755a00c6b8a12",
+    "refresh_token": "91763b24c43d3e344f424e8b|87ff8755a00c6b8a120b55a08c758e93",
+    "scope": [
+        "read_station",
+        "read_camera",
+        "access_camera",
+        "read_thermostat",
+        "write_thermostat",
+        "read_presence",
+        "access_presence"
+    ],
+    "expires_in": 10800,
+    "expire_in": 10800
+}

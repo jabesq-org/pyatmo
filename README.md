@@ -22,3 +22,22 @@ Once installed you can simple add `pyatmo` to your Python 3 scripts by including
 
 The module requires a valid user account and a registered application. See usage.md for further information.
 Be aware that the module may stop working if Netatmo decides to change their API.
+
+
+### Testing ###
+
+To run the pytest testsuite you need to install the following dependencies:
+
+    pip install pytest pytest-mock pytest-cov requests-mock freezegun
+
+To run the full suite simply type in
+
+    pytest
+
+or
+
+    python -m pytest
+
+To generate code coverage xml (e.g. for use in VSCode) run
+
+    python -m pytest --cov-report xml:cov.xml --cov smart_home --cov-append tests/

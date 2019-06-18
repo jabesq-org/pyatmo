@@ -1,0 +1,114 @@
+{
+    "body": {
+        "devices": [
+            {
+                "_id": "12:34:56:26:69:0c",
+                "cipher_id": "enc:16:1UqwQlYV5AY2pfyEi5H47dmmFOOL3mCUo+KAkchL4A2CLI5u0e45Xr5jeAswO+XO",
+                "date_setup": 1544560184,
+                "last_setup": 1544560184,
+                "type": "NHC",
+                "last_status_store": 1558268332,
+                "firmware": 45,
+                "last_upgrade": 1544560186,
+                "wifi_status": 58,
+                "reachable": false,
+                "co2_calibrating": false,
+                "station_name": "Bedroom",
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure",
+                    "health_idx"
+                ],
+                "place": {
+                    "city": "Frankfurt",
+                    "country": "DE",
+                    "timezone": "Europe/Berlin",
+                    "location": [
+                        52.516263,
+                        13.377726
+                    ]
+                }
+            },
+            {
+                "_id": "12:34:56:25:cf:a8",
+                "cipher_id": "enc:16:A+Jm0yFWBwUyKinFDutPZK7I2PuHN1fqaE9oB/KF+McbFs3oN9CKpR/dYbqL4om2",
+                "date_setup": 1544562192,
+                "last_setup": 1544562192,
+                "type": "NHC",
+                "last_status_store": 1559198922,
+                "firmware": 45,
+                "last_upgrade": 1544562194,
+                "wifi_status": 41,
+                "reachable": false,
+                "co2_calibrating": false,
+                "station_name": "Kitchen",
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure",
+                    "health_idx"
+                ],
+                "place": {
+                    "city": "Frankfurt",
+                    "country": "DE",
+                    "timezone": "Europe/Berlin",
+                    "location": [
+                        52.516263,
+                        13.377726
+                    ]
+                }
+            },
+            {
+                "_id": "12:34:56:26:65:14",
+                "cipher_id": "enc:16:7kK6ZzG4L7NgfZZ6+dMvNxw4l6vXu+88SEJkCUklNdPa4KYIHmsfa1moOilEK61i",
+                "date_setup": 1544564061,
+                "last_setup": 1544564061,
+                "type": "NHC",
+                "last_status_store": 1559067159,
+                "firmware": 45,
+                "last_upgrade": 1544564302,
+                "wifi_status": 66,
+                "reachable": false,
+                "co2_calibrating": false,
+                "station_name": "Livingroom",
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure",
+                    "health_idx"
+                ],
+                "place": {
+                    "city": "Frankfurt",
+                    "country": "DE",
+                    "timezone": "Europe/Berlin",
+                    "location": [
+                        52.516263,
+                        13.377726
+                    ]
+                }
+            }
+        ],
+        "user": {
+            "mail": "john@doe.com",
+            "administrative": {
+                "lang": "de-DE",
+                "reg_locale": "de-DE",
+                "country": "DE",
+                "unit": 0,
+                "windunit": 0,
+                "pressureunit": 0,
+                "feel_like_algo": 0
+            }
+        }
+    },
+    "status": "ok",
+    "time_exec": 0.095954179763794,
+    "time_server": 1559463229
+}

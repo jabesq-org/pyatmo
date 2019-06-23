@@ -156,6 +156,37 @@ def test_HomeStatus(homeStatus):
     assert homeStatus.default_room == expexted
 
 
+def test_HomeStatus_error_and_data(auth, requests_mock):
+    with open("fixtures/home_status_error_and_data.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._GETHOMESTATUS_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with open("fixtures/home_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Thermostat._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    homeStatus = smart_home.Thermostat.HomeStatus(auth)
+    assert len(homeStatus.rooms) == 3
+    assert homeStatus.default_room["id"] == "2746182631"
+
+    expexted = {
+        "id": "2746182631",
+        "reachable": True,
+        "therm_measured_temperature": 19.8,
+        "therm_setpoint_temperature": 12,
+        "therm_setpoint_mode": "away",
+        "therm_setpoint_start_time": 1559229567,
+        "therm_setpoint_end_time": 0,
+    }
+    assert homeStatus.default_room == expexted
+
+
 def test_HomeStatus_error(auth, requests_mock):
     with open("fixtures/home_status_empty.json") as f:
         json_fixture = json.load(f)

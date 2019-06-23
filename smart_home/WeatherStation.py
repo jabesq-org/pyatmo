@@ -31,18 +31,18 @@ class WeatherStationData:
         if not self.rawData:
             raise NoDevice("No weather station available")
         self.stations = {d["_id"]: d for d in self.rawData}
-        self.modules = dict()
-        for i in range(len(self.rawData)):
-            if "modules" not in self.rawData[i]:
-                self.rawData[i]["modules"] = [self.rawData[i]]
-            for m in self.rawData[i]["modules"]:
+        self.modules = {}
+        for item in self.rawData:
+            if "modules" not in item:
+                item["modules"] = [item]
+            for m in item["modules"]:
                 if "module_name" not in m:
                     if m["type"] == "NHC":
                         m["module_name"] = m["station_name"]
                     else:
                         continue
                 self.modules[m["_id"]] = m
-                self.modules[m["_id"]]["main_device"] = self.rawData[i]["_id"]
+                self.modules[m["_id"]]["main_device"] = item["_id"]
         self.default_station = list(self.stations.values())[0]["station_name"]
 
     def modulesNamesList(self, station=None):
@@ -120,7 +120,7 @@ class WeatherStationData:
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
         if not s or "dashboard_data" not in s:
             return None
-        lastD = dict()
+        lastD = {}
         # Define oldest acceptable sensor measure event
         limit = (time.time() - exclude) if exclude else 0
         ds = s["dashboard_data"]

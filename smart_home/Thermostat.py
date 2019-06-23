@@ -36,45 +36,45 @@ class HomeData:
         self.homes = {d["id"]: d for d in self.rawData}
         if not self.homes:
             raise NoDevice("No thermostat available")
-        self.modules = dict()
-        self.rooms = dict()
-        self.schedules = dict()
-        self.zones = dict()
-        self.setpoint_duration = dict()
-        for i in range(len(self.rawData)):
-            nameHome = self.rawData[i].get("name")
+        self.modules = {}
+        self.rooms = {}
+        self.schedules = {}
+        self.zones = {}
+        self.setpoint_duration = {}
+        for item in self.rawData:
+            nameHome = item.get("name")
             if not nameHome:
-                raise NoDevice('No key ["name"] in %s', self.rawData[i].keys())
-            if "modules" in self.rawData[i]:
+                raise NoDevice('No key ["name"] in %s', item.keys())
+            if "modules" in item:
                 if nameHome not in self.modules:
-                    self.modules[nameHome] = dict()
-                for m in self.rawData[i]["modules"]:
+                    self.modules[nameHome] = {}
+                for m in item["modules"]:
                     self.modules[nameHome][m["id"]] = m
                 if nameHome not in self.rooms:
-                    self.rooms[nameHome] = dict()
+                    self.rooms[nameHome] = {}
                 if nameHome not in self.schedules:
-                    self.schedules[nameHome] = dict()
+                    self.schedules[nameHome] = {}
                 if nameHome not in self.zones:
-                    self.zones[nameHome] = dict()
+                    self.zones[nameHome] = {}
                 if nameHome not in self.setpoint_duration:
-                    self.setpoint_duration[nameHome] = dict()
-                if "therm_setpoint_default_duration" in self.rawData[i]:
-                    self.setpoint_duration[nameHome] = self.rawData[i][
+                    self.setpoint_duration[nameHome] = {}
+                if "therm_setpoint_default_duration" in item:
+                    self.setpoint_duration[nameHome] = item[
                         "therm_setpoint_default_duration"
                     ]
-                if "rooms" in self.rawData[i]:
-                    for r in self.rawData[i]["rooms"]:
-                        self.rooms[nameHome][r["id"]] = r
-                if "therm_schedules" in self.rawData[i]:
-                    self.default_home = self.rawData[i]["name"]
-                    for s in self.rawData[i]["therm_schedules"]:
-                        self.schedules[nameHome][s["id"]] = s
-                    for t in range(len(self.rawData[i]["therm_schedules"])):
-                        idSchedule = self.rawData[i]["therm_schedules"][t]["id"]
-                        if idSchedule not in self.zones[nameHome]:
-                            self.zones[nameHome][idSchedule] = dict()
-                        for z in self.rawData[i]["therm_schedules"][t]["zones"]:
-                            self.zones[nameHome][idSchedule][z["id"]] = z
+                if "rooms" in item:
+                    for room in item["rooms"]:
+                        self.rooms[nameHome][room["id"]] = room
+                if "therm_schedules" in item:
+                    self.default_home = item["name"]
+                    for schedule in item["therm_schedules"]:
+                        self.schedules[nameHome][schedule["id"]] = schedule
+                    for schedule in item["therm_schedules"]:
+                        scheduleId = schedule["id"]
+                        if scheduleId not in self.zones[nameHome]:
+                            self.zones[nameHome][scheduleId] = {}
+                        for zone in schedule["zones"]:
+                            self.zones[nameHome][scheduleId][zone["id"]] = zone
 
     def homeById(self, hid):
         return None if hid not in self.homes else self.homes[hid]
@@ -136,9 +136,8 @@ class HomeStatus(HomeData):
 
     def __init__(self, authData, home_id=None, home=None):
         self.getAuthToken = authData.accessToken
-        # print(self.modules())
         self.home_data = HomeData(authData)
-        # print(home_data.modules)
+
         if home_id:
             self.home_id = home_id
             LOG.debug("home_id", self.home_id)
@@ -150,39 +149,35 @@ class HomeStatus(HomeData):
 
         resp = postRequest(_GETHOMESTATUS_REQ, postParams)
         if (
-            "body" in resp
-            and "errors" in resp["body"]
+            "errors" in resp
             or "body" not in resp
             or "home" not in resp["body"]
         ):
             raise NoDevice("No device found, errors in response")
             return None
         self.rawData = resp["body"]["home"]
-        self.rooms = dict()
-        self.thermostats = dict()
-        self.valves = dict()
-        self.relays = dict()
+        self.rooms = {}
+        self.thermostats = {}
+        self.valves = {}
+        self.relays = {}
         for r in self.rawData["rooms"]:
             self.rooms[r["id"]] = r
-        for t in range(len(self.rawData["modules"])):
-            if self.rawData["modules"][t]["type"] == "NATherm1":
-                thermostatId = self.rawData["modules"][t]["id"]
+        for module in self.rawData["modules"]:
+            if module["type"] == "NATherm1":
+                thermostatId = module["id"]
                 if thermostatId not in self.thermostats:
-                    self.thermostats[thermostatId] = dict()
-                self.thermostats[thermostatId] = self.rawData["modules"][t]
-            # self.thermostats[t['id']] = t
-        for v in range(len(self.rawData["modules"])):
-            if self.rawData["modules"][v]["type"] == "NRV":
-                valveId = self.rawData["modules"][v]["id"]
+                    self.thermostats[thermostatId] = {}
+                self.thermostats[thermostatId] = module
+            elif module["type"] == "NRV":
+                valveId = module["id"]
                 if valveId not in self.valves:
-                    self.valves[valveId] = dict()
-                self.valves[valveId] = self.rawData["modules"][v]
-        for r in range(len(self.rawData["modules"])):
-            if self.rawData["modules"][r]["type"] == "NAPlug":
-                relayId = self.rawData["modules"][r]["id"]
+                    self.valves[valveId] = {}
+                self.valves[valveId] = module
+            elif module["type"] == "NAPlug":
+                relayId = module["id"]
                 if relayId not in self.relays:
-                    self.relays[relayId] = dict()
-                self.relays[relayId] = self.rawData["modules"][r]
+                    self.relays[relayId] = {}
+                self.relays[relayId] = module
         if self.rooms != {}:
             self.default_room = list(self.rooms.values())[0]
         if self.relays != {}:

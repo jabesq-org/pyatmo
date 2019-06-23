@@ -33,44 +33,44 @@ class CameraData:
         self.homes = {d["id"]: d for d in self.rawData}
         if not self.homes:
             raise NoDevice("No camera available")
-        self.persons = dict()
-        self.events = dict()
-        self.outdoor_events = dict()
-        self.cameras = dict()
-        self.modules = dict()
-        self.lastEvent = dict()
-        self.outdoor_lastEvent = dict()
-        self.types = dict()
+        self.persons = {}
+        self.events = {}
+        self.outdoor_events = {}
+        self.cameras = {}
+        self.modules = {}
+        self.lastEvent = {}
+        self.outdoor_lastEvent = {}
+        self.types = {}
         self.default_home = None
         self.default_camera = None
-        for i in range(len(self.rawData)):
-            nameHome = self.rawData[i].get("name")
+        for item in self.rawData:
+            nameHome = item.get("name")
             if not nameHome:
-                raise NoDevice('No key ["name"] in %s' % self.rawData[i].keys())
+                raise NoDevice('No key ["name"] in %s' % item.keys())
             if nameHome not in self.cameras:
-                self.cameras[nameHome] = dict()
+                self.cameras[nameHome] = {}
             if nameHome not in self.types:
-                self.types[nameHome] = dict()
-            for p in self.rawData[i]["persons"]:
+                self.types[nameHome] = {}
+            for p in item["persons"]:
                 self.persons[p["id"]] = p
-            if "events" in self.rawData[i]:
-                self.default_home = self.rawData[i]["name"]
-                for e in self.rawData[i]["events"]:
+            if "events" in item:
+                self.default_home = item["name"]
+                for e in item["events"]:
                     if e["type"] == "outdoor":
                         if e["camera_id"] not in self.outdoor_events:
-                            self.outdoor_events[e["camera_id"]] = dict()
+                            self.outdoor_events[e["camera_id"]] = {}
                         self.outdoor_events[e["camera_id"]][e["time"]] = e
                     elif e["type"] != "outdoor":
                         if e["camera_id"] not in self.events:
-                            self.events[e["camera_id"]] = dict()
+                            self.events[e["camera_id"]] = {}
                         self.events[e["camera_id"]][e["time"]] = e
-            for c in self.rawData[i]["cameras"]:
+            for c in item["cameras"]:
                 self.cameras[nameHome][c["id"]] = c
                 if c["type"] == "NACamera" and "modules" in c:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
                         self.modules[m["id"]]["cam_id"] = c["id"]
-            for t in self.rawData[i]["cameras"]:
+            for t in item["cameras"]:
                 self.types[nameHome][t["type"]] = t
         for camera in self.events:
             self.lastEvent[camera] = self.events[camera][
@@ -167,11 +167,11 @@ class CameraData:
         else:
             camera_data = self.cameraByName(camera=camera, home=home)
         if camera_data:
-            vpn_url = camera_data["vpn_url"]
-            if camera_data["is_local"]:
+            vpn_url = camera_data.get("vpn_url")
+            if camera_data.get("is_local"):
                 try:
                     resp = postRequest(
-                        "{0}/command/ping".format(camera_data["vpn_url"]), dict()
+                        "{0}/command/ping".format(vpn_url), {}
                     )
                     temp_local_url = resp["local_url"]
                 except URLError:
@@ -179,7 +179,7 @@ class CameraData:
 
                 try:
                     resp = postRequest(
-                        "{0}/command/ping".format(temp_local_url), dict()
+                        "{0}/command/ping".format(temp_local_url), {}
                     )
                     if temp_local_url == resp["local_url"]:
                         local_url = temp_local_url
@@ -238,7 +238,7 @@ class CameraData:
             if not event:
                 # If not event is provided we need to retrieve the oldest of
                 # the last event seen by each camera
-                listEvent = dict()
+                listEvent = {}
                 for cam_id in self.lastEvent:
                     listEvent[self.lastEvent[cam_id]["time"]] = self.lastEvent[cam_id]
                 event = listEvent[sorted(listEvent)[0]]
@@ -247,7 +247,7 @@ class CameraData:
             if not event:
                 # If not event is provided we need to retrieve the oldest of
                 # the last event seen by each camera
-                listEvent = dict()
+                listEvent = {}
                 for cam_id in self.outdoor_lastEvent:
                     listEvent[
                         self.outdoor_lastEvent[cam_id]["time"]
@@ -288,8 +288,7 @@ class CameraData:
         # Check in the last event is someone known has been seen
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id])
-            array_time_event.reverse()
+            array_time_event = sorted(self.events[cam_id], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
@@ -306,7 +305,7 @@ class CameraData:
         return False
 
     def _knownPersons(self):
-        known_persons = dict()
+        known_persons = {}
         for p_id, p in self.persons.items():
             if "pseudo" in p:
                 known_persons[p_id] = p
@@ -330,8 +329,7 @@ class CameraData:
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id])
-            array_time_event.reverse()
+            array_time_event = sorted(self.events[cam_id], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
@@ -359,8 +357,7 @@ class CameraData:
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id])
-            array_time_event.reverse()
+            array_time_event = sorted(self.events[cam_id], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
@@ -388,8 +385,7 @@ class CameraData:
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id])
-            array_time_event.reverse()
+            array_time_event = sorted(self.events[cam_id], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
@@ -481,8 +477,7 @@ class CameraData:
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id])
-            array_time_event.reverse()
+            array_time_event = sorted(self.events[cam_id], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
@@ -512,8 +507,7 @@ class CameraData:
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id])
-            array_time_event.reverse()
+            array_time_event = sorted(self.events[cam_id], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False

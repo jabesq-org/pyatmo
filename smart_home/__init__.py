@@ -62,7 +62,7 @@ def getStationMinMaxTH(station=None, module=None):
         mname = devList.stationByName(station)["module_name"]
     lastD = devList.lastData(station)
     if mname == "*":
-        result = dict()
+        result = {}
         for m in lastD.keys():
             if time.time() - lastD[m]["When"] > 3600:
                 continue

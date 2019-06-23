@@ -133,6 +133,18 @@ def test_CameraData_cameraUrls(cameraHomeData, requests_mock):
     assert cameraHomeData.cameraUrls() == (vpn_url, local_url)
 
 
+def test_CameraData_cameraUrls_disconnected(auth, requests_mock):
+    with open("fixtures/camera_home_data_disconnected.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Camera._GETHOMEDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    camera_data = smart_home.Camera.CameraData(auth)
+    assert camera_data.cameraUrls() == (None, None)
+
+
 @pytest.mark.parametrize(
     "home, expected",
     [

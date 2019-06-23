@@ -132,24 +132,22 @@ if __name__ == "__main__":
         username=USERNAME,
         password=PASSWORD,
         scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence",
-    )  # Test authentication method
+    )
 
     try:
-        devList = DeviceList(authorization)  # Test DEVICELIST
+        ws = WeatherStationData(authorization)
     except NoDevice:
         if stdout.isatty():
             print("pyatmo.py : warning, no weather station available for testing")
-    else:
-        devList.MinMaxTH()  # Test GETMEASUR
 
     try:
-        Camera = CameraData(authorization)
+        cam = CameraData(authorization)
     except NoDevice:
         if stdout.isatty():
             print("pyatmo.py : warning, no camera available for testing")
 
     try:
-        Thermostat = ThermostatData(authorization)
+        hd = HomeData(authorization)
     except NoDevice:
         if stdout.isatty():
             print("pyatmo.py : warning, no thermostat available for testing")

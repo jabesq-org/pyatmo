@@ -22,4 +22,3 @@ def test_HomeCoachData(homeCoachData):
 )
 def test_HomeCoachData_modulesNamesList(homeCoachData, station, expected):
     assert sorted(homeCoachData.modulesNamesList(station)) == expected
-

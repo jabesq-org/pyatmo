@@ -148,11 +148,7 @@ class HomeStatus(HomeData):
         postParams = {"access_token": self.getAuthToken, "home_id": self.home_id}
 
         resp = postRequest(_GETHOMESTATUS_REQ, postParams)
-        if (
-            "errors" in resp
-            or "body" not in resp
-            or "home" not in resp["body"]
-        ):
+        if "errors" in resp or "body" not in resp or "home" not in resp["body"]:
             raise NoDevice("No device found, errors in response")
             return None
         self.rawData = resp["body"]["home"]

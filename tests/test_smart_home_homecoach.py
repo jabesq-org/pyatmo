@@ -10,7 +10,7 @@ def test_HomeCoachData(homeCoachData):
     "station, expected",
     [
         (None, ["Bedroom", "Kitchen", "Livingroom"]),
-        ("Bedroom", ["Bedroom", "Kitchen", "Livingroom"]),
+        ("Bedroom", ["Bedroom"]),
         pytest.param(
             "NoValidStation",
             None,

@@ -10,6 +10,11 @@ black = "*"
 mypy = "*"
 flake8 = "*"
 pylint = "*"
+docutils = "==0.14"
+pytest-mock = "*"
+pytest-cov = "*"
+requests-mock = "*"
+freezegun = "*"
 
 [packages]
 

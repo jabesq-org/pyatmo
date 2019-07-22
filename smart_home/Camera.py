@@ -170,17 +170,13 @@ class CameraData:
             vpn_url = camera_data.get("vpn_url")
             if camera_data.get("is_local"):
                 try:
-                    resp = postRequest(
-                        "{0}/command/ping".format(vpn_url), {}
-                    )
+                    resp = postRequest("{0}/command/ping".format(vpn_url), {})
                     temp_local_url = resp["local_url"]
                 except URLError:
                     return None, None
 
                 try:
-                    resp = postRequest(
-                        "{0}/command/ping".format(temp_local_url), {}
-                    )
+                    resp = postRequest("{0}/command/ping".format(temp_local_url), {})
                     if temp_local_url == resp["local_url"]:
                         local_url = temp_local_url
                 except URLError:
@@ -264,8 +260,12 @@ class CameraData:
         eventList = resp["body"]["events_list"]
         for e in eventList:
             if e["type"] == "outdoor":
+                if e["camera_id"] not in self.outdoor_events:
+                    self.outdoor_events[e["camera_id"]] = {}
                 self.outdoor_events[e["camera_id"]][e["time"]] = e
             elif e["type"] != "outdoor":
+                if e["camera_id"] not in self.events:
+                    self.events[e["camera_id"]] = {}
                 self.events[e["camera_id"]][e["time"]] = e
         for camera in self.events:
             self.lastEvent[camera] = self.events[camera][

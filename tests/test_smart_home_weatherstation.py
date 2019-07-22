@@ -147,6 +147,8 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
                 "battery_vp",
                 "co2",
                 "humidity",
+                "max_temp",
+                "min_temp",
                 "rf_status",
                 "temperature",
             ],
@@ -176,7 +178,16 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
         ),
         (
             "NetatmoIndoor",
-            ["co2", "humidity", "noise", "pressure", "temperature", "wifi_status"],
+            [
+                "co2",
+                "humidity",
+                "max_temp",
+                "min_temp",
+                "noise",
+                "pressure",
+                "temperature",
+                "wifi_status",
+            ],
         ),
         pytest.param(
             "12:34:56:07:bb:3e",

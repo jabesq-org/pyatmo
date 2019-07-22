@@ -118,6 +118,13 @@ class WeatherStationData:
         else:
             # assume all other modules have rf_status, battery_vp, and battery_percent
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
+        if (
+            mod["type"] == "NAMain"
+            or mod["type"] == "NHC"
+            or mod["type"] == "NAModule1"
+            or mod["type"] == "NAModule4"
+        ):
+            conditions.extend(["min_temp", "max_temp"])
         return conditions
 
     def lastData(self, station=None, exclude=0):

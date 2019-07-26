@@ -1,6 +1,7 @@
 import logging
 
-from . import _BASE_URL, NoDevice, postRequest
+from . import _BASE_URL, postRequest
+from .Exceptions import NoDevice, NoSchedule, InvalidHome, InvalidRoom
 
 LOG = logging.getLogger(__name__)
 
@@ -10,10 +11,6 @@ _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
 _SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
 _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
 _SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
-
-
-class NoSchedule(Exception):
-    pass
 
 
 class HomeData:
@@ -41,40 +38,47 @@ class HomeData:
         self.schedules = {}
         self.zones = {}
         self.setpoint_duration = {}
+        self.default_home = None
+        self.default_home_id = None
         for item in self.rawData:
+            idHome = item.get("id")
+            if not idHome:
+                raise NoDevice('No key ["id"] in %s', item.keys())
             nameHome = item.get("name")
             if not nameHome:
-                raise NoDevice('No key ["name"] in %s', item.keys())
+                nameHome = "Unknown"
+                self.homes[idHome]["name"] = nameHome
             if "modules" in item:
-                if nameHome not in self.modules:
-                    self.modules[nameHome] = {}
+                if idHome not in self.modules:
+                    self.modules[idHome] = {}
                 for m in item["modules"]:
-                    self.modules[nameHome][m["id"]] = m
-                if nameHome not in self.rooms:
-                    self.rooms[nameHome] = {}
-                if nameHome not in self.schedules:
-                    self.schedules[nameHome] = {}
-                if nameHome not in self.zones:
-                    self.zones[nameHome] = {}
-                if nameHome not in self.setpoint_duration:
-                    self.setpoint_duration[nameHome] = {}
+                    self.modules[idHome][m["id"]] = m
+                if idHome not in self.rooms:
+                    self.rooms[idHome] = {}
+                if idHome not in self.schedules:
+                    self.schedules[idHome] = {}
+                if idHome not in self.zones:
+                    self.zones[idHome] = {}
+                if idHome not in self.setpoint_duration:
+                    self.setpoint_duration[idHome] = {}
                 if "therm_setpoint_default_duration" in item:
-                    self.setpoint_duration[nameHome] = item[
+                    self.setpoint_duration[idHome] = item[
                         "therm_setpoint_default_duration"
                     ]
                 if "rooms" in item:
                     for room in item["rooms"]:
-                        self.rooms[nameHome][room["id"]] = room
+                        self.rooms[idHome][room["id"]] = room
                 if "therm_schedules" in item:
-                    self.default_home = item["name"]
+                    self.default_home = nameHome
+                    self.default_home_id = item["id"]
                     for schedule in item["therm_schedules"]:
-                        self.schedules[nameHome][schedule["id"]] = schedule
+                        self.schedules[idHome][schedule["id"]] = schedule
                     for schedule in item["therm_schedules"]:
                         scheduleId = schedule["id"]
-                        if scheduleId not in self.zones[nameHome]:
-                            self.zones[nameHome][scheduleId] = {}
+                        if scheduleId not in self.zones[idHome]:
+                            self.zones[idHome][scheduleId] = {}
                         for zone in schedule["zones"]:
-                            self.zones[nameHome][scheduleId][zone["id"]] = zone
+                            self.zones[idHome][scheduleId][zone["id"]] = zone
 
     def homeById(self, hid):
         return None if hid not in self.homes else self.homes[hid]
@@ -85,6 +89,7 @@ class HomeData:
         for key, value in self.homes.items():
             if value["name"] == home:
                 return self.homes[key]
+        raise InvalidHome("Invalid Home %s" % home)
 
     def gethomeId(self, home=None):
         if not home:
@@ -95,11 +100,27 @@ class HomeData:
                 LOG.debug(self.default_home)
                 if "therm_schedules" in self.homes[key]:
                     return self.homes[key]["id"]
+        raise InvalidHome("Invalid Home %s" % home)
 
-    def getSelectedschedule(self, home=None):
-        if not home:
-            home = self.default_home
-        self.schedule = self.schedules[home]
+    def getHomeName(self, home_id=None):
+        if home_id is None:
+            home_id = self.default_home_id
+        for key, value in self.homes.items():
+            if value["id"] == home_id:
+                return self.homes[key]["name"]
+        raise InvalidHome("Invalid Home ID %s" % home_id)
+
+    def getSelectedschedule(self, home=None, home_id=None):
+        if not home_id:
+            if not home:
+                home = self.default_home
+            home_id = self.gethomeId(home=home)
+
+        try:
+            self.schedule = self.schedules[home_id]
+        except KeyError:
+            raise NoSchedule("No schedules available for %s" % home_id)
+
         for key in self.schedule.keys():
             if "selected" in self.schedule[key].keys():
                 return self.schedule[key]
@@ -109,8 +130,8 @@ class HomeData:
             home = self.default_home
         home_id = self.gethomeId(home=home)
         schedules = {
-            self.schedules[home][s]["name"]: self.schedules[home][s]["id"]
-            for s in self.schedules[home]
+            self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
+            for s in self.schedules[home_id]
         }
         if schedule is None and schedule_id is not None:
             if schedule_id not in list(schedules.values()):
@@ -138,10 +159,10 @@ class HomeStatus(HomeData):
         self.getAuthToken = authData.accessToken
         self.home_data = HomeData(authData)
 
-        if home_id:
+        if home_id is not None:
             self.home_id = home_id
             LOG.debug("home_id", self.home_id)
-        elif home:
+        elif home is not None:
             self.home_id = self.home_data.gethomeId(home=home)
         else:
             self.home_id = self.home_data.gethomeId(home=self.home_data.default_home)
@@ -156,9 +177,9 @@ class HomeStatus(HomeData):
         self.thermostats = {}
         self.valves = {}
         self.relays = {}
-        for r in self.rawData["rooms"]:
+        for r in self.rawData.get("rooms", []):
             self.rooms[r["id"]] = r
-        for module in self.rawData["modules"]:
+        for module in self.rawData.get("modules", []):
             if module["type"] == "NATherm1":
                 thermostatId = module["id"]
                 if thermostatId not in self.thermostats:
@@ -190,6 +211,7 @@ class HomeStatus(HomeData):
         for key, value in self.rooms.items():
             if value["id"] == rid:
                 return self.rooms[key]
+        raise InvalidRoom("No room with ID %s" % rid)
 
     def thermostatById(self, rid):
         if not rid:
@@ -197,6 +219,7 @@ class HomeStatus(HomeData):
         for key, value in self.thermostats.items():
             if value["id"] == rid:
                 return self.thermostats[key]
+        raise InvalidRoom("No room with ID %s" % rid)
 
     def relayById(self, rid):
         if not rid:
@@ -204,6 +227,7 @@ class HomeStatus(HomeData):
         for key, value in self.relays.items():
             if value["id"] == rid:
                 return self.relays[key]
+        raise InvalidRoom("No room with ID %s" % rid)
 
     def valveById(self, rid):
         if not rid:
@@ -211,16 +235,14 @@ class HomeStatus(HomeData):
         for key, value in self.valves.items():
             if value["id"] == rid:
                 return self.valves[key]
+        raise InvalidRoom("No room with ID %s" % rid)
 
     def setPoint(self, rid=None):
         """
         Return the setpoint of a given room.
         """
         setpoint = None
-        if rid:
-            room_data = self.roomById(rid=rid)
-        else:
-            room_data = self.roomById(rid=None)
+        room_data = self.roomById(rid=rid)
         if room_data:
             setpoint = room_data["therm_setpoint_temperature"]
         return setpoint
@@ -230,25 +252,43 @@ class HomeStatus(HomeData):
         Return the setpointmode of a given room.
         """
         setpointmode = None
-        if rid:
+        try:
             room_data = self.roomById(rid=rid)
-        else:
-            room_data = self.roomById(rid=None)
+        except InvalidRoom:
+            LOG.debug("Invalid room %s", rid)
+            room_data = None
         if room_data:
             setpointmode = room_data["therm_setpoint_mode"]
         return setpointmode
 
-    def getAwaytemp(self, home=None):
-        if not home:
-            home = self.home_data.default_home
-            LOG.debug(self.home_data.default_home)
-        data = self.home_data.getSelectedschedule(home=home)
+    def getAwaytemp(self, home=None, home_id=None):
+        if not home_id:
+            if not home:
+                home = self.home_data.default_home
+                LOG.debug(self.home_data.default_home)
+            try:
+                home_id = self.home_data.gethomeId(home)
+            except InvalidHome:
+                LOG.debug("No Schedule for Home ID %s", home_id)
+                return None
+        try:
+            data = self.home_data.getSelectedschedule(home_id=home_id)
+        except NoSchedule:
+            LOG.debug("No Schedule for Home ID %s", home_id)
+            return None
         return data["away_temp"]
 
-    def getHgtemp(self, home=None):
-        if not home:
-            home = self.home_data.default_home
-        data = self.home_data.getSelectedschedule(home=home)
+    def getHgtemp(self, home=None, home_id=None):
+        if not home_id:
+            if not home:
+                home = self.home_data.default_home
+                LOG.debug(self.home_data.default_home)
+            home_id = self.home_data.gethomeId(home)
+        try:
+            data = self.home_data.getSelectedschedule(home_id=home_id)
+        except NoSchedule:
+            LOG.debug("No Schedule for Home ID %s", home_id)
+            return None
         return data["hg_temp"]
 
     def measuredTemperature(self, rid=None):
@@ -257,10 +297,7 @@ class HomeStatus(HomeData):
         """
         temperature = None
         LOG.debug(rid)
-        if rid:
-            room_data = self.roomById(rid=rid)
-        else:
-            room_data = self.roomById(rid=None)
+        room_data = self.roomById(rid=rid)
         if room_data:
             temperature = room_data["therm_measured_temperature"]
         return temperature
@@ -276,11 +313,13 @@ class HomeStatus(HomeData):
             boiler_status = relay_status["boiler_status"]
         return boiler_status
 
-    def thermostatType(self, home, rid):
+    def thermostatType(self, home, rid, home_id=None):
         module_id = None
-        for key in self.home_data.rooms[home]:
+        if home_id is None:
+            home_id = self.home_data.gethomeId(home=home)
+        for key in self.home_data.rooms[home_id]:
             if key == rid:
-                for module_id in self.home_data.rooms[home][rid]["module_ids"]:
+                for module_id in self.home_data.rooms[home_id][rid]["module_ids"]:
                     self.module_id = module_id
                     if module_id in self.thermostats:
                         return "NATherm1"

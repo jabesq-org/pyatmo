@@ -1,6 +1,7 @@
 import time
 
-from . import _BASE_URL, NoDevice, postRequest
+from . import _BASE_URL, postRequest
+from .Exceptions import NoDevice
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652

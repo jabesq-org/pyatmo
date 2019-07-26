@@ -3,7 +3,8 @@ import logging
 import time
 from urllib.error import URLError
 
-from . import _BASE_URL, NoDevice, postRequest
+from . import _BASE_URL, postRequest
+from .Exceptions import NoDevice, InvalidHome
 
 LOG = logging.getLogger(__name__)
 
@@ -42,19 +43,25 @@ class CameraData:
         self.outdoor_lastEvent = {}
         self.types = {}
         self.default_home = None
+        self.default_home_id = None
         self.default_camera = None
         for item in self.rawData:
+            homeId = item.get("id")
             nameHome = item.get("name")
             if not nameHome:
-                raise NoDevice('No key ["name"] in %s' % item.keys())
-            if nameHome not in self.cameras:
-                self.cameras[nameHome] = {}
-            if nameHome not in self.types:
-                self.types[nameHome] = {}
+                nameHome = "Unknown"
+                self.homes[homeId]["name"] = nameHome
+            if not homeId:
+                raise NoDevice('No key ["id"] in %s' % item.keys())
+            if homeId not in self.cameras:
+                self.cameras[homeId] = {}
+            if homeId not in self.types:
+                self.types[homeId] = {}
             for p in item["persons"]:
                 self.persons[p["id"]] = p
             if "events" in item:
                 self.default_home = item["name"]
+                self.default_home_id = item["id"]
                 for e in item["events"]:
                     if e["type"] == "outdoor":
                         if e["camera_id"] not in self.outdoor_events:
@@ -65,13 +72,13 @@ class CameraData:
                             self.events[e["camera_id"]] = {}
                         self.events[e["camera_id"]][e["time"]] = e
             for c in item["cameras"]:
-                self.cameras[nameHome][c["id"]] = c
+                self.cameras[homeId][c["id"]] = c
                 if c["type"] == "NACamera" and "modules" in c:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
                         self.modules[m["id"]]["cam_id"] = c["id"]
             for t in item["cameras"]:
-                self.types[nameHome][t["type"]] = t
+                self.types[homeId][t["type"]] = t
         for camera in self.events:
             self.lastEvent[camera] = self.events[camera][
                 sorted(self.events[camera])[-1]
@@ -85,7 +92,7 @@ class CameraData:
         else:
             self.default_module = None
         if self.default_home is not None and len(self.cameras) > 0:
-            self.default_camera = list(self.cameras[self.default_home].values())[0]
+            self.default_camera = list(self.cameras[self.default_home_id].values())[0]
 
     def homeById(self, hid):
         return None if hid not in self.homes else self.homes[hid]
@@ -96,6 +103,7 @@ class CameraData:
         for key, value in self.homes.items():
             if value["name"] == home:
                 return self.homes[key]
+        raise InvalidHome()
 
     def cameraById(self, cid):
         for home, cam in self.cameras.items():
@@ -103,23 +111,34 @@ class CameraData:
                 return self.cameras[home][cid]
         return None
 
-    def cameraByName(self, camera=None, home=None):
-        if not camera and not home:
-            return self.default_camera
-        elif home and camera:
-            if home not in self.cameras:
-                return None
-            for cam_id in self.cameras[home]:
-                if self.cameras[home][cam_id]["name"] == camera:
-                    return self.cameras[home][cam_id]
-        elif not home and camera:
-            for home, cam_ids in self.cameras.items():
-                for cam_id in cam_ids:
-                    if self.cameras[home][cam_id]["name"] == camera:
-                        return self.cameras[home][cam_id]
+    def cameraByName(self, camera=None, home=None, home_id=None):
+        if home_id is None:
+            if home is None:
+                hid = self.default_home_id
+            else:
+                try:
+                    hid = self.homeByName(home)["id"]
+                except InvalidHome:
+                    LOG.debug("Invalid home %s", home)
+                    return None
         else:
-            return list(self.cameras[home].values())[0]
-        return None
+            hid = home_id
+        if camera is None and home is None and home_id is None:
+            return self.default_camera
+        elif not (home_id or home) and camera:
+            for h_id, cam_ids in self.cameras.items():
+                for cam_id in cam_ids:
+                    if self.cameras[h_id][cam_id]["name"] == camera:
+                        return self.cameras[h_id][cam_id]
+        elif hid and camera:
+            hid = self.homeByName(home)["id"]
+            if hid not in self.cameras:
+                return None
+            for cam_id in self.cameras[hid]:
+                if self.cameras[hid][cam_id]["name"] == camera:
+                    return self.cameras[hid][cam_id]
+        else:
+            return list(self.cameras[hid].values())[0]
 
     def moduleById(self, mid):
         return None if mid not in self.modules else self.modules[mid]

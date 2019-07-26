@@ -10,6 +10,9 @@ from .conftest import does_not_raise
 import smart_home.Camera
 
 
+INVALID_NAME = "InvalidName"
+
+
 def test_CameraData(cameraHomeData):
     assert cameraHomeData.default_home == "MYHOME"
     assert cameraHomeData.default_camera["id"] == "12:34:56:00:f1:62"
@@ -20,15 +23,15 @@ def test_CameraData(cameraHomeData):
     "hid, expected",
     [
         ("91763b24c43d3e344f424e8b", "MYHOME"),
-        pytest.param(
-            None,
-            None,
-            marks=pytest.mark.xfail(reason="Invalid home id not handled yet"),
-        ),
+        (INVALID_NAME, "MYHOME"),
+        pytest.param(None, None),
     ],
 )
 def test_CameraData_homeById(cameraHomeData, hid, expected):
-    assert cameraHomeData.homeById(hid)["name"] == expected
+    if hid is None or hid == INVALID_NAME:
+        assert cameraHomeData.homeById(hid) is None
+    else:
+        assert cameraHomeData.homeById(hid)["name"] == expected
 
 
 @pytest.mark.parametrize(
@@ -37,19 +40,25 @@ def test_CameraData_homeById(cameraHomeData, hid, expected):
         ("MYHOME", "91763b24c43d3e344f424e8b"),
         (None, "91763b24c43d3e344f424e8b"),
         ("", "91763b24c43d3e344f424e8b"),
-        pytest.param(
-            "InvalidName",
-            None,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
+        pytest.param(INVALID_NAME, None),
     ],
 )
 def test_CameraData_homeByName(cameraHomeData, name, expected):
-    assert cameraHomeData.homeByName(name)["id"] == expected
+    if name == INVALID_NAME:
+        with pytest.raises(smart_home.Exceptions.InvalidHome):
+            assert cameraHomeData.homeByName(name)
+    else:
+        assert cameraHomeData.homeByName(name)["id"] == expected
 
 
 @pytest.mark.parametrize(
-    "cid, expected", [("12:34:56:00:f1:62", "Hall"), ("None", None), (None, None)]
+    "cid, expected",
+    [
+        ("12:34:56:00:f1:62", "Hall"),
+        ("12:34:56:00:a5:a4", "Garden"),
+        ("None", None),
+        (None, None),
+    ],
 )
 def test_CameraData_cameraById(cameraHomeData, cid, expected):
     camera = cameraHomeData.cameraById(cid)
@@ -60,30 +69,38 @@ def test_CameraData_cameraById(cameraHomeData, cid, expected):
 
 
 @pytest.mark.parametrize(
-    "name, home, expected",
+    "name, home, home_id, expected",
     [
-        ("Hall", None, "12:34:56:00:f1:62"),
-        (None, None, "12:34:56:00:f1:62"),
-        ("", None, "12:34:56:00:f1:62"),
-        ("Hall", "MYHOME", "12:34:56:00:f1:62"),
-        (None, "MYHOME", "12:34:56:00:f1:62"),
-        ("", "MYHOME", "12:34:56:00:f1:62"),
-        pytest.param(
-            "InvalidName",
-            None,
-            None,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
-        pytest.param(
-            None,
-            "InvalidName",
-            None,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
+        ("Hall", None, None, "12:34:56:00:f1:62"),
+        (None, None, None, "12:34:56:00:f1:62"),
+        ("", None, None, "12:34:56:00:f1:62"),
+        ("Hall", "MYHOME", None, "12:34:56:00:f1:62"),
+        ("Hall", None, "91763b24c43d3e344f424e8b", "12:34:56:00:f1:62"),
+        (None, None, "91763b24c43d3e344f424e8b", "12:34:56:00:f1:62"),
+        (None, "MYHOME", None, "12:34:56:00:f1:62"),
+        ("", "MYHOME", None, "12:34:56:00:f1:62"),
+        ("Garden", "MYHOME", None, "12:34:56:00:a5:a4"),
+        (INVALID_NAME, None, None, None),
+        (None, INVALID_NAME, None, None),
     ],
 )
-def test_CameraData_cameraByName(cameraHomeData, name, home, expected):
-    assert cameraHomeData.cameraByName(name, home)["id"] == expected
+def test_CameraData_cameraByName(cameraHomeData, name, home, home_id, expected):
+    if home == INVALID_NAME or name == INVALID_NAME:
+        assert cameraHomeData.cameraByName(name, home, home_id) is None
+    elif home_id is None:
+        assert cameraHomeData.cameraByName(name, home)["id"] == expected
+    elif home is None:
+        assert cameraHomeData.cameraByName(name, home_id=home_id)["id"] == expected
+    else:
+        assert cameraHomeData.cameraByName(name, home, home_id)["id"] == expected
+
+
+def test_CameraData_moduleById(cameraHomeData):
+    assert cameraHomeData.moduleById("00:00:00:00:00:00") is None
+
+
+def test_CameraData_moduleByName(cameraHomeData):
+    assert cameraHomeData.moduleByName() is None
 
 
 @pytest.mark.parametrize(
@@ -95,14 +112,9 @@ def test_CameraData_cameraByName(cameraHomeData, name, home, expected):
         (None, "MYHOME", None, "NACamera"),
         (None, "MYHOME", "12:34:56:00:f1:62", "NACamera"),
         (None, None, "12:34:56:00:f1:62", "NACamera"),
-        ("InvalidName", None, None, None),
-        pytest.param(
-            None,
-            "InvalidName",
-            None,
-            "NACamera",
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
+        ("Garden", None, None, "NOC"),
+        (INVALID_NAME, None, None, None),
+        pytest.param(None, INVALID_NAME, None, None),
     ],
 )
 def test_CameraData_cameraType(cameraHomeData, camera, home, cid, expected):
@@ -151,14 +163,18 @@ def test_CameraData_cameraUrls_disconnected(auth, requests_mock):
         (None, ["Richard Doe"]),
         ("MYHOME", ["Richard Doe"]),
         pytest.param(
-            "InvalidHome",
+            INVALID_NAME,
             None,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
+            # marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
         ),
     ],
 )
 def test_CameraData_personsAtHome(cameraHomeData, home, expected):
-    assert cameraHomeData.personsAtHome(home) == expected
+    if home == INVALID_NAME:
+        with pytest.raises(smart_home.Exceptions.InvalidHome):
+            assert cameraHomeData.personsAtHome(home)
+    else:
+        assert cameraHomeData.personsAtHome(home) == expected
 
 
 @freeze_time("2019-06-16")
@@ -198,13 +214,7 @@ def test_CameraData_knownPersonsNames(cameraHomeData):
         (None, None, None, True),
         (None, None, 5, False),
         (None, "InvalidCamera", None, False),
-        pytest.param(
-            "InvalidHome",
-            None,
-            None,
-            True,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
+        ("InvalidHome", None, None, False),
     ],
 )
 def test_CameraData_someoneKnownSeen(cameraHomeData, home, camera, exclude, expected):
@@ -217,14 +227,8 @@ def test_CameraData_someoneKnownSeen(cameraHomeData, home, camera, exclude, expe
     [
         (None, None, None, False),
         (None, None, 100, False),
-        (None, "InvalidCamera", None, False),
-        pytest.param(
-            "InvalidHome",
-            None,
-            None,
-            False,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
+        (None, INVALID_NAME, None, False),
+        (INVALID_NAME, None, None, False),
     ],
 )
 def test_CameraData_someoneUnknownSeen(cameraHomeData, home, camera, exclude, expected):
@@ -238,14 +242,8 @@ def test_CameraData_someoneUnknownSeen(cameraHomeData, home, camera, exclude, ex
         (None, None, None, False),
         (None, None, 140000, True),
         (None, None, 130000, False),
-        (None, "InvalidCamera", None, False),
-        pytest.param(
-            "InvalidHome",
-            None,
-            None,
-            False,
-            marks=pytest.mark.xfail(reason="Invalid home name not handled yet"),
-        ),
+        (None, INVALID_NAME, None, False),
+        (INVALID_NAME, None, None, False),
     ],
 )
 def test_CameraData_motionDetected(cameraHomeData, home, camera, exclude, expected):

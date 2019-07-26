@@ -11,12 +11,13 @@ PythonAPI Netatmo REST data access
 import logging
 import time
 
-from smart_home import _BASE_URL, NoDevice, postRequest
+from smart_home import _BASE_URL, postRequest
 from smart_home.Camera import CameraData
 from smart_home.HomeCoach import HomeCoachData
 from smart_home.PublicData import PublicData
 from smart_home.Thermostat import HomeData, HomeStatus
 from smart_home.WeatherStation import WeatherStationData
+from smart_home.Exceptions import NoDevice, InvalidHome, InvalidRoom, NoSchedule
 
 LOG = logging.getLogger(__name__)
 

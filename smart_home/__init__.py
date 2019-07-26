@@ -9,10 +9,6 @@ LOG = logging.getLogger(__name__)
 _BASE_URL = "https://api.netatmo.com/"
 
 
-class NoDevice(Exception):
-    pass
-
-
 # Utilities routines
 
 

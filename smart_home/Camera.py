@@ -52,7 +52,8 @@ class CameraData:
                 nameHome = "Unknown"
                 self.homes[homeId]["name"] = nameHome
             if not homeId:
-                raise NoDevice('No key ["id"] in %s' % item.keys())
+                LOG.error('No key ["id"] in %s', item.keys())
+                continue
             if homeId not in self.cameras:
                 self.cameras[homeId] = {}
             if homeId not in self.types:

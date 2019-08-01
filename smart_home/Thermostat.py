@@ -43,7 +43,8 @@ class HomeData:
         for item in self.rawData:
             idHome = item.get("id")
             if not idHome:
-                raise NoDevice('No key ["id"] in %s', item.keys())
+                LOG.error('No key ["id"] in %s', item.keys())
+                continue
             nameHome = item.get("name")
             if not nameHome:
                 nameHome = "Unknown"

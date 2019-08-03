@@ -2,13 +2,11 @@
 import json
 
 import pytest
-
 from freezegun import freeze_time
-
-from .conftest import does_not_raise
 
 import smart_home.Camera
 
+from .conftest import does_not_raise
 
 INVALID_NAME = "InvalidName"
 

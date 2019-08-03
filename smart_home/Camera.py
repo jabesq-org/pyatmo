@@ -4,7 +4,7 @@ import time
 from urllib.error import URLError
 
 from . import _BASE_URL, postRequest
-from .Exceptions import NoDevice, InvalidHome
+from .Exceptions import InvalidHome, NoDevice
 
 LOG = logging.getLogger(__name__)
 

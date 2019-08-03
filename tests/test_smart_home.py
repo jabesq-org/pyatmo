@@ -2,7 +2,6 @@
 import time
 
 import pytest
-
 import requests
 
 import smart_home

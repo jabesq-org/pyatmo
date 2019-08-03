@@ -4,10 +4,10 @@ import logging
 
 import pytest
 
-from .conftest import does_not_raise
-
-import smart_home.Thermostat
 import smart_home.Exceptions
+import smart_home.Thermostat
+
+from .conftest import does_not_raise
 
 
 def test_HomeData(homeData):

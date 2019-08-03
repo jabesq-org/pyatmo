@@ -1,15 +1,14 @@
 """Define shared fixtures."""
 import json
+from contextlib import contextmanager
 
 import pytest
 
 import pyatmo
-import smart_home.Thermostat
-import smart_home.PublicData
-import smart_home.WeatherStation
 import smart_home.HomeCoach
-
-from contextlib import contextmanager
+import smart_home.PublicData
+import smart_home.Thermostat
+import smart_home.WeatherStation
 
 
 @contextmanager

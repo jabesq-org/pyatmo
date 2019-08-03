@@ -2,12 +2,11 @@
 import json
 
 import pytest
-
 from freezegun import freeze_time
 
-from .conftest import does_not_raise
-
 import smart_home.WeatherStation
+
+from .conftest import does_not_raise
 
 
 def test_WeatherStationData(weatherStationData):

@@ -124,7 +124,13 @@ class WeatherStationData:
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
         if mod["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
             conditions.extend(["min_temp", "max_temp"])
-        if mod["type"] in ["NAMain", "NAModule1", "NAModule2", "NAModule3", "NAModule4"]:
+        if mod["type"] in [
+            "NAMain",
+            "NAModule1",
+            "NAModule2",
+            "NAModule3",
+            "NAModule4",
+        ]:
             conditions.append("reachable")
         return conditions
 

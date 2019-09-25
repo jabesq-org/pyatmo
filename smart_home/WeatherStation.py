@@ -116,19 +116,16 @@ class WeatherStationData:
                 conditions.extend(["Rain", "sum_rain_24", "sum_rain_1"])
             else:
                 conditions.append(cond.lower())
-        if mod["type"] == "NAMain" or mod["type"] == "NHC":
+        if mod["type"] in ["NAMain", "NHC"]:
             # the main module has wifi_status
             conditions.append("wifi_status")
         else:
             # assume all other modules have rf_status, battery_vp, and battery_percent
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
-        if (
-            mod["type"] == "NAMain"
-            or mod["type"] == "NHC"
-            or mod["type"] == "NAModule1"
-            or mod["type"] == "NAModule4"
-        ):
+        if mod["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
             conditions.extend(["min_temp", "max_temp"])
+        if mod["type"] in ["NAMain", "NAModule1", "NAModule2", "NAModule3", "NAModule4"]:
+            conditions.append("reachable")
         return conditions
 
     def lastData(self, station=None, exclude=0):
@@ -165,6 +162,7 @@ class WeatherStationData:
                         "rf_status",
                         "battery_vp",
                         "battery_percent",
+                        "reachable",
                         "wifi_status",
                     ):
                         if i in module:

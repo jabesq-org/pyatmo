@@ -248,3 +248,18 @@ def test_CameraData_someoneUnknownSeen(cameraHomeData, home, camera, exclude, ex
 )
 def test_CameraData_motionDetected(cameraHomeData, home, camera, exclude, expected):
     assert cameraHomeData.motionDetected(home, camera, exclude) == expected
+
+
+def test_CameraData_getHomeName(cameraHomeData):
+    assert cameraHomeData.getHomeName() == "MYHOME"
+    home_id = "91763b24c43d3e344f424e8b"
+    assert cameraHomeData.getHomeName(home_id) == "MYHOME"
+    home_id = "91763b24c43d3e344f424e8c"
+    assert cameraHomeData.getHomeName(home_id) == "Unknown"
+
+
+def test_CameraData_gethomeId(cameraHomeData):
+    assert cameraHomeData.gethomeId() == "91763b24c43d3e344f424e8b"
+    assert cameraHomeData.gethomeId("MYHOME") == "91763b24c43d3e344f424e8b"
+    with pytest.raises(smart_home.Camera.InvalidHome):
+        assert cameraHomeData.gethomeId("InvalidName")

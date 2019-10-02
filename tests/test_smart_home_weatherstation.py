@@ -374,3 +374,11 @@ def test_WeatherStationData_getMeasure(
         weatherStationData.getMeasure(device_id, scale, mtype)["body"]["1544558433"]
         == expected
     )
+
+
+def test_WeatherStationData_lastData_measurements(weatherStationData):
+    mod = weatherStationData.lastData("MyStation", None)
+    assert mod["NetatmoIndoor"]["min_temp"] == 23.4
+    assert mod["NetatmoIndoor"]["max_temp"] == 25.6
+    assert mod["NetatmoIndoor"]["Temperature"] == 24.6
+    assert mod["NetatmoIndoor"]["Pressure"] == 1017.3

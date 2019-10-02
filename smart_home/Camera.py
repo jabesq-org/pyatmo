@@ -106,6 +106,24 @@ class CameraData:
                 return self.homes[key]
         raise InvalidHome()
 
+    def getHomeName(self, home_id=None):
+        if home_id is None:
+            home_id = self.default_home_id
+        for key, value in self.homes.items():
+            if value["id"] == home_id:
+                return self.homes[key]["name"]
+        raise InvalidHome("Invalid Home ID %s" % home_id)
+
+    def gethomeId(self, home=None):
+        if not home:
+            home = self.default_home
+        for key, value in self.homes.items():
+            if value["name"] == home:
+                LOG.debug(self.homes[key]["id"])
+                LOG.debug(self.default_home)
+                return self.homes[key]["id"]
+        raise InvalidHome("Invalid Home %s" % home)
+
     def cameraById(self, cid):
         for home, cam in self.cameras.items():
             if cid in self.cameras[home]:
@@ -162,7 +180,7 @@ class CameraData:
                 return self.modules[key]
         return None
 
-    def cameraType(self, camera=None, home=None, cid=None):
+    def cameraType(self, camera=None, home=None, cid=None, home_id=None):
         """
         Return the type of a given camera.
         """
@@ -170,12 +188,12 @@ class CameraData:
         if cid:
             camera_data = self.cameraById(cid)
         else:
-            camera_data = self.cameraByName(camera=camera, home=home)
+            camera_data = self.cameraByName(camera=camera, home=home, home_id=home_id)
         if camera_data:
             cameratype = camera_data["type"]
         return cameratype
 
-    def cameraUrls(self, camera=None, home=None, cid=None):
+    def cameraUrls(self, camera=None, home=None, cid=None, home_id=None):
         """
         Return the vpn_url and the local_url (if available) of a given camera
         in order to access to its live feed
@@ -184,8 +202,11 @@ class CameraData:
         vpn_url = None
         if cid:
             camera_data = self.cameraById(cid)
+        elif home_id:
+            camera_data = self.cameraByName(camera=camera, home_id=home_id)
         else:
             camera_data = self.cameraByName(camera=camera, home=home)
+
         if camera_data:
             vpn_url = camera_data.get("vpn_url")
             if camera_data.get("is_local"):
@@ -243,12 +264,16 @@ class CameraData:
                     return self.getCameraPicture(image_id, key)
         return None, None
 
-    def updateEvent(self, event=None, home=None, cameratype=None):
+    def updateEvent(self, event=None, home=None, cameratype=None, home_id=None):
         """
         Update the list of event with the latest ones
         """
-        if not home:
-            home = self.default_home
+        if not home_id:
+            try:
+                home_id = self.gethomeId(home)
+            except InvalidHome:
+                LOG.debug("No valid Home %s", home)
+                return None
         if cameratype == "NACamera":
             # for the Welcome camera
             if not event:
@@ -270,10 +295,9 @@ class CameraData:
                     ] = self.outdoor_lastEvent[cam_id]
                 event = listEvent[sorted(listEvent)[0]]
 
-        home_data = self.homeByName(home)
         postParams = {
             "access_token": self.getAuthToken,
-            "home_id": home_data["id"],
+            "home_id": home_id,
             "event_id": event["id"],
         }
         resp = postRequest(_GETEVENTSUNTIL_REQ, postParams)
@@ -337,146 +361,152 @@ class CameraData:
             names.append(p["pseudo"])
         return names
 
-    def someoneKnownSeen(self, home=None, camera=None, exclude=0):
+    def someoneKnownSeen(self, home=None, camera=None, exclude=0, cid=None):
         """
         Return True if someone known has been seen
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("someoneKnownSeen: Camera name or home is unknown")
-            return False
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("someoneKnownSeen: Camera name or home is unknown")
+                return False
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id], reverse=True)
+            array_time_event = sorted(self.events[cid], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cam_id][time_ev]["type"] == "person":
-                    if (
-                        self.events[cam_id][time_ev]["person_id"]
-                        in self._knownPersons()
-                    ):
+                elif self.events[cid][time_ev]["type"] == "person":
+                    if self.events[cid][time_ev]["person_id"] in self._knownPersons():
                         return True
         # Check in the last event is someone known has been seen
-        elif self.lastEvent[cam_id]["type"] == "person":
-            if self.lastEvent[cam_id]["person_id"] in self._knownPersons():
+        elif self.lastEvent[cid]["type"] == "person":
+            if self.lastEvent[cid]["person_id"] in self._knownPersons():
                 return True
         return False
 
-    def someoneUnknownSeen(self, home=None, camera=None, exclude=0):
+    def someoneUnknownSeen(self, home=None, camera=None, exclude=0, cid=None):
         """
         Return True if someone unknown has been seen
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("someoneUnknownSeen: Camera name or home is unknown")
-            return False
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("someoneUnknownSeen: Camera name or home is unknown")
+                return False
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id], reverse=True)
+            array_time_event = sorted(self.events[cid], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cam_id][time_ev]["type"] == "person":
+                elif self.events[cid][time_ev]["type"] == "person":
                     if (
-                        self.events[cam_id][time_ev]["person_id"]
+                        self.events[cid][time_ev]["person_id"]
                         not in self._knownPersons()
                     ):
                         return True
         # Check in the last event is someone known has been seen
-        elif self.lastEvent[cam_id]["type"] == "person":
-            if self.lastEvent[cam_id]["person_id"] not in self._knownPersons():
+        elif self.lastEvent[cid]["type"] == "person":
+            if self.lastEvent[cid]["person_id"] not in self._knownPersons():
                 return True
         return False
 
-    def motionDetected(self, home=None, camera=None, exclude=0):
+    def motionDetected(self, home=None, camera=None, exclude=0, cid=None):
         """
         Return True if movement has been detected
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("motionDetected: Camera name or home is unknown")
-            return False
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("motionDetected: Camera name or home is unknown")
+                return False
 
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id], reverse=True)
+            array_time_event = sorted(self.events[cid], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cam_id][time_ev]["type"] == "movement":
+                elif self.events[cid][time_ev]["type"] == "movement":
                     return True
-        elif self.lastEvent[cam_id]["type"] == "movement":
+        elif self.lastEvent[cid]["type"] == "movement":
             return True
         return False
 
-    def outdoormotionDetected(self, home=None, camera=None, offset=0):
+    def outdoormotionDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Return True if outdoor movement has been detected
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("outdoormotionDetected: Camera name or home is unknown")
-            return False
-        if cam_id in self.lastEvent:
-            if self.lastEvent[cam_id]["type"] == "movement":
-                if self.lastEvent[cam_id][
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("outdoormotionDetected: Camera name or home is unknown")
+                return False
+
+        if cid in self.lastEvent:
+            if self.lastEvent[cid]["type"] == "movement":
+                if self.lastEvent[cid][
                     "video_status"
-                ] == "recording" and self.lastEvent[cam_id]["time"] + offset > int(
+                ] == "recording" and self.lastEvent[cid]["time"] + offset > int(
                     time.time()
                 ):
                     return True
         return False
 
-    def humanDetected(self, home=None, camera=None, offset=0):
+    def humanDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Return True if a human has been detected
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("personSeenByCamera: Camera name or home is unknown")
-            return False
-        if self.outdoor_lastEvent[cam_id]["video_status"] == "recording":
-            for e in self.outdoor_lastEvent[cam_id]["event_list"]:
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("personSeenByCamera: Camera name or home is unknown")
+                return False
+
+        if self.outdoor_lastEvent[cid]["video_status"] == "recording":
+            for e in self.outdoor_lastEvent[cid]["event_list"]:
                 if e["type"] == "human" and e["time"] + offset > int(time.time()):
                     return True
         return False
 
-    def animalDetected(self, home=None, camera=None, offset=0):
+    def animalDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Return True if an animal has been detected
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("animalDetected: Camera name or home is unknown")
-            return False
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("animalDetected: Camera name or home is unknown")
+                return False
 
-        if self.outdoor_lastEvent[cam_id]["video_status"] == "recording":
-            for e in self.outdoor_lastEvent[cam_id]["event_list"]:
+        if self.outdoor_lastEvent[cid]["video_status"] == "recording":
+            for e in self.outdoor_lastEvent[cid]["event_list"]:
                 if e["type"] == "animal" and e["time"] + offset > int(time.time()):
                     return True
         return False
 
-    def carDetected(self, home=None, camera=None, offset=0):
+    def carDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Return True if a car has been detected
         """
-        try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
-        except TypeError:
-            LOG.error("carDetected: Camera name or home is unknown")
-            return False
+        if not cid:
+            try:
+                cid = self.cameraByName(camera=camera, home=home)["id"]
+            except TypeError:
+                LOG.error("carDetected: Camera name or home is unknown")
+                return False
 
-        if self.outdoor_lastEvent[cam_id]["video_status"] == "recording":
-            for e in self.outdoor_lastEvent[cam_id]["event_list"]:
+        if self.outdoor_lastEvent[cid]["video_status"] == "recording":
+            for e in self.outdoor_lastEvent[cid]["event_list"]:
                 if e["type"] == "vehicle" and e["time"] + offset > int(time.time()):
                     return True
         return False

@@ -154,6 +154,7 @@ class WeatherStationData:
                     "time_utc"
                 )
                 lastD[s["module_name"]]["wifi_status"] = s["wifi_status"]
+                lastD[s["module_name"]]["reachable"] = s["reachable"]
             for module in s["modules"]:
                 if "dashboard_data" not in module or "module_name" not in module:
                     continue

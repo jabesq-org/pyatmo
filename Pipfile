@@ -17,6 +17,7 @@ requests-mock = "*"
 freezegun = "*"
 
 [packages]
+pyatmo = {editable = true,path = "."}
 
 [requires]
 python_version = "3.7"

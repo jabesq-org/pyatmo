@@ -1,6 +1,4 @@
-import time
-
-from . import _BASE_URL, postRequest
+from . import _BASE_URL, postRequest, toTimeString
 from .Exceptions import NoDevice
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
@@ -166,10 +164,6 @@ class PublicData:
                 if type in module:
                     measures[station["_id"]] = module[type]
         return measures
-
-
-def toTimeString(value):
-    return time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(int(value)))
 
 
 def averageMeasure(measures):

@@ -1,5 +1,7 @@
 import logging
 import time
+from calendar import timegm
+from datetime import datetime
 
 import requests
 
@@ -28,16 +30,15 @@ def postRequest(url, params=None, timeout=10):
 
 
 def toTimeString(value):
-    return time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(int(value)))
+    return datetime.utcfromtimestamp(int(value)).isoformat(sep="_")
 
 
 def toEpoch(value):
-    return int(time.mktime(time.strptime(value, "%Y-%m-%d_%H:%M:%S")))
+    return timegm(time.strptime(value + "GMT", "%Y-%m-%d_%H:%M:%S%Z"))
 
 
 def todayStamps():
-    today = time.strftime("%Y-%m-%d")
-    today = int(time.mktime(time.strptime(today, "%Y-%m-%d")))
+    today = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
 
 

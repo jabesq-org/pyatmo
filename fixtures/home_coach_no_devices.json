@@ -1,0 +1,20 @@
+{
+    "body": {
+        "devices": [],
+        "user": {
+            "mail": "john@doe.com",
+            "administrative": {
+                "lang": "de-DE",
+                "reg_locale": "de-DE",
+                "country": "DE",
+                "unit": 0,
+                "windunit": 0,
+                "pressureunit": 0,
+                "feel_like_algo": 0
+            }
+        }
+    },
+    "status": "ok",
+    "time_exec": 0.05824708938598633,
+    "time_server": 1565377059
+}

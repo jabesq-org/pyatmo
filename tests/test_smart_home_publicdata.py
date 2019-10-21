@@ -266,14 +266,6 @@ def test_PublicData_getAccessoryMeasures(publicData, test_input, expected):
 
 @pytest.mark.parametrize(
     "test_input,expected",
-    [(1560248190, "2019-06-11_12:16:30"), (0, "1970-01-01_01:00:00")],
-)
-def test_PublicData_toTimeString(test_input, expected):
-    assert smart_home.PublicData.toTimeString(test_input) == expected
-
-
-@pytest.mark.parametrize(
-    "test_input,expected",
     [
         (
             {

@@ -47,11 +47,11 @@ def test_postRequest_timeout(requests_mock):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        (1, "1970-01-01_01:00:01"),
-        (0, "1970-01-01_01:00:00"),
-        (-1, "1970-01-01_00:59:59"),
-        (2000000000, "2033-05-18_05:33:20"),
-        ("1", "1970-01-01_01:00:01"),
+        (1, "1970-01-01_00:00:01"),
+        (0, "1970-01-01_00:00:00"),
+        (-1, "1969-12-31_23:59:59"),
+        (2000000000, "2033-05-18_03:33:20"),
+        ("1", "1970-01-01_00:00:01"),
         pytest.param("A", None, marks=pytest.mark.xfail),
         pytest.param([1], None, marks=pytest.mark.xfail),
         pytest.param({1}, None, marks=pytest.mark.xfail),
@@ -65,10 +65,10 @@ def test_toTimeString(test_input, expected):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        ("1970-01-01_01:00:01", 1),
-        ("1970-01-01_01:00:00", 0),
-        ("1970-01-01_00:59:59", -1),
-        ("2033-05-18_05:33:20", 2000000000),
+        ("1970-01-01_00:00:01", 1),
+        ("1970-01-01_00:00:00", 0),
+        ("1969-12-31_23:59:59", -1),
+        ("2033-05-18_03:33:20", 2000000000),
     ],
 )
 def test_toEpoch(test_input, expected):
@@ -79,8 +79,8 @@ def test_toEpoch(test_input, expected):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        ("2018-06-21", (1529532000, 1529618400)),
-        ("2000-01-01", (946681200, 946767600)),
+        ("2018-06-21", (1529539200, 1529625600)),
+        ("2000-01-01", (946684800, 946771200)),
         pytest.param("2000-04-31", None, marks=pytest.mark.xfail),
     ],
 )

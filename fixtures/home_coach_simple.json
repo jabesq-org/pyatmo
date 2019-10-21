@@ -42,7 +42,7 @@
                 "firmware": 45,
                 "last_upgrade": 1544562194,
                 "wifi_status": 41,
-                "reachable": false,
+                "reachable": true,
                 "co2_calibrating": false,
                 "station_name": "Kitchen",
                 "data_type": [
@@ -73,7 +73,7 @@
                 "firmware": 45,
                 "last_upgrade": 1544564302,
                 "wifi_status": 66,
-                "reachable": false,
+                "reachable": true,
                 "co2_calibrating": false,
                 "station_name": "Livingroom",
                 "data_type": [

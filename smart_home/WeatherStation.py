@@ -130,6 +130,7 @@ class WeatherStationData:
             "NAModule2",
             "NAModule3",
             "NAModule4",
+            "NHC",
         ]:
             conditions.append("reachable")
         return conditions

@@ -1,8 +1,8 @@
 import logging
 import time
 
-from . import _BASE_URL, postRequest, todayStamps
-from .Exceptions import NoDevice
+from pyatmo import _BASE_URL, postRequest, todayStamps
+from pyatmo.Exceptions import NoDevice
 
 LOG = logging.getLogger(__name__)
 

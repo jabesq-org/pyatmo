@@ -1,7 +1,7 @@
 import logging
 
-from . import _BASE_URL, postRequest
-from .Exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
+from pyatmo import _BASE_URL, postRequest
+from pyatmo.Exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
 
 LOG = logging.getLogger(__name__)
 

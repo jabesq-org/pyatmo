@@ -1,25 +1,7 @@
-# Published Jan 2013
-# Revised Jan 2014 (to add new modules data)
-# Author : Philippe Larduinat, philippelt@users.sourceforge.net
-# Public domain source code
-"""
-This API provides access to the Netatmo weather station or/and the Netatmo
-cameras or/and the Netatmo smart thermostat
-This package can be used with Python3 applications
-PythonAPI Netatmo REST data access
-"""
-import logging
 import time
 
-from smart_home import _BASE_URL, postRequest
-from smart_home.Camera import CameraData
-from smart_home.Exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
-from smart_home.HomeCoach import HomeCoachData
-from smart_home.PublicData import PublicData
-from smart_home.Thermostat import HomeData, HomeStatus
-from smart_home.WeatherStation import WeatherStationData
-
-LOG = logging.getLogger(__name__)
+from pyatmo import _BASE_URL, postRequest, LOG
+from pyatmo.Exceptions import NoDevice
 
 
 # Common definitions
@@ -101,65 +83,3 @@ class ClientAuth:
             self.refreshToken = resp["refresh_token"]
             self.expiration = int(resp["expire_in"] + time.time() - 1800)
         return self._accessToken
-
-
-# auto-test when executed directly
-
-if __name__ == "__main__":
-
-    from sys import exit, stdout, stderr
-
-    try:
-        import os
-
-        if (
-            os.environ["CLIENT_ID"]
-            and os.environ["CLIENT_SECRET"]
-            and os.environ["USERNAME"]
-            and os.environ["PASSWORD"]
-        ):
-            CLIENT_ID = os.environ["CLIENT_ID"]
-            CLIENT_SECRET = os.environ["CLIENT_SECRET"]
-            USERNAME = os.environ["USERNAME"]
-            PASSWORD = os.environ["PASSWORD"]
-    except KeyError:
-        stderr.write(
-            "No credentials passed to pyatmo.py (client_id, client_secret, username, password)\n"
-        )
-        exit(1)
-
-    authorization = ClientAuth(
-        clientId=CLIENT_ID,
-        clientSecret=CLIENT_SECRET,
-        username=USERNAME,
-        password=PASSWORD,
-        scope="read_station read_camera access_camera write_camera read_thermostat write_thermostat read_presence access_presence read_homecoach",
-    )
-
-    try:
-        ws = WeatherStationData(authorization)
-    except NoDevice:
-        if stdout.isatty():
-            print("pyatmo.py : warning, no weather station available for testing")
-
-    try:
-        cam = CameraData(authorization)
-    except NoDevice:
-        if stdout.isatty():
-            print("pyatmo.py : warning, no camera available for testing")
-
-    try:
-        hd = HomeData(authorization)
-    except NoDevice:
-        if stdout.isatty():
-            print("pyatmo.py : warning, no thermostat available for testing")
-
-    PublicData(authorization)
-
-    # If we reach this line, all is OK
-
-    # If launched interactively, display OK message
-    if stdout.isatty():
-        print("pyatmo.py : OK")
-
-    exit(0)

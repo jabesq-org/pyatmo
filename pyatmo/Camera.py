@@ -1,12 +1,10 @@
 import imghdr
-import logging
 import time
 from urllib.error import URLError
 
-from . import _BASE_URL, postRequest
-from .Exceptions import InvalidHome, NoDevice
+from pyatmo import _BASE_URL, postRequest, LOG
+from pyatmo.Exceptions import InvalidHome, NoDevice
 
-LOG = logging.getLogger(__name__)
 
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
 _GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"

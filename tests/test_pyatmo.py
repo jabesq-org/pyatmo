@@ -1,7 +1,9 @@
-"""Define tests for authentication."""
+"""Define tests for untility methods."""
 import json
+import time
 
 import pytest
+import requests
 
 import pyatmo
 
@@ -16,14 +18,100 @@ def test_ClientAuth_invalid(requests_mock):
     with open("fixtures/invalid_grant.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo._AUTH_REQ,
+        pyatmo.Auth._AUTH_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with pytest.raises(pyatmo.NoDevice):
-        pyatmo.ClientAuth(
+    with pytest.raises(pyatmo.Exceptions.NoDevice):
+        pyatmo.Auth.ClientAuth(
             clientId="CLIENT_ID",
             clientSecret="CLIENT_SECRET",
             username="USERNAME",
             password="PASSWORD",
         )
+
+def test_postRequest_json(requests_mock):
+    """Test wrapper for posting requests against the Netatmo API."""
+    requests_mock.post(
+        pyatmo._BASE_URL,
+        json={"a": "b"},
+        headers={"content-type": "application/json"},
+    )
+    resp = pyatmo.postRequest(pyatmo._BASE_URL, None)
+    assert resp == {"a": "b"}
+
+
+def test_postRequest_binary(requests_mock):
+    """Test wrapper for posting requests against the Netatmo API."""
+    requests_mock.post(
+        pyatmo._BASE_URL,
+        text="Success",
+        headers={"content-type": "application/text"},
+    )
+    resp = pyatmo.postRequest(pyatmo._BASE_URL, None)
+    assert resp == b"Success"
+
+
+@pytest.mark.parametrize("test_input,expected", [(200, None), (404, None)])
+def test_postRequest_fail(requests_mock, test_input, expected):
+    """Test failing requests against the Netatmo API."""
+    requests_mock.post(pyatmo._BASE_URL, status_code=test_input)
+    resp = pyatmo.postRequest(pyatmo._BASE_URL, None)
+    assert resp is expected
+
+
+def test_postRequest_timeout(requests_mock):
+    """Test failing requests against the Netatmo API with timeouts."""
+    requests_mock.post(pyatmo._BASE_URL, exc=requests.exceptions.ConnectTimeout)
+    with pytest.raises(requests.exceptions.ConnectTimeout):
+        assert pyatmo.postRequest(pyatmo._BASE_URL, None)
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (1, "1970-01-01_00:00:01"),
+        (0, "1970-01-01_00:00:00"),
+        (-1, "1969-12-31_23:59:59"),
+        (2000000000, "2033-05-18_03:33:20"),
+        ("1", "1970-01-01_00:00:01"),
+        pytest.param("A", None, marks=pytest.mark.xfail),
+        pytest.param([1], None, marks=pytest.mark.xfail),
+        pytest.param({1}, None, marks=pytest.mark.xfail),
+    ],
+)
+def test_toTimeString(test_input, expected):
+    """Test time to string conversion."""
+    assert pyatmo.toTimeString(test_input) == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        ("1970-01-01_00:00:01", 1),
+        ("1970-01-01_00:00:00", 0),
+        ("1969-12-31_23:59:59", -1),
+        ("2033-05-18_03:33:20", 2000000000),
+    ],
+)
+def test_toEpoch(test_input, expected):
+    """Test time to epoch conversion."""
+    assert pyatmo.toEpoch(test_input) == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        ("2018-06-21", (1529539200, 1529625600)),
+        ("2000-01-01", (946684800, 946771200)),
+        pytest.param("2000-04-31", None, marks=pytest.mark.xfail),
+    ],
+)
+def test_todayStamps(monkeypatch, test_input, expected):
+    """Test todayStamps function."""
+
+    def mockreturn(format):
+        return test_input
+
+    monkeypatch.setattr(time, "strftime", mockreturn)
+    assert pyatmo.todayStamps() == expected

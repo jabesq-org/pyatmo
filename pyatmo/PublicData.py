@@ -1,5 +1,5 @@
-from . import _BASE_URL, postRequest, toTimeString
-from .Exceptions import NoDevice
+from pyatmo import _BASE_URL, postRequest, toTimeString
+from pyatmo.Exceptions import NoDevice
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652

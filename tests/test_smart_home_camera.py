@@ -207,6 +207,81 @@ def test_CameraData_knownPersonsNames(cameraHomeData):
 
 @freeze_time("2019-06-16")
 @pytest.mark.parametrize(
+    "name, expected",
+    [
+        ("John Doe", "91827374-7e04-5298-83ad-a0cb8372dff1"),
+        ("Richard Doe", "91827376-7e04-5298-83af-a0cb8372dff3"),
+    ],
+)
+def test_CameraData_getPersonId(cameraHomeData, name, expected):
+    assert cameraHomeData.getPersonId(name) == expected
+
+
+@pytest.mark.parametrize(
+    "hid, pid, json_fixture, expected",
+    [
+        (
+            "91763b24c43d3e344f424e8b",
+            "91827374-7e04-5298-83ad-a0cb8372dff1",
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "91827376-7e04-5298-83af-a0cb8372dff3",
+            "status_ok.json",
+            "ok",
+        ),
+    ],
+)
+def test_CameraData_setPersonsAway(
+    cameraHomeData, requests_mock, hid, pid, json_fixture, expected
+):
+    with open("fixtures/%s" % json_fixture) as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Camera._SETPERSONSAWAY_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    assert cameraHomeData.setPersonsAway(pid, hid)["status"] == expected
+
+
+@pytest.mark.parametrize(
+    "hid, pids, json_fixture, expected",
+    [
+        (
+            "91763b24c43d3e344f424e8b",
+            [
+                "91827374-7e04-5298-83ad-a0cb8372dff1",
+                "91827376-7e04-5298-83af-a0cb8372dff3",
+            ],
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "91827376-7e04-5298-83af-a0cb8372dff3",
+            "status_ok.json",
+            "ok",
+        ),
+    ],
+)
+def test_CameraData_setPersonsHome(
+    cameraHomeData, requests_mock, hid, pids, json_fixture, expected
+):
+    with open("fixtures/%s" % json_fixture) as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        smart_home.Camera._SETPERSONSHOME_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    assert cameraHomeData.setPersonsHome(pids, hid)["status"] == expected
+
+
+@freeze_time("2019-06-16")
+@pytest.mark.parametrize(
     "home, camera, exclude, expected",
     [
         (None, None, None, True),

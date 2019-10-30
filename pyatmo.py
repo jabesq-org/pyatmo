@@ -36,15 +36,16 @@ class ClientAuth:
         clientSecret (str): Application Secret key delivered by Netatmo on dev.netatmo.com
         username (str)
         password (str)
-        scope (Optional[str]): Default value is 'read_station'
+        scope (Optional[str]):
             read_station: to retrieve weather station data (Getstationsdata, Getmeasure)
             read_camera: to retrieve Welcome data (Gethomedata, Getcamerapicture)
             access_camera: to access the camera, the videos and the live stream.
+            write_camera: to set home/away status of persons (Setpersonsaway, Setpersonshome)
             read_thermostat: to retrieve thermostat data (Getmeasure, Getthermostatsdata)
             write_thermostat: to set up the thermostat (Syncschedule, Setthermpoint)
             read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
-            read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
             access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
+            read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
             Several value can be used at the same time, ie: 'read_station read_camera'
     """
 
@@ -132,7 +133,7 @@ if __name__ == "__main__":
         clientSecret=CLIENT_SECRET,
         username=USERNAME,
         password=PASSWORD,
-        scope="read_station read_camera access_camera read_thermostat write_thermostat read_presence access_presence",
+        scope="read_station read_camera access_camera write_camera read_thermostat write_thermostat read_presence access_presence read_homecoach",
     )
 
     try:

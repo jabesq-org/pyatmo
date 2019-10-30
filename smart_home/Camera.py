@@ -11,6 +11,8 @@ LOG = logging.getLogger(__name__)
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
 _GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"
 _GETEVENTSUNTIL_REQ = _BASE_URL + "api/geteventsuntil"
+_SETPERSONSAWAY_REQ = _BASE_URL + "api/setpersonsaway"
+_SETPERSONSHOME_REQ = _BASE_URL + "api/setpersonshome"
 
 
 class CameraData:
@@ -92,7 +94,10 @@ class CameraData:
             self.default_module = list(self.modules.values())[0]["name"]
         else:
             self.default_module = None
-        if self.default_home is not None and len(self.cameras) > 0:
+        if (
+            self.default_home is not None
+            and len(self.cameras[self.default_home_id]) > 0
+        ):
             self.default_camera = list(self.cameras[self.default_home_id].values())[0]
 
     def homeById(self, hid):
@@ -224,20 +229,55 @@ class CameraData:
                     pass
         return vpn_url, local_url
 
-    def personsAtHome(self, home=None):
+    def personsAtHome(self, home=None, home_id=None):
         """
         Return the list of known persons who are currently at home
         """
-        if not home:
-            home = self.default_home
-        home_data = self.homeByName(home)
+        if home_id:
+            home_data = self.homeById(home_id)
+        else:
+            if not home:
+                home = self.default_home
+            home_data = self.homeByName(home)
         atHome = []
         for p in home_data["persons"]:
-            # Only check known persons
+            # Only check known personshome
             if "pseudo" in p:
                 if not p["out_of_sight"]:
                     atHome.append(p["pseudo"])
         return atHome
+
+    def setPersonsHome(self, person_ids, home_id):
+        """
+        Mark persons as home.
+        """
+        postParams = {
+            "access_token": self.getAuthToken,
+            "home_id": home_id,
+            "person_ids[]": person_ids,
+        }
+        resp = postRequest(_SETPERSONSHOME_REQ, postParams)
+        LOG.debug(resp)
+        return resp
+
+    def setPersonsAway(self, person_id, home_id):
+        """
+        Mark a person as away or set the whole home to being empty.
+        """
+        postParams = {
+            "access_token": self.getAuthToken,
+            "home_id": home_id,
+            "person_id": person_id,
+        }
+        resp = postRequest(_SETPERSONSAWAY_REQ, postParams)
+        LOG.debug(resp)
+        return resp
+
+    def getPersonId(self, name):
+        for pid, data in self.persons.items():
+            if "pseudo" in data and name == data["pseudo"]:
+                return pid
+        return None
 
     def getCameraPicture(self, image_id, key):
         """
@@ -354,6 +394,9 @@ class CameraData:
             if "pseudo" in p:
                 known_persons[p_id] = p
         return known_persons
+
+    def knownPersons(self):
+        return {pid: p["pseudo"] for pid, p in self._knownPersons().items()}
 
     def knownPersonsNames(self):
         names = []

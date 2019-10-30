@@ -59,7 +59,7 @@ class WeatherStationData:
                 res.add(m["module_name"])
         else:
             res.update([m["module_name"] for m in self.modules.values()])
-            for id, station in self.stations.items():
+            for _, station in self.stations.items():
                 res.add(station["module_name"])
         return list(res)
 
@@ -83,7 +83,7 @@ class WeatherStationData:
             elif s["module_name"] == module:
                 return s
         else:
-            for id, station in self.stations.items():
+            for _, station in self.stations.items():
                 if "module_name" in station and station["module_name"] == module:
                     return station
         for m in self.modules:

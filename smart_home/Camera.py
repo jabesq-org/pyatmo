@@ -15,7 +15,7 @@ _GETEVENTSUNTIL_REQ = _BASE_URL + "api/geteventsuntil"
 
 class CameraData:
     """
-    List the Netatmo cameras informations
+    List the Netatmo camera informations
         (Homes, cameras, modules, events, persons)
     Args:
         authData (ClientAuth):
@@ -125,7 +125,7 @@ class CameraData:
         raise InvalidHome("Invalid Home %s" % home)
 
     def cameraById(self, cid):
-        for home, cam in self.cameras.items():
+        for home, _ in self.cameras.items():
             if cid in self.cameras[home]:
                 return self.cameras[home][cid]
         return None
@@ -196,7 +196,7 @@ class CameraData:
     def cameraUrls(self, camera=None, home=None, cid=None, home_id=None):
         """
         Return the vpn_url and the local_url (if available) of a given camera
-        in order to access to its live feed
+        in order to access its live feed
         """
         local_url = None
         vpn_url = None
@@ -266,7 +266,7 @@ class CameraData:
 
     def updateEvent(self, event=None, home=None, cameratype=None, home_id=None):
         """
-        Update the list of event with the latest ones
+        Update the list of events
         """
         if not home_id:
             try:
@@ -322,7 +322,7 @@ class CameraData:
 
     def personSeenByCamera(self, name, home=None, camera=None, exclude=0):
         """
-        Return True if a specific person has been seen by a camera
+        Evaluate if a specific person has been seen
         """
         try:
             cam_id = self.cameraByName(camera=camera, home=home)["id"]
@@ -357,13 +357,13 @@ class CameraData:
 
     def knownPersonsNames(self):
         names = []
-        for p_id, p in self._knownPersons().items():
+        for _, p in self._knownPersons().items():
             names.append(p["pseudo"])
         return names
 
     def someoneKnownSeen(self, home=None, camera=None, exclude=0, cid=None):
         """
-        Return True if someone known has been seen
+        Evaluate if someone known has been seen
         """
         if not cid:
             try:
@@ -381,7 +381,7 @@ class CameraData:
                 elif self.events[cid][time_ev]["type"] == "person":
                     if self.events[cid][time_ev]["person_id"] in self._knownPersons():
                         return True
-        # Check in the last event is someone known has been seen
+        # Check in the last event if someone known has been seen
         elif self.lastEvent[cid]["type"] == "person":
             if self.lastEvent[cid]["person_id"] in self._knownPersons():
                 return True
@@ -389,7 +389,7 @@ class CameraData:
 
     def someoneUnknownSeen(self, home=None, camera=None, exclude=0, cid=None):
         """
-        Return True if someone unknown has been seen
+        Evaluate if someone unknown has been seen
         """
         if not cid:
             try:
@@ -418,7 +418,7 @@ class CameraData:
 
     def motionDetected(self, home=None, camera=None, exclude=0, cid=None):
         """
-        Return True if movement has been detected
+        Evaluate if movement has been detected
         """
         if not cid:
             try:
@@ -441,7 +441,7 @@ class CameraData:
 
     def outdoormotionDetected(self, home=None, camera=None, offset=0, cid=None):
         """
-        Return True if outdoor movement has been detected
+        Evaluate if outdoor movement has been detected
         """
         if not cid:
             try:
@@ -462,7 +462,7 @@ class CameraData:
 
     def humanDetected(self, home=None, camera=None, offset=0, cid=None):
         """
-        Return True if a human has been detected
+        Evaluate if a human has been detected
         """
         if not cid:
             try:
@@ -479,7 +479,7 @@ class CameraData:
 
     def animalDetected(self, home=None, camera=None, offset=0, cid=None):
         """
-        Return True if an animal has been detected
+        Evaluate if an animal has been detected
         """
         if not cid:
             try:
@@ -496,7 +496,7 @@ class CameraData:
 
     def carDetected(self, home=None, camera=None, offset=0, cid=None):
         """
-        Return True if a car has been detected
+        Evaluate if a car has been detected
         """
         if not cid:
             try:
@@ -513,7 +513,7 @@ class CameraData:
 
     def moduleMotionDetected(self, module=None, home=None, camera=None, exclude=0):
         """
-        Return True if movement has been detected
+        Evaluate if movement has been detected
         """
         try:
             mod = self.moduleByName(module, camera=camera, home=home)
@@ -545,7 +545,7 @@ class CameraData:
 
     def moduleOpened(self, module=None, home=None, camera=None, exclude=0):
         """
-        Return True if module status is open
+        Evaluate if module status is open
         """
         try:
             mod = self.moduleByName(module, camera=camera, home=home)

@@ -18,12 +18,12 @@ def test_ClientAuth_invalid(requests_mock):
     with open("fixtures/invalid_grant.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Auth._AUTH_REQ,
+        pyatmo.auth._AUTH_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with pytest.raises(pyatmo.Exceptions.NoDevice):
-        pyatmo.Auth.ClientAuth(
+    with pytest.raises(pyatmo.exceptions.NoDevice):
+        pyatmo.ClientAuth(
             clientId="CLIENT_ID",
             clientSecret="CLIENT_SECRET",
             username="USERNAME",
@@ -33,38 +33,38 @@ def test_ClientAuth_invalid(requests_mock):
 def test_postRequest_json(requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
-        pyatmo._BASE_URL,
+        pyatmo.helpers._BASE_URL,
         json={"a": "b"},
         headers={"content-type": "application/json"},
     )
-    resp = pyatmo.postRequest(pyatmo._BASE_URL, None)
+    resp = pyatmo.helpers.postRequest(pyatmo.helpers._BASE_URL, None)
     assert resp == {"a": "b"}
 
 
 def test_postRequest_binary(requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
-        pyatmo._BASE_URL,
+        pyatmo.helpers._BASE_URL,
         text="Success",
         headers={"content-type": "application/text"},
     )
-    resp = pyatmo.postRequest(pyatmo._BASE_URL, None)
+    resp = pyatmo.helpers.postRequest(pyatmo.helpers._BASE_URL, None)
     assert resp == b"Success"
 
 
 @pytest.mark.parametrize("test_input,expected", [(200, None), (404, None)])
 def test_postRequest_fail(requests_mock, test_input, expected):
     """Test failing requests against the Netatmo API."""
-    requests_mock.post(pyatmo._BASE_URL, status_code=test_input)
-    resp = pyatmo.postRequest(pyatmo._BASE_URL, None)
+    requests_mock.post(pyatmo.helpers._BASE_URL, status_code=test_input)
+    resp = pyatmo.helpers.postRequest(pyatmo.helpers._BASE_URL, None)
     assert resp is expected
 
 
 def test_postRequest_timeout(requests_mock):
     """Test failing requests against the Netatmo API with timeouts."""
-    requests_mock.post(pyatmo._BASE_URL, exc=requests.exceptions.ConnectTimeout)
+    requests_mock.post(pyatmo.helpers._BASE_URL, exc=requests.exceptions.ConnectTimeout)
     with pytest.raises(requests.exceptions.ConnectTimeout):
-        assert pyatmo.postRequest(pyatmo._BASE_URL, None)
+        assert pyatmo.helpers.postRequest(pyatmo.helpers._BASE_URL, None)
 
 
 @pytest.mark.parametrize(
@@ -82,7 +82,7 @@ def test_postRequest_timeout(requests_mock):
 )
 def test_toTimeString(test_input, expected):
     """Test time to string conversion."""
-    assert pyatmo.toTimeString(test_input) == expected
+    assert pyatmo.helpers.toTimeString(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -96,7 +96,7 @@ def test_toTimeString(test_input, expected):
 )
 def test_toEpoch(test_input, expected):
     """Test time to epoch conversion."""
-    assert pyatmo.toEpoch(test_input) == expected
+    assert pyatmo.helpers.toEpoch(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -114,4 +114,4 @@ def test_todayStamps(monkeypatch, test_input, expected):
         return test_input
 
     monkeypatch.setattr(time, "strftime", mockreturn)
-    assert pyatmo.todayStamps() == expected
+    assert pyatmo.helpers.todayStamps() == expected

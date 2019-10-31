@@ -1,9 +1,9 @@
-from pyatmo.Auth import ClientAuth
-from pyatmo.Camera import CameraData
-from pyatmo.Exceptions import NoDevice
-from pyatmo.PublicData import PublicData
-from pyatmo.Thermostat import HomeData
-from pyatmo.WeatherStation import WeatherStationData
+from .auth import ClientAuth
+from .camera import CameraData
+from .exceptions import NoDevice
+from .public_data import PublicData
+from .thermostat import HomeData
+from .weather_station import WeatherStationData
 
 
 def main():

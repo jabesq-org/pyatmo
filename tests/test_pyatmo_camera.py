@@ -4,7 +4,7 @@ import json
 import pytest
 from freezegun import freeze_time
 
-import pyatmo.Camera
+import pyatmo
 
 
 INVALID_NAME = "InvalidName"
@@ -42,7 +42,7 @@ def test_CameraData_homeById(cameraHomeData, hid, expected):
 )
 def test_CameraData_homeByName(cameraHomeData, name, expected):
     if name == INVALID_NAME:
-        with pytest.raises(pyatmo.Exceptions.InvalidHome):
+        with pytest.raises(pyatmo.exceptions.InvalidHome):
             assert cameraHomeData.homeByName(name)
     else:
         assert cameraHomeData.homeByName(name)["id"] == expected
@@ -146,11 +146,11 @@ def test_CameraData_cameraUrls_disconnected(auth, requests_mock):
     with open("fixtures/camera_home_data_disconnected.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Camera._GETHOMEDATA_REQ,
+        pyatmo.camera._GETHOMEDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    camera_data = pyatmo.Camera.CameraData(auth)
+    camera_data = pyatmo.CameraData(auth)
     assert camera_data.cameraUrls() == (None, None)
 
 
@@ -168,7 +168,7 @@ def test_CameraData_cameraUrls_disconnected(auth, requests_mock):
 )
 def test_CameraData_personsAtHome(cameraHomeData, home, expected):
     if home == INVALID_NAME:
-        with pytest.raises(pyatmo.Exceptions.InvalidHome):
+        with pytest.raises(pyatmo.exceptions.InvalidHome):
             assert cameraHomeData.personsAtHome(home)
     else:
         assert cameraHomeData.personsAtHome(home) == expected
@@ -333,5 +333,5 @@ def test_CameraData_getHomeName(cameraHomeData):
 def test_CameraData_gethomeId(cameraHomeData):
     assert cameraHomeData.gethomeId() == "91763b24c43d3e344f424e8b"
     assert cameraHomeData.gethomeId("MYHOME") == "91763b24c43d3e344f424e8b"
-    with pytest.raises(pyatmo.Camera.InvalidHome):
+    with pytest.raises(pyatmo.InvalidHome):
         assert cameraHomeData.gethomeId("InvalidName")

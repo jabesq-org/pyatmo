@@ -5,11 +5,6 @@ from contextlib import contextmanager
 import pytest
 
 import pyatmo
-import pyatmo.Auth
-import pyatmo.HomeCoach
-import pyatmo.PublicData
-import pyatmo.Thermostat
-import pyatmo.WeatherStation
 
 
 @contextmanager
@@ -22,11 +17,11 @@ def auth(requests_mock):
     with open("fixtures/oauth2_token.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Auth._AUTH_REQ,
+        pyatmo.auth._AUTH_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    authorization = pyatmo.Auth.ClientAuth(
+    authorization = pyatmo.ClientAuth(
         clientId="CLIENT_ID",
         clientSecret="CLIENT_SECRET",
         username="USERNAME",
@@ -43,11 +38,11 @@ def homeData(auth, requests_mock):
     with open("fixtures/home_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Thermostat._GETHOMESDATA_REQ,
+        pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.Thermostat.HomeData(auth)
+    return pyatmo.HomeData(auth)
 
 
 @pytest.fixture(scope="function")
@@ -55,18 +50,18 @@ def homeStatus(auth, requests_mock):
     with open("fixtures/home_status_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Thermostat._GETHOMESTATUS_REQ,
+        pyatmo.thermostat._GETHOMESTATUS_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Thermostat._GETHOMESDATA_REQ,
+        pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.Thermostat.HomeStatus(auth)
+    return pyatmo.HomeStatus(auth)
 
 
 @pytest.fixture(scope="function")
@@ -74,11 +69,11 @@ def publicData(auth, requests_mock):
     with open("fixtures/public_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.PublicData._GETPUBLIC_DATA,
+        pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.PublicData.PublicData(auth)
+    return pyatmo.PublicData(auth)
 
 
 @pytest.fixture(scope="function")
@@ -86,11 +81,11 @@ def weatherStationData(auth, requests_mock):
     with open("fixtures/weatherstation_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.WeatherStation._GETSTATIONDATA_REQ,
+        pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.WeatherStation.WeatherStationData(auth)
+    return pyatmo.WeatherStationData(auth)
 
 
 @pytest.fixture(scope="function")
@@ -98,11 +93,11 @@ def homeCoachData(auth, requests_mock):
     with open("fixtures/home_coach_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.HomeCoach._GETHOMECOACHDATA_REQ,
+        pyatmo.home_coach._GETHOMECOACHDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeCoach.HomeCoachData(auth)
+    return pyatmo.HomeCoachData(auth)
 
 
 @pytest.fixture(scope="function")
@@ -110,8 +105,8 @@ def cameraHomeData(auth, requests_mock):
     with open("fixtures/camera_home_data.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.Camera._GETHOMEDATA_REQ,
+        pyatmo.camera._GETHOMEDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.Camera.CameraData(auth)
+    return pyatmo.CameraData(auth)

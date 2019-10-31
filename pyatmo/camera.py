@@ -2,8 +2,8 @@ import imghdr
 import time
 from urllib.error import URLError
 
-from pyatmo import _BASE_URL, postRequest, LOG
-from pyatmo.Exceptions import InvalidHome, NoDevice
+from .helpers import _BASE_URL, postRequest, LOG
+from .exceptions import InvalidHome, NoDevice
 
 
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"

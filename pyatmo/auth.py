@@ -1,7 +1,7 @@
 import time
 
-from pyatmo import _BASE_URL, postRequest, LOG
-from pyatmo.Exceptions import NoDevice
+from .helpers import _BASE_URL, postRequest, LOG
+from .exceptions import NoDevice
 
 
 # Common definitions

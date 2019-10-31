@@ -1,5 +1,5 @@
-from pyatmo import _BASE_URL
-from pyatmo.WeatherStation import WeatherStationData
+from .helpers import _BASE_URL
+from .weather_station import WeatherStationData
 
 _GETHOMECOACHDATA_REQ = _BASE_URL + "api/gethomecoachsdata"
 

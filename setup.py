@@ -2,16 +2,14 @@
 
 from distutils.core import setup
 
-import setuptools
-
 setup(
     name="pyatmo",
-    version="2.3.2",  # Should be updated with new versions
+    version="3.0.0",  # Should be updated with new versions
     author="Hugo Dupras",
     author_email="jabesq@gmail.com",
     py_modules=["pyatmo"],
-    packages=["smart_home"],
-    package_dir={"smart_home": "smart_home"},
+    packages=["pyatmo"],
+    package_dir={"pyatmo": "pyatmo"},
     scripts=[],
     data_files=[],
     url="https://github.com/jabesq/netatmo-api-python",

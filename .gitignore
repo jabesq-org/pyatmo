@@ -9,3 +9,6 @@ pyatmo.egg-info/
 .DS_Store
 
 venv/
+
+.mypy_cache/
+.pytest_cache/

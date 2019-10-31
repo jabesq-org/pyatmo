@@ -4,9 +4,7 @@ import json
 import pytest
 from freezegun import freeze_time
 
-import pyatmo.WeatherStation
-
-from .conftest import does_not_raise
+import pyatmo
 
 
 def test_WeatherStationData(weatherStationData):
@@ -14,33 +12,33 @@ def test_WeatherStationData(weatherStationData):
 
 
 def test_WeatherStationData_no_response(auth, requests_mock):
-    requests_mock.post(pyatmo.WeatherStation._GETSTATIONDATA_REQ, text="None")
-    with pytest.raises(pyatmo.WeatherStation.NoDevice):
-        assert pyatmo.WeatherStation.WeatherStationData(auth)
+    requests_mock.post(pyatmo.weather_station._GETSTATIONDATA_REQ, text="None")
+    with pytest.raises(pyatmo.NoDevice):
+        assert pyatmo.WeatherStationData(auth)
 
 
 def test_WeatherStationData_no_body(auth, requests_mock):
     with open("fixtures/status_ok.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.WeatherStation._GETSTATIONDATA_REQ,
+        pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with pytest.raises(pyatmo.WeatherStation.NoDevice):
-        assert pyatmo.WeatherStation.WeatherStationData(auth)
+    with pytest.raises(pyatmo.NoDevice):
+        assert pyatmo.WeatherStationData(auth)
 
 
 def test_WeatherStationData_no_data(auth, requests_mock):
     with open("fixtures/home_data_empty.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.WeatherStation._GETSTATIONDATA_REQ,
+        pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with pytest.raises(pyatmo.WeatherStation.NoDevice):
-        assert pyatmo.WeatherStation.WeatherStationData(auth)
+    with pytest.raises(pyatmo.NoDevice):
+        assert pyatmo.WeatherStationData(auth)
 
 
 @pytest.mark.parametrize(
@@ -519,7 +517,7 @@ def test_WeatherStationData_getMeasure(
     with open("fixtures/weatherstation_measure.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo.WeatherStation._GETMEASURE_REQ,
+        pyatmo.weather_station._GETMEASURE_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

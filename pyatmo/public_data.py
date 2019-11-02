@@ -1,5 +1,5 @@
-from .helpers import _BASE_URL, postRequest, toTimeString
 from .exceptions import NoDevice
+from .helpers import _BASE_URL, postRequest, toTimeString
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652

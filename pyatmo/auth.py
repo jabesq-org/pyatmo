@@ -1,8 +1,7 @@
 import time
 
-from .helpers import _BASE_URL, postRequest, LOG
 from .exceptions import NoDevice
-
+from .helpers import _BASE_URL, LOG, postRequest
 
 # Common definitions
 _AUTH_REQ = _BASE_URL + "oauth2/token"

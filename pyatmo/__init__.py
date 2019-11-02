@@ -7,15 +7,15 @@ from .thermostat import HomeData, HomeStatus
 from .weather_station import WeatherStationData
 
 __all__ = [
+    "CameraData",
     "ClientAuth",
-    "WeatherStationData",
+    "HomeCoachData",
     "HomeData",
     "HomeStatus",
     "InvalidHome",
     "InvalidRoom",
     "NoDevice",
     "NoSchedule",
-    "CameraData",
-    "HomeCoachData",
     "PublicData",
+    "WeatherStationData",
 ]

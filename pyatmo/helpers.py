@@ -40,35 +40,3 @@ def toEpoch(value):
 def todayStamps():
     today = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
-
-
-# Global shortcut
-
-
-def getStationMinMaxTH(station=None, module=None):
-    from pyatmo import ClientAuth
-    from smart_home.WeatherStation import DeviceList
-
-    authorization = ClientAuth()
-    devList = DeviceList(authorization)
-    if not station:
-        station = devList.default_station
-    if module:
-        mname = module
-    else:
-        mname = devList.stationByName(station)["module_name"]
-    lastD = devList.lastData(station)
-    if mname == "*":
-        result = {}
-        for m in lastD.keys():
-            if time.time() - lastD[m]["When"] > 3600:
-                continue
-            r = devList.MinMaxTH(module=m)
-            result[m] = (r[0], lastD[m]["Temperature"], r[1])
-    else:
-        if time.time() - lastD[mname]["When"] > 3600:
-            result = ["-", "-"]
-        else:
-            result = [lastD[mname]["Temperature"], lastD[mname]["Humidity"]]
-        result.extend(devList.MinMaxTH(station, mname))
-    return result

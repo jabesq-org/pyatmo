@@ -37,19 +37,19 @@ def main():
     )
 
     try:
-        ws = WeatherStationData(authorization)
+        WeatherStationData(authorization)
     except NoDevice:
         if stdout.isatty():
             print("pyatmo.py : warning, no weather station available for testing")
 
     try:
-        cam = CameraData(authorization)
+        CameraData(authorization)
     except NoDevice:
         if stdout.isatty():
             print("pyatmo.py : warning, no camera available for testing")
 
     try:
-        hd = HomeData(authorization)
+        HomeData(authorization)
     except NoDevice:
         if stdout.isatty():
             print("pyatmo.py : warning, no thermostat available for testing")

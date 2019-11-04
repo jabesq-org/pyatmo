@@ -17,9 +17,7 @@ def test_PublicData(auth, requests_mock):
     publicData = pyatmo.PublicData(auth)
     assert publicData.status == "ok"
 
-    publicData = pyatmo.PublicData(
-        auth, required_data_type="temperature,rain_live"
-    )
+    publicData = pyatmo.PublicData(auth, required_data_type="temperature,rain_live")
     assert publicData.status == "ok"
 
 

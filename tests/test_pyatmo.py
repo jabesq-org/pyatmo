@@ -30,6 +30,7 @@ def test_ClientAuth_invalid(requests_mock):
             password="PASSWORD",
         )
 
+
 def test_postRequest_json(requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(

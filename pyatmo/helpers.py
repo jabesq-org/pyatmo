@@ -7,11 +7,7 @@ import requests
 
 LOG = logging.getLogger(__name__)
 
-# Common definitions
 _BASE_URL = "https://api.netatmo.com/"
-
-
-# Utilities routines
 
 
 def postRequest(url, params=None, timeout=10):

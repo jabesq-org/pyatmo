@@ -37,7 +37,7 @@ jobs:
     - name: Check with black
       run: |
         pip install black
-        black --check smart_home/ tests/ setup.py
+        black --check pyatmo/ tests/ setup.py
     - name: Test with pytest
       run: |
         pip install pytest freezegun requests-mock

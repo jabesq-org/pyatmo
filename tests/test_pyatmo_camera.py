@@ -239,7 +239,7 @@ def test_CameraData_setPersonsAway(
     with open("fixtures/%s" % json_fixture) as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.Camera._SETPERSONSAWAY_REQ,
+        pyatmo.camera._SETPERSONSAWAY_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -272,7 +272,7 @@ def test_CameraData_setPersonsHome(
     with open("fixtures/%s" % json_fixture) as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.Camera._SETPERSONSHOME_REQ,
+        pyatmo.camera._SETPERSONSHOME_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

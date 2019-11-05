@@ -40,5 +40,5 @@ jobs:
         black --check src/pyatmo/ tests/ setup.py
     - name: Run tests with tox
       run: |
-        pip install tox
+        pip install tox tox-gh-actions
         tox

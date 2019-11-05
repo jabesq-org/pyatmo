@@ -20,3 +20,9 @@ repos:
       entry: mypy
       types: [python]
       exclude: tests/
+    - id: isort
+      name: isort
+      language: system
+      entry: isort
+      types: [python]
+      exclude: tests/

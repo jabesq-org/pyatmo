@@ -15,7 +15,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.6, 3.7]
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v1
@@ -38,7 +38,7 @@ jobs:
       run: |
         pip install black
         black --check pyatmo/ tests/ setup.py
-    - name: Test with pytest
+    - name: Run tests with tox
       run: |
-        pip install pytest freezegun requests-mock
-        pytest
+        pip install tox
+        tox

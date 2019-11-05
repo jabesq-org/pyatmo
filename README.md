@@ -34,14 +34,26 @@ To run the pytest testsuite you need to install the following dependencies:
 
     pip install pytest pytest-mock pytest-cov requests-mock freezegun
 
+`pyatmo` has to be installed in editable mode to be picked up by pytest. Simply run:
+
+    pip install -e .
+
 To run the full suite simply type in
 
     pytest
 
 or
 
-    python -m pytest
+    python -m pytest tests/
 
 To generate code coverage xml (e.g. for use in VSCode) run
 
     python -m pytest --cov-report xml:cov.xml --cov smart_home --cov-append tests/
+
+Another way to run the tests is by using `tox`. This runs the tests against the installed package and multiple versions of python.
+
+    tox
+
+or by specifying a python version
+
+    tox -e py38

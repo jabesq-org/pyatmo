@@ -1,15 +1,14 @@
 # python setup.py --dry-run --verbose install
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name="pyatmo",
     version="3.0.0",  # Should be updated with new versions
     author="Hugo Dupras",
     author_email="jabesq@gmail.com",
-    py_modules=["pyatmo"],
-    packages=["pyatmo"],
-    package_dir={"pyatmo": "pyatmo"},
+    packages=find_packages(exclude=["tests"], where="src"),
+    package_dir={"": "src"},
     scripts=[],
     data_files=[],
     url="https://github.com/jabesq/netatmo-api-python",

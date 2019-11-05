@@ -37,7 +37,7 @@ jobs:
     - name: Check with black
       run: |
         pip install black
-        black --check pyatmo/ tests/ setup.py
+        black --check src/pyatmo/ tests/ setup.py
     - name: Run tests with tox
       run: |
         pip install tox

@@ -81,6 +81,92 @@ def test_WeatherStationData_modulesNamesList(weatherStationData, station, expect
     assert sorted(weatherStationData.modulesNamesList(station)) == expected
 
 
+@pytest.mark.parametrize(
+    "station, expected",
+    [
+        (
+            None,
+            {
+                "12:34:56:03:1b:e4": {
+                    "id": "12:34:56:03:1b:e4",
+                    "module_name": "Garden",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:05:51:20": {
+                    "id": "12:34:56:05:51:20",
+                    "module_name": "Yard",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:07:bb:0e": {
+                    "id": "12:34:56:07:bb:0e",
+                    "module_name": "Livingroom",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:07:bb:3e": {
+                    "id": "12:34:56:07:bb:3e",
+                    "module_name": "Kitchen",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:36:fc:de": {
+                    "id": "12:34:56:36:fc:de",
+                    "module_name": "NetatmoOutdoor",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:37:11:ca": {
+                    "id": "12:34:56:37:11:ca",
+                    "module_name": "NetatmoIndoor",
+                    "station_name": "MyStation",
+                },
+            },
+        ),
+        (
+            "MyStation",
+            {
+                "12:34:56:03:1b:e4": {
+                    "id": "12:34:56:03:1b:e4",
+                    "module_name": "Garden",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:05:51:20": {
+                    "id": "12:34:56:05:51:20",
+                    "module_name": "Yard",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:07:bb:0e": {
+                    "id": "12:34:56:07:bb:0e",
+                    "module_name": "Livingroom",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:07:bb:3e": {
+                    "id": "12:34:56:07:bb:3e",
+                    "module_name": "Kitchen",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:36:fc:de": {
+                    "id": "12:34:56:36:fc:de",
+                    "module_name": "NetatmoOutdoor",
+                    "station_name": "MyStation",
+                },
+                "12:34:56:37:11:ca": {
+                    "id": "12:34:56:37:11:ca",
+                    "module_name": "NetatmoIndoor",
+                    "station_name": "MyStation",
+                },
+            },
+        ),
+        pytest.param(
+            "NoValidStation",
+            None,
+            marks=pytest.mark.xfail(
+                reason="Invalid station names are not handled yet."
+            ),
+        ),
+    ],
+)
+def test_WeatherStationData_getModules(weatherStationData, station, expected):
+    assert weatherStationData.getModules(station) == expected
+
+
 def test_WeatherStationData_stationByName(weatherStationData):
     result = weatherStationData.stationByName()
     assert result["_id"] == "12:34:56:37:11:ca"
@@ -263,6 +349,70 @@ def test_WeatherStationData_monitoredConditions(weatherStationData, module, expe
 )
 def test_WeatherStationData_lastData(weatherStationData, station, exclude, expected):
     mod = weatherStationData.lastData(station, exclude)
+    if mod:
+        assert sorted(mod) == expected
+    else:
+        assert mod is expected
+
+
+@freeze_time("2019-06-11")
+@pytest.mark.parametrize(
+    "station, exclude, expected",
+    [
+        (
+            "MyStation",
+            None,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
+        ),
+        (
+            "",
+            None,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
+        ),
+        ("NoValidStation", None, None),
+        (
+            None,
+            1000000,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
+        ),
+        (
+            None,
+            798103,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
+        ),
+    ],
+)
+def test_WeatherStationData_lastData_byId(
+    weatherStationData, station, exclude, expected
+):
+    mod = weatherStationData.lastData(station, exclude, byId=True)
     if mod:
         assert sorted(mod) == expected
     else:

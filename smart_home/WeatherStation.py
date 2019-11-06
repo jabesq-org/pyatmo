@@ -63,6 +63,33 @@ class WeatherStationData:
                 res.add(station["module_name"])
         return list(res)
 
+    def getModules(self, station=None, station_id=None):
+        """Return a dict for Home Assistant to consume."""
+        res = {}
+        station_data = None
+        if station_id is not None:
+            station_data = self.stationById(station_id)
+        elif station is not None:
+            station_data = self.stationByName(station)
+        if station_data is not None:
+            stations = [self.stations[station_data["_id"]]]
+        else:
+            stations = self.stations.values()
+        for s in stations:
+            res[s["_id"]] = {
+                "station_name": s["station_name"],
+                "module_name": s["module_name"],
+                "id": s["_id"],
+            }
+
+            for m in s["modules"]:
+                res[m["_id"]] = {
+                    "station_name": m.get("station_name", s["station_name"]),
+                    "module_name": m["module_name"],
+                    "id": m["_id"],
+                }
+        return res
+
     def stationByName(self, station=None):
         if not station:
             station = self.default_station
@@ -103,10 +130,17 @@ class WeatherStationData:
             else:
                 return self.modules[mid]
 
-    def monitoredConditions(self, module):
-        mod = self.moduleByName(module)
+    def monitoredConditions(self, module=None, moduleId=None):
+        if moduleId:
+            mod = self.moduleById(moduleId)
+        elif module:
+            mod = self.moduleByName(module)
+        else:
+            return None
         conditions = []
-        for cond in mod["data_type"]:
+        if not mod:
+            return conditions
+        for cond in mod.get("data_type", []):
             if cond == "Wind":
                 # the Wind meter actually exposes the following conditions
                 conditions.extend(
@@ -135,7 +169,11 @@ class WeatherStationData:
             conditions.append("reachable")
         return conditions
 
-    def lastData(self, station=None, exclude=0):
+    def lastData(self, station=None, exclude=0, byId=False):
+        if byId:
+            key = "_id"
+        else:
+            key = "module_name"
         if station is not None:
             stations = [station]
         else:
@@ -150,21 +188,17 @@ class WeatherStationData:
             limit = (time.time() - exclude) if exclude else 0
             ds = s["dashboard_data"]
             if "module_name" in s and ds["time_utc"] > limit:
-                lastD[s["module_name"]] = ds.copy()
-                lastD[s["module_name"]]["When"] = lastD[s["module_name"]].pop(
-                    "time_utc"
-                )
-                lastD[s["module_name"]]["wifi_status"] = s["wifi_status"]
-                lastD[s["module_name"]]["reachable"] = s["reachable"]
+                lastD[s[key]] = ds.copy()
+                lastD[s[key]]["When"] = lastD[s[key]].pop("time_utc")
+                lastD[s[key]]["wifi_status"] = s["wifi_status"]
+                lastD[s[key]]["reachable"] = s["reachable"]
             for module in s["modules"]:
-                if "dashboard_data" not in module or "module_name" not in module:
+                if "dashboard_data" not in module or key not in module:
                     continue
                 ds = module["dashboard_data"]
                 if "time_utc" in ds and ds["time_utc"] > limit:
-                    lastD[module["module_name"]] = ds.copy()
-                    lastD[module["module_name"]]["When"] = lastD[
-                        module["module_name"]
-                    ].pop("time_utc")
+                    lastD[module[key]] = ds.copy()
+                    lastD[module[key]]["When"] = lastD[module[key]].pop("time_utc")
                     # For potential use, add battery and radio coverage information to module data if present
                     for i in (
                         "rf_status",
@@ -174,7 +208,7 @@ class WeatherStationData:
                         "wifi_status",
                     ):
                         if i in module:
-                            lastD[module["module_name"]][i] = module[i]
+                            lastD[module[key]][i] = module[i]
         return lastD
 
     def checkNotUpdated(self, station=None, delay=3600):

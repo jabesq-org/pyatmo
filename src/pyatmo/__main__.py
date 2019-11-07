@@ -7,7 +7,7 @@ from .weather_station import WeatherStationData
 
 
 def main():
-    from sys import exit, stdout, stderr
+    import sys
 
     try:
         import os
@@ -23,10 +23,10 @@ def main():
             USERNAME = os.environ["USERNAME"]
             PASSWORD = os.environ["PASSWORD"]
     except KeyError:
-        stderr.write(
+        sys.stderr.write(
             "No credentials passed to pyatmo.py (client_id, client_secret, username, password)\n"
         )
-        exit(1)
+        sys.exit(1)
 
     authorization = ClientAuth(
         clientId=CLIENT_ID,
@@ -39,19 +39,19 @@ def main():
     try:
         WeatherStationData(authorization)
     except NoDevice:
-        if stdout.isatty():
+        if sys.stdout.isatty():
             print("pyatmo.py : warning, no weather station available for testing")
 
     try:
         CameraData(authorization)
     except NoDevice:
-        if stdout.isatty():
+        if sys.stdout.isatty():
             print("pyatmo.py : warning, no camera available for testing")
 
     try:
         HomeData(authorization)
     except NoDevice:
-        if stdout.isatty():
+        if sys.stdout.isatty():
             print("pyatmo.py : warning, no thermostat available for testing")
 
     PublicData(authorization)
@@ -59,10 +59,10 @@ def main():
     # If we reach this line, all is OK
 
     # If launched interactively, display OK message
-    if stdout.isatty():
+    if sys.stdout.isatty():
         print("pyatmo: OK")
 
-    exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

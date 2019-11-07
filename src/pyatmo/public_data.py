@@ -140,34 +140,33 @@ class PublicData:
     def getTimeForWindMeasures(self):
         return self.getAccessoryMeasures(_ACCESSORY_WIND_TIME_TYPE)
 
-    def getLatestStationMeasures(self, type):
+    def getLatestStationMeasures(self, data_type):
         measures = {}
         for station in self.raw_data:
             for _, module in station["measures"].items():
                 if (
                     "type" in module
-                    and type in module["type"]
+                    and data_type in module["type"]
                     and "res" in module
                     and module["res"]
                 ):
-                    measure_index = module["type"].index(type)
+                    measure_index = module["type"].index(data_type)
                     latest_timestamp = sorted(module["res"], reverse=True)[0]
                     measures[station["_id"]] = module["res"][latest_timestamp][
                         measure_index
                     ]
         return measures
 
-    def getAccessoryMeasures(self, type):
+    def getAccessoryMeasures(self, data_type):
         measures = {}
         for station in self.raw_data:
             for _, module in station["measures"].items():
-                if type in module:
-                    measures[station["_id"]] = module[type]
+                if data_type in module:
+                    measures[station["_id"]] = module[data_type]
         return measures
 
 
 def averageMeasure(measures):
     if measures:
         return sum(measures.values()) / len(measures)
-    else:
-        return 0.0
+    return 0.0

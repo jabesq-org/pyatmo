@@ -46,7 +46,7 @@ class ClientAuth:
         self._clientSecret = clientSecret
         try:
             self._accessToken = resp["access_token"]
-        except (KeyError):
+        except KeyError:
             LOG.error("Netatmo API returned %s", resp["error"])
             raise NoDevice("Authentication against Netatmo API failed")
         self.refreshToken = resp["refresh_token"]

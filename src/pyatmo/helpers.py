@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 _BASE_URL = "https://api.netatmo.com/"
 
 
-def postRequest(url, params=None, timeout=10):
+def postRequest(url, params=None, timeout=30):
     resp = requests.post(url, data=params, timeout=timeout)
     if not resp.ok:
         LOG.error("The Netatmo API returned %s", resp.status_code)

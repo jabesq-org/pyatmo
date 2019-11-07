@@ -6,7 +6,6 @@ from freezegun import freeze_time
 
 import pyatmo
 
-
 INVALID_NAME = "InvalidName"
 
 

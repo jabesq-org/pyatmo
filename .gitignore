@@ -9,6 +9,8 @@ pyatmo.egg-info/
 .DS_Store
 
 venv/
+.venv
+
 # Created by https://www.gitignore.io/api/python,pycharm
 # Edit at https://www.gitignore.io/?templates=python,pycharm
 
@@ -206,4 +208,15 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python,pycharm
-.venv
+
+# Created by https://www.gitignore.io/api/code
+# Edit at https://www.gitignore.io/?templates=code
+
+### Code ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# End of https://www.gitignore.io/api/code

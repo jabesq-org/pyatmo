@@ -135,7 +135,7 @@ def test_HomeData_getSelectedschedule(homeData):
         (None, None, "Default", does_not_raise()),
         (None, "591b54a2764ff4d50d8b5795", None, does_not_raise()),
         (None, None, "Summer", pytest.raises(pyatmo.NoSchedule)),
-        (None, "123456789abcdefg12345678", None, pytest.raises(pyatmo.NoSchedule),),
+        (None, "123456789abcdefg12345678", None, pytest.raises(pyatmo.NoSchedule)),
     ],
 )
 def test_HomeData_switchHomeSchedule(

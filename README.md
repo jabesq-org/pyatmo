@@ -32,23 +32,21 @@ Be aware that the module may stop working if Netatmo decides to change their API
 Development
 -----------
 
+Clone the repo and install dependencies:
+
+    git clone 
+    cd netatmo-api-python
+    pipenv install --dev
+
 To add the pre-commit hook to your environment run:
 
-    pip install pre-commit flake8 mypy black isort
+    pip install pre-commit
     pre-commit install
 
 Testing
 -------
 
-To run the pytest testsuite you need to install the following dependencies:
-
-    pip install pytest pytest-mock pytest-cov requests-mock freezegun
-
-`pyatmo` has to be installed in editable mode to be picked up by pytest. Simply run:
-
-    pip install -e .
-
-To run the full suite simply type in
+To run the full suite simply run the following command from within the virtual environment:
 
     pytest
 

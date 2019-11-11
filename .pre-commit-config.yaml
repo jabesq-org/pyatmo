@@ -1,28 +1,29 @@
 # Note: don't use this config for your own repositories. Instead, see
 # "Version control integration" in README.md.
+default_stages: [commit, push]
 exclude: ^(fixtures/)
 repos:
--   repo: local
+  - repo: local
     hooks:
-    - id: black
-      name: black
-      language: system
-      entry: black
-      types: [python]
-    - id: flake8
-      name: flake8
-      language: system
-      entry: flake8
-      types: [python]
-    - id: mypy
-      name: mypy
-      language: system
-      entry: mypy
-      types: [python]
-      exclude: tests/
-    - id: isort
-      name: isort
-      language: system
-      entry: isort
-      types: [python]
-      exclude: tests/
+      - id: black
+        name: black
+        language: system
+        entry: pipenv run black --version
+        types: [python]
+      - id: flake8
+        name: flake8
+        language: system
+        entry: pipenv run flake8
+        types: [python]
+      - id: mypy
+        name: mypy
+        language: system
+        entry: pipenv run mypy
+        types: [python]
+        exclude: tests/
+      - id: isort
+        name: isort
+        language: system
+        entry: pipenv run isort
+        types: [python]
+        exclude: tests/

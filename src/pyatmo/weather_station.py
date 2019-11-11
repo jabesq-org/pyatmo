@@ -170,10 +170,7 @@ class WeatherStationData:
         return conditions
 
     def lastData(self, station=None, exclude=0, byId=False):
-        if byId:
-            key = "_id"
-        else:
-            key = "module_name"
+        key = "_id" if byId else "module_name"
         if station is not None:
             stations = [station]
         else:
@@ -181,7 +178,7 @@ class WeatherStationData:
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
         lastD = {}
         for st in stations:
-            s = self.stationByName(st)
+            s = self.stationById(st) if byId else self.stationByName(st)
             if not s or "dashboard_data" not in s:
                 return None
             # Define oldest acceptable sensor measure event

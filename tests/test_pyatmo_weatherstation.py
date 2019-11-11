@@ -358,7 +358,7 @@ def test_WeatherStationData_lastData(weatherStationData, station, exclude, expec
     "station, exclude, expected",
     [
         (
-            "MyStation",
+            "12:34:56:37:11:ca",
             None,
             [
                 "12:34:56:03:1b:e4",
@@ -369,21 +369,10 @@ def test_WeatherStationData_lastData(weatherStationData, station, exclude, expec
                 "12:34:56:37:11:ca",
             ],
         ),
-        (
-            "",
-            None,
-            [
-                "12:34:56:03:1b:e4",
-                "12:34:56:05:51:20",
-                "12:34:56:07:bb:0e",
-                "12:34:56:07:bb:3e",
-                "12:34:56:36:fc:de",
-                "12:34:56:37:11:ca",
-            ],
-        ),
+        ("", None, None,),
         ("NoValidStation", None, None),
         (
-            None,
+            "12:34:56:37:11:ca",
             1000000,
             [
                 "12:34:56:03:1b:e4",
@@ -395,7 +384,7 @@ def test_WeatherStationData_lastData(weatherStationData, station, exclude, expec
             ],
         ),
         (
-            None,
+            "12:34:56:37:11:ca",
             798103,
             [
                 "12:34:56:03:1b:e4",

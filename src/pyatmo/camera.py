@@ -1,12 +1,9 @@
 import imghdr
-import logging
 import time
 from urllib.error import URLError
 
-from . import _BASE_URL, postRequest
-from .Exceptions import InvalidHome, NoDevice
-
-LOG = logging.getLogger(__name__)
+from .exceptions import InvalidHome, NoDevice
+from .helpers import _BASE_URL, LOG, postRequest
 
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
 _GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"
@@ -94,10 +91,7 @@ class CameraData:
             self.default_module = list(self.modules.values())[0]["name"]
         else:
             self.default_module = None
-        if (
-            self.default_home is not None
-            and len(self.cameras[self.default_home_id]) > 0
-        ):
+        if self.default_home is not None and self.cameras[self.default_home_id]:
             self.default_camera = list(self.cameras[self.default_home_id].values())[0]
 
     def homeById(self, hid):
@@ -149,7 +143,7 @@ class CameraData:
             hid = home_id
         if camera is None and home is None and home_id is None:
             return self.default_camera
-        elif not (home_id or home) and camera:
+        if not (home_id or home) and camera:
             for h_id, cam_ids in self.cameras.items():
                 for cam_id in cam_ids:
                     if self.cameras[h_id][cam_id]["name"] == camera:
@@ -171,8 +165,7 @@ class CameraData:
         if not module:
             if self.default_module:
                 return self.moduleByName(self.default_module)
-            else:
-                return None
+            return None
         cam = None
         if camera or home:
             cam = self.cameraByName(camera, home)
@@ -376,7 +369,7 @@ class CameraData:
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cam_id][time_ev]["type"] == "person":
+                if self.events[cam_id][time_ev]["type"] == "person":
                     person_id = self.events[cam_id][time_ev]["person_id"]
                     if "pseudo" in self.persons[person_id]:
                         if self.persons[person_id]["pseudo"] == name:
@@ -421,7 +414,7 @@ class CameraData:
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cid][time_ev]["type"] == "person":
+                if self.events[cid][time_ev]["type"] == "person":
                     if self.events[cid][time_ev]["person_id"] in self._knownPersons():
                         return True
         # Check in the last event if someone known has been seen
@@ -447,7 +440,7 @@ class CameraData:
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cid][time_ev]["type"] == "person":
+                if self.events[cid][time_ev]["type"] == "person":
                     if (
                         self.events[cid][time_ev]["person_id"]
                         not in self._knownPersons()
@@ -476,7 +469,7 @@ class CameraData:
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif self.events[cid][time_ev]["type"] == "movement":
+                if self.events[cid][time_ev]["type"] == "movement":
                     return True
         elif self.lastEvent[cid]["type"] == "movement":
             return True
@@ -574,7 +567,7 @@ class CameraData:
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif (
+                if (
                     self.events[cam_id][time_ev]["type"] == "tag_big_move"
                     or self.events[cam_id][time_ev]["type"] == "tag_small_move"
                 ) and self.events[cam_id][time_ev]["module_id"] == mod_id:
@@ -604,7 +597,7 @@ class CameraData:
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                elif (
+                if (
                     self.events[cam_id][time_ev]["type"] == "tag_open"
                     and self.events[cam_id][time_ev]["module_id"] == mod_id
                 ):

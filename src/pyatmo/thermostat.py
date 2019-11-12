@@ -1,7 +1,7 @@
 import logging
 
-from . import _BASE_URL, postRequest
-from .Exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
+from .exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
+from .helpers import _BASE_URL, postRequest
 
 LOG = logging.getLogger(__name__)
 
@@ -118,13 +118,13 @@ class HomeData:
             home_id = self.gethomeId(home=home)
 
         try:
-            self.schedule = self.schedules[home_id]
+            schedule = self.schedules[home_id]
         except KeyError:
             raise NoSchedule("No schedules available for %s" % home_id)
 
-        for key in self.schedule.keys():
-            if "selected" in self.schedule[key].keys():
-                return self.schedule[key]
+        for key in schedule.keys():
+            if "selected" in schedule[key].keys():
+                return schedule[key]
 
     def switchHomeSchedule(self, schedule_id=None, schedule=None, home=None):
         if home is None:
@@ -152,17 +152,14 @@ class HomeData:
         LOG.debug("Response: %s", resp)
 
 
-class HomeStatus(HomeData):
-    """
-    """
-
+class HomeStatus:
     def __init__(self, authData, home_id=None, home=None):
         self.getAuthToken = authData.accessToken
         self.home_data = HomeData(authData)
 
         if home_id is not None:
             self.home_id = home_id
-            LOG.debug("home_id", self.home_id)
+            LOG.debug("home_id: %s", self.home_id)
         elif home is not None:
             self.home_id = self.home_data.gethomeId(home=home)
         else:
@@ -172,7 +169,6 @@ class HomeStatus(HomeData):
         resp = postRequest(_GETHOMESTATUS_REQ, postParams)
         if "errors" in resp or "body" not in resp or "home" not in resp["body"]:
             raise NoDevice("No device found, errors in response")
-            return None
         self.rawData = resp["body"]["home"]
         self.rooms = {}
         self.thermostats = {}
@@ -321,7 +317,6 @@ class HomeStatus(HomeData):
         for key in self.home_data.rooms[home_id]:
             if key == rid:
                 for module_id in self.home_data.rooms[home_id][rid]["module_ids"]:
-                    self.module_id = module_id
                     if module_id in self.thermostats:
                         return "NATherm1"
                     if module_id in self.valves:

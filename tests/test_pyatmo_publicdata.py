@@ -3,42 +3,40 @@ import json
 
 import pytest
 
-import smart_home.PublicData
+import pyatmo
 
 
 def test_PublicData(auth, requests_mock):
     with open("fixtures/public_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.PublicData._GETPUBLIC_DATA,
+        pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    publicData = smart_home.PublicData.PublicData(auth)
+    publicData = pyatmo.PublicData(auth)
     assert publicData.status == "ok"
 
-    publicData = smart_home.PublicData.PublicData(
-        auth, required_data_type="temperature,rain_live"
-    )
+    publicData = pyatmo.PublicData(auth, required_data_type="temperature,rain_live")
     assert publicData.status == "ok"
 
 
 def test_PublicData_unavailable(auth, requests_mock):
-    requests_mock.post(smart_home.PublicData._GETPUBLIC_DATA, status_code=404)
-    with pytest.raises(smart_home.PublicData.NoDevice):
-        smart_home.PublicData.PublicData(auth)
+    requests_mock.post(pyatmo.public_data._GETPUBLIC_DATA, status_code=404)
+    with pytest.raises(pyatmo.NoDevice):
+        pyatmo.PublicData(auth)
 
 
 def test_PublicData_error(auth, requests_mock):
     with open("fixtures/public_data_error_mongo.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.PublicData._GETPUBLIC_DATA,
+        pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with pytest.raises(smart_home.PublicData.NoDevice):
-        smart_home.PublicData.PublicData(auth)
+    with pytest.raises(pyatmo.NoDevice):
+        pyatmo.PublicData(auth)
 
 
 def test_PublicData_CountStationInArea(publicData):
@@ -297,4 +295,4 @@ def test_PublicData_getAccessoryMeasures(publicData, test_input, expected):
     ],
 )
 def test_PublicData_averageMeasure(test_input, expected):
-    assert smart_home.PublicData.averageMeasure(test_input) == expected
+    assert pyatmo.public_data.averageMeasure(test_input) == expected

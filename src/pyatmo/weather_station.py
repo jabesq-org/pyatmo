@@ -1,8 +1,8 @@
 import logging
 import time
 
-from . import _BASE_URL, postRequest, todayStamps
-from .Exceptions import NoDevice
+from .exceptions import NoDevice
+from .helpers import _BASE_URL, postRequest, todayStamps
 
 LOG = logging.getLogger(__name__)
 
@@ -59,8 +59,8 @@ class WeatherStationData:
                 res.add(m["module_name"])
         else:
             res.update([m["module_name"] for m in self.modules.values()])
-            for _, station in self.stations.items():
-                res.add(station["module_name"])
+            for s in self.stations.values():
+                res.add(s["module_name"])
         return list(res)
 
     def getModules(self, station=None, station_id=None):
@@ -107,12 +107,12 @@ class WeatherStationData:
             s = self.stationByName(station)
             if not s:
                 return None
-            elif s["module_name"] == module:
+            if s["module_name"] == module:
                 return s
         else:
-            for _, station in self.stations.items():
-                if "module_name" in station and station["module_name"] == module:
-                    return station
+            for s in self.stations.values():
+                if "module_name" in s and s["module_name"] == module:
+                    return s
         for m in self.modules:
             mod = self.modules[m]
             if mod["module_name"] == module:
@@ -170,10 +170,7 @@ class WeatherStationData:
         return conditions
 
     def lastData(self, station=None, exclude=0, byId=False):
-        if byId:
-            key = "_id"
-        else:
-            key = "module_name"
+        key = "_id" if byId else "module_name"
         if station is not None:
             stations = [station]
         else:
@@ -181,7 +178,7 @@ class WeatherStationData:
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
         lastD = {}
         for st in stations:
-            s = self.stationByName(st)
+            s = self.stationById(st) if byId else self.stationByName(st)
             if not s or "dashboard_data" not in s:
                 return None
             # Define oldest acceptable sensor measure event
@@ -295,5 +292,4 @@ class WeatherStationData:
             T = [v[0] for v in resp["body"].values()]
             H = [v[1] for v in resp["body"].values()]
             return min(T), max(T), min(H), max(H)
-        else:
-            return None
+        return None

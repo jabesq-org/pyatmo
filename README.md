@@ -1,17 +1,18 @@
 netatmo-api-python
 ==================
+
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![GitHub Actions](https://github.com/jabesq/netatmo-api-python/workflows/Python%20package/badge.svg)](https://github.com/jabesq/netatmo-api-python/actions?workflow=Python+package)
 [![PyPi](https://img.shields.io/pypi/v/pyatmo.svg)](https://pypi.python.org/pypi/pyatmo)
 [![PyPi](https://img.shields.io/pypi/l/pyatmo.svg)](https://github.com/jabesq/netatmo-api-python/blob/master/LICENSE.txt)
 
-
 Simple API to access Netatmo devices and data like weather station or camera data from Python 3.
-For more detailed information see http://dev.netatmo.com
+For more detailed information see [dev.netatmo.com](http://dev.netatmo.com)
 
 This project has no relation with the Netatmo company.
 
-### Install ###
+Install
+-------
 
 To install pyatmo simply run:
 
@@ -22,26 +23,45 @@ Once installed you can simple add `pyatmo` to your Python 3 scripts by including
 
     import pyatmo
 
-### Note ###
+Note
+----
 
-The module requires a valid user account and a registered application. See usage.md for further information.
+The module requires a valid user account and a registered application. See [usage.md](./usage.md) for further information.
 Be aware that the module may stop working if Netatmo decides to change their API.
 
+Development
+-----------
 
-### Testing ###
+Clone the repo and install dependencies:
 
-To run the pytest testsuite you need to install the following dependencies:
+    git clone 
+    cd netatmo-api-python
+    pipenv install --dev
 
-    pip install pytest pytest-mock pytest-cov requests-mock freezegun
+To add the pre-commit hook to your environment run:
 
-To run the full suite simply type in
+    pip install pre-commit
+    pre-commit install
+
+Testing
+-------
+
+To run the full suite simply run the following command from within the virtual environment:
 
     pytest
 
 or
 
-    python -m pytest
+    python -m pytest tests/
 
 To generate code coverage xml (e.g. for use in VSCode) run
 
     python -m pytest --cov-report xml:cov.xml --cov smart_home --cov-append tests/
+
+Another way to run the tests is by using `tox`. This runs the tests against the installed package and multiple versions of python.
+
+    tox
+
+or by specifying a python version
+
+    tox -e py38

@@ -1,17 +1,14 @@
 # python setup.py --dry-run --verbose install
 
-from distutils.core import setup
-
-import setuptools
+from setuptools import find_packages, setup
 
 setup(
     name="pyatmo",
-    version="2.3.3",  # Should be updated with new versions
+    version="3.0.0",  # Should be updated with new versions
     author="Hugo Dupras",
     author_email="jabesq@gmail.com",
-    py_modules=["pyatmo"],
-    packages=["smart_home"],
-    package_dir={"smart_home": "smart_home"},
+    packages=find_packages(exclude=["tests"], where="src"),
+    package_dir={"": "src"},
     scripts=[],
     data_files=[],
     url="https://github.com/jabesq/netatmo-api-python",

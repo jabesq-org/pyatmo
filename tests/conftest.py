@@ -5,10 +5,6 @@ from contextlib import contextmanager
 import pytest
 
 import pyatmo
-import smart_home.HomeCoach
-import smart_home.PublicData
-import smart_home.Thermostat
-import smart_home.WeatherStation
 
 
 @contextmanager
@@ -21,7 +17,7 @@ def auth(requests_mock):
     with open("fixtures/oauth2_token.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        pyatmo._AUTH_REQ,
+        pyatmo.auth._AUTH_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -42,7 +38,7 @@ def homeData(auth, requests_mock):
     with open("fixtures/home_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.Thermostat._GETHOMESDATA_REQ,
+        pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -54,14 +50,14 @@ def homeStatus(auth, requests_mock):
     with open("fixtures/home_status_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.Thermostat._GETHOMESTATUS_REQ,
+        pyatmo.thermostat._GETHOMESTATUS_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.Thermostat._GETHOMESDATA_REQ,
+        pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -73,7 +69,7 @@ def publicData(auth, requests_mock):
     with open("fixtures/public_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.PublicData._GETPUBLIC_DATA,
+        pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -85,7 +81,7 @@ def weatherStationData(auth, requests_mock):
     with open("fixtures/weatherstation_data_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.WeatherStation._GETSTATIONDATA_REQ,
+        pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -97,7 +93,7 @@ def homeCoachData(auth, requests_mock):
     with open("fixtures/home_coach_simple.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.HomeCoach._GETHOMECOACHDATA_REQ,
+        pyatmo.home_coach._GETHOMECOACHDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -109,7 +105,7 @@ def cameraHomeData(auth, requests_mock):
     with open("fixtures/camera_home_data.json") as f:
         json_fixture = json.load(f)
     requests_mock.post(
-        smart_home.Camera._GETHOMEDATA_REQ,
+        pyatmo.camera._GETHOMEDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

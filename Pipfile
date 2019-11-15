@@ -17,6 +17,7 @@ requests-mock = "*"
 freezegun = "*"
 isort = "*"
 tox = "*"
+pre-commit = "*"
 
 [packages]
 pyatmo = {editable = true,path = "."}

@@ -173,6 +173,8 @@ class WeatherStationData:
         key = "_id" if byId else "module_name"
         if station is not None:
             stations = [station]
+        elif byId:
+            stations = [s["_id"] for s in list(self.stations.values())]
         else:
             stations = [s["station_name"] for s in list(self.stations.values())]
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
@@ -184,7 +186,7 @@ class WeatherStationData:
             # Define oldest acceptable sensor measure event
             limit = (time.time() - exclude) if exclude else 0
             ds = s["dashboard_data"]
-            if "module_name" in s and ds["time_utc"] > limit:
+            if key in s and ds["time_utc"] > limit:
                 lastD[s[key]] = ds.copy()
                 lastD[s[key]]["When"] = lastD[s[key]].pop("time_utc")
                 lastD[s[key]]["wifi_status"] = s["wifi_status"]

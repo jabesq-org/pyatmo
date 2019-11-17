@@ -299,11 +299,12 @@ def test_WeatherStationData_monitoredConditions(weatherStationData, module, expe
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "station, exclude, expected",
+    "station, exclude, byId, expected",
     [
         (
             "MyStation",
             None,
+            False,
             [
                 "Garden",
                 "Kitchen",
@@ -316,6 +317,7 @@ def test_WeatherStationData_monitoredConditions(weatherStationData, module, expe
         (
             "",
             None,
+            False,
             [
                 "Garden",
                 "Kitchen",
@@ -325,10 +327,11 @@ def test_WeatherStationData_monitoredConditions(weatherStationData, module, expe
                 "Yard",
             ],
         ),
-        ("NoValidStation", None, None),
+        ("NoValidStation", None, False, None),
         (
             None,
             1000000,
+            False,
             [
                 "Garden",
                 "Kitchen",
@@ -341,12 +344,27 @@ def test_WeatherStationData_monitoredConditions(weatherStationData, module, expe
         (
             None,
             798103,
+            False,
             ["Garden", "Kitchen", "NetatmoIndoor", "NetatmoOutdoor", "Yard"],
+        ),
+        (
+            None,
+            798103,
+            True,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
         ),
     ],
 )
-def test_WeatherStationData_lastData(weatherStationData, station, exclude, expected):
-    mod = weatherStationData.lastData(station, exclude)
+def test_WeatherStationData_lastData(
+    weatherStationData, station, exclude, byId, expected
+):
+    mod = weatherStationData.lastData(station=station, exclude=exclude, byId=byId)
     if mod:
         assert sorted(mod) == expected
     else:

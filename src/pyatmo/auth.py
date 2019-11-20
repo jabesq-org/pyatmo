@@ -27,6 +27,7 @@ class ClientAuth:
             read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
             access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
             read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
+            read_smokedetector: to read the smoke detector status (Gethomedata)
             Several value can be used at the same time, ie: 'read_station read_camera'
     """
 

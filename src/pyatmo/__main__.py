@@ -33,7 +33,11 @@ def main():
         clientSecret=CLIENT_SECRET,
         username=USERNAME,
         password=PASSWORD,
-        scope="read_station read_camera access_camera write_camera read_thermostat write_thermostat read_presence access_presence read_homecoach",
+        scope=(
+            "read_station read_camera access_camera read_thermostat "
+            "write_thermostat read_presence access_presence read_homecoach "
+            "read_smokedetector"
+        ),
     )
 
     try:

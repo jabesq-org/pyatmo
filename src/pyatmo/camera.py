@@ -15,7 +15,7 @@ _SETPERSONSHOME_REQ = _BASE_URL + "api/setpersonshome"
 class CameraData:
     """
     List the Netatmo camera informations
-        (Homes, cameras, modules, events, persons)
+        (Homes, cameras, smoke detectors, modules, events, persons)
     Args:
         authData (ClientAuth):
             Authentication information with a working access Token
@@ -26,17 +26,18 @@ class CameraData:
         postParams = {"access_token": self.getAuthToken, "size": size}
         resp = postRequest(_GETHOMEDATA_REQ, postParams)
         if resp is None:
-            raise URLError("No camera data returned by Netatmo server")
+            raise URLError("No device data returned by Netatmo server")
         self.rawData = resp["body"].get("homes")
         if not self.rawData:
-            raise NoDevice("No camera data available")
+            raise NoDevice("No device data available")
         self.homes = {d["id"]: d for d in self.rawData}
         if not self.homes:
-            raise NoDevice("No camera available")
+            raise NoDevice("No device available")
         self.persons = {}
         self.events = {}
         self.outdoor_events = {}
         self.cameras = {}
+        self.smokedetectors = {}
         self.modules = {}
         self.lastEvent = {}
         self.outdoor_lastEvent = {}
@@ -44,6 +45,7 @@ class CameraData:
         self.default_home = None
         self.default_home_id = None
         self.default_camera = None
+        self.default_smokedetector = None
         for item in self.rawData:
             homeId = item.get("id")
             nameHome = item.get("name")
@@ -55,13 +57,16 @@ class CameraData:
                 continue
             if homeId not in self.cameras:
                 self.cameras[homeId] = {}
+            if homeId not in self.smokedetectors:
+                self.smokedetectors[homeId] = {}
             if homeId not in self.types:
                 self.types[homeId] = {}
             for p in item["persons"]:
                 self.persons[p["id"]] = p
             if "events" in item:
-                self.default_home = item["name"]
-                self.default_home_id = item["id"]
+                if not self.default_home and not self.default_home_id:
+                    self.default_home = item["name"]
+                    self.default_home_id = item["id"]
                 for e in item["events"]:
                     if e["type"] == "outdoor":
                         if e["camera_id"] not in self.outdoor_events:
@@ -77,7 +82,11 @@ class CameraData:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
                         self.modules[m["id"]]["cam_id"] = c["id"]
+            for s in item["smokedetectors"]:
+                self.smokedetectors[homeId][s["id"]] = s
             for t in item["cameras"]:
+                self.types[homeId][t["type"]] = t
+            for t in item["smokedetectors"]:
                 self.types[homeId][t["type"]] = t
         for camera in self.events:
             self.lastEvent[camera] = self.events[camera][
@@ -175,6 +184,41 @@ class CameraData:
                     return None
                 return self.modules[key]
         return None
+
+    def smokedetectorById(self, sid):
+        for home, sd in self.smokedetectors.items():
+            if sid in self.smokedetectors[home]:
+                return self.smokedetectors[home][sid]
+        return None
+
+    def smokedetectorByName(self, smokedetector=None, home=None, home_id=None):
+        if home_id is None:
+            if home is None:
+                hid = self.default_home_id
+            else:
+                try:
+                    hid = self.homeByName(home)["id"]
+                except InvalidHome:
+                    LOG.debug("Invalid home %s", home)
+                    return None
+        else:
+            hid = home_id
+        if smokedetector is None and home is None and home_id is None:
+            return self.default_smokedetector
+        elif not (home_id or home) and smokedetector:
+            for h_id, cam_ids in self.smokedetectors.items():
+                for cam_id in cam_ids:
+                    if self.smokedetectors[h_id][cam_id]["name"] == smokedetector:
+                        return self.smokedetectors[h_id][cam_id]
+        elif hid and smokedetector:
+            hid = self.homeByName(home)["id"]
+            if hid not in self.smokedetectors:
+                return None
+            for cam_id in self.smokedetectors[hid]:
+                if self.smokedetectors[hid][cam_id]["name"] == smokedetector:
+                    return self.smokedetectors[hid][cam_id]
+        else:
+            return list(self.smokedetectors[hid].values())[0]
 
     def cameraType(self, camera=None, home=None, cid=None, home_id=None):
         """
@@ -293,35 +337,48 @@ class CameraData:
                     return self.getCameraPicture(image_id, key)
         return None, None
 
-    def updateEvent(self, event=None, home=None, cameratype=None, home_id=None):
+    def updateEvent(self, event=None, home=None, devicetype=None, home_id=None):
         """
         Update the list of events
         """
         if not home_id:
             try:
+                if not home:
+                    home = self.default_home
                 home_id = self.gethomeId(home)
             except InvalidHome:
                 LOG.debug("Invalid Home %s", home)
                 return None
-        if cameratype == "NACamera":
+        if devicetype == "NACamera":
             # for the Welcome camera
             if not event:
-                # If not event is provided we need to retrieve the oldest of
+                # If no event is provided we need to retrieve the oldest of
                 # the last event seen by each camera
                 listEvent = {}
                 for cam_id in self.lastEvent:
                     listEvent[self.lastEvent[cam_id]["time"]] = self.lastEvent[cam_id]
                 event = listEvent[sorted(listEvent)[0]]
-        if cameratype == "NOC":
+        if devicetype == "NOC":
             # for the Presence camera
             if not event:
-                # If not event is provided we need to retrieve the oldest of
+                # If no event is provided we need to retrieve the oldest of
                 # the last event seen by each camera
                 listEvent = {}
                 for cam_id in self.outdoor_lastEvent:
                     listEvent[
                         self.outdoor_lastEvent[cam_id]["time"]
                     ] = self.outdoor_lastEvent[cam_id]
+                event = listEvent[sorted(listEvent)[0]]
+        if devicetype == "NSD":
+            # for the smoke detector
+            if not event:
+                # If no event is provided we need to retrieve the oldest of
+                # the last event by each smoke detector
+                listEvent = {}
+                for sid in self.outdoor_lastEvent:
+                    listEvent[
+                        self.outdoor_lastEvent[sid]["time"]
+                    ] = self.outdoor_lastEvent[sid]
                 event = listEvent[sorted(listEvent)[0]]
 
         postParams = {

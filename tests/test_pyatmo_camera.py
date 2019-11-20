@@ -334,3 +334,53 @@ def test_CameraData_gethomeId(cameraHomeData):
     assert cameraHomeData.gethomeId("MYHOME") == "91763b24c43d3e344f424e8b"
     with pytest.raises(pyatmo.InvalidHome):
         assert cameraHomeData.gethomeId("InvalidName")
+
+
+@pytest.mark.parametrize(
+    "sid, expected",
+    [
+        ("12:34:56:00:8b:a2", "Hall"),
+        ("12:34:56:00:8b:ac", "Kitchen"),
+        ("None", None),
+        (None, None),
+    ],
+)
+def test_CameraData_smokedetectorById(cameraHomeData, sid, expected):
+    smokedetector = cameraHomeData.smokedetectorById(sid)
+    if smokedetector:
+        assert smokedetector["name"] == expected
+    else:
+        assert smokedetector is expected
+
+
+@pytest.mark.parametrize(
+    "name, home, home_id, expected",
+    [
+        ("Hall", None, None, "12:34:56:00:8b:a2"),
+        (None, None, None, None),
+        ("", None, None, "12:34:56:00:8b:a2"),
+        ("Hall", "MYHOME", None, "12:34:56:00:8b:a2"),
+        ("Hall", None, "91763b24c43d3e344f424e8b", "12:34:56:00:8b:a2"),
+        (None, None, "91763b24c43d3e344f424e8b", "12:34:56:00:8b:a2"),
+        (None, "MYHOME", None, "12:34:56:00:8b:a2"),
+        ("", "MYHOME", None, "12:34:56:00:8b:a2"),
+        ("Kitchen", "MYHOME", None, "12:34:56:00:8b:ac"),
+        (INVALID_NAME, None, None, None),
+        (None, INVALID_NAME, None, None),
+    ],
+)
+def test_CameraData_smokedetectorByName(cameraHomeData, name, home, home_id, expected):
+    if (
+        home == INVALID_NAME
+        or name == INVALID_NAME
+        or (name is None and home is None and home_id is None)
+    ):
+        assert cameraHomeData.smokedetectorByName(name, home, home_id) is None
+    elif home_id is None:
+        assert cameraHomeData.smokedetectorByName(name, home)["id"] == expected
+    elif home is None:
+        assert (
+            cameraHomeData.smokedetectorByName(name, home_id=home_id)["id"] == expected
+        )
+    else:
+        assert cameraHomeData.smokedetectorByName(name, home, home_id)["id"] == expected

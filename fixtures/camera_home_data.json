@@ -84,7 +84,20 @@
                         "light_mode_status": "auto"
                     }
                 ],
-                "smokedetectors": [],
+                "smokedetectors": [
+                    {
+                        "id": "12:34:56:00:8b:a2",
+                        "type": "NSD",
+                        "last_setup": 1567261859,
+                        "name": "Hall"
+                    },
+                    {
+                        "id": "12:34:56:00:8b:ac",
+                        "type": "NSD",
+                        "last_setup": 1567262759,
+                        "name": "Kitchen"
+                    }
+                ],
                 "events": [
                     {
                         "id": "a1b2c3d4e5f6abcdef123456",
@@ -176,6 +189,24 @@
                         "video_id": "12345678-1234-46cb-ad8f-23d89387409a",
                         "video_status": "available",
                         "message": "<b>Bewegung</b> erkannt"
+                    },
+                    {
+                        "id": "a1b2c3d4e5f6abcdef12345c",
+                        "type": "sound_test",
+                        "time": 1560506210,
+                        "camera_id": "12:34:56:00:8b:a2",
+                        "device_id": "12:34:56:00:8b:a2",
+                        "sub_type": 0,
+                        "message": "Hall: Alarmton erfolgreich getestet"
+                    },
+                    {
+                        "id": "a1b2c3d4e5f6abcdef12345d",
+                        "type": "wifi_status",
+                        "time": 1560506220,
+                        "camera_id": "12:34:56:00:8b:a2",
+                        "device_id": "12:34:56:00:8b:a2",
+                        "sub_type": 1,
+                        "message": "Hall:WLAN-Verbindung erfolgreich hergestellt"
                     }
                 ]
             },
@@ -201,6 +232,17 @@
                         "light_mode_status": "auto"
                     }
                 ],
+                "smokedetectors": []
+            },
+            {
+                "id": "91763b24c43d3e344f424e8d",
+                "persons": [],
+                "place": {
+                    "city": "Frankfurt",
+                    "country": "DE",
+                    "timezone": "Europe/Berlin"
+                },
+                "cameras": [],
                 "smokedetectors": []
             }
         ],

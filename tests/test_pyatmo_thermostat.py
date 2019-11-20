@@ -1,6 +1,5 @@
 """Define tests for Thermostat module."""
 import json
-import logging
 
 import pytest
 
@@ -356,9 +355,11 @@ def test_HomeData_setThermmode(
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with caplog.at_level(logging.DEBUG):
-        homeStatus.setThermmode(home_id=home_id, mode=mode)
-        assert expected in caplog.text
+    res = homeStatus.setThermmode(home_id=home_id, mode=mode)
+    if "error" in res:
+        assert expected in res["error"]["message"]
+    else:
+        assert expected in res["status"]
 
 
 @pytest.mark.parametrize(

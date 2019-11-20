@@ -97,8 +97,6 @@ class HomeData:
             home = self.default_home
         for key, value in self.homes.items():
             if value["name"] == home:
-                LOG.debug(self.homes[key]["id"])
-                LOG.debug(self.default_home)
                 if "therm_schedules" in self.homes[key]:
                     return self.homes[key]["id"]
         raise InvalidHome("Invalid Home %s" % home)
@@ -198,7 +196,6 @@ class HomeStatus:
             self.default_relay = list(self.relays.values())[0]
         if self.thermostats != {}:
             self.default_thermostat = list(self.thermostats.values())[0]
-        LOG.debug(self.thermostats)
         if self.valves != {}:
             self.default_valve = list(self.valves.values())[0]
 
@@ -262,7 +259,6 @@ class HomeStatus:
         if not home_id:
             if not home:
                 home = self.home_data.default_home
-                LOG.debug(self.home_data.default_home)
             try:
                 home_id = self.home_data.gethomeId(home)
             except InvalidHome:
@@ -279,7 +275,6 @@ class HomeStatus:
         if not home_id:
             if not home:
                 home = self.home_data.default_home
-                LOG.debug(self.home_data.default_home)
             home_id = self.home_data.gethomeId(home)
         try:
             data = self.home_data.getSelectedschedule(home_id=home_id)
@@ -293,7 +288,6 @@ class HomeStatus:
         Return the measured temperature of a given room.
         """
         temperature = None
-        LOG.debug(rid)
         room_data = self.roomById(rid=rid)
         if room_data:
             temperature = room_data["therm_measured_temperature"]
@@ -301,7 +295,6 @@ class HomeStatus:
 
     def boilerStatus(self, rid=None):
         boiler_status = None
-        LOG.debug(rid)
         if rid:
             relay_status = self.thermostatById(rid=rid)
         else:
@@ -328,8 +321,7 @@ class HomeStatus:
             "home_id": home_id,
             "mode": mode,
         }
-        resp = postRequest(_SETTHERMMODE_REQ, postParams)
-        LOG.debug(resp)
+        return postRequest(_SETTHERMMODE_REQ, postParams)
 
     def setroomThermpoint(self, home_id, room_id, mode, temp=None):
         postParams = {

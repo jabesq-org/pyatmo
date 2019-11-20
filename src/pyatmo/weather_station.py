@@ -18,6 +18,7 @@ class WeatherStationData:
     """
 
     def __init__(self, authData, urlReq=None):
+        """Initialize the weather station class."""
         self.urlReq = urlReq or _GETSTATIONDATA_REQ
         self.getAuthToken = authData.accessToken
         postParams = {"access_token": self.getAuthToken}
@@ -47,6 +48,7 @@ class WeatherStationData:
         self.default_station = list(self.stations.values())[0]["station_name"]
 
     def modulesNamesList(self, station=None, station_id=None):
+        """Return a list of all modules for a given or all stations."""
         res = set()
         station_data = None
         if station_id is not None:
@@ -64,7 +66,7 @@ class WeatherStationData:
         return list(res)
 
     def getModules(self, station=None, station_id=None):
-        """Return a dict for Home Assistant to consume."""
+        """Return a dict or modules for a given or all stations."""
         res = {}
         station_data = None
         if station_id is not None:
@@ -91,6 +93,7 @@ class WeatherStationData:
         return res
 
     def stationByName(self, station=None):
+        """Return station by name."""
         if not station:
             station = self.default_station
         for i, s in self.stations.items():
@@ -99,9 +102,11 @@ class WeatherStationData:
         return None
 
     def stationById(self, sid):
+        """Return station by id."""
         return None if sid not in self.stations else self.stations[sid]
 
     def moduleByName(self, module, station=None):
+        """Return module by name."""
         s = None
         if station:
             s = self.stationByName(station)
@@ -121,6 +126,7 @@ class WeatherStationData:
         return None
 
     def moduleById(self, mid, sid=None):
+        """Return module by id."""
         s = self.stationById(sid) if sid else None
         if mid in self.modules:
             if s:
@@ -131,10 +137,15 @@ class WeatherStationData:
                 return self.modules[mid]
 
     def monitoredConditions(self, module=None, moduleId=None):
+        """Return monitored conditions for given module(s)."""
         if moduleId:
             mod = self.moduleById(moduleId)
+            if not mod:
+                mod = self.stationById(moduleId)
         elif module:
             mod = self.moduleByName(module)
+            if not mod:
+                mod = self.stationByName(module)
         else:
             return None
         conditions = []
@@ -149,7 +160,7 @@ class WeatherStationData:
             elif cond == "Rain":
                 conditions.extend(["Rain", "sum_rain_24", "sum_rain_1"])
             else:
-                conditions.append(cond.lower())
+                conditions.append(cond)
         if mod["type"] in ["NAMain", "NHC"]:
             # the main module has wifi_status
             conditions.append("wifi_status")
@@ -170,6 +181,7 @@ class WeatherStationData:
         return conditions
 
     def lastData(self, station=None, exclude=0, byId=False):
+        """Return data for a given station and time frame."""
         key = "_id" if byId else "module_name"
         if station is not None:
             stations = [station]
@@ -211,6 +223,7 @@ class WeatherStationData:
         return lastD
 
     def checkNotUpdated(self, station=None, delay=3600):
+        """Check if a given station has not been updated."""
         res = self.lastData(station)
         ret = []
         for mn, v in res.items():
@@ -219,6 +232,7 @@ class WeatherStationData:
         return ret if ret else None
 
     def checkUpdated(self, station=None, delay=3600):
+        """Check if a given station has been updated."""
         res = self.lastData(station)
         ret = []
         for mn, v in res.items():

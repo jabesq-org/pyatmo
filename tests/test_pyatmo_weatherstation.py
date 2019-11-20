@@ -221,24 +221,41 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
 
 
 @pytest.mark.parametrize(
-    "module, expected",
+    "module, moduleId, expected",
     [
         (
-            "Kitchen",
+            None,
+            "12:34:56:07:bb:3e",
             [
+                "CO2",
+                "Humidity",
+                "Temperature",
                 "battery_percent",
                 "battery_vp",
-                "co2",
-                "humidity",
                 "max_temp",
                 "min_temp",
                 "reachable",
                 "rf_status",
-                "temperature",
+            ],
+        ),
+        (
+            "Kitchen",
+            None,
+            [
+                "CO2",
+                "Humidity",
+                "Temperature",
+                "battery_percent",
+                "battery_vp",
+                "max_temp",
+                "min_temp",
+                "reachable",
+                "rf_status",
             ],
         ),
         (
             "Garden",
+            None,
             [
                 "battery_percent",
                 "battery_vp",
@@ -252,6 +269,7 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
         ),
         (
             "Yard",
+            None,
             [
                 "Rain",
                 "battery_percent",
@@ -264,37 +282,46 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
         ),
         (
             "NetatmoIndoor",
+            None,
             [
-                "co2",
-                "humidity",
+                "CO2",
+                "Humidity",
+                "Noise",
+                "Pressure",
+                "Temperature",
                 "max_temp",
                 "min_temp",
-                "noise",
-                "pressure",
                 "reachable",
-                "temperature",
                 "wifi_status",
             ],
         ),
         pytest.param(
             "12:34:56:07:bb:3e",
             None,
+            None,
             marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
         pytest.param(
             "",
             None,
+            None,
             marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
         pytest.param(
+            None,
             None,
             None,
             marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
     ],
 )
-def test_WeatherStationData_monitoredConditions(weatherStationData, module, expected):
-    assert sorted(weatherStationData.monitoredConditions(module)) == expected
+def test_WeatherStationData_monitoredConditions(
+    weatherStationData, module, moduleId, expected
+):
+    assert (
+        sorted(weatherStationData.monitoredConditions(module=module, moduleId=moduleId))
+        == expected
+    )
 
 
 @freeze_time("2019-06-11")

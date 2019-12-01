@@ -463,3 +463,22 @@ def test_HomeData_setroomThermpoint_error(
         )["error"]["message"]
         == expected
     )
+
+
+def test_HomeStatus_error_disconnected(auth, requests_mock):
+    with open("fixtures/home_status_error_disconnected.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with open("fixtures/home_data_simple.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        pyatmo.thermostat._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with pytest.raises(pyatmo.NoDevice):
+        pyatmo.HomeStatus(auth)

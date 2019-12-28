@@ -23,7 +23,7 @@ def test_PublicData(auth, requests_mock):
 
 def test_PublicData_unavailable(auth, requests_mock):
     requests_mock.post(pyatmo.public_data._GETPUBLIC_DATA, status_code=404)
-    with pytest.raises(pyatmo.NoDevice):
+    with pytest.raises(pyatmo.ApiError):
         pyatmo.PublicData(auth)
 
 

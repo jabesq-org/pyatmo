@@ -1,7 +1,7 @@
 import logging
 
 from .exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
-from .helpers import _BASE_URL, postRequest
+from .helpers import _BASE_URL
 
 LOG = logging.getLogger(__name__)
 
@@ -22,10 +22,9 @@ class HomeData:
     """
 
     def __init__(self, authData):
-        self.getAuthToken = authData.accessToken
-        postParams = {"access_token": self.getAuthToken}
-        resp = postRequest(_GETHOMESDATA_REQ, postParams)
-        if resp is None:
+        self.authData = authData
+        resp = self.authData.post_request(url=_GETHOMESDATA_REQ)
+        if resp is None or "body" not in resp:
             raise NoDevice("No thermostat data returned by Netatmo server")
         self.rawData = resp["body"].get("homes")
         if not self.rawData:
@@ -114,20 +113,24 @@ class HomeData:
             if not home:
                 home = self.default_home
             home_id = self.gethomeId(home=home)
+        return self.get_selected_schedule(home_id=home_id)
 
+    def get_selected_schedule(self, home_id: str):
+        """Get the selected schedule for a given home ID."""
         try:
-            schedule = self.schedules[home_id]
+            schedules = self.schedules[home_id]
         except KeyError:
             raise NoSchedule("No schedules available for %s" % home_id)
 
-        for key in schedule.keys():
-            if "selected" in schedule[key].keys():
-                return schedule[key]
+        for key in schedules.keys():
+            if "selected" in schedules[key].keys():
+                return schedules[key]
 
     def switchHomeSchedule(self, schedule_id=None, schedule=None, home=None):
         if home is None:
             home = self.default_home
         home_id = self.gethomeId(home=home)
+
         schedules = {
             self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
             for s in self.schedules[home_id]
@@ -141,36 +144,54 @@ class HomeData:
             schedule_id = schedules[schedule]
         else:
             raise NoSchedule("No schedule specified")
+
+        return self.switch_home_schedule(schedule_id=schedule_id, home_id=home_id)
+
+    def switch_home_schedule(self, schedule_id: str, home_id: str) -> bool:
+        """."""
+        try:
+            schedules = self.schedules[home_id]
+        except KeyError:
+            raise NoSchedule("No schedules available for %s" % home_id)
+
+        schedules = {
+            self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
+            for s in self.schedules[home_id]
+        }
+        if schedule_id not in list(schedules.values()):
+            raise NoSchedule("%s is not a valid schedule id" % schedule_id)
+
         postParams = {
-            "access_token": self.getAuthToken,
             "home_id": home_id,
             "schedule_id": schedule_id,
         }
-        resp = postRequest(_SWITCHHOMESCHEDULE_REQ, postParams)
+        resp = self.authData.post_request(
+            url=_SWITCHHOMESCHEDULE_REQ, params=postParams
+        )
         LOG.debug("Response: %s", resp)
 
 
 class HomeStatus:
     def __init__(self, authData, home_id=None, home=None):
-        self.getAuthToken = authData.accessToken
+        self.authData = authData
         self.home_data = HomeData(authData)
 
         if home_id is not None:
             self.home_id = home_id
-            LOG.debug("home_id: %s", self.home_id)
         elif home is not None:
             self.home_id = self.home_data.gethomeId(home=home)
         else:
             self.home_id = self.home_data.gethomeId(home=self.home_data.default_home)
-        postParams = {"access_token": self.getAuthToken, "home_id": self.home_id}
+        postParams = {"home_id": self.home_id}
 
-        resp = postRequest(_GETHOMESTATUS_REQ, postParams)
+        resp = self.authData.post_request(url=_GETHOMESTATUS_REQ, params=postParams)
         if (
             "errors" in resp
             or "body" not in resp
             or "home" not in resp["body"]
             or ("errors" in resp["body"] and "modules" not in resp["body"]["home"])
         ):
+            LOG.error("Errors in response: %s", resp)
             raise NoDevice("No device found, errors in response")
         self.rawData = resp["body"]["home"]
         self.rooms = {}
@@ -322,19 +343,17 @@ class HomeStatus:
 
     def setThermmode(self, home_id, mode):
         postParams = {
-            "access_token": self.getAuthToken,
             "home_id": home_id,
             "mode": mode,
         }
-        return postRequest(_SETTHERMMODE_REQ, postParams)
+        return self.authData.post_request(url=_SETTHERMMODE_REQ, params=postParams)
 
     def setroomThermpoint(self, home_id, room_id, mode, temp=None):
         postParams = {
-            "access_token": self.getAuthToken,
             "home_id": home_id,
             "room_id": room_id,
             "mode": mode,
         }
         if temp is not None:
             postParams["temp"] = temp
-        return postRequest(_SETROOMTHERMPOINT_REQ, postParams)
+        return self.authData.post_request(url=_SETROOMTHERMPOINT_REQ, params=postParams)

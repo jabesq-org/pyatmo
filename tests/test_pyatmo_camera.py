@@ -76,12 +76,13 @@ def test_CameraData_cameraById(cameraHomeData, cid, expected):
         (None, "MYHOME", None, "12:34:56:00:f1:62"),
         ("", "MYHOME", None, "12:34:56:00:f1:62"),
         ("Garden", "MYHOME", None, "12:34:56:00:a5:a4"),
+        ("Garden", None, "InvalidHomeID", "12:34:56:00:a5:a4"),
         (INVALID_NAME, None, None, None),
         (None, INVALID_NAME, None, None),
     ],
 )
 def test_CameraData_cameraByName(cameraHomeData, name, home, home_id, expected):
-    if home == INVALID_NAME or name == INVALID_NAME:
+    if home == INVALID_NAME or name == INVALID_NAME or home_id == "InvalidHomeID":
         assert cameraHomeData.cameraByName(name, home, home_id) is None
     elif home_id is None:
         assert cameraHomeData.cameraByName(name, home)["id"] == expected
@@ -327,6 +328,9 @@ def test_CameraData_getHomeName(cameraHomeData):
     assert cameraHomeData.getHomeName(home_id) == "MYHOME"
     home_id = "91763b24c43d3e344f424e8c"
     assert cameraHomeData.getHomeName(home_id) == "Unknown"
+    home_id = "InvalidHomeID"
+    with pytest.raises(pyatmo.InvalidHome):
+        assert cameraHomeData.getHomeName(home_id) == "Unknown"
 
 
 def test_CameraData_gethomeId(cameraHomeData):

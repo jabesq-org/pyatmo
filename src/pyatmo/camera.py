@@ -1,15 +1,16 @@
 import imghdr
 import time
-from urllib.error import URLError
+from typing import Dict, Tuple
 
-from .exceptions import InvalidHome, NoDevice
-from .helpers import _BASE_URL, LOG, postRequest
+from .exceptions import ApiError, InvalidHome, NoDevice
+from .helpers import _BASE_URL, LOG
 
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
 _GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"
 _GETEVENTSUNTIL_REQ = _BASE_URL + "api/geteventsuntil"
 _SETPERSONSAWAY_REQ = _BASE_URL + "api/setpersonsaway"
 _SETPERSONSHOME_REQ = _BASE_URL + "api/setpersonshome"
+_SETSTATE_REQ = _BASE_URL + "api/setstate"
 
 
 class CameraData:
@@ -22,11 +23,11 @@ class CameraData:
     """
 
     def __init__(self, authData, size=15):
-        self.getAuthToken = authData.accessToken
-        postParams = {"access_token": self.getAuthToken, "size": size}
-        resp = postRequest(_GETHOMEDATA_REQ, postParams)
-        if resp is None:
-            raise URLError("No device data returned by Netatmo server")
+        self.authData = authData
+        postParams = {"size": size}
+        resp = self.authData.post_request(url=_GETHOMEDATA_REQ, params=postParams)
+        if resp is None or "body" not in resp:
+            raise NoDevice("No device data returned by Netatmo server")
         self.rawData = resp["body"].get("homes")
         if not self.rawData:
             raise NoDevice("No device data available")
@@ -131,12 +132,18 @@ class CameraData:
         raise InvalidHome("Invalid Home %s" % home)
 
     def cameraById(self, cid):
-        for home, _ in self.cameras.items():
-            if cid in self.cameras[home]:
-                return self.cameras[home][cid]
+        """Get camera data by ID."""
+        return self.get_camera(cid)
+
+    def get_camera(self, cid: str) -> Dict[str, str]:
+        """Get camera data."""
+        for home_id, _ in self.cameras.items():
+            if cid in self.cameras[home_id]:
+                return self.cameras[home_id][cid]
         return None
 
     def cameraByName(self, camera=None, home=None, home_id=None):
+        """Get camera data by name."""
         if home_id is None:
             if home is None:
                 hid = self.default_home_id
@@ -156,7 +163,6 @@ class CameraData:
                     if self.cameras[h_id][cam_id]["name"] == camera:
                         return self.cameras[h_id][cam_id]
         elif hid and camera:
-            hid = self.homeByName(home)["id"]
             if hid not in self.cameras:
                 return None
             for cam_id in self.cameras[hid]:
@@ -226,54 +232,75 @@ class CameraData:
         """
         cameratype = None
         if cid:
-            camera_data = self.cameraById(cid)
+            camera_data = self.get_camera(cid)
         else:
             camera_data = self.cameraByName(camera=camera, home=home, home_id=home_id)
         if camera_data:
             cameratype = camera_data["type"]
         return cameratype
 
-    def cameraUrls(self, camera=None, home=None, cid=None, home_id=None):
+    def cameraUrls(
+        self, camera: str = None, home: str = None, cid: str = None, home_id: str = None
+    ) -> Tuple[str, str]:
+        """
+        Return the vpn_url and the local_url (if available) of a given camera
+        in order to access its live feed
+        (old interface)
+        """
+        if home_id:
+            cid = self.cameraByName(camera=camera, home_id=home_id)["id"]
+        else:
+            cid = self.cameraByName(camera=camera, home=home)["id"]
+        return self.camera_urls(cid=cid)
+
+    def camera_urls(self, cid: str) -> Tuple[str, str]:
         """
         Return the vpn_url and the local_url (if available) of a given camera
         in order to access its live feed
         """
         local_url = None
         vpn_url = None
-        if cid:
-            camera_data = self.cameraById(cid)
-        elif home_id:
-            camera_data = self.cameraByName(camera=camera, home_id=home_id)
-        else:
-            camera_data = self.cameraByName(camera=camera, home=home)
+
+        camera_data = self.get_camera(cid)
 
         if camera_data:
             vpn_url = camera_data.get("vpn_url")
             if camera_data.get("is_local"):
-                try:
-                    resp = postRequest("{0}/command/ping".format(vpn_url), {})
-                    temp_local_url = resp["local_url"]
-                except URLError:
-                    return None, None
 
-                try:
-                    resp = postRequest("{0}/command/ping".format(temp_local_url), {})
-                    if temp_local_url == resp["local_url"]:
-                        local_url = temp_local_url
-                except URLError:
-                    pass
+                def check_url(url):
+                    if url is None:
+                        return None
+                    try:
+                        resp = self.authData.post_request(url=f"{url}/command/ping")
+                    except ApiError:
+                        return None
+                    else:
+                        return resp.get("local_url")
+
+                temp_local_url = check_url(vpn_url)
+                local_url = check_url(temp_local_url)
         return vpn_url, local_url
+
+    def get_light_state(self, cid: str) -> str:
+        """Return the current mode of the floodlight of a presence camera."""
+        return self.get_camera(cid).get("light_mode_status")
 
     def personsAtHome(self, home=None, home_id=None):
         """
         Return the list of known persons who are currently at home
+        (old interface)
         """
-        if home_id:
-            home_data = self.homeById(home_id)
+        if not home:
+            home_id = self.default_home_id
         else:
-            if not home:
-                home = self.default_home
-            home_data = self.homeByName(home)
+            home_id = self.homeByName(home)["id"]
+        return self.persons_at_home(home_id)
+
+    def persons_at_home(self, home_id=None):
+        """
+        Return the list of known persons who are currently at home
+        """
+        home_data = self.homeById(home_id)
         atHome = []
         for p in home_data["persons"]:
             # Only check known personshome
@@ -285,28 +312,61 @@ class CameraData:
     def setPersonsHome(self, person_ids, home_id):
         """
         Mark persons as home.
+        (old interface)
+        """
+        return self.set_persons_home(person_ids, home_id)
+
+    def set_persons_home(self, person_ids, home_id):
+        """
+        Mark persons as home.
         """
         postParams = {
-            "access_token": self.getAuthToken,
             "home_id": home_id,
             "person_ids[]": person_ids,
         }
-        resp = postRequest(_SETPERSONSHOME_REQ, postParams)
+        resp = self.authData.post_request(url=_SETPERSONSHOME_REQ, params=postParams)
         return resp
 
     def setPersonsAway(self, person_id, home_id):
         """
         Mark a person as away or set the whole home to being empty.
+        (old interface)
+        """
+        return self.set_persons_away(person_id, home_id)
+
+    def set_persons_away(self, person_id, home_id):
+        """Mark a person as away or set the whole home to being empty.
+
+        Arguments:
+            person_id {str} -- ID of a person
+            home_id {str} -- ID of a home
+
+        Returns:
+            [type] -- [description]
         """
         postParams = {
-            "access_token": self.getAuthToken,
             "home_id": home_id,
             "person_id": person_id,
         }
-        resp = postRequest(_SETPERSONSAWAY_REQ, postParams)
+        resp = self.authData.post_request(url=_SETPERSONSAWAY_REQ, params=postParams)
         return resp
 
     def getPersonId(self, name):
+        """
+        Retrieve a persons id
+        (old interface)
+        """
+        return self.get_person_id(name)
+
+    def get_person_id(self, name):
+        """Retrieve the ID of a person
+
+        Arguments:
+            name {str} -- Name of a person
+
+        Returns:
+            str -- ID of a person
+        """
         for pid, data in self.persons.items():
             if "pseudo" in data and name == data["pseudo"]:
                 return pid
@@ -317,11 +377,10 @@ class CameraData:
         Download a specific image (of an event or user face) from the camera
         """
         postParams = {
-            "access_token": self.getAuthToken,
             "image_id": image_id,
             "key": key,
         }
-        resp = postRequest(_GETCAMERAPICTURE_REQ, postParams)
+        resp = self.authData.post_request(url=_GETCAMERAPICTURE_REQ, params=postParams)
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
@@ -349,6 +408,7 @@ class CameraData:
             except InvalidHome:
                 LOG.debug("Invalid Home %s", home)
                 return None
+
         if devicetype == "NACamera":
             # for the Welcome camera
             if not event:
@@ -358,6 +418,7 @@ class CameraData:
                 for cam_id in self.lastEvent:
                     listEvent[self.lastEvent[cam_id]["time"]] = self.lastEvent[cam_id]
                 event = listEvent[sorted(listEvent)[0]]
+
         if devicetype == "NOC":
             # for the Presence camera
             if not event:
@@ -369,6 +430,7 @@ class CameraData:
                         self.outdoor_lastEvent[cam_id]["time"]
                     ] = self.outdoor_lastEvent[cam_id]
                 event = listEvent[sorted(listEvent)[0]]
+
         if devicetype == "NSD":
             # for the smoke detector
             if not event:
@@ -382,12 +444,21 @@ class CameraData:
                 event = listEvent[sorted(listEvent)[0]]
 
         postParams = {
-            "access_token": self.getAuthToken,
             "home_id": home_id,
             "event_id": event["id"],
         }
-        resp = postRequest(_GETEVENTSUNTIL_REQ, postParams)
-        eventList = resp["body"]["events_list"]
+        try:
+            resp = self.authData.post_request(
+                url=_GETEVENTSUNTIL_REQ, params=postParams
+            )
+            eventList = resp["body"]["events_list"]
+        except ApiError:
+            pass
+        except KeyError:
+            LOG.debug("eventList response: %s", resp)
+            LOG.debug("eventList body: %s", resp["body"])
+            eventList = []
+
         for e in eventList:
             if e["type"] == "outdoor":
                 if e["camera_id"] not in self.outdoor_events:
@@ -409,26 +480,33 @@ class CameraData:
     def personSeenByCamera(self, name, home=None, camera=None, exclude=0):
         """
         Evaluate if a specific person has been seen
+        (old interface)
         """
         try:
-            cam_id = self.cameraByName(camera=camera, home=home)["id"]
+            cid = self.cameraByName(camera=camera, home=home)["id"]
         except TypeError:
             LOG.error("personSeenByCamera: Camera name or home is unknown")
             return False
+        return self.person_seen_by_camera(name=name, cid=cid, exclude=exclude)
+
+    def person_seen_by_camera(self, name, cid, exclude=0):
+        """
+        Evaluate if a specific person has been seen
+        """
         # Check in the last event is someone known has been seen
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id], reverse=True)
+            array_time_event = sorted(self.events[cid], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
-                if self.events[cam_id][time_ev]["type"] == "person":
-                    person_id = self.events[cam_id][time_ev]["person_id"]
+                if self.events[cid][time_ev]["type"] == "person":
+                    person_id = self.events[cid][time_ev]["person_id"]
                     if "pseudo" in self.persons[person_id]:
                         if self.persons[person_id]["pseudo"] == name:
                             return True
-        elif self.lastEvent[cam_id]["type"] == "person":
-            person_id = self.lastEvent[cam_id]["person_id"]
+        elif self.lastEvent[cid]["type"] == "person":
+            person_id = self.lastEvent[cid]["person_id"]
             if "pseudo" in self.persons[person_id]:
                 if self.persons[person_id]["pseudo"] == name:
                     return True
@@ -453,6 +531,7 @@ class CameraData:
     def someoneKnownSeen(self, home=None, camera=None, exclude=0, cid=None):
         """
         Evaluate if someone known has been seen
+        (old interface)
         """
         if not cid:
             try:
@@ -460,7 +539,12 @@ class CameraData:
             except TypeError:
                 LOG.error("someoneKnownSeen: Camera name or home is unknown")
                 return False
+        return self.someone_known_seen(cid=cid, exclude=exclude)
 
+    def someone_known_seen(self, cid, exclude=0):
+        """
+        Evaluate if someone known has been seen
+        """
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[cid], reverse=True)
@@ -479,6 +563,7 @@ class CameraData:
     def someoneUnknownSeen(self, home=None, camera=None, exclude=0, cid=None):
         """
         Evaluate if someone unknown has been seen
+        (old interface)
         """
         if not cid:
             try:
@@ -486,7 +571,9 @@ class CameraData:
             except TypeError:
                 LOG.error("someoneUnknownSeen: Camera name or home is unknown")
                 return False
+        return self.someone_unknown_seen(cid=cid, exclude=exclude)
 
+    def someone_unknown_seen(self, cid, exclude=0):
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[cid], reverse=True)
@@ -508,6 +595,7 @@ class CameraData:
     def motionDetected(self, home=None, camera=None, exclude=0, cid=None):
         """
         Evaluate if movement has been detected
+        (old interface)
         """
         if not cid:
             try:
@@ -515,7 +603,12 @@ class CameraData:
             except TypeError:
                 LOG.error("motionDetected: Camera name or home is unknown")
                 return False
+        return self.motion_detected(cid=cid, exclude=exclude)
 
+    def motion_detected(self, cid, exclude=0):
+        """
+        Evaluate if movement has been detected
+        """
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[cid], reverse=True)
@@ -531,6 +624,7 @@ class CameraData:
     def outdoormotionDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Evaluate if outdoor movement has been detected
+        (old interface)
         """
         if not cid:
             try:
@@ -538,7 +632,12 @@ class CameraData:
             except TypeError:
                 LOG.error("outdoormotionDetected: Camera name or home is unknown")
                 return False
+        return self.outdoor_motion_detected(cid=cid, offset=0)
 
+    def outdoor_motion_detected(self, cid, offset=0):
+        """
+        Evaluate if outdoor movement has been detected
+        """
         if cid in self.lastEvent:
             if self.lastEvent[cid]["type"] == "movement":
                 if self.lastEvent[cid][
@@ -552,6 +651,7 @@ class CameraData:
     def humanDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Evaluate if a human has been detected
+        (old interface)
         """
         if not cid:
             try:
@@ -559,7 +659,12 @@ class CameraData:
             except TypeError:
                 LOG.error("personSeenByCamera: Camera name or home is unknown")
                 return False
+        return self.human_detected(cid=cid, offset=0)
 
+    def human_detected(self, cid, offset=0):
+        """
+        Evaluate if a human has been detected
+        """
         if self.outdoor_lastEvent[cid]["video_status"] == "recording":
             for e in self.outdoor_lastEvent[cid]["event_list"]:
                 if e["type"] == "human" and e["time"] + offset > int(time.time()):
@@ -569,6 +674,7 @@ class CameraData:
     def animalDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Evaluate if an animal has been detected
+        (old interface)
         """
         if not cid:
             try:
@@ -576,7 +682,12 @@ class CameraData:
             except TypeError:
                 LOG.error("animalDetected: Camera name or home is unknown")
                 return False
+        return self.animal_detected(cid=cid, offset=0)
 
+    def animal_detected(self, cid, offset=0):
+        """
+        Evaluate if an animal has been detected
+        """
         if self.outdoor_lastEvent[cid]["video_status"] == "recording":
             for e in self.outdoor_lastEvent[cid]["event_list"]:
                 if e["type"] == "animal" and e["time"] + offset > int(time.time()):
@@ -586,6 +697,7 @@ class CameraData:
     def carDetected(self, home=None, camera=None, offset=0, cid=None):
         """
         Evaluate if a car has been detected
+        (old interface)
         """
         if not cid:
             try:
@@ -593,7 +705,12 @@ class CameraData:
             except TypeError:
                 LOG.error("carDetected: Camera name or home is unknown")
                 return False
+        return self.car_detected(cid=cid, offset=offset)
 
+    def car_detected(self, cid, offset=0):
+        """
+        Evaluate if a car has been detected
+        """
         if self.outdoor_lastEvent[cid]["video_status"] == "recording":
             for e in self.outdoor_lastEvent[cid]["event_list"]:
                 if e["type"] == "vehicle" and e["time"] + offset > int(time.time()):
@@ -603,32 +720,38 @@ class CameraData:
     def moduleMotionDetected(self, module=None, home=None, camera=None, exclude=0):
         """
         Evaluate if movement has been detected
+        (old interface)
         """
         try:
             mod = self.moduleByName(module, camera=camera, home=home)
-            mod_id = mod["id"]
-            cam_id = mod["cam_id"]
+            mid = mod["id"]
+            cid = mod["cam_id"]
         except TypeError:
             LOG.error(
-                "moduleMotionDetected: Module name or" "Camera name or home is unknown"
+                "moduleMotionDetected: Module name or Camera name or home is unknown"
             )
             return False
+        return self.module_motion_detected(mid=mid, cid=cid, exclude=exclude)
 
+    def module_motion_detected(self, mid, cid, exclude=0):
+        """
+        Evaluate if movement has been detected
+        """
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id], reverse=True)
+            array_time_event = sorted(self.events[cid], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
                 if (
-                    self.events[cam_id][time_ev]["type"] == "tag_big_move"
-                    or self.events[cam_id][time_ev]["type"] == "tag_small_move"
-                ) and self.events[cam_id][time_ev]["module_id"] == mod_id:
+                    self.events[cid][time_ev]["type"] == "tag_big_move"
+                    or self.events[cid][time_ev]["type"] == "tag_small_move"
+                ) and self.events[cid][time_ev]["module_id"] == mid:
                     return True
         elif (
-            self.lastEvent[cam_id]["type"] == "tag_big_move"
-            or self.lastEvent[cam_id]["type"] == "tag_small_move"
-        ) and self.lastEvent[cam_id]["module_id"] == mod_id:
+            self.lastEvent[cid]["type"] == "tag_big_move"
+            or self.lastEvent[cid]["type"] == "tag_small_move"
+        ) and self.lastEvent[cid]["module_id"] == mid:
             return True
         return False
 
@@ -638,26 +761,28 @@ class CameraData:
         """
         try:
             mod = self.moduleByName(module, camera=camera, home=home)
-            mod_id = mod["id"]
-            cam_id = mod["cam_id"]
+            mid = mod["id"]
+            cid = mod["cam_id"]
         except TypeError:
             LOG.error("moduleOpened: Camera name, or home, or module is unknown")
             return False
+        return self.module_opened(mid=mid, cid=cid, exclude=exclude)
 
+    def module_opened(self, mid, cid, exclude=0):
         if exclude:
             limit = time.time() - exclude
-            array_time_event = sorted(self.events[cam_id], reverse=True)
+            array_time_event = sorted(self.events[cid], reverse=True)
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
                 if (
-                    self.events[cam_id][time_ev]["type"] == "tag_open"
-                    and self.events[cam_id][time_ev]["module_id"] == mod_id
+                    self.events[cid][time_ev]["type"] == "tag_open"
+                    and self.events[cid][time_ev]["module_id"] == mid
                 ):
                     return True
         elif (
-            self.lastEvent[cam_id]["type"] == "tag_open"
-            and self.lastEvent[cam_id]["module_id"] == mod_id
+            self.lastEvent[cid]["type"] == "tag_open"
+            and self.lastEvent[cid]["module_id"] == mid
         ):
             return True
         return False

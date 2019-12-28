@@ -18,5 +18,5 @@ setup(
         "Design for Home-Assitant (but not only)"
     ),
     long_description=open("README.md").read(),
-    install_requires=["requests"],
+    install_requires=["requests", "requests_oauthlib", "oauthlib"],
 )

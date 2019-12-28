@@ -1,5 +1,5 @@
 from .exceptions import NoDevice
-from .helpers import _BASE_URL, postRequest, toTimeString
+from .helpers import _BASE_URL, toTimeString
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652
@@ -25,7 +25,7 @@ _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 class PublicData:
     def __init__(
         self,
-        auth_data,
+        authData,
         LAT_NE=_LAT_NE,
         LON_NE=_LON_NE,
         LAT_SW=_LAT_SW,
@@ -33,9 +33,8 @@ class PublicData:
         required_data_type=None,  # comma-separated list from above _STATION or _ACCESSORY values
         filtering=False,
     ):
-        self.getAuthToken = auth_data.accessToken
-        post_params = {
-            "access_token": self.getAuthToken,
+        self.authData = authData
+        postParams = {
             "lat_ne": LAT_NE,
             "lon_ne": LON_NE,
             "lat_sw": LAT_SW,
@@ -44,9 +43,9 @@ class PublicData:
         }
 
         if required_data_type:
-            post_params["required_data"] = required_data_type
+            postParams["required_data"] = required_data_type
 
-        resp = postRequest(_GETPUBLIC_DATA, post_params)
+        resp = self.authData.post_request(url=_GETPUBLIC_DATA, params=postParams)
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError):

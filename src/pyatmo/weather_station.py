@@ -2,7 +2,7 @@ import logging
 import time
 
 from .exceptions import NoDevice
-from .helpers import _BASE_URL, postRequest, todayStamps
+from .helpers import _BASE_URL, todayStamps
 
 LOG = logging.getLogger(__name__)
 
@@ -20,10 +20,9 @@ class WeatherStationData:
     def __init__(self, authData, urlReq=None):
         """Initialize the weather station class."""
         self.urlReq = urlReq or _GETSTATIONDATA_REQ
-        self.getAuthToken = authData.accessToken
-        postParams = {"access_token": self.getAuthToken}
-        resp = postRequest(self.urlReq, postParams)
-        if resp is None:
+        self.authData = authData
+        resp = self.authData.post_request(url=self.urlReq)
+        if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
         try:
             self.rawData = resp["body"].get("devices")
@@ -252,8 +251,7 @@ class WeatherStationData:
         optimize=False,
         real_time=False,
     ):
-        postParams = {"access_token": self.getAuthToken}
-        postParams["device_id"] = device_id
+        postParams = {"device_id": device_id}
         if module_id:
             postParams["module_id"] = module_id
         postParams["scale"] = scale
@@ -266,7 +264,7 @@ class WeatherStationData:
             postParams["limit"] = limit
         postParams["optimize"] = "true" if optimize else "false"
         postParams["real_time"] = "true" if real_time else "false"
-        return postRequest(_GETMEASURE_REQ, postParams)
+        return self.authData.post_request(url=_GETMEASURE_REQ, params=postParams)
 
     def MinMaxTH(self, station=None, module=None, frame="last24"):
         if not station:

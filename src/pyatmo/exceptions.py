@@ -12,3 +12,7 @@ class InvalidRoom(Exception):
 
 class NoDevice(Exception):
     pass
+
+
+class ApiError(Exception):
+    pass

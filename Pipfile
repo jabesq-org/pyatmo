@@ -21,6 +21,8 @@ pre-commit = "*"
 
 [packages]
 pyatmo = {editable = true,path = "."}
+requests = "*"
+requests-oauthlib = "*"
 
 [requires]
 python_version = "3.7"

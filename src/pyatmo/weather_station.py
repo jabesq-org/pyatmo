@@ -193,7 +193,8 @@ class WeatherStationData:
         for st in stations:
             s = self.stationById(st) if byId else self.stationByName(st)
             if not s or "dashboard_data" not in s:
-                return None
+                LOG.info("Not dashboard data for station %s", st)
+                continue
             # Define oldest acceptable sensor measure event
             limit = (time.time() - exclude) if exclude else 0
             ds = s["dashboard_data"]

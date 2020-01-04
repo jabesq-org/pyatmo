@@ -354,7 +354,7 @@ def test_WeatherStationData_monitoredConditions(
                 "Yard",
             ],
         ),
-        ("NoValidStation", None, False, None),
+        ("NoValidStation", None, False, {}),
         (
             None,
             1000000,
@@ -395,7 +395,7 @@ def test_WeatherStationData_lastData(
     if mod:
         assert sorted(mod) == expected
     else:
-        assert mod is expected
+        assert mod == expected
 
 
 @freeze_time("2019-06-11")
@@ -414,8 +414,8 @@ def test_WeatherStationData_lastData(
                 "12:34:56:37:11:ca",
             ],
         ),
-        ("", None, None,),
-        ("NoValidStation", None, None),
+        ("", None, {},),
+        ("NoValidStation", None, {},),
         (
             "12:34:56:37:11:ca",
             1000000,
@@ -448,7 +448,7 @@ def test_WeatherStationData_lastData_byId(
     if mod:
         assert sorted(mod) == expected
     else:
-        assert mod is expected
+        assert mod == expected
 
 
 @freeze_time("2019-06-11")
@@ -567,3 +567,44 @@ def test_WeatherStationData_lastData_measurements(weatherStationData):
     assert mod["NetatmoIndoor"]["max_temp"] == 25.6
     assert mod["NetatmoIndoor"]["Temperature"] == 24.6
     assert mod["NetatmoIndoor"]["Pressure"] == 1017.3
+
+
+@freeze_time("2019-06-11")
+@pytest.mark.parametrize(
+    "station, exclude, expected",
+    [
+        (
+            "12:34:56:37:11:ca",
+            None,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
+        ),
+        (
+            None,
+            None,
+            [
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
+            ],
+        ),
+        ("12:34:56:00:aa:01", None, {},),
+    ],
+)
+def test_WeatherStationData_lastData_bug_97(
+    weatherStationData, station, exclude, expected
+):
+    mod = weatherStationData.lastData(station, exclude, byId=True)
+    if mod:
+        assert sorted(mod) == expected
+    else:
+        assert mod == expected

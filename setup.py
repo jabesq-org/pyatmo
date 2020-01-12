@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="pyatmo",
-    version="3.2.0",  # Should be updated with new versions
+    version="3.2.1",  # Should be updated with new versions
     author="Hugo Dupras",
     author_email="jabesq@gmail.com",
     packages=find_packages(exclude=["tests"], where="src"),

@@ -1,4 +1,5 @@
 # python setup.py --dry-run --verbose install
+# To build: python setup.py sdist bdist_wheel
 
 from setuptools import find_packages, setup
 

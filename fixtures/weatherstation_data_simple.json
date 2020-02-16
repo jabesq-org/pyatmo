@@ -2,7 +2,7 @@
     "body": {
         "devices": [
             {
-                "_id": "12:34 :56:37:11:ca",
+                "_id": "12:34:56:37:11:ca",
                 "cipher_id": "enc:16:zjiZF/q8jTScXVdDa/kvhUAIUPGeYszaD1ClEf8byAJkRjxc5oth7cAocrMUIApX",
                 "date_setup": 1544558432,
                 "last_setup": 1544558432,
@@ -160,7 +160,7 @@
                         "battery_percent": 85
                     },
                     {
-                        "_id": "12:34 :56:05:51:20",
+                        "_id": "12:34:56:05:51:20",
                         "type": "NAModule3",
                         "module_name": "Yard",
                         "data_type": [
@@ -180,6 +180,93 @@
                         "rf_status": 67,
                         "battery_vp": 5860,
                         "battery_percent": 93
+                    }
+                ]
+            },
+            {
+                "_id": "12 :34: 56:36:fd:3c",
+                "station_name": "Valley Road",
+                "date_setup": 1545897146,
+                "last_setup": 1545897146,
+                "type": "NAMain",
+                "last_status_store": 1581835369,
+                "firmware": 137,
+                "last_upgrade": 1545897125,
+                "wifi_status": 53,
+                "reachable": true,
+                "co2_calibrating": false,
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure"
+                ],
+                "place": {
+                    "altitude": 69,
+                    "city": "Valley",
+                    "country": "AU",
+                    "timezone": "Australia/Hobart",
+                    "location": [
+                        148.444226,
+                        -41.721282
+                    ]
+                },
+                "read_only": true,
+                "dashboard_data": {
+                    "time_utc": 1581835330,
+                    "Temperature": 22.4,
+                    "CO2": 471,
+                    "Humidity": 46,
+                    "Noise": 47,
+                    "Pressure": 1011.5,
+                    "AbsolutePressure": 1002.8,
+                    "min_temp": 18.1,
+                    "max_temp": 22.5,
+                    "date_max_temp": 1581829891,
+                    "date_min_temp": 1581794878,
+                    "temp_trend": "stable",
+                    "pressure_trend": "stable"
+                },
+                "modules": [
+                    {
+                        "_id": "12 :34: 56:36:e6:c0",
+                        "type": "NAModule1",
+                        "module_name": "Module",
+                        "data_type": [
+                            "Temperature",
+                            "Humidity"
+                        ],
+                        "last_setup": 1545897146,
+                        "battery_percent": 22,
+                        "reachable": false,
+                        "firmware": 46,
+                        "last_message": 1572497781,
+                        "last_seen": 1572497742,
+                        "rf_status": 88,
+                        "battery_vp": 4118
+                    },
+                    {
+                        "_id": "12:34:56:05:25:6e",
+                        "type": "NAModule3",
+                        "module_name": "Rain Gauge",
+                        "data_type": [
+                            "Rain"
+                        ],
+                        "last_setup": 1553997427,
+                        "battery_percent": 82,
+                        "reachable": true,
+                        "firmware": 8,
+                        "last_message": 1581835362,
+                        "last_seen": 1581835354,
+                        "rf_status": 78,
+                        "battery_vp": 5594,
+                        "dashboard_data": {
+                            "time_utc": 1581835329,
+                            "Rain": 0,
+                            "sum_rain_1": 0,
+                            "sum_rain_24": 0
+                        }
                     }
                 ]
             }

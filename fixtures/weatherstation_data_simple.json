@@ -2,7 +2,7 @@
     "body": {
         "devices": [
             {
-                "_id": "12:34:56:37:11:ca",
+                "_id": "12:34 :56:37:11:ca",
                 "cipher_id": "enc:16:zjiZF/q8jTScXVdDa/kvhUAIUPGeYszaD1ClEf8byAJkRjxc5oth7cAocrMUIApX",
                 "date_setup": 1544558432,
                 "last_setup": 1544558432,
@@ -160,7 +160,7 @@
                         "battery_percent": 85
                     },
                     {
-                        "_id": "12:34:56:05:51:20",
+                        "_id": "12:34 :56:05:51:20",
                         "type": "NAModule3",
                         "module_name": "Yard",
                         "data_type": [

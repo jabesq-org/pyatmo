@@ -28,3 +28,12 @@ def toEpoch(value):
 def todayStamps():
     today = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
+
+
+def fixId(rawData):
+    if rawData:
+        for station in rawData:
+            station["_id"] = station["_id"].replace(" ", "")
+            for module in station.get("modules", {}):
+                module["_id"] = module["_id"].replace(" ", "")
+    return rawData

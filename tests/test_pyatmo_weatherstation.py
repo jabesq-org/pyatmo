@@ -257,14 +257,14 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
             "Garden",
             None,
             [
+                "GustAngle",
+                "GustStrength",
+                "WindAngle",
+                "WindStrength",
                 "battery_percent",
                 "battery_vp",
-                "gustangle",
-                "guststrength",
                 "reachable",
                 "rf_status",
-                "windangle",
-                "windstrength",
             ],
         ),
         (
@@ -567,6 +567,10 @@ def test_WeatherStationData_lastData_measurements(weatherStationData):
     assert mod["NetatmoIndoor"]["max_temp"] == 25.6
     assert mod["NetatmoIndoor"]["Temperature"] == 24.6
     assert mod["NetatmoIndoor"]["Pressure"] == 1017.3
+    assert mod["Garden"]["WindAngle"] == 217
+    assert mod["Garden"]["WindStrength"] == 4
+    assert mod["Garden"]["GustAngle"] == 206
+    assert mod["Garden"]["GustStrength"] == 9
 
 
 @freeze_time("2019-06-11")

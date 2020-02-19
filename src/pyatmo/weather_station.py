@@ -61,7 +61,7 @@ class WeatherStationData:
         else:
             res.update([m["module_name"] for m in self.modules.values()])
             for s in self.stations.values():
-                res.add(s["module_name"])
+                res.add(s.get("module_name", "Station"))
         return list(res)
 
     def getModules(self, station=None, station_id=None):
@@ -79,7 +79,7 @@ class WeatherStationData:
         for s in stations:
             res[s["_id"]] = {
                 "station_name": s["station_name"],
-                "module_name": s.get("module_name", "module"),
+                "module_name": s.get("module_name", "Station"),
                 "id": s["_id"],
             }
 
@@ -104,24 +104,26 @@ class WeatherStationData:
         """Return station by id."""
         return None if sid not in self.stations else self.stations[sid]
 
-    def moduleByName(self, module, station=None):
+    def moduleByName(self, module_name, station=None):
         """Return module by name."""
         s = None
         if station:
             s = self.stationByName(station)
             if not s:
                 return None
-            if s["module_name"] == module:
+            if s["module_name"] == module_name:
                 return s
         else:
             for s in self.stations.values():
-                if "module_name" in s and s["module_name"] == module:
-                    return s
+                if "module_name" in s:
+                    if s["module_name"] == module_name:
+                        return s
+                    break
         for m in self.modules:
-            mod = self.modules[m]
-            if mod["module_name"] == module:
-                if not s or mod["main_device"] == s["_id"]:
-                    return mod
+            module = self.modules[m]
+            if module["module_name"] == module_name:
+                if not s or module["main_device"] == s["_id"]:
+                    return module
         return None
 
     def moduleById(self, mid, sid=None):
@@ -193,7 +195,7 @@ class WeatherStationData:
         for st in stations:
             s = self.stationById(st) if byId else self.stationByName(st)
             if not s or "dashboard_data" not in s:
-                LOG.info("Not dashboard data for station %s", st)
+                LOG.info("No dashboard data for station %s", st)
                 continue
             # Define oldest acceptable sensor measure event
             limit = (time.time() - exclude) if exclude else 0

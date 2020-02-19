@@ -5,10 +5,21 @@ exclude: ^(fixtures/)
 repos:
   - repo: local
     hooks:
+      - id: isort
+        name: isort
+        language: system
+        entry: pipenv run isort
+        types: [python]
+        exclude: tests/
       - id: black
         name: black
         language: system
         entry: pipenv run black
+        types: [python]
+      - id: pylint
+        name: pylint
+        language: system
+        entry: pipenv run pylint
         types: [python]
       - id: flake8
         name: flake8
@@ -19,11 +30,5 @@ repos:
         name: mypy
         language: system
         entry: pipenv run mypy
-        types: [python]
-        exclude: tests/
-      - id: isort
-        name: isort
-        language: system
-        entry: pipenv run isort
         types: [python]
         exclude: tests/

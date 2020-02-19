@@ -1,7 +1,7 @@
-from .exceptions import NoDevice
-from .helpers import _BASE_URL, toTimeString
+from pyatmo.exceptions import NoDevice
+from pyatmo.helpers import BASE_URL, to_time_string
 
-_GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
+_GETPUBLIC_DATA = BASE_URL + "api/getpublicdata"
 _LON_NE = 6.221652
 _LAT_NE = 46.610870
 _LON_SW = 6.217828
@@ -33,8 +33,8 @@ class PublicData:
         required_data_type=None,  # comma-separated list from above _STATION or _ACCESSORY values
         filtering=False,
     ):
-        self.authData = authData
-        postParams = {
+        self.auth_data = authData
+        post_params = {
             "lat_ne": LAT_NE,
             "lon_ne": LON_NE,
             "lat_sw": LAT_SW,
@@ -43,106 +43,90 @@ class PublicData:
         }
 
         if required_data_type:
-            postParams["required_data"] = required_data_type
+            post_params["required_data"] = required_data_type
 
-        resp = self.authData.post_request(url=_GETPUBLIC_DATA, params=postParams)
+        resp = self.auth_data.post_request(url=_GETPUBLIC_DATA, params=post_params)
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError):
             raise NoDevice("No public weather data returned by Netatmo server")
         self.status = resp["status"]
-        self.time_exec = toTimeString(resp["time_exec"])
-        self.time_server = toTimeString(resp["time_server"])
+        self.time_exec = to_time_string(resp["time_exec"])
+        self.time_server = to_time_string(resp["time_server"])
 
-    def CountStationInArea(self):
+    def count_station_in_area(self):
         return len(self.raw_data)
 
-    # Backwards compatibility for < 1.2
-    def getLive(self):
-        return self.getLatestRain()
+    def get_latest_rain(self):
+        return self.get_accessory_measures(_ACCESSORY_RAIN_LIVE_TYPE)
 
-    def getLatestRain(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_LIVE_TYPE)
+    def get_average_rain(self):
+        return average_measure(self.get_latest_rain())
 
-    def getAverageRain(self):
-        return averageMeasure(self.getLatestRain())
+    def get_60min_rain(self):
+        return self.get_accessory_measures(_ACCESSORY_RAIN_60MIN_TYPE)
 
-    # Backwards compatibility for < 1.2
-    def get60min(self):
-        return self.get60minRain()
+    def get_average_60min_rain(self):
+        return average_measure(self.get_60min_rain())
 
-    def get60minRain(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_60MIN_TYPE)
+    def get_24h_rain(self):
+        return self.get_accessory_measures(_ACCESSORY_RAIN_24H_TYPE)
 
-    def getAverage60minRain(self):
-        return averageMeasure(self.get60minRain())
+    def get_average_24h_rain(self):
+        return average_measure(self.get_24h_rain())
 
-    # Backwards compatibility for < 1.2
-    def get24h(self):
-        return self.get24hRain()
+    def get_latest_pressures(self):
+        return self.get_latest_station_measures(_STATION_PRESSURE_TYPE)
 
-    def get24hRain(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_24H_TYPE)
+    def get_average_pressure(self):
+        return average_measure(self.get_latest_pressures())
 
-    def getAverage24hRain(self):
-        return averageMeasure(self.get24hRain())
+    def get_latest_temperatures(self):
+        return self.get_latest_station_measures(_STATION_TEMPERATURE_TYPE)
 
-    def getLatestPressures(self):
-        return self.getLatestStationMeasures(_STATION_PRESSURE_TYPE)
+    def get_average_temperature(self):
+        return average_measure(self.get_latest_temperatures())
 
-    def getAveragePressure(self):
-        return averageMeasure(self.getLatestPressures())
+    def get_latest_humidities(self):
+        return self.get_latest_station_measures(_STATION_HUMIDITY_TYPE)
 
-    def getLatestTemperatures(self):
-        return self.getLatestStationMeasures(_STATION_TEMPERATURE_TYPE)
+    def get_average_humidity(self):
+        return average_measure(self.get_latest_humidities())
 
-    def getAverageTemperature(self):
-        return averageMeasure(self.getLatestTemperatures())
+    def get_latest_wind_strengths(self):
+        return self.get_accessory_measures(_ACCESSORY_WIND_STRENGTH_TYPE)
 
-    def getLatestHumidities(self):
-        return self.getLatestStationMeasures(_STATION_HUMIDITY_TYPE)
+    def get_average_wind_strength(self):
+        return average_measure(self.get_latest_wind_strengths())
 
-    def getAverageHumidity(self):
-        return averageMeasure(self.getLatestHumidities())
+    def get_latest_wind_angles(self):
+        return self.get_accessory_measures(_ACCESSORY_WIND_ANGLE_TYPE)
 
-    def getLatestWindStrengths(self):
-        return self.getAccessoryMeasures(_ACCESSORY_WIND_STRENGTH_TYPE)
+    def get_latest_gust_strengths(self):
+        return self.get_accessory_measures(_ACCESSORY_GUST_STRENGTH_TYPE)
 
-    def getAverageWindStrength(self):
-        return averageMeasure(self.getLatestWindStrengths())
+    def get_average_gust_strength(self):
+        return average_measure(self.get_latest_gust_strengths())
 
-    def getLatestWindAngles(self):
-        return self.getAccessoryMeasures(_ACCESSORY_WIND_ANGLE_TYPE)
+    def get_latest_gust_angles(self):
+        return self.get_accessory_measures(_ACCESSORY_GUST_ANGLE_TYPE)
 
-    def getLatestGustStrengths(self):
-        return self.getAccessoryMeasures(_ACCESSORY_GUST_STRENGTH_TYPE)
-
-    def getAverageGustStrength(self):
-        return averageMeasure(self.getLatestGustStrengths())
-
-    def getLatestGustAngles(self):
-        return self.getAccessoryMeasures(_ACCESSORY_GUST_ANGLE_TYPE)
-
-    def getLocations(self):
+    def get_locations(self):
         locations = {}
         for station in self.raw_data:
             locations[station["_id"]] = station["place"]["location"]
         return locations
 
-    # Backwards compatibility for < 1.2
-    def getTimeforMeasure(self):
-        return self.getTimeForRainMeasures()
+    def get_time_for_rain_measures(self):
+        return self.get_accessory_measures(_ACCESSORY_RAIN_TIME_TYPE)
 
-    def getTimeForRainMeasures(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_TIME_TYPE)
+    def get_time_for_wind_measures(self):
+        return self.get_accessory_measures(_ACCESSORY_WIND_TIME_TYPE)
 
-    def getTimeForWindMeasures(self):
-        return self.getAccessoryMeasures(_ACCESSORY_WIND_TIME_TYPE)
-
-    def getLatestStationMeasures(self, data_type):
+    def get_latest_station_measures(self, data_type):
         measures = {}
         for station in self.raw_data:
-            for _, module in station["measures"].items():
+            for module in station["measures"].values():
                 if (
                     "type" in module
                     and data_type in module["type"]
@@ -156,16 +140,16 @@ class PublicData:
                     ]
         return measures
 
-    def getAccessoryMeasures(self, data_type):
+    def get_accessory_measures(self, data_type):
         measures = {}
         for station in self.raw_data:
-            for _, module in station["measures"].items():
+            for module in station["measures"].values():
                 if data_type in module:
                     measures[station["_id"]] = module[data_type]
         return measures
 
 
-def averageMeasure(measures):
+def average_measure(measures):
     if measures:
         return sum(measures.values()) / len(measures)
     return 0.0

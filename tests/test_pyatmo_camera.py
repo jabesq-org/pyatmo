@@ -1,4 +1,5 @@
 """Define tests for Camera module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
@@ -9,10 +10,10 @@ import pyatmo
 INVALID_NAME = "InvalidName"
 
 
-def test_CameraData(cameraHomeData):
-    assert cameraHomeData.default_home == "MYHOME"
-    assert cameraHomeData.default_camera["id"] == "12:34:56:00:f1:62"
-    assert cameraHomeData.default_camera["name"] == "Hall"
+def test_camera_data(camera_home_data):
+    assert camera_home_data.default_home == "MYHOME"
+    assert camera_home_data.default_camera["id"] == "12:34:56:00:f1:62"
+    assert camera_home_data.default_camera["name"] == "Hall"
 
 
 @pytest.mark.parametrize(
@@ -23,11 +24,11 @@ def test_CameraData(cameraHomeData):
         pytest.param(None, None),
     ],
 )
-def test_CameraData_homeById(cameraHomeData, hid, expected):
+def test_camera_data_home_by_id(camera_home_data, hid, expected):
     if hid is None or hid == INVALID_NAME:
-        assert cameraHomeData.homeById(hid) is None
+        assert camera_home_data.home_by_id(hid) is None
     else:
-        assert cameraHomeData.homeById(hid)["name"] == expected
+        assert camera_home_data.home_by_id(hid)["name"] == expected
 
 
 @pytest.mark.parametrize(
@@ -39,12 +40,12 @@ def test_CameraData_homeById(cameraHomeData, hid, expected):
         pytest.param(INVALID_NAME, None),
     ],
 )
-def test_CameraData_homeByName(cameraHomeData, name, expected):
+def test_camera_data_home_by_name(camera_home_data, name, expected):
     if name == INVALID_NAME:
         with pytest.raises(pyatmo.exceptions.InvalidHome):
-            assert cameraHomeData.homeByName(name)
+            assert camera_home_data.home_by_name(name)
     else:
-        assert cameraHomeData.homeByName(name)["id"] == expected
+        assert camera_home_data.home_by_name(name)["id"] == expected
 
 
 @pytest.mark.parametrize(
@@ -56,8 +57,8 @@ def test_CameraData_homeByName(cameraHomeData, name, expected):
         (None, None),
     ],
 )
-def test_CameraData_cameraById(cameraHomeData, cid, expected):
-    camera = cameraHomeData.cameraById(cid)
+def test_camera_data_camera_by_id(camera_home_data, cid, expected):
+    camera = camera_home_data.camera_by_id(cid)
     if camera:
         assert camera["name"] == expected
     else:
@@ -81,23 +82,23 @@ def test_CameraData_cameraById(cameraHomeData, cid, expected):
         (None, INVALID_NAME, None, None),
     ],
 )
-def test_CameraData_cameraByName(cameraHomeData, name, home, home_id, expected):
+def test_camera_data_camera_by_name(camera_home_data, name, home, home_id, expected):
     if home == INVALID_NAME or name == INVALID_NAME or home_id == "InvalidHomeID":
-        assert cameraHomeData.cameraByName(name, home, home_id) is None
+        assert camera_home_data.camera_by_name(name, home, home_id) is None
     elif home_id is None:
-        assert cameraHomeData.cameraByName(name, home)["id"] == expected
+        assert camera_home_data.camera_by_name(name, home)["id"] == expected
     elif home is None:
-        assert cameraHomeData.cameraByName(name, home_id=home_id)["id"] == expected
+        assert camera_home_data.camera_by_name(name, home_id=home_id)["id"] == expected
     else:
-        assert cameraHomeData.cameraByName(name, home, home_id)["id"] == expected
+        assert camera_home_data.camera_by_name(name, home, home_id)["id"] == expected
 
 
-def test_CameraData_moduleById(cameraHomeData):
-    assert cameraHomeData.moduleById("00:00:00:00:00:00") is None
+def test_camera_data_module_by_id(camera_home_data):
+    assert camera_home_data.module_by_id("00:00:00:00:00:00") is None
 
 
-def test_CameraData_moduleByName(cameraHomeData):
-    assert cameraHomeData.moduleByName() is None
+def test_camera_data_module_by_name(camera_home_data):
+    assert camera_home_data.module_by_name() is None
 
 
 @pytest.mark.parametrize(
@@ -114,44 +115,47 @@ def test_CameraData_moduleByName(cameraHomeData):
         pytest.param(None, INVALID_NAME, None, None),
     ],
 )
-def test_CameraData_cameraType(cameraHomeData, camera, home, cid, expected):
-    assert cameraHomeData.cameraType(camera, home, cid) == expected
+def test_camera_data_camera_type(camera_home_data, camera, home, cid, expected):
+    assert camera_home_data.camera_type(camera, home, cid) == expected
 
 
-def test_CameraData_cameraUrls(cameraHomeData, requests_mock):
+def test_camera_data_camera_urls(camera_home_data, requests_mock):
     vpn_url = (
         "https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
         "6d278460699e56180d47ab47169efb31/"
         "MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTTg,,"
     )
     local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-    with open("fixtures/camera_ping.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/camera_ping.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         vpn_url + "/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with open("fixtures/camera_ping.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/camera_ping.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         local_url + "/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    assert cameraHomeData.cameraUrls() == (vpn_url, local_url)
+
+    camera_id = "12:34:56:00:f1:62"
+    assert camera_home_data.camera_urls(camera_id) == (vpn_url, local_url)
 
 
-def test_CameraData_cameraUrls_disconnected(auth, requests_mock):
-    with open("fixtures/camera_home_data_disconnected.json") as f:
-        json_fixture = json.load(f)
+def test_camera_data_camera_urls_disconnected(auth, requests_mock):
+    with open("fixtures/camera_home_data_disconnected.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.camera._GETHOMEDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     camera_data = pyatmo.CameraData(auth)
-    assert camera_data.cameraUrls() == (None, None)
+    camera_id = "12:34:56:00:f1:62"
+    assert camera_data.camera_urls(camera_id) == (None, None)
 
 
 @pytest.mark.parametrize(
@@ -166,12 +170,12 @@ def test_CameraData_cameraUrls_disconnected(auth, requests_mock):
         ),
     ],
 )
-def test_CameraData_personsAtHome(cameraHomeData, home, expected):
+def test_camera_data_persons_at_home(camera_home_data, home, expected):
     if home == INVALID_NAME:
         with pytest.raises(pyatmo.exceptions.InvalidHome):
-            assert cameraHomeData.personsAtHome(home)
+            assert camera_home_data.persons_at_home_by_name(home)
     else:
-        assert cameraHomeData.personsAtHome(home) == expected
+        assert camera_home_data.persons_at_home_by_name(home) == expected
 
 
 @freeze_time("2019-06-16")
@@ -186,22 +190,26 @@ def test_CameraData_personsAtHome(cameraHomeData, home, expected):
         ("Jack Doe", None, False),
     ],
 )
-def test_CameraData_personSeenByCamera(cameraHomeData, name, exclude, expected):
-    assert cameraHomeData.personSeenByCamera(name, exclude=exclude) is expected
+def test_camera_data_person_seen_by_camera(camera_home_data, name, exclude, expected):
+    camera_id = "12:34:56:00:f1:62"
+    assert (
+        camera_home_data.person_seen_by_camera(name, camera_id, exclude=exclude)
+        is expected
+    )
 
 
-def test_CameraData__knownPersons(cameraHomeData):
-    knownPersons = cameraHomeData._knownPersons()
-    assert len(knownPersons) == 3
-    assert knownPersons["91827374-7e04-5298-83ad-a0cb8372dff1"]["pseudo"] == "John Doe"
+def test_camera_data__known_persons_dict(camera_home_data):
+    known_persons = camera_home_data._known_persons_dict()
+    assert len(known_persons) == 3
+    assert known_persons["91827374-7e04-5298-83ad-a0cb8372dff1"]["pseudo"] == "John Doe"
 
 
-def test_CameraData_knownPersonsNames(cameraHomeData):
-    assert sorted(cameraHomeData.knownPersonsNames()) == [
+def test_camera_data_known_persons_names(camera_home_data):
+    assert set(camera_home_data.known_persons_names()) == {
         "Jane Doe",
         "John Doe",
         "Richard Doe",
-    ]
+    }
 
 
 @freeze_time("2019-06-16")
@@ -212,12 +220,12 @@ def test_CameraData_knownPersonsNames(cameraHomeData):
         ("Richard Doe", "91827376-7e04-5298-83af-a0cb8372dff3"),
     ],
 )
-def test_CameraData_getPersonId(cameraHomeData, name, expected):
-    assert cameraHomeData.getPersonId(name) == expected
+def test_camera_data_get_person_id(camera_home_data, name, expected):
+    assert camera_home_data.get_person_id(name) == expected
 
 
 @pytest.mark.parametrize(
-    "hid, pid, json_fixture, expected",
+    "home_id, person_id, json_fixture, expected",
     [
         (
             "91763b24c43d3e344f424e8b",
@@ -233,21 +241,21 @@ def test_CameraData_getPersonId(cameraHomeData, name, expected):
         ),
     ],
 )
-def test_CameraData_setPersonsAway(
-    cameraHomeData, requests_mock, hid, pid, json_fixture, expected
+def test_camera_data_set_person_away(
+    camera_home_data, requests_mock, home_id, person_id, json_fixture, expected
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.camera._SETPERSONSAWAY_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    assert cameraHomeData.setPersonsAway(pid, hid)["status"] == expected
+    assert camera_home_data.set_person_away(person_id, home_id)["status"] == expected
 
 
 @pytest.mark.parametrize(
-    "hid, pids, json_fixture, expected",
+    "home_id, person_ids, json_fixture, expected",
     [
         (
             "91763b24c43d3e344f424e8b",
@@ -266,78 +274,68 @@ def test_CameraData_setPersonsAway(
         ),
     ],
 )
-def test_CameraData_setPersonsHome(
-    cameraHomeData, requests_mock, hid, pids, json_fixture, expected
+def test_camera_data_set_persons_home(
+    camera_home_data, requests_mock, home_id, person_ids, json_fixture, expected
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.camera._SETPERSONSHOME_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    assert cameraHomeData.setPersonsHome(pids, hid)["status"] == expected
+    assert camera_home_data.set_persons_home(person_ids, home_id)["status"] == expected
 
 
 @freeze_time("2019-06-16")
 @pytest.mark.parametrize(
-    "home, camera, exclude, expected",
-    [
-        (None, None, None, True),
-        (None, None, 5, False),
-        (None, "InvalidCamera", None, False),
-        ("InvalidHome", None, None, False),
-    ],
+    "camera_id, exclude, expected",
+    [("12:34:56:00:f1:62", None, True), ("12:34:56:00:f1:62", 5, False)],
 )
-def test_CameraData_someoneKnownSeen(cameraHomeData, home, camera, exclude, expected):
-    assert cameraHomeData.someoneKnownSeen(home, camera, exclude) == expected
+def test_camera_data_someone_known_seen(camera_home_data, camera_id, exclude, expected):
+    assert camera_home_data.someone_known_seen(camera_id, exclude) == expected
 
 
 @freeze_time("2019-06-16")
 @pytest.mark.parametrize(
-    "home, camera, exclude, expected",
-    [
-        (None, None, None, False),
-        (None, None, 100, False),
-        (None, INVALID_NAME, None, False),
-        (INVALID_NAME, None, None, False),
-    ],
+    "camera_id, exclude, expected",
+    [("12:34:56:00:f1:62", None, False), ("12:34:56:00:f1:62", 100, False)],
 )
-def test_CameraData_someoneUnknownSeen(cameraHomeData, home, camera, exclude, expected):
-    assert cameraHomeData.someoneUnknownSeen(home, camera, exclude) == expected
+def test_camera_data_someone_unknown_seen(
+    camera_home_data, camera_id, exclude, expected
+):
+    assert camera_home_data.someone_unknown_seen(camera_id, exclude) == expected
 
 
 @freeze_time("2019-06-16")
 @pytest.mark.parametrize(
-    "home, camera, exclude, expected",
+    "camera_id, exclude, expected",
     [
-        (None, None, None, False),
-        (None, None, 140000, True),
-        (None, None, 130000, False),
-        (None, INVALID_NAME, None, False),
-        (INVALID_NAME, None, None, False),
+        ("12:34:56:00:f1:62", None, False),
+        ("12:34:56:00:f1:62", 140000, True),
+        ("12:34:56:00:f1:62", 130000, False),
     ],
 )
-def test_CameraData_motionDetected(cameraHomeData, home, camera, exclude, expected):
-    assert cameraHomeData.motionDetected(home, camera, exclude) == expected
+def test_camera_data_motion_detected(camera_home_data, camera_id, exclude, expected):
+    assert camera_home_data.motion_detected(camera_id, exclude) == expected
 
 
-def test_CameraData_getHomeName(cameraHomeData):
-    assert cameraHomeData.getHomeName() == "MYHOME"
+def test_camera_data_get_home_name(camera_home_data):
+    assert camera_home_data.get_home_name() == "MYHOME"
     home_id = "91763b24c43d3e344f424e8b"
-    assert cameraHomeData.getHomeName(home_id) == "MYHOME"
+    assert camera_home_data.get_home_name(home_id) == "MYHOME"
     home_id = "91763b24c43d3e344f424e8c"
-    assert cameraHomeData.getHomeName(home_id) == "Unknown"
+    assert camera_home_data.get_home_name(home_id) == "Unknown"
     home_id = "InvalidHomeID"
     with pytest.raises(pyatmo.InvalidHome):
-        assert cameraHomeData.getHomeName(home_id) == "Unknown"
+        assert camera_home_data.get_home_name(home_id) == "Unknown"
 
 
-def test_CameraData_gethomeId(cameraHomeData):
-    assert cameraHomeData.gethomeId() == "91763b24c43d3e344f424e8b"
-    assert cameraHomeData.gethomeId("MYHOME") == "91763b24c43d3e344f424e8b"
+def test_camera_data_get_home_id(camera_home_data):
+    assert camera_home_data.get_home_id() == "91763b24c43d3e344f424e8b"
+    assert camera_home_data.get_home_id("MYHOME") == "91763b24c43d3e344f424e8b"
     with pytest.raises(pyatmo.InvalidHome):
-        assert cameraHomeData.gethomeId("InvalidName")
+        assert camera_home_data.get_home_id("InvalidName")
 
 
 @pytest.mark.parametrize(
@@ -349,8 +347,8 @@ def test_CameraData_gethomeId(cameraHomeData):
         (None, None),
     ],
 )
-def test_CameraData_smokedetectorById(cameraHomeData, sid, expected):
-    smokedetector = cameraHomeData.smokedetectorById(sid)
+def test_camera_data_smokedetector_by_id(camera_home_data, sid, expected):
+    smokedetector = camera_home_data.smokedetector_by_id(sid)
     if smokedetector:
         assert smokedetector["name"] == expected
     else:
@@ -373,21 +371,27 @@ def test_CameraData_smokedetectorById(cameraHomeData, sid, expected):
         (None, INVALID_NAME, None, None),
     ],
 )
-def test_CameraData_smokedetectorByName(cameraHomeData, name, home, home_id, expected):
+def test_camera_data_smokedetector_by_name(
+    camera_home_data, name, home, home_id, expected
+):
     if (
         home == INVALID_NAME
         or name == INVALID_NAME
         or (name is None and home is None and home_id is None)
     ):
-        assert cameraHomeData.smokedetectorByName(name, home, home_id) is None
+        assert camera_home_data.smokedetector_by_name(name, home, home_id) is None
     elif home_id is None:
-        assert cameraHomeData.smokedetectorByName(name, home)["id"] == expected
+        assert camera_home_data.smokedetector_by_name(name, home)["id"] == expected
     elif home is None:
         assert (
-            cameraHomeData.smokedetectorByName(name, home_id=home_id)["id"] == expected
+            camera_home_data.smokedetector_by_name(name, home_id=home_id)["id"]
+            == expected
         )
     else:
-        assert cameraHomeData.smokedetectorByName(name, home, home_id)["id"] == expected
+        assert (
+            camera_home_data.smokedetector_by_name(name, home, home_id)["id"]
+            == expected
+        )
 
 
 @pytest.mark.parametrize(
@@ -436,8 +440,8 @@ def test_CameraData_smokedetectorByName(cameraHomeData, name, home, home_id, exp
         ),
     ],
 )
-def test_CameraData_set_state(
-    cameraHomeData,
+def test_camera_data_set_state(
+    camera_home_data,
     requests_mock,
     home_id,
     camera_id,
@@ -454,7 +458,7 @@ def test_CameraData_set_state(
         headers={"content-type": "application/json"},
     )
     assert (
-        cameraHomeData.set_state(
+        camera_home_data.set_state(
             home_id=home_id,
             camera_id=camera_id,
             floodlight=floodlight,

@@ -1,19 +1,20 @@
 """Define tests for Thermostat module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
 
 import pyatmo
 
-from .conftest import does_not_raise
+from tests.conftest import does_not_raise
 
 
-def test_HomeData(homeData):
-    assert homeData.default_home == "MYHOME"
-    assert homeData.default_home_id == "91763b24c43d3e344f424e8b"
-    assert len(homeData.rooms[homeData.default_home_id]) == 4
+def test_home_data(home_data):
+    assert home_data.default_home == "MYHOME"
+    assert home_data.default_home_id == "91763b24c43d3e344f424e8b"
+    assert len(home_data.rooms[home_data.default_home_id]) == 4
 
-    assert len(homeData.modules[homeData.default_home_id]) == 5
+    assert len(home_data.modules[home_data.default_home_id]) == 5
 
     expected = {
         "12:34:56:00:fa:d0": {
@@ -59,18 +60,18 @@ def test_HomeData(homeData):
             "room_id": "3688132631",
         },
     }
-    assert homeData.modules[homeData.default_home_id] == expected
+    assert home_data.modules[home_data.default_home_id] == expected
 
 
-def test_HomeData_no_data(auth, requests_mock):
+def test_home_data_no_data(auth, requests_mock):
     requests_mock.post(pyatmo.thermostat._GETHOMESDATA_REQ, text="None")
     with pytest.raises(pyatmo.NoDevice):
         assert pyatmo.HomeData(auth)
 
 
-def test_HomeData_no_body(auth, requests_mock):
-    with open("fixtures/home_data_empty.json") as f:
-        json_fixture = json.load(f)
+def test_home_data_no_body(auth, requests_mock):
+    with open("fixtures/home_data_empty.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
@@ -80,51 +81,51 @@ def test_HomeData_no_body(auth, requests_mock):
         assert pyatmo.HomeData(auth)
 
 
-def test_HomeData_no_home_name(auth, requests_mock):
-    with open("fixtures/home_data_nohomename.json") as f:
-        json_fixture = json.load(f)
+def test_home_data_no_home_name(auth, requests_mock):
+    with open("fixtures/home_data_nohomename.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    homeData = pyatmo.HomeData(auth)
+    home_data = pyatmo.HomeData(auth)
     home_id = "91763b24c43d3e344f424e8b"
-    assert homeData.homeById(home_id)["name"] == "Unknown"
+    assert home_data.home_by_id(home_id)["name"] == "Unknown"
 
 
-def test_HomeData_homeById(homeData):
+def test_home_data_home_by_id(home_data):
     home_id = "91763b24c43d3e344f424e8b"
-    assert homeData.homeById(home_id)["name"] == "MYHOME"
+    assert home_data.home_by_id(home_id)["name"] == "MYHOME"
     home_id = "91763b24c43d3e344f424e8c"
-    assert homeData.homeById(home_id)["name"] == "Unknown"
+    assert home_data.home_by_id(home_id)["name"] == "Unknown"
 
 
-def test_HomeData_homeByName(homeData):
-    assert homeData.homeByName()["name"] == "MYHOME"
-    assert homeData.homeByName()["id"] == "91763b24c43d3e344f424e8b"
+def test_home_data_home_by_name(home_data):
+    assert home_data.home_by_name()["name"] == "MYHOME"
+    assert home_data.home_by_name()["id"] == "91763b24c43d3e344f424e8b"
 
 
-def test_HomeData_gethomeId(homeData):
-    assert homeData.gethomeId() == "91763b24c43d3e344f424e8b"
-    assert homeData.gethomeId("MYHOME") == "91763b24c43d3e344f424e8b"
+def test_home_data_get_home_id(home_data):
+    assert home_data.get_home_id() == "91763b24c43d3e344f424e8b"
+    assert home_data.get_home_id("MYHOME") == "91763b24c43d3e344f424e8b"
     with pytest.raises(pyatmo.InvalidHome):
-        assert homeData.gethomeId("InvalidName")
+        assert home_data.get_home_id("InvalidName")
 
 
-def test_HomeData_getHomeName(homeData):
-    assert homeData.getHomeName() == "MYHOME"
+def test_home_data_get_home_name(home_data):
+    assert home_data.get_home_name() == "MYHOME"
     home_id = "91763b24c43d3e344f424e8b"
-    assert homeData.getHomeName(home_id) == "MYHOME"
+    assert home_data.get_home_name(home_id) == "MYHOME"
     home_id = "91763b24c43d3e344f424e8c"
-    assert homeData.getHomeName(home_id) == "Unknown"
+    assert home_data.get_home_name(home_id) == "Unknown"
 
 
-def test_HomeData_getSelectedschedule(homeData):
-    assert homeData.getSelectedschedule()["name"] == "Default"
-    assert homeData.getSelectedschedule("MYHOME")["name"] == "Default"
+def test_home_data_get_selected_schedule(home_data):
+    assert home_data.get_selected_schedule()["name"] == "Default"
+    assert home_data.get_selected_schedule("MYHOME")["name"] == "Default"
     with pytest.raises(pyatmo.InvalidHome):
-        assert homeData.getSelectedschedule("Unknown")
+        assert home_data.get_selected_schedule("Unknown")
 
 
 @pytest.mark.parametrize(
@@ -137,25 +138,25 @@ def test_HomeData_getSelectedschedule(homeData):
         (None, "123456789abcdefg12345678", None, pytest.raises(pyatmo.NoSchedule)),
     ],
 )
-def test_HomeData_switchHomeSchedule(
-    homeData, requests_mock, t_home, t_sched_id, t_sched, expected
+def test_home_data_switch_home_schedule(
+    home_data, requests_mock, t_home, t_sched_id, t_sched, expected
 ):
-    with open("fixtures/status_ok.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/status_ok.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SWITCHHOMESCHEDULE_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with expected:
-        homeData.switchHomeSchedule(
+        home_data.switch_home_schedule(
             schedule_id=t_sched_id, schedule=t_sched, home=t_home
         )
 
 
-def test_HomeStatus(homeStatus):
-    assert len(homeStatus.rooms) == 3
-    assert homeStatus.default_room["id"] == "2746182631"
+def test_home_status(home_status):
+    assert len(home_status.rooms) == 3
+    assert home_status.default_room["id"] == "2746182631"
 
     expexted = {
         "id": "2746182631",
@@ -166,27 +167,27 @@ def test_HomeStatus(homeStatus):
         "therm_setpoint_start_time": 1559229567,
         "therm_setpoint_end_time": 0,
     }
-    assert homeStatus.default_room == expexted
+    assert home_status.default_room == expexted
 
 
-def test_HomeStatus_error_and_data(auth, requests_mock):
-    with open("fixtures/home_status_error_and_data.json") as f:
-        json_fixture = json.load(f)
+def test_home_status_error_and_data(auth, requests_mock):
+    with open("fixtures/home_status_error_and_data.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESTATUS_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with open("fixtures/home_data_simple.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/home_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    homeStatus = pyatmo.HomeStatus(auth)
-    assert len(homeStatus.rooms) == 3
-    assert homeStatus.default_room["id"] == "2746182631"
+    home_status = pyatmo.HomeStatus(auth)
+    assert len(home_status.rooms) == 3
+    assert home_status.default_room["id"] == "2746182631"
 
     expexted = {
         "id": "2746182631",
@@ -197,19 +198,19 @@ def test_HomeStatus_error_and_data(auth, requests_mock):
         "therm_setpoint_start_time": 1559229567,
         "therm_setpoint_end_time": 0,
     }
-    assert homeStatus.default_room == expexted
+    assert home_status.default_room == expexted
 
 
-def test_HomeStatus_error(auth, requests_mock):
-    with open("fixtures/home_status_empty.json") as f:
-        json_fixture = json.load(f)
+def test_home_status_error(auth, requests_mock):
+    with open("fixtures/home_status_empty.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESTATUS_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with open("fixtures/home_data_simple.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/home_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
@@ -219,7 +220,7 @@ def test_HomeStatus_error(auth, requests_mock):
         assert pyatmo.HomeStatus(auth)
 
 
-def test_HomeStatus_roomById(homeStatus):
+def test_home_status_room_by_id(home_status):
     expexted = {
         "id": "2746182631",
         "reachable": True,
@@ -229,12 +230,12 @@ def test_HomeStatus_roomById(homeStatus):
         "therm_setpoint_start_time": 1559229567,
         "therm_setpoint_end_time": 0,
     }
-    assert homeStatus.roomById("2746182631") == expexted
+    assert home_status.room_by_id("2746182631") == expexted
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.roomById("0000000000")
+        assert home_status.room_by_id("0000000000")
 
 
-def test_HomeStatus_thermostatById(homeStatus):
+def test_home_status_thermostat_by_id(home_status):
     expexted = {
         "id": "12:34:56:00:01:ae",
         "reachable": True,
@@ -248,12 +249,12 @@ def test_HomeStatus_thermostatById(homeStatus):
         "bridge": "12:34:56:00:fa:d0",
         "battery_state": "high",
     }
-    assert homeStatus.thermostatById("12:34:56:00:01:ae") == expexted
+    assert home_status.thermostat_by_id("12:34:56:00:01:ae") == expexted
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.thermostatById("00:00:00:00:00:00")
+        assert home_status.thermostat_by_id("00:00:00:00:00:00")
 
 
-def test_HomeStatus_relayById(homeStatus):
+def test_home_status_relay_by_id(home_status):
     expexted = {
         "id": "12:34:56:00:fa:d0",
         "type": "NAPlug",
@@ -261,12 +262,12 @@ def test_HomeStatus_relayById(homeStatus):
         "rf_strength": 107,
         "wifi_strength": 42,
     }
-    assert homeStatus.relayById("12:34:56:00:fa:d0") == expexted
+    assert home_status.relay_by_id("12:34:56:00:fa:d0") == expexted
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.relayById("00:00:00:00:00:00")
+        assert home_status.relay_by_id("00:00:00:00:00:00")
 
 
-def test_HomeStatus_valveById(homeStatus):
+def test_home_status_valve_by_id(home_status):
     expexted = {
         "id": "12:34:56:03:a5:54",
         "reachable": True,
@@ -277,58 +278,58 @@ def test_HomeStatus_valveById(homeStatus):
         "bridge": "12:34:56:00:fa:d0",
         "battery_state": "full",
     }
-    assert homeStatus.valveById("12:34:56:03:a5:54") == expexted
+    assert home_status.valve_by_id("12:34:56:03:a5:54") == expexted
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.valveById("00:00:00:00:00:00")
+        assert home_status.valve_by_id("00:00:00:00:00:00")
 
 
-def test_HomeStatus_setPoint(homeStatus):
-    assert homeStatus.setPoint() == 12
-    assert homeStatus.setPoint("2746182631") == 12
+def test_home_status_set_point(home_status):
+    assert home_status.set_point() == 12
+    assert home_status.set_point("2746182631") == 12
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.setPoint("0000000000")
+        assert home_status.set_point("0000000000")
 
 
-def test_HomeStatus_setPointmode(homeStatus):
-    assert homeStatus.setPointmode() == "away"
-    assert homeStatus.setPointmode("2746182631") == "away"
-    assert homeStatus.setPointmode("0000000000") is None
+def test_home_status_set_point_mode(home_status):
+    assert home_status.set_point_mode() == "away"
+    assert home_status.set_point_mode("2746182631") == "away"
+    assert home_status.set_point_mode("0000000000") is None
 
 
-def test_HomeStatus_getAwaytemp(homeStatus):
-    assert homeStatus.getAwaytemp() == 14
-    assert homeStatus.getAwaytemp("MYHOME") == 14
-    assert homeStatus.getAwaytemp("InvalidName") is None
-    assert homeStatus.getAwaytemp(home_id="91763b24c43d3e344f424e8b") == 14
-    assert homeStatus.getAwaytemp(home_id="00000000000000000000000") is None
+def test_home_status_get_away_temp(home_status):
+    assert home_status.get_away_temp() == 14
+    assert home_status.get_away_temp("MYHOME") == 14
+    assert home_status.get_away_temp("InvalidName") is None
+    assert home_status.get_away_temp(home_id="91763b24c43d3e344f424e8b") == 14
+    assert home_status.get_away_temp(home_id="00000000000000000000000") is None
 
 
-def test_HomeStatus_getHgtemp(homeStatus):
-    assert homeStatus.getHgtemp() == 7
-    assert homeStatus.getHgtemp("MYHOME") == 7
+def test_home_status_get_hg_temp(home_status):
+    assert home_status.get_hg_temp() == 7
+    assert home_status.get_hg_temp("MYHOME") == 7
     with pytest.raises(pyatmo.InvalidHome):
-        assert homeStatus.getHgtemp("InvalidHome")
-    assert homeStatus.getHgtemp(home_id="91763b24c43d3e344f424e8b") == 7
-    assert homeStatus.getHgtemp(home_id="00000000000000000000000") is None
+        assert home_status.get_hg_temp("InvalidHome")
+    assert home_status.get_hg_temp(home_id="91763b24c43d3e344f424e8b") == 7
+    assert home_status.get_hg_temp(home_id="00000000000000000000000") is None
 
 
-def test_HomeStatus_measuredTemperature(homeStatus):
-    assert homeStatus.measuredTemperature() == 19.8
-    assert homeStatus.measuredTemperature("2746182631") == 19.8
+def test_home_status_measured_temperature(home_status):
+    assert home_status.measured_temperature() == 19.8
+    assert home_status.measured_temperature("2746182631") == 19.8
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.measuredTemperature("0000000000")
+        assert home_status.measured_temperature("0000000000")
 
 
-def test_HomeStatus_boilerStatus(homeStatus):
-    assert homeStatus.boilerStatus() is False
+def test_home_status_boiler_status(home_status):
+    assert home_status.boiler_status() is False
 
 
-def test_HomeStatus_thermostatType(homeStatus):
-    assert homeStatus.thermostatType("MYHOME", "2746182631") == "NATherm1"
-    assert homeStatus.thermostatType("MYHOME", "2833524037") == "NRV"
+def test_home_status_thermostat_type(home_status):
+    assert home_status.thermostat_type("MYHOME", "2746182631") == "NATherm1"
+    assert home_status.thermostat_type("MYHOME", "2833524037") == "NRV"
     with pytest.raises(pyatmo.InvalidHome):
-        assert homeStatus.thermostatType("InvalidHome", "2833524037")
-    assert homeStatus.thermostatType("MYHOME", "0000000000") is None
+        assert home_status.thermostat_type("InvalidHome", "2833524037")
+    assert home_status.thermostat_type("MYHOME", "0000000000") is None
 
 
 @pytest.mark.parametrize(
@@ -394,8 +395,8 @@ def test_HomeStatus_thermostatType(homeStatus):
         ),
     ],
 )
-def test_HomeData_setThermmode(
-    homeStatus,
+def test_home_data_set_therm_mode(
+    home_status,
     requests_mock,
     caplog,
     home_id,
@@ -405,14 +406,14 @@ def test_HomeData_setThermmode(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SETTHERMMODE_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    res = homeStatus.setThermmode(
+    res = home_status.set_therm_mode(
         home_id=home_id, mode=mode, end_time=end_time, schedule_id=schedule_id
     )
     if "error" in res:
@@ -462,8 +463,8 @@ def test_HomeData_setThermmode(
         ),
     ],
 )
-def test_HomeData_setroomThermpoint(
-    homeStatus,
+def test_home_data_set_room_therm_point(
+    home_status,
     requests_mock,
     caplog,
     home_id,
@@ -474,15 +475,15 @@ def test_HomeData_setroomThermpoint(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     assert (
-        homeStatus.setroomThermpoint(
+        home_status.set_room_therm_point(
             home_id=home_id, room_id=room_id, mode=mode, temp=temp, end_time=end_time
         )["status"]
         == expected
@@ -526,42 +527,34 @@ def test_HomeData_setroomThermpoint(
         ),
     ],
 )
-def test_HomeData_setroomThermpoint_error(
-    homeStatus,
-    requests_mock,
-    caplog,
-    home_id,
-    room_id,
-    mode,
-    temp,
-    json_fixture,
-    expected,
+def test_home_data_set_room_therm_point_error(
+    home_status, requests_mock, home_id, room_id, mode, temp, json_fixture, expected
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     assert (
-        homeStatus.setroomThermpoint(
+        home_status.set_room_therm_point(
             home_id=home_id, room_id=room_id, mode=mode, temp=temp
         )["error"]["message"]
         == expected
     )
 
 
-def test_HomeStatus_error_disconnected(auth, requests_mock):
-    with open("fixtures/home_status_error_disconnected.json") as f:
-        json_fixture = json.load(f)
+def test_home_status_error_disconnected(auth, requests_mock):
+    with open("fixtures/home_status_error_disconnected.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESTATUS_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with open("fixtures/home_data_simple.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/home_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,

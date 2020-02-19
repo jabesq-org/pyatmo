@@ -5,7 +5,7 @@ from datetime import datetime
 
 LOG = logging.getLogger(__name__)
 
-_BASE_URL = "https://api.netatmo.com/"
+BASE_URL = "https://api.netatmo.com/"
 
 ERRORS = {
     400: "Bad request",
@@ -19,15 +19,15 @@ ERRORS = {
 }
 
 
-def toTimeString(value):
+def to_time_string(value: str) -> str:
     return datetime.utcfromtimestamp(int(value)).isoformat(sep="_")
 
 
-def toEpoch(value):
+def to_epoch(value: str) -> int:
     return timegm(time.strptime(value + "GMT", "%Y-%m-%d_%H:%M:%S%Z"))
 
 
-def todayStamps():
+def today_stamps():
     today = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
 

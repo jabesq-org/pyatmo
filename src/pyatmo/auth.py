@@ -7,16 +7,16 @@ import requests
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
-from .exceptions import ApiError
-from .helpers import _BASE_URL, ERRORS
+from pyatmo.exceptions import ApiError
+from pyatmo.helpers import BASE_URL, ERRORS
 
 LOG = logging.getLogger(__name__)
 
 # Common definitions
-_AUTH_REQ = _BASE_URL + "oauth2/token"
-_AUTH_URL = _BASE_URL + "oauth2/authorize"
-_WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
-_WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
+AUTH_REQ = BASE_URL + "oauth2/token"
+AUTH_URL = BASE_URL + "oauth2/authorize"
+WEBHOOK_URL_ADD = BASE_URL + "api/addwebhook"
+WEBHOOK_URL_DROP = BASE_URL + "api/dropwebhook"
 
 
 # Possible scops
@@ -35,7 +35,7 @@ ALL_SCOPES = [
 ]
 
 
-class NetatmOAuth2:
+class NetatmoOAuth2:
     """
     Handle authentication with OAuth2
 
@@ -60,8 +60,8 @@ class NetatmOAuth2:
 
     def __init__(
         self,
-        client_id: str = None,
-        client_secret: str = None,
+        client_id: str,
+        client_secret: str,
         redirect_uri: Optional[str] = None,
         token: Optional[Dict[str, str]] = None,
         token_updater: Optional[Callable[[str], None]] = None,
@@ -76,10 +76,7 @@ class NetatmOAuth2:
         else:
             self.scope = " ".join(ALL_SCOPES) if not scope else scope
 
-        self.extra = {
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-        }
+        self.extra = {"client_id": self.client_id, "client_secret": self.client_secret}
 
         self._oauth = OAuth2Session(
             client_id=self.client_id,
@@ -91,7 +88,7 @@ class NetatmOAuth2:
 
     def refresh_tokens(self) -> Dict[str, Union[str, int]]:
         """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(_AUTH_REQ, **self.extra)
+        token = self._oauth.refresh_token(AUTH_REQ, **self.extra)
 
         if self.token_updater is not None:
             self.token_updater(token)
@@ -102,6 +99,7 @@ class NetatmOAuth2:
         self, url: str, params: Optional[Dict[str, str]] = None, timeout: int = 5
     ):
         """Wrapper for post requests."""
+        resp = None
         if not params:
             params = {}
 
@@ -175,10 +173,11 @@ class NetatmOAuth2:
             )
         except (TypeError, AttributeError):
             LOG.debug("Invalid response %s", resp)
+
         return None
 
     def get_authorization_url(self, state: Optional[str] = None) -> Tuple[str, str]:
-        return self._oauth.authorization_url(_AUTH_URL, state)
+        return self._oauth.authorization_url(AUTH_URL, state)
 
     def request_token(
         self, authorization_response: Optional[str] = None, code: Optional[str] = None
@@ -191,25 +190,25 @@ class NetatmOAuth2:
         :return: A token dict
         """
         return self._oauth.fetch_token(
-            _AUTH_REQ,
+            AUTH_REQ,
             authorization_response=authorization_response,
             code=code,
             client_secret=self.client_secret,
             include_client_id=True,
         )
 
-    def addwebhook(self, webhook_url):
-        postParams = {"url": webhook_url}
-        resp = self.post_request(_WEBHOOK_URL_ADD, postParams)
+    def addwebhook(self, webhook_url: str) -> None:
+        post_params = {"url": webhook_url}
+        resp = self.post_request(WEBHOOK_URL_ADD, post_params)
         LOG.debug("addwebhook: %s", resp)
 
-    def dropwebhook(self):
-        postParams = {"app_types": "app_security"}
-        resp = self.post_request(_WEBHOOK_URL_DROP, postParams)
+    def dropwebhook(self) -> None:
+        post_params = {"app_types": "app_security"}
+        resp = self.post_request(WEBHOOK_URL_DROP, post_params)
         LOG.debug("dropwebhook: %s", resp)
 
 
-class ClientAuth(NetatmOAuth2):
+class ClientAuth(NetatmoOAuth2):
     """
     Request authentication and keep access token available through token method. Renew it automatically if necessary
     Args:
@@ -232,17 +231,23 @@ class ClientAuth(NetatmOAuth2):
     """
 
     def __init__(
-        self, clientId, clientSecret, username, password, scope="read_station"
+        self,
+        client_id: str,
+        client_secret: str,
+        username: str,
+        password: str,
+        scope="read_station",
     ):
-        self._clientId = clientId
-        self._clientSecret = clientSecret
+        # pylint: disable=super-init-not-called
+        self._client_id = client_id
+        self._client_secret = client_secret
 
-        self._oauth = OAuth2Session(client=LegacyApplicationClient(client_id=clientId))
+        self._oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
         self._oauth.fetch_token(
-            token_url=_AUTH_REQ,
+            token_url=AUTH_REQ,
             username=username,
             password=password,
-            client_id=clientId,
-            client_secret=clientSecret,
+            client_id=client_id,
+            client_secret=client_secret,
             scope=scope,
         )

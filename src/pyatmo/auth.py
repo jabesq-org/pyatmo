@@ -104,7 +104,7 @@ class NetatmoOAuth2:
             params = {}
 
         if "json" in params:
-            json_params = params.pop("json")
+            json_params: Optional[str] = params.pop("json")
         else:
             json_params = None
 
@@ -147,7 +147,9 @@ class NetatmoOAuth2:
 
         if resp is None:
             LOG.debug("Resp is None - %s", resp)
-        elif not resp.ok:
+            return None
+
+        if not resp.ok:
             LOG.debug("The Netatmo API returned %s", resp.status_code)
             LOG.debug("Netato API error: %s", resp.content)
             try:
@@ -168,7 +170,7 @@ class NetatmoOAuth2:
         try:
             return (
                 resp.json()
-                if "application/json" in resp.headers.get("content-type")
+                if "application/json" in resp.headers.get("content-type", "")
                 else resp.content
             )
         except (TypeError, AttributeError):

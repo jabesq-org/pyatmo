@@ -702,7 +702,11 @@ class CameraData:
             Boolean -- Success of the request
         """
         if home_id is None:
-            home_id = self.get_camera(camera_id)["home"]
+            _camera_data = self.get_camera(camera_id)
+            if _camera_data is None:
+                raise ValueError(f"Fails to retrieve camera data for id {camera_id}")
+
+            home_id = _camera_data["home"]
 
         module = {"id": camera_id}
 

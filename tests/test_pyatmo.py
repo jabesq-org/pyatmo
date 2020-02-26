@@ -3,7 +3,6 @@ import json
 import time
 
 import pytest
-import requests
 import oauthlib
 
 import pyatmo
@@ -67,13 +66,6 @@ def test_postRequest_fail(auth, requests_mock, test_input, expected):
     else:
         with pytest.raises(pyatmo.ApiError):
             resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
-
-
-def test_postRequest_timeout(auth, requests_mock):
-    """Test failing requests against the Netatmo API with timeouts."""
-    requests_mock.post(pyatmo.helpers._BASE_URL, exc=requests.exceptions.ConnectTimeout)
-    with pytest.raises(requests.exceptions.ConnectTimeout):
-        assert auth.post_request(pyatmo.helpers._BASE_URL, None)
 
 
 @pytest.mark.parametrize(

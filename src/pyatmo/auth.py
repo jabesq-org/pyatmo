@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from typing import Callable, Dict, Optional, Tuple, Union
 
 import requests
@@ -68,7 +69,10 @@ class NetatmOAuth2:
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.token_updater = token_updater
-        self.scope = " ".join(ALL_SCOPES) if not scope else scope
+        if token:
+            self.scope = " ".join(token["scope"])
+        else:
+            self.scope = " ".join(ALL_SCOPES) if not scope else scope
 
         self.extra = {
             "client_id": self.client_id,
@@ -93,7 +97,7 @@ class NetatmOAuth2:
         return token
 
     def post_request(
-        self, url: str, params: Optional[Dict[str, str]] = None, timeout: int = 30
+        self, url: str, params: Optional[Dict[str, str]] = None, timeout: int = 5
     ):
         """Wrapper for post requests."""
         if not params:
@@ -112,16 +116,22 @@ class NetatmOAuth2:
                     return
                 try:
                     return self._oauth.post(url=url, data=params, timeout=timeout)
-                except TokenExpiredError:
+                except (
+                    TokenExpiredError,
+                    requests.exceptions.ReadTimeout,
+                    requests.exceptions.ConnectionError,
+                ):
                     self._oauth.token = self.refresh_tokens()
+                    # Sleep for 1 sec to prevent authentication related
+                    # timeouts after a token refresh.
+                    sleep(1)
                     return query(url, params, timeout, retries - 1)
 
             resp = query(url, params, timeout, 3)
 
-        if not resp:
-            raise ApiError(f"Error when accessing '{url}'")
-
-        if not resp.ok:
+        if resp is None:
+            LOG.debug("Resp is None - %s", resp)
+        elif not resp.ok:
             LOG.debug("The Netatmo API returned %s", resp.status_code)
             LOG.debug("Netato API error: %s", resp.content)
             if resp.status_code == 404:

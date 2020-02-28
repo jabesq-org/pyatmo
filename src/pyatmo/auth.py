@@ -26,6 +26,7 @@ ALL_SCOPES = [
     "write_camera",
     "read_presence",
     "access_presence",
+    "write_presence",
     "read_homecoach",
     "read_smokedetector",
     "read_thermostat",

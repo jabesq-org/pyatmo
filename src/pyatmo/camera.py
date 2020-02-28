@@ -840,5 +840,4 @@ class CameraData:
             return False
 
         LOG.debug("%s", resp)
-        print(resp)
         return True

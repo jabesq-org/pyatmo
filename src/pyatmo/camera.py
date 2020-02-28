@@ -814,8 +814,14 @@ class CameraData:
             return False
         elif floodlight:
             param, val = "floodlight", floodlight.lower()
+            if val not in ["on", "auto"]:
+                LOG.error("Invalid value für floodlight")
+                return False
         elif monitoring:
             param, val = "monitoring", monitoring.lower()
+            if val not in ["on", "off"]:
+                LOG.error("Invalid value für monitoring")
+                return False
 
         postParams = {
             "json": {
@@ -826,7 +832,7 @@ class CameraData:
         try:
             resp = self.authData.post_request(url=_SETSTATE_REQ, params=postParams)
         except ApiError as err_msg:
-            LOG.error(err_msg)
+            LOG.error("%s", err_msg)
             return False
 
         if "error" in resp:

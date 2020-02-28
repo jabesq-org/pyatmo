@@ -791,17 +791,31 @@ class CameraData:
             return True
         return False
 
-    def set_state(self, home_id: str, camera_id: str, state: Tuple[str, str]) -> bool:
+    def set_state(
+        self,
+        home_id: str,
+        camera_id: str,
+        floodlight: str = None,
+        monitoring: str = None,
+    ) -> bool:
         """Turn camera on/off.
 
         Arguments:
             home_id {str} -- ID of a home
             camera_id {str} -- ID of a camera
+            floodlight {str} -- Mode for floodlight (on/auto)
+            monitoring {str} -- Mode for monitoring (on/off)
 
         Returns:
             Boolean -- Success of the request
         """
-        param, val = state
+        if floodlight and monitoring:
+            LOG.error("You can only set on of either states")
+            return False
+        elif floodlight:
+            param, val = "floodlight", floodlight.lower()
+        elif monitoring:
+            param, val = "monitoring", monitoring.lower()
 
         postParams = {
             "json": {
@@ -809,7 +823,11 @@ class CameraData:
             },
         }
 
-        resp = self.authData.post_request(url=_SETSTATE_REQ, params=postParams)
+        try:
+            resp = self.authData.post_request(url=_SETSTATE_REQ, params=postParams)
+        except ApiError as err_msg:
+            LOG.error(err_msg)
+            return False
 
         if "error" in resp:
             LOG.debug("%s", resp)

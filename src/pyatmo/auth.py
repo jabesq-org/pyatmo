@@ -103,6 +103,11 @@ class NetatmOAuth2:
         if not params:
             params = {}
 
+        if "json" in params:
+            json_params = params.pop("json")
+        else:
+            json_params = None
+
         if "http://" in url:
             try:
                 resp = requests.post(url, data=params, timeout=timeout)
@@ -115,7 +120,14 @@ class NetatmOAuth2:
                     LOG.error("Too many retries")
                     return
                 try:
-                    return self._oauth.post(url=url, data=params, timeout=timeout)
+                    if json_params:
+                        rsp = self._oauth.post(
+                            url=url, json=json_params, timeout=timeout
+                        )
+                    else:
+                        rsp = self._oauth.post(url=url, data=params, timeout=timeout)
+
+                    return rsp
                 except (
                     TokenExpiredError,
                     requests.exceptions.ReadTimeout,

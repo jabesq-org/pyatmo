@@ -790,3 +790,30 @@ class CameraData:
         ):
             return True
         return False
+
+    def set_state(self, home_id: str, camera_id: str, state: Tuple[str, str]) -> bool:
+        """Turn camera on/off.
+
+        Arguments:
+            home_id {str} -- ID of a home
+            camera_id {str} -- ID of a camera
+
+        Returns:
+            Boolean -- Success of the request
+        """
+        param, val = state
+
+        postParams = {
+            "json": {
+                "home": {"id": home_id, "modules": [{"id": camera_id, param: val}]}
+            },
+        }
+
+        resp = self.authData.post_request(url=_SETSTATE_REQ, params=postParams)
+
+        if "error" in resp:
+            LOG.debug("%s", resp)
+            return False
+
+        LOG.debug("%s", resp)
+        return True

@@ -809,24 +809,24 @@ class CameraData:
         Returns:
             Boolean -- Success of the request
         """
-        if floodlight and monitoring:
-            LOG.error("You can only set on of either states")
-            return False
-        elif floodlight:
+        module = {"id": camera_id}
+
+        if floodlight:
             param, val = "floodlight", floodlight.lower()
             if val not in ["on", "auto"]:
                 LOG.error("Invalid value für floodlight")
-                return False
-        elif monitoring:
+            else:
+                module[param] = val
+
+        if monitoring:
             param, val = "monitoring", monitoring.lower()
             if val not in ["on", "off"]:
                 LOG.error("Invalid value für monitoring")
-                return False
+            else:
+                module[param] = val
 
         postParams = {
-            "json": {
-                "home": {"id": home_id, "modules": [{"id": camera_id, param: val}]}
-            },
+            "json": {"home": {"id": home_id, "modules": [module]}},
         }
 
         try:
@@ -840,4 +840,5 @@ class CameraData:
             return False
 
         LOG.debug("%s", resp)
+        print(resp)
         return True

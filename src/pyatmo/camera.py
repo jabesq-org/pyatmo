@@ -81,6 +81,7 @@ class CameraData:
                         self.events[e["camera_id"]][e["time"]] = e
             for c in item["cameras"]:
                 self.cameras[homeId][c["id"]] = c
+                self.cameras[homeId][c["id"]]["home"] = homeId
                 if c["type"] == "NACamera" and "modules" in c:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
@@ -793,22 +794,25 @@ class CameraData:
 
     def set_state(
         self,
-        home_id: str,
         camera_id: str,
+        home_id: str = None,
         floodlight: str = None,
         monitoring: str = None,
     ) -> bool:
-        """Turn camera on/off.
+        """Turn camera (light) on/off.
 
         Arguments:
-            home_id {str} -- ID of a home
             camera_id {str} -- ID of a camera
+            home_id {str} -- ID of a home
             floodlight {str} -- Mode for floodlight (on/auto)
             monitoring {str} -- Mode for monitoring (on/off)
 
         Returns:
             Boolean -- Success of the request
         """
+        if home_id is None:
+            home_id = self.get_camera(camera_id)["home"]
+
         module = {"id": camera_id}
 
         if floodlight:

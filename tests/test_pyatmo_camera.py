@@ -409,6 +409,7 @@ def test_CameraData_smokedetectorByName(cameraHomeData, name, home, home_id, exp
             "camera_set_state_ok.json",
             True,
         ),
+        (None, "12:34:56:00:f1:62", None, "on", "camera_set_state_ok.json", True,),
         (
             "91763b24c43d3e344f424e8b",
             "12:34:56:00:f1:62",

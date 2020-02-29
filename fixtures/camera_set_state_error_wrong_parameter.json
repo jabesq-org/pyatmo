@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": 21,
+        "message": "cannot set property floodlight for module 70:ee:50:1f:f1:62"
+    }
+}

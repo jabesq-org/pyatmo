@@ -393,13 +393,28 @@ def test_CameraData_smokedetectorByName(cameraHomeData, name, home, home_id, exp
 @pytest.mark.parametrize(
     "home_id, camera_id, floodlight, monitoring, json_fixture, expected",
     [
-        (None, None, None, None, "camera_set_state_error.json", False),
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:ff",
+            "on",
+            None,
+            "camera_set_state_error.json",
+            False,
+        ),
         (
             "91763b24c43d3e344f424e8b",
             "12:34:56:00:f1:62",
             None,
             "on",
             "camera_set_state_ok.json",
+            True,
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:62",
+            None,
+            "on",
+            "camera_set_state_error_already_on.json",
             True,
         ),
     ],

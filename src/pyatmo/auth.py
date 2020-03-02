@@ -90,7 +90,7 @@ class NetatmOAuth2:
 
     def refresh_tokens(self) -> Dict[str, Union[str, int]]:
         """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(_AUTH_REQ)
+        token = self._oauth.refresh_token(_AUTH_REQ, **self.extra)
 
         if self.token_updater is not None:
             self.token_updater(token)

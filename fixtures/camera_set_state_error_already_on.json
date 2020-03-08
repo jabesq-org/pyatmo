@@ -1,0 +1,17 @@
+{
+    "status": "ok",
+    "time_server": 1582932399,
+    "body": {
+        "home": {
+            "id": "91763b24c43d3e344f424e8b"
+        },
+        "errors": [
+            {
+                "code": 23,
+                "message": "Already on",
+                "id": "12:34:56:00:f1:62",
+                "command": "command/changestatus"
+            }
+        ]
+    }
+}

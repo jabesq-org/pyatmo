@@ -332,21 +332,78 @@ def test_HomeStatus_thermostatType(homeStatus):
 
 
 @pytest.mark.parametrize(
-    "home_id, mode, json_fixture, expected",
+    "home_id, mode, end_time, schedule_id, json_fixture, expected",
     [
-        (None, None, "home_status_error_mode_is_missing.json", "mode is missing"),
         (
-            "91763b24c43d3e344f424e8b",
+            None,
+            None,
+            None,
             None,
             "home_status_error_mode_is_missing.json",
             "mode is missing",
         ),
-        ("invalidID", "away", "home_status_error_invalid_id.json", "Invalid id"),
-        ("91763b24c43d3e344f424e8b", "away", "status_ok.json", "ok"),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            None,
+            None,
+            "home_status_error_mode_is_missing.json",
+            "mode is missing",
+        ),
+        (
+            "invalidID",
+            "away",
+            None,
+            None,
+            "home_status_error_invalid_id.json",
+            "Invalid id",
+        ),
+        ("91763b24c43d3e344f424e8b", "away", None, None, "status_ok.json", "ok"),
+        ("91763b24c43d3e344f424e8b", "away", 1559162650, None, "status_ok.json", "ok"),
+        (
+            "91763b24c43d3e344f424e8b",
+            "away",
+            1559162650,
+            0000000,
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "schedule",
+            None,
+            "591b54a2764ff4d50d8b5795",
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "schedule",
+            1559162650,
+            "591b54a2764ff4d50d8b5795",
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "schedule",
+            None,
+            "blahblahblah",
+            "home_status_error_invalid_schedule_id.json",
+            "schedule <blahblahblah> is not therm schedule",
+        ),
     ],
 )
 def test_HomeData_setThermmode(
-    homeStatus, requests_mock, caplog, home_id, mode, json_fixture, expected
+    homeStatus,
+    requests_mock,
+    caplog,
+    home_id,
+    mode,
+    end_time,
+    schedule_id,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as f:
         json_fixture = json.load(f)
@@ -355,7 +412,9 @@ def test_HomeData_setThermmode(
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    res = homeStatus.setThermmode(home_id=home_id, mode=mode)
+    res = homeStatus.setThermmode(
+        home_id=home_id, mode=mode, end_time=end_time, schedule_id=schedule_id
+    )
     if "error" in res:
         assert expected in res["error"]["message"]
     else:
@@ -363,14 +422,41 @@ def test_HomeData_setThermmode(
 
 
 @pytest.mark.parametrize(
-    "home_id, room_id, mode, temp, json_fixture, expected",
+    "home_id, room_id, mode, temp, end_time, json_fixture, expected",
     [
-        ("91763b24c43d3e344f424e8b", "2746182631", "home", 14, "status_ok.json", "ok"),
+        (
+            "91763b24c43d3e344f424e8b",
+            "2746182631",
+            "home",
+            14,
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "2746182631",
+            "home",
+            14,
+            1559162650,
+            "status_ok.json",
+            "ok",
+        ),
         (
             "91763b24c43d3e344f424e8b",
             "2746182631",
             "home",
             None,
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "2746182631",
+            "home",
+            None,
+            1559162650,
             "status_ok.json",
             "ok",
         ),
@@ -384,6 +470,7 @@ def test_HomeData_setroomThermpoint(
     room_id,
     mode,
     temp,
+    end_time,
     json_fixture,
     expected,
 ):
@@ -396,7 +483,7 @@ def test_HomeData_setroomThermpoint(
     )
     assert (
         homeStatus.setroomThermpoint(
-            home_id=home_id, room_id=room_id, mode=mode, temp=temp
+            home_id=home_id, room_id=room_id, mode=mode, temp=temp, end_time=end_time
         )["status"]
         == expected
     )

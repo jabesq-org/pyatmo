@@ -341,19 +341,27 @@ class HomeStatus:
                     if module_id in self.valves:
                         return "NRV"
 
-    def setThermmode(self, home_id, mode):
+    def setThermmode(self, home_id, mode, end_time=None, schedule_id=None):
         postParams = {
             "home_id": home_id,
             "mode": mode,
         }
+        if end_time is not None and mode in ("hg", "away"):
+            postParams["endtime"] = end_time
+        if schedule_id is not None and mode == "schedule":
+            postParams["schedule_id"] = schedule_id
         return self.authData.post_request(url=_SETTHERMMODE_REQ, params=postParams)
 
-    def setroomThermpoint(self, home_id, room_id, mode, temp=None):
+    def setroomThermpoint(self, home_id, room_id, mode, temp=None, end_time=None):
         postParams = {
             "home_id": home_id,
             "room_id": room_id,
             "mode": mode,
         }
+        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             postParams["temp"] = temp
+        if end_time is not None:
+            postParams["endtime"] = end_time
         return self.authData.post_request(url=_SETROOMTHERMPOINT_REQ, params=postParams)

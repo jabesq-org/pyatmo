@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from typing import Callable, Dict, Optional, Tuple, Union
 
 import requests
@@ -25,6 +26,7 @@ ALL_SCOPES = [
     "write_camera",
     "read_presence",
     "access_presence",
+    "write_presence",
     "read_homecoach",
     "read_smokedetector",
     "read_thermostat",
@@ -68,7 +70,10 @@ class NetatmOAuth2:
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.token_updater = token_updater
-        self.scope = " ".join(ALL_SCOPES) if not scope else scope
+        if token:
+            self.scope = " ".join(token["scope"])
+        else:
+            self.scope = " ".join(ALL_SCOPES) if not scope else scope
 
         self.extra = {
             "client_id": self.client_id,
@@ -85,7 +90,7 @@ class NetatmOAuth2:
 
     def refresh_tokens(self) -> Dict[str, Union[str, int]]:
         """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(_AUTH_REQ)
+        token = self._oauth.refresh_token(_AUTH_REQ, **self.extra)
 
         if self.token_updater is not None:
             self.token_updater(token)
@@ -93,11 +98,16 @@ class NetatmOAuth2:
         return token
 
     def post_request(
-        self, url: str, params: Optional[Dict[str, str]] = None, timeout: int = 30
+        self, url: str, params: Optional[Dict[str, str]] = None, timeout: int = 5
     ):
         """Wrapper for post requests."""
         if not params:
             params = {}
+
+        if "json" in params:
+            json_params = params.pop("json")
+        else:
+            json_params = None
 
         if "http://" in url:
             try:
@@ -111,17 +121,30 @@ class NetatmOAuth2:
                     LOG.error("Too many retries")
                     return
                 try:
-                    return self._oauth.post(url=url, data=params, timeout=timeout)
-                except TokenExpiredError:
+                    if json_params:
+                        rsp = self._oauth.post(
+                            url=url, json=json_params, timeout=timeout
+                        )
+                    else:
+                        rsp = self._oauth.post(url=url, data=params, timeout=timeout)
+
+                    return rsp
+                except (
+                    TokenExpiredError,
+                    requests.exceptions.ReadTimeout,
+                    requests.exceptions.ConnectionError,
+                ):
                     self._oauth.token = self.refresh_tokens()
+                    # Sleep for 1 sec to prevent authentication related
+                    # timeouts after a token refresh.
+                    sleep(1)
                     return query(url, params, timeout, retries - 1)
 
             resp = query(url, params, timeout, 3)
 
-        if not resp:
-            raise ApiError(f"Error when accessing '{url}'")
-
-        if not resp.ok:
+        if resp is None:
+            LOG.debug("Resp is None - %s", resp)
+        elif not resp.ok:
             LOG.debug("The Netatmo API returned %s", resp.status_code)
             LOG.debug("Netato API error: %s", resp.content)
             if resp.status_code == 404:

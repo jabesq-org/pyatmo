@@ -388,3 +388,77 @@ def test_CameraData_smokedetectorByName(cameraHomeData, name, home, home_id, exp
         )
     else:
         assert cameraHomeData.smokedetectorByName(name, home, home_id)["id"] == expected
+
+
+@pytest.mark.parametrize(
+    "home_id, camera_id, floodlight, monitoring, json_fixture, expected",
+    [
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:ff",
+            "on",
+            None,
+            "camera_set_state_error.json",
+            False,
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:62",
+            None,
+            "on",
+            "camera_set_state_ok.json",
+            True,
+        ),
+        (None, "12:34:56:00:f1:62", None, "on", "camera_set_state_ok.json", True,),
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:62",
+            "auto",
+            "on",
+            "camera_set_state_ok.json",
+            True,
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:62",
+            None,
+            "on",
+            "camera_set_state_error_already_on.json",
+            True,
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "12:34:56:00:f1:62",
+            "on",
+            None,
+            "camera_set_state_error_wrong_parameter.json",
+            False,
+        ),
+    ],
+)
+def test_CameraData_set_state(
+    cameraHomeData,
+    requests_mock,
+    home_id,
+    camera_id,
+    floodlight,
+    monitoring,
+    json_fixture,
+    expected,
+):
+    with open("fixtures/%s" % json_fixture) as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        pyatmo.camera._SETSTATE_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    assert (
+        cameraHomeData.set_state(
+            home_id=home_id,
+            camera_id=camera_id,
+            floodlight=floodlight,
+            monitoring=monitoring,
+        )
+        == expected
+    )

@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": 21,
+        "message": "Invalid device_id, 12:34:56:00:f1:ff"
+    }
+}

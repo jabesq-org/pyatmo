@@ -81,6 +81,7 @@ class CameraData:
                         self.events[e["camera_id"]][e["time"]] = e
             for c in item["cameras"]:
                 self.cameras[homeId][c["id"]] = c
+                self.cameras[homeId][c["id"]]["home"] = homeId
                 if c["type"] == "NACamera" and "modules" in c:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
@@ -790,3 +791,57 @@ class CameraData:
         ):
             return True
         return False
+
+    def set_state(
+        self,
+        camera_id: str,
+        home_id: str = None,
+        floodlight: str = None,
+        monitoring: str = None,
+    ) -> bool:
+        """Turn camera (light) on/off.
+
+        Arguments:
+            camera_id {str} -- ID of a camera
+            home_id {str} -- ID of a home
+            floodlight {str} -- Mode for floodlight (on/auto)
+            monitoring {str} -- Mode for monitoring (on/off)
+
+        Returns:
+            Boolean -- Success of the request
+        """
+        if home_id is None:
+            home_id = self.get_camera(camera_id)["home"]
+
+        module = {"id": camera_id}
+
+        if floodlight:
+            param, val = "floodlight", floodlight.lower()
+            if val not in ["on", "auto"]:
+                LOG.error("Invalid value für floodlight")
+            else:
+                module[param] = val
+
+        if monitoring:
+            param, val = "monitoring", monitoring.lower()
+            if val not in ["on", "off"]:
+                LOG.error("Invalid value für monitoring")
+            else:
+                module[param] = val
+
+        postParams = {
+            "json": {"home": {"id": home_id, "modules": [module]}},
+        }
+
+        try:
+            resp = self.authData.post_request(url=_SETSTATE_REQ, params=postParams)
+        except ApiError as err_msg:
+            LOG.error("%s", err_msg)
+            return False
+
+        if "error" in resp:
+            LOG.debug("%s", resp)
+            return False
+
+        LOG.debug("%s", resp)
+        return True

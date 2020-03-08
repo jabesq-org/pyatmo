@@ -26,6 +26,7 @@ ALL_SCOPES = [
     "write_camera",
     "read_presence",
     "access_presence",
+    "write_presence",
     "read_homecoach",
     "read_smokedetector",
     "read_thermostat",
@@ -89,7 +90,7 @@ class NetatmOAuth2:
 
     def refresh_tokens(self) -> Dict[str, Union[str, int]]:
         """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(_AUTH_REQ)
+        token = self._oauth.refresh_token(_AUTH_REQ, **self.extra)
 
         if self.token_updater is not None:
             self.token_updater(token)
@@ -103,6 +104,11 @@ class NetatmOAuth2:
         if not params:
             params = {}
 
+        if "json" in params:
+            json_params = params.pop("json")
+        else:
+            json_params = None
+
         if "http://" in url:
             try:
                 resp = requests.post(url, data=params, timeout=timeout)
@@ -115,7 +121,14 @@ class NetatmOAuth2:
                     LOG.error("Too many retries")
                     return
                 try:
-                    return self._oauth.post(url=url, data=params, timeout=timeout)
+                    if json_params:
+                        rsp = self._oauth.post(
+                            url=url, json=json_params, timeout=timeout
+                        )
+                    else:
+                        rsp = self._oauth.post(url=url, data=params, timeout=timeout)
+
+                    return rsp
                 except (
                     TokenExpiredError,
                     requests.exceptions.ReadTimeout,

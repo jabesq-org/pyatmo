@@ -114,6 +114,8 @@ class NetatmOAuth2:
                 resp = requests.post(url, data=params, timeout=timeout)
             except requests.exceptions.ChunkedEncodingError:
                 LOG.debug("Encoding error when connecting to '%s'", url)
+            except requests.exceptions.ConnectTimeout:
+                LOG.debug("Connection to %s timed out.", url)
         else:
 
             def query(url, params, timeout, retries):

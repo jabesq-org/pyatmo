@@ -115,7 +115,9 @@ class NetatmOAuth2:
             except requests.exceptions.ChunkedEncodingError:
                 LOG.debug("Encoding error when connecting to '%s'", url)
             except requests.exceptions.ConnectTimeout:
-                LOG.debug("Connection to %s timed out.", url)
+                LOG.debug("Connection to %s timed out", url)
+            except requests.exceptions.ConnectionError:
+                LOG.debug("Remote end closed connection without response (%s)", url)
         else:
 
             def query(url, params, timeout, retries):

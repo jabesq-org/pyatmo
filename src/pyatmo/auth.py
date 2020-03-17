@@ -1,4 +1,5 @@
 import logging
+from json.decoder import JSONDecodeError
 from time import sleep
 from typing import Callable, Dict, Optional, Tuple, Union
 
@@ -151,18 +152,18 @@ class NetatmOAuth2:
         elif not resp.ok:
             LOG.debug("The Netatmo API returned %s", resp.status_code)
             LOG.debug("Netato API error: %s", resp.content)
-            if resp.status_code == 404:
+            try:
                 raise ApiError(
                     f"{resp.status_code} - "
-                    f"{ERRORS[resp.status_code]} - "
-                    f"when accessing '{url}'"
-                )
-            else:
-                raise ApiError(
-                    f"{resp.status_code} - "
-                    f"{ERRORS[resp.status_code]} - "
+                    f"{ERRORS.get(resp.status_code, '')} - "
                     f"{resp.json()['error']['message']} "
                     f"({resp.json()['error']['code']}) "
+                    f"when accessing '{url}'"
+                )
+            except JSONDecodeError:
+                raise ApiError(
+                    f"{resp.status_code} - "
+                    f"{ERRORS.get(resp.status_code, '')} - "
                     f"when accessing '{url}'"
                 )
 

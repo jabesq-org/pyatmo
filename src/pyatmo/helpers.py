@@ -14,6 +14,7 @@ ERRORS = {
     404: "Not found",
     406: "Not Acceptable",
     500: "Internal Server Error",
+    502: "Bad Gateway",
 }
 
 

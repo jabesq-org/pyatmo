@@ -804,7 +804,7 @@ class CameraData:
         Arguments:
             camera_id {str} -- ID of a camera
             home_id {str} -- ID of a home
-            floodlight {str} -- Mode for floodlight (on/auto)
+            floodlight {str} -- Mode for floodlight (on/off/auto)
             monitoring {str} -- Mode for monitoring (on/off)
 
         Returns:
@@ -817,8 +817,8 @@ class CameraData:
 
         if floodlight:
             param, val = "floodlight", floodlight.lower()
-            if val not in ["on", "auto"]:
-                LOG.error("Invalid value für floodlight")
+            if val not in ["on", "off", "auto"]:
+                LOG.error("Invalid value for floodlight")
             else:
                 module[param] = val
 

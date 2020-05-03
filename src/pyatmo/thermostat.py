@@ -316,7 +316,7 @@ class HomeStatus:
         temperature = None
         room_data = self.roomById(rid=rid)
         if room_data:
-            temperature = room_data["therm_measured_temperature"]
+            temperature = room_data.get("therm_measured_temperature")
         return temperature
 
     def boilerStatus(self, rid=None):

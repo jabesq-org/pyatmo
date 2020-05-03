@@ -1,5 +1,5 @@
 import logging
-from json.decoder import JSONDecodeError
+from json import JSONDecodeError
 from time import sleep
 from typing import Callable, Dict, Optional, Tuple, Union
 
@@ -173,7 +173,7 @@ class NetatmOAuth2:
                 if "application/json" in resp.headers.get("content-type")
                 else resp.content
             )
-        except TypeError:
+        except (TypeError, AttributeError):
             LOG.debug("Invalid response %s", resp)
         return None
 

@@ -15,6 +15,7 @@ ERRORS = {
     406: "Not Acceptable",
     500: "Internal Server Error",
     502: "Bad Gateway",
+    503: "Service Unavailable",
 }
 
 

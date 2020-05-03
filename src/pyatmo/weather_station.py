@@ -86,7 +86,7 @@ class WeatherStationData:
             for m in s["modules"]:
                 res[m["_id"]] = {
                     "station_name": m.get("station_name", s["station_name"]),
-                    "module_name": m["module_name"],
+                    "module_name": m.get("module_name", "Module"),
                     "id": m["_id"],
                 }
         return res

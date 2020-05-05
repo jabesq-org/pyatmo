@@ -79,14 +79,14 @@ class WeatherStationData:
         for s in stations:
             res[s["_id"]] = {
                 "station_name": s["station_name"],
-                "module_name": s.get("module_name", "Station"),
+                "module_name": s.get("module_name", s.get("type")),
                 "id": s["_id"],
             }
 
             for m in s["modules"]:
                 res[m["_id"]] = {
                     "station_name": m.get("station_name", s["station_name"]),
-                    "module_name": m.get("module_name", "Module"),
+                    "module_name": m.get("module_name", m.get("type")),
                     "id": m["_id"],
                 }
         return res

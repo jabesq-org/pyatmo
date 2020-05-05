@@ -292,12 +292,12 @@
                 ],
                 "place": {
                     "altitude": 93,
-                    "city": "Benareby",
+                    "city": "Gothenburg",
                     "country": "SE",
                     "timezone": "Europe/Stockholm",
                     "location": [
-                        12.1854725,
-                        57.637138
+                        11.6136629,
+                        57.7006827
                     ]
                 },
                 "dashboard_data": {

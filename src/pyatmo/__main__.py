@@ -1,9 +1,9 @@
-from .auth import ClientAuth
-from .camera import CameraData
-from .exceptions import NoDevice
-from .public_data import PublicData
-from .thermostat import HomeData
-from .weather_station import WeatherStationData
+from pyatmo.auth import ALL_SCOPES, ClientAuth
+from pyatmo.camera import CameraData
+from pyatmo.exceptions import NoDevice
+from pyatmo.public_data import PublicData
+from pyatmo.thermostat import HomeData
+from pyatmo.weather_station import WeatherStationData
 
 
 def main():
@@ -33,11 +33,7 @@ def main():
         clientSecret=CLIENT_SECRET,
         username=USERNAME,
         password=PASSWORD,
-        scope=(
-            "read_station read_camera access_camera read_thermostat "
-            "write_thermostat read_presence access_presence read_homecoach "
-            "read_smokedetector"
-        ),
+        scope=" ".join(ALL_SCOPES),
     )
 
     try:

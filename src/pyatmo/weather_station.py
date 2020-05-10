@@ -55,13 +55,13 @@ class WeatherStationData:
         elif station is not None:
             station_data = self.stationByName(station)
         if station_data is not None:
-            res.add(station_data["module_name"])
+            res.add(station_data.get("module_name", station_data.get("type")))
             for m in station_data["modules"]:
-                res.add(m["module_name"])
+                res.add(m.get("module_name", m.get("type")))
         else:
             res.update([m["module_name"] for m in self.modules.values()])
             for s in self.stations.values():
-                res.add(s.get("module_name", "Station"))
+                res.add(s.get("module_name", s.get("type")))
         return list(res)
 
     def getModules(self, station=None, station_id=None):
@@ -79,14 +79,14 @@ class WeatherStationData:
         for s in stations:
             res[s["_id"]] = {
                 "station_name": s["station_name"],
-                "module_name": s.get("module_name", "Station"),
+                "module_name": s.get("module_name", s.get("type")),
                 "id": s["_id"],
             }
 
             for m in s["modules"]:
                 res[m["_id"]] = {
                     "station_name": m.get("station_name", s["station_name"]),
-                    "module_name": m["module_name"],
+                    "module_name": m.get("module_name", m.get("type")),
                     "id": m["_id"],
                 }
         return res

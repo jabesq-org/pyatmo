@@ -269,6 +269,196 @@
                         }
                     }
                 ]
+            },
+            {
+                "_id": "12:34:56:32:a7:60",
+                "station_name": "Ateljen",
+                "date_setup": 1566714693,
+                "last_setup": 1566714693,
+                "type": "NAMain",
+                "last_status_store": 1588481079,
+                "module_name": "Indoor",
+                "firmware": 177,
+                "last_upgrade": 1566714694,
+                "wifi_status": 50,
+                "reachable": true,
+                "co2_calibrating": false,
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure"
+                ],
+                "place": {
+                    "altitude": 93,
+                    "city": "Gothenburg",
+                    "country": "SE",
+                    "timezone": "Europe/Stockholm",
+                    "location": [
+                        11.6136629,
+                        57.7006827
+                    ]
+                },
+                "dashboard_data": {
+                    "time_utc": 1588481073,
+                    "Temperature": 18.2,
+                    "CO2": 542,
+                    "Humidity": 45,
+                    "Noise": 45,
+                    "Pressure": 1013,
+                    "AbsolutePressure": 1001.9,
+                    "min_temp": 18.2,
+                    "max_temp": 19.5,
+                    "date_max_temp": 1588456861,
+                    "date_min_temp": 1588479561,
+                    "temp_trend": "stable",
+                    "pressure_trend": "up"
+                },
+                "modules": [
+                    {
+                        "_id": "12:34:56:32:db:06",
+                        "type": "NAModule1",
+                        "last_setup": 1587635819,
+                        "data_type": [
+                            "Temperature",
+                            "Humidity"
+                        ],
+                        "battery_percent": 100,
+                        "reachable": false,
+                        "firmware": 255,
+                        "last_message": 0,
+                        "last_seen": 0,
+                        "rf_status": 255,
+                        "battery_vp": 65535
+                    }
+                ]
+            },
+            {
+                "_id": "12:34:56:1c:68:2e",
+                "station_name": "Bol\u00e5s",
+                "date_setup": 1470935400,
+                "last_setup": 1470935400,
+                "type": "NAMain",
+                "last_status_store": 1588481399,
+                "module_name": "Inne - Nere",
+                "firmware": 177,
+                "last_upgrade": 1470935401,
+                "wifi_status": 13,
+                "reachable": true,
+                "co2_calibrating": false,
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure"
+                ],
+                "place": {
+                    "altitude": 93,
+                    "city": "Gothenburg",
+                    "country": "SE",
+                    "timezone": "Europe/Stockholm",
+                    "location": [
+                        11.6136629,
+                        57.7006827
+                    ]
+                },
+                "dashboard_data": {
+                    "time_utc": 1588481387,
+                    "Temperature": 20.8,
+                    "CO2": 674,
+                    "Humidity": 41,
+                    "Noise": 34,
+                    "Pressure": 1012.1,
+                    "AbsolutePressure": 1001,
+                    "min_temp": 20.8,
+                    "max_temp": 22.2,
+                    "date_max_temp": 1588456859,
+                    "date_min_temp": 1588480176,
+                    "temp_trend": "stable",
+                    "pressure_trend": "up"
+                },
+                "modules": [
+                    {
+                        "_id": "12:34:56:02:b3:da",
+                        "type": "NAModule3",
+                        "module_name": "Regnm\u00e4tare",
+                        "last_setup": 1470937706,
+                        "data_type": [
+                            "Rain"
+                        ],
+                        "battery_percent": 81,
+                        "reachable": true,
+                        "firmware": 12,
+                        "last_message": 1588481393,
+                        "last_seen": 1588481386,
+                        "rf_status": 67,
+                        "battery_vp": 5582,
+                        "dashboard_data": {
+                            "time_utc": 1588481386,
+                            "Rain": 0,
+                            "sum_rain_1": 0,
+                            "sum_rain_24": 0.1
+                        }
+                    },
+                    {
+                        "_id": "12:34:56:03:76:60",
+                        "type": "NAModule4",
+                        "module_name": "Inne - Uppe",
+                        "last_setup": 1470938089,
+                        "data_type": [
+                            "Temperature",
+                            "CO2",
+                            "Humidity"
+                        ],
+                        "battery_percent": 14,
+                        "reachable": true,
+                        "firmware": 50,
+                        "last_message": 1588481393,
+                        "last_seen": 1588481374,
+                        "rf_status": 70,
+                        "battery_vp": 4448,
+                        "dashboard_data": {
+                            "time_utc": 1588481374,
+                            "Temperature": 19.6,
+                            "CO2": 696,
+                            "Humidity": 41,
+                            "min_temp": 19.6,
+                            "max_temp": 20.5,
+                            "date_max_temp": 1588456817,
+                            "date_min_temp": 1588481374,
+                            "temp_trend": "stable"
+                        }
+                    },
+                    {
+                        "_id": "12:34:56:32:db:06",
+                        "type": "NAModule1",
+                        "module_name": "Ute",
+                        "last_setup": 1566326027,
+                        "data_type": [
+                            "Temperature",
+                            "Humidity"
+                        ],
+                        "battery_percent": 81,
+                        "reachable": true,
+                        "firmware": 50,
+                        "last_message": 1588481393,
+                        "last_seen": 1588481380,
+                        "rf_status": 61,
+                        "battery_vp": 5544,
+                        "dashboard_data": {
+                            "time_utc": 1588481380,
+                            "Temperature": 6.4,
+                            "Humidity": 91,
+                            "min_temp": 3.6,
+                            "max_temp": 6.4,
+                            "date_max_temp": 1588481380,
+                            "date_min_temp": 1588471383,
+                            "temp_trend": "up"
+                        }
+                    }
+                ]
             }
         ],
         "user": {

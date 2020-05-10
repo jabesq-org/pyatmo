@@ -450,8 +450,8 @@ def test_camera_data_set_state(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as fixture_file:
+        json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._SETSTATE_REQ,
         json=json_fixture,

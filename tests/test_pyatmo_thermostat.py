@@ -398,7 +398,6 @@ def test_home_status_thermostat_type(home_status):
 def test_home_data_set_therm_mode(
     home_status,
     requests_mock,
-    caplog,
     home_id,
     mode,
     end_time,
@@ -466,7 +465,6 @@ def test_home_data_set_therm_mode(
 def test_home_data_set_room_therm_point(
     home_status,
     requests_mock,
-    caplog,
     home_id,
     room_id,
     mode,

@@ -170,7 +170,7 @@ class NetatmoOAuth2:
         try:
             return (
                 resp.json()
-                if "application/json" in resp.headers.get("content-type", "")
+                if "application/json" in resp.headers.get("content-type", b"")
                 else resp.content
             )
         except (TypeError, AttributeError):

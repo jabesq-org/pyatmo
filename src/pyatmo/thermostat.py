@@ -343,15 +343,15 @@ class HomeStatus:
                         return "NRV"
 
     def set_therm_mode(self, home_id, mode, end_time=None, schedule_id=None):
-        postParams = {
+        post_params = {
             "home_id": home_id,
             "mode": mode,
         }
         if end_time is not None and mode in ("hg", "away"):
-            postParams["endtime"] = end_time
+            post_params["endtime"] = end_time
         if schedule_id is not None and mode == "schedule":
-            postParams["schedule_id"] = schedule_id
-        return self.auth_data.post_request(url=_SETTHERMMODE_REQ, params=postParams)
+            post_params["schedule_id"] = schedule_id
+        return self.auth_data.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
     def set_room_therm_point(self, home_id, room_id, mode, temp=None, end_time=None):
         post_params = {

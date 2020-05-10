@@ -172,9 +172,12 @@ class HomeData:
 
 
 class HomeStatus:
-    def __init__(self, authData, home_id=None, home=None):
+    def __init__(self, authData, home_data=None, home_id=None, home=None):
         self.authData = authData
-        self.home_data = HomeData(authData)
+        if home_data is None:
+            self.home_data = HomeData(authData)
+        else:
+            self.home_data = home_data
 
         if home_id is not None:
             self.home_id = home_id
@@ -316,7 +319,7 @@ class HomeStatus:
         temperature = None
         room_data = self.roomById(rid=rid)
         if room_data:
-            temperature = room_data["therm_measured_temperature"]
+            temperature = room_data.get("therm_measured_temperature")
         return temperature
 
     def boilerStatus(self, rid=None):

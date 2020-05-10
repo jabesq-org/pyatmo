@@ -26,9 +26,7 @@ def auth(requests_mock):
         clientSecret="CLIENT_SECRET",
         username="USERNAME",
         password="PASSWORD",
-        scope="read_station read_camera access_camera "
-        "read_thermostat write_thermostat "
-        "read_presence access_presence read_homecoach",
+        scope=" ".join(pyatmo.auth.ALL_SCOPES),
     )
     return authorization
 

@@ -120,13 +120,6 @@ def test_HomeData_getHomeName(homeData):
     assert homeData.getHomeName(home_id) == "Unknown"
 
 
-def test_HomeData_getSelectedschedule(homeData):
-    assert homeData.getSelectedschedule()["name"] == "Default"
-    assert homeData.getSelectedschedule("MYHOME")["name"] == "Default"
-    with pytest.raises(pyatmo.InvalidHome):
-        assert homeData.getSelectedschedule("Unknown")
-
-
 def test_HomeData_get_selected_schedule(homeData):
     assert (
         homeData.get_selected_schedule("91763b24c43d3e344f424e8b")["name"] == "Default"
@@ -135,17 +128,18 @@ def test_HomeData_get_selected_schedule(homeData):
 
 
 @pytest.mark.parametrize(
-    "t_home, t_sched_id, t_sched, expected",
+    "t_home_id, t_sched_id, expected",
     [
-        (None, None, None, pytest.raises(pyatmo.NoSchedule)),
-        (None, None, "Default", does_not_raise()),
-        (None, "591b54a2764ff4d50d8b5795", None, does_not_raise()),
-        (None, None, "Summer", pytest.raises(pyatmo.NoSchedule)),
-        (None, "123456789abcdefg12345678", None, pytest.raises(pyatmo.NoSchedule)),
+        ("91763b24c43d3e344f424e8b", "591b54a2764ff4d50d8b5795", does_not_raise()),
+        (
+            "91763b24c43d3e344f424e8b",
+            "123456789abcdefg12345678",
+            pytest.raises(pyatmo.NoSchedule),
+        ),
     ],
 )
-def test_HomeData_switchHomeSchedule(
-    homeData, requests_mock, t_home, t_sched_id, t_sched, expected
+def test_HomeData_switch_home_schedule(
+    homeData, requests_mock, t_home_id, t_sched_id, expected
 ):
     with open("fixtures/status_ok.json") as f:
         json_fixture = json.load(f)
@@ -155,9 +149,7 @@ def test_HomeData_switchHomeSchedule(
         headers={"content-type": "application/json"},
     )
     with expected:
-        homeData.switchHomeSchedule(
-            schedule_id=t_sched_id, schedule=t_sched, home=t_home
-        )
+        homeData.switch_home_schedule(home_id=t_home_id, schedule_id=t_sched_id)
 
 
 def test_HomeData_get_away_temp(homeData):
@@ -254,22 +246,6 @@ def test_HomeStatus_error(auth, requests_mock):
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_roomById(homeStatus):
-    expexted = {
-        "id": "2746182631",
-        "reachable": True,
-        "therm_measured_temperature": 19.8,
-        "therm_setpoint_temperature": 12,
-        "therm_setpoint_mode": "away",
-        "therm_setpoint_start_time": 1559229567,
-        "therm_setpoint_end_time": 0,
-    }
-    assert homeStatus.roomById("2746182631") == expexted
-    with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.roomById("0000000000")
-
-
-@pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
 def test_HomeStatus_get_room(homeStatus):
     expexted = {
         "id": "2746182631",
@@ -283,26 +259,6 @@ def test_HomeStatus_get_room(homeStatus):
     assert homeStatus.get_room("2746182631") == expexted
     with pytest.raises(pyatmo.InvalidRoom):
         assert homeStatus.get_room("0000000000")
-
-
-@pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_thermostatById(homeStatus):
-    expexted = {
-        "id": "12:34:56:00:01:ae",
-        "reachable": True,
-        "type": "NATherm1",
-        "firmware_revision": 65,
-        "rf_strength": 58,
-        "battery_level": 3793,
-        "boiler_valve_comfort_boost": False,
-        "boiler_status": False,
-        "anticipating": False,
-        "bridge": "12:34:56:00:fa:d0",
-        "battery_state": "high",
-    }
-    assert homeStatus.thermostatById("12:34:56:00:01:ae") == expexted
-    with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.thermostatById("00:00:00:00:00:00")
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
@@ -326,20 +282,6 @@ def test_HomeStatus_get_thermostat(homeStatus):
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_relayById(homeStatus):
-    expexted = {
-        "id": "12:34:56:00:fa:d0",
-        "type": "NAPlug",
-        "firmware_revision": 174,
-        "rf_strength": 107,
-        "wifi_strength": 42,
-    }
-    assert homeStatus.relayById("12:34:56:00:fa:d0") == expexted
-    with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.relayById("00:00:00:00:00:00")
-
-
-@pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
 def test_HomeStatus_get_relay(homeStatus):
     expexted = {
         "id": "12:34:56:00:fa:d0",
@@ -351,23 +293,6 @@ def test_HomeStatus_get_relay(homeStatus):
     assert homeStatus.get_relay("12:34:56:00:fa:d0") == expexted
     with pytest.raises(pyatmo.InvalidRoom):
         assert homeStatus.get_relay("00:00:00:00:00:00")
-
-
-@pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_valveById(homeStatus):
-    expexted = {
-        "id": "12:34:56:03:a5:54",
-        "reachable": True,
-        "type": "NRV",
-        "firmware_revision": 79,
-        "rf_strength": 51,
-        "battery_level": 3025,
-        "bridge": "12:34:56:00:fa:d0",
-        "battery_state": "full",
-    }
-    assert homeStatus.valveById("12:34:56:03:a5:54") == expexted
-    with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.valveById("00:00:00:00:00:00")
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
@@ -388,25 +313,10 @@ def test_HomeStatus_get_valve(homeStatus):
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_setPoint(homeStatus):
-    assert homeStatus.setPoint() == 12
-    assert homeStatus.setPoint("2746182631") == 12
-    with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.setPoint("0000000000")
-
-
-@pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
 def test_HomeStatus_set_point(homeStatus):
     assert homeStatus.set_point("2746182631") == 12
     with pytest.raises(pyatmo.InvalidRoom):
         assert homeStatus.set_point("0000000000")
-
-
-@pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_setPointmode(homeStatus):
-    assert homeStatus.setPointmode() == "away"
-    assert homeStatus.setPointmode("2746182631") == "away"
-    assert homeStatus.setPointmode("0000000000") is None
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
@@ -417,16 +327,15 @@ def test_HomeStatus_set_point_mode(homeStatus):
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_measuredTemperature(homeStatus):
-    assert homeStatus.measuredTemperature() == 19.8
-    assert homeStatus.measuredTemperature("2746182631") == 19.8
+def test_HomeStatus_measured_temperature(homeStatus):
+    assert homeStatus.measured_temperature("2746182631") == 19.8
     with pytest.raises(pyatmo.InvalidRoom):
-        assert homeStatus.measuredTemperature("0000000000")
+        assert homeStatus.measured_temperature("0000000000")
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
-def test_HomeStatus_boilerStatus(homeStatus):
-    assert homeStatus.boilerStatus() is False
+def test_HomeStatus_boiler_status(homeStatus):
+    assert homeStatus.boiler_status("12:34:56:00:01:ae") is False
 
 
 @pytest.mark.parametrize(
@@ -492,7 +401,7 @@ def test_HomeStatus_boilerStatus(homeStatus):
         ),
     ],
 )
-def test_HomeData_setThermmode(
+def test_HomeStatus_setThermmode(
     homeStatus,
     requests_mock,
     caplog,
@@ -510,9 +419,7 @@ def test_HomeData_setThermmode(
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    res = homeStatus.setThermmode(
-        home_id=home_id, mode=mode, end_time=end_time, schedule_id=schedule_id
-    )
+    res = homeStatus.setThermmode(mode=mode, end_time=end_time, schedule_id=schedule_id)
     if "error" in res:
         assert expected in res["error"]["message"]
     else:
@@ -560,7 +467,7 @@ def test_HomeData_setThermmode(
         ),
     ],
 )
-def test_HomeData_setroomThermpoint(
+def test_HomeStatus_setroomThermpoint(
     homeStatus,
     requests_mock,
     caplog,
@@ -581,7 +488,7 @@ def test_HomeData_setroomThermpoint(
     )
     assert (
         homeStatus.setroomThermpoint(
-            home_id=home_id, room_id=room_id, mode=mode, temp=temp, end_time=end_time
+            room_id=room_id, mode=mode, temp=temp, end_time=end_time
         )["status"]
         == expected
     )
@@ -624,7 +531,7 @@ def test_HomeData_setroomThermpoint(
         ),
     ],
 )
-def test_HomeData_setroomThermpoint_error(
+def test_HomeStatus_setroomThermpoint_error(
     homeStatus,
     requests_mock,
     caplog,
@@ -643,9 +550,9 @@ def test_HomeData_setroomThermpoint_error(
         headers={"content-type": "application/json"},
     )
     assert (
-        homeStatus.setroomThermpoint(
-            home_id=home_id, room_id=room_id, mode=mode, temp=temp
-        )["error"]["message"]
+        homeStatus.setroomThermpoint(room_id=room_id, mode=mode, temp=temp)["error"][
+            "message"
+        ]
         == expected
     )
 

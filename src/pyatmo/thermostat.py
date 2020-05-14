@@ -226,9 +226,7 @@ class HomeStatus:
 
     def get_thermostat(self, room_id: str):
         """Return thermostat data for a given room id."""
-        print(self.rawData)
         for key, value in self.thermostats.items():
-            print(key, value)
             if value["id"] == room_id:
                 return self.thermostats[key]
         raise InvalidRoom("No room with ID %s" % room_id)

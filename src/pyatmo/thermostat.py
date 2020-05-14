@@ -113,18 +113,14 @@ class HomeData:
             if not home:
                 home = self.default_home
             home_id = self.gethomeId(home=home)
-        return self.get_selected_schedule(home_id=home_id)
+        return self.get_selected_schedule(home_id)
 
     def get_selected_schedule(self, home_id: str):
         """Get the selected schedule for a given home ID."""
-        try:
-            schedules = self.schedules[home_id]
-        except KeyError:
-            raise NoSchedule("No schedules available for %s" % home_id)
-
-        for key in schedules.keys():
-            if "selected" in schedules[key].keys():
-                return schedules[key]
+        for key, value in self.schedules.get(home_id, {}).items():
+            if "selected" in value.keys():
+                return value
+        return {}
 
     def switchHomeSchedule(self, schedule_id=None, schedule=None, home=None):
         if home is None:
@@ -147,7 +143,7 @@ class HomeData:
 
         return self.switch_home_schedule(schedule_id=schedule_id, home_id=home_id)
 
-    def switch_home_schedule(self, schedule_id: str, home_id: str) -> bool:
+    def switch_home_schedule(self, schedule_id: str, home_id: str):
         """."""
         try:
             schedules = self.schedules[home_id]
@@ -170,21 +166,32 @@ class HomeData:
         )
         LOG.debug("Response: %s", resp)
 
+    def get_hg_temp(self, home_id: str) -> float:
+        """Return frost guard temperature value."""
+        try:
+            data = self.get_selected_schedule(home_id)
+        except NoSchedule:
+            LOG.debug("No Schedule for Home ID %s", home_id)
+        return data.get("hg_temp")
+
+    def get_away_temp(self, home_id: str) -> float:
+        try:
+            data = self.get_selected_schedule(home_id)
+        except NoSchedule:
+            LOG.debug("No Schedule for Home ID %s", home_id)
+        return data.get("away_temp")
+
+    def get_thermostat_type(self, home_id: str, room_id: str):
+        for module in self.modules.get(home_id, {}).values():
+            if module.get("room_id") == room_id:
+                return module.get("type")
+
 
 class HomeStatus:
-    def __init__(self, authData, home_data=None, home_id=None, home=None):
+    def __init__(self, authData, home_id):
         self.authData = authData
-        if home_data is None:
-            self.home_data = HomeData(authData)
-        else:
-            self.home_data = home_data
 
-        if home_id is not None:
-            self.home_id = home_id
-        elif home is not None:
-            self.home_id = self.home_data.gethomeId(home=home)
-        else:
-            self.home_id = self.home_data.gethomeId(home=self.home_data.default_home)
+        self.home_id = home_id
         postParams = {"home_id": self.home_id}
 
         resp = self.authData.post_request(url=_GETHOMESTATUS_REQ, params=postParams)
@@ -196,13 +203,16 @@ class HomeStatus:
         ):
             LOG.error("Errors in response: %s", resp)
             raise NoDevice("No device found, errors in response")
+
         self.rawData = resp["body"]["home"]
         self.rooms = {}
         self.thermostats = {}
         self.valves = {}
         self.relays = {}
+
         for r in self.rawData.get("rooms", []):
             self.rooms[r["id"]] = r
+
         for module in self.rawData.get("modules", []):
             if module["type"] == "NATherm1":
                 thermostatId = module["id"]
@@ -219,56 +229,75 @@ class HomeStatus:
                 if relayId not in self.relays:
                     self.relays[relayId] = {}
                 self.relays[relayId] = module
+
         if self.rooms != {}:
             self.default_room = list(self.rooms.values())[0]
+
         if self.relays != {}:
             self.default_relay = list(self.relays.values())[0]
+
         if self.thermostats != {}:
             self.default_thermostat = list(self.thermostats.values())[0]
+
         if self.valves != {}:
             self.default_valve = list(self.valves.values())[0]
 
     def roomById(self, rid):
         if not rid:
             return self.default_room
+        return self.get_room(rid)
+
+    def get_room(self, room_id):
         for key, value in self.rooms.items():
-            if value["id"] == rid:
+            if value["id"] == room_id:
                 return self.rooms[key]
-        raise InvalidRoom("No room with ID %s" % rid)
+        raise InvalidRoom("No room with ID %s" % room_id)
 
     def thermostatById(self, rid):
         if not rid:
             return self.default_thermostat
+        return self.get_thermostat(rid)
+
+    def get_thermostat(self, room_id: str):
+        """Return thermostat data for a given room id."""
         for key, value in self.thermostats.items():
-            if value["id"] == rid:
+            if value["id"] == room_id:
                 return self.thermostats[key]
-        raise InvalidRoom("No room with ID %s" % rid)
+        raise InvalidRoom("No room with ID %s" % room_id)
 
     def relayById(self, rid):
         if not rid:
             return self.default_relay
+        return self.get_relay(rid)
+
+    def get_relay(self, room_id: str):
         for key, value in self.relays.items():
-            if value["id"] == rid:
+            if value["id"] == room_id:
                 return self.relays[key]
-        raise InvalidRoom("No room with ID %s" % rid)
+        raise InvalidRoom("No room with ID %s" % room_id)
 
     def valveById(self, rid):
         if not rid:
             return self.default_valve
+        return self.get_valve(rid)
+
+    def get_valve(self, room_id: str):
         for key, value in self.valves.items():
-            if value["id"] == rid:
+            if value["id"] == room_id:
                 return self.valves[key]
-        raise InvalidRoom("No room with ID %s" % rid)
+        raise InvalidRoom("No room with ID %s" % room_id)
 
     def setPoint(self, rid=None):
         """
         Return the setpoint of a given room.
         """
-        setpoint = None
-        room_data = self.roomById(rid=rid)
-        if room_data:
-            setpoint = room_data["therm_setpoint_temperature"]
-        return setpoint
+        if rid is None:
+            rid = self.default_room["id"]
+        return self.set_point(rid)
+
+    def set_point(self, room_id: str):
+        """Return the setpoint of a given room."""
+        return self.get_room(room_id).get("therm_setpoint_temperature")
 
     def setPointmode(self, rid=None):
         """
@@ -284,33 +313,11 @@ class HomeStatus:
             setpointmode = room_data["therm_setpoint_mode"]
         return setpointmode
 
-    def getAwaytemp(self, home=None, home_id=None):
-        if not home_id:
-            if not home:
-                home = self.home_data.default_home
-            try:
-                home_id = self.home_data.gethomeId(home)
-            except InvalidHome:
-                LOG.debug("No Schedule for Home ID %s", home_id)
-                return None
-        try:
-            data = self.home_data.getSelectedschedule(home_id=home_id)
-        except NoSchedule:
-            LOG.debug("No Schedule for Home ID %s", home_id)
-            return None
-        return data["away_temp"]
-
-    def getHgtemp(self, home=None, home_id=None):
-        if not home_id:
-            if not home:
-                home = self.home_data.default_home
-            home_id = self.home_data.gethomeId(home)
-        try:
-            data = self.home_data.getSelectedschedule(home_id=home_id)
-        except NoSchedule:
-            LOG.debug("No Schedule for Home ID %s", home_id)
-            return None
-        return data["hg_temp"]
+    def set_point_mode(self, room_id):
+        """
+        Return the setpointmode of a given room.
+        """
+        return self.get_room(room_id).get("therm_setpoint_mode")
 
     def measuredTemperature(self, rid=None):
         """
@@ -332,17 +339,8 @@ class HomeStatus:
             boiler_status = relay_status["boiler_status"]
         return boiler_status
 
-    def thermostatType(self, home, rid, home_id=None):
-        module_id = None
-        if home_id is None:
-            home_id = self.home_data.gethomeId(home=home)
-        for key in self.home_data.rooms[home_id]:
-            if key == rid:
-                for module_id in self.home_data.rooms[home_id][rid]["module_ids"]:
-                    if module_id in self.thermostats:
-                        return "NATherm1"
-                    if module_id in self.valves:
-                        return "NRV"
+    def boiler_status(self, room_id):
+        return self.thermostatById(room_id=room_id).get("boiler_status")
 
     def setThermmode(self, home_id, mode, end_time=None, schedule_id=None):
         postParams = {

@@ -376,7 +376,6 @@
                         "hg_temp": 7,
                         "away_temp": 14,
                         "name": "Winter",
-                        "selected": true,
                         "id": "b1b54a2f45795764f59d50d8",
                         "type": "therm"
                     }

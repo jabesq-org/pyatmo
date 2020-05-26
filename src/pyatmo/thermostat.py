@@ -1,6 +1,6 @@
 import logging
 
-from .exceptions import InvalidHome, InvalidRoom, NoDevice, NoSchedule
+from .exceptions import InvalidRoom, NoDevice, NoSchedule
 from .helpers import _BASE_URL
 
 LOG = logging.getLogger(__name__)
@@ -15,10 +15,10 @@ _SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 class HomeData:
     """
-    List the Energy devices (relays, thermostat modules and valves)
+    List of energy devices (relays, thermostat modules and valves)
 
     Args:
-        authData (ClientAuth): Authentication information with a working access Token
+        authData (ClientAuth): Authentication information with a valid access token
     """
 
     def __init__(self, authData):
@@ -40,8 +40,6 @@ class HomeData:
         self.schedules = {}
         self.zones = {}
         self.setpoint_duration = {}
-        self.default_home = None
-        self.default_home_id = None
 
         for item in self.rawData:
             idHome = item.get("id")
@@ -73,8 +71,6 @@ class HomeData:
                     for room in item["rooms"]:
                         self.rooms[idHome][room["id"]] = room
                 if "therm_schedules" in item:
-                    self.default_home = nameHome
-                    self.default_home_id = item["id"]
                     for schedule in item["therm_schedules"]:
                         self.schedules[idHome][schedule["id"]] = schedule
                     for schedule in item["therm_schedules"]:
@@ -83,34 +79,6 @@ class HomeData:
                             self.zones[idHome][scheduleId] = {}
                         for zone in schedule["zones"]:
                             self.zones[idHome][scheduleId][zone["id"]] = zone
-
-    def homeById(self, hid):
-        return None if hid not in self.homes else self.homes[hid]
-
-    def homeByName(self, home=None):
-        if not home:
-            home = self.default_home
-        for key, value in self.homes.items():
-            if value["name"] == home:
-                return self.homes[key]
-        raise InvalidHome("Invalid Home %s" % home)
-
-    def gethomeId(self, home=None):
-        if not home:
-            home = self.default_home
-        for key, value in self.homes.items():
-            if value["name"] == home:
-                if "therm_schedules" in self.homes[key]:
-                    return self.homes[key]["id"]
-        raise InvalidHome("Invalid Home %s" % home)
-
-    def getHomeName(self, home_id=None):
-        if home_id is None:
-            home_id = self.default_home_id
-        for key, value in self.homes.items():
-            if value["id"] == home_id:
-                return self.homes[key]["name"]
-        raise InvalidHome("Invalid Home ID %s" % home_id)
 
     def get_selected_schedule(self, home_id: str):
         """Get the selected schedule for a given home ID."""
@@ -205,18 +173,6 @@ class HomeStatus:
                 if relayId not in self.relays:
                     self.relays[relayId] = {}
                 self.relays[relayId] = module
-
-        if self.rooms != {}:
-            self.default_room = list(self.rooms.values())[0]
-
-        if self.relays != {}:
-            self.default_relay = list(self.relays.values())[0]
-
-        if self.thermostats != {}:
-            self.default_thermostat = list(self.thermostats.values())[0]
-
-        if self.valves != {}:
-            self.default_valve = list(self.valves.values())[0]
 
     def get_room(self, room_id):
         for key, value in self.rooms.items():

@@ -99,18 +99,11 @@ def test_HomeData_no_home_name(auth, requests_mock):
     assert homeData.homes.get(home_id)["name"] == "Unknown"
 
 
-def test_HomeData_homes_by_id(homeData):
-    home_id = "91763b24c43d3e344f424e8b"
-    assert homeData.homes.get(home_id)["name"] == "MYHOME"
-    home_id = "91763b24c43d3e344f424e8c"
-    assert homeData.homes.get(home_id)["name"] == "Unknown"
-
-
 @pytest.mark.parametrize(
     "home_id, expected",
     [("91763b24c43d3e344f424e8b", "MYHOME"), ("91763b24c43d3e344f424e8c", "Unknown")],
 )
-def test_HomeData_get_home_name(homeData, home_id, expected):
+def test_HomeData_homes_by_id(homeData, home_id, expected):
     assert homeData.homes[home_id]["name"] == expected
 
 
@@ -146,30 +139,32 @@ def test_HomeData_switch_home_schedule(
         homeData.switch_home_schedule(home_id=t_home_id, schedule_id=t_sched_id)
 
 
-def test_HomeData_get_away_temp(homeData):
-    assert homeData.get_away_temp("91763b24c43d3e344f424e8b") == 14
-    assert homeData.get_away_temp("InvalidName") is None
-    assert homeData.get_away_temp("00000000000000000000000") is None
+@pytest.mark.parametrize(
+    "home_id, expected",
+    [("91763b24c43d3e344f424e8b", 14), ("00000000000000000000000", None)],
+)
+def test_HomeData_get_away_temp(homeData, home_id, expected):
+    assert homeData.get_away_temp(home_id) == expected
 
 
-def test_HomeData_get_hg_temp(homeData):
-    assert homeData.get_hg_temp("91763b24c43d3e344f424e8b") == 7
-    assert homeData.get_hg_temp("InvalidHome") is None
-    assert homeData.get_hg_temp("00000000000000000000000") is None
+@pytest.mark.parametrize(
+    "home_id, expected",
+    [("91763b24c43d3e344f424e8b", 7), ("00000000000000000000000", None)],
+)
+def test_HomeData_get_hg_temp(homeData, home_id, expected):
+    assert homeData.get_hg_temp(home_id) == expected
 
 
-def test_HomeData_thermostat_type(homeData):
-    assert (
-        homeData.get_thermostat_type("91763b24c43d3e344f424e8b", "2746182631")
-        == "NATherm1"
-    )
-    assert (
-        homeData.get_thermostat_type("91763b24c43d3e344f424e8b", "2833524037") == "NRV"
-    )
-    assert homeData.get_thermostat_type("InvalidHome", "2833524037") is None
-    assert (
-        homeData.get_thermostat_type("91763b24c43d3e344f424e8b", "0000000000") is None
-    )
+@pytest.mark.parametrize(
+    "home_id, module_id, expected",
+    [
+        ("91763b24c43d3e344f424e8b", "2746182631", "NATherm1"),
+        ("91763b24c43d3e344f424e8b", "2833524037", "NRV"),
+        ("91763b24c43d3e344f424e8b", "0000000000", None),
+    ],
+)
+def test_HomeData_thermostat_type(homeData, home_id, module_id, expected):
+    assert homeData.get_thermostat_type(home_id, module_id) == expected
 
 
 @pytest.mark.parametrize(
@@ -203,13 +198,6 @@ def test_HomeStatus_error_and_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    # with open("fixtures/home_data_simple.json") as f:
-    #     json_fixture = json.load(f)
-    # requests_mock.post(
-    #     pyatmo.thermostat._GETHOMESDATA_REQ,
-    #     json=json_fixture,
-    #     headers={"content-type": "application/json"},
-    # )
     homeStatus = pyatmo.HomeStatus(auth, home_id="91763b24c43d3e344f424e8b")
     assert len(homeStatus.rooms) == 3
 

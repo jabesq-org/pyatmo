@@ -100,4 +100,25 @@ def cameraHomeData(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
+    for index in ["w", "z", "g"]:
+        vpn_url = (
+            f"https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
+            f"6d278460699e56180d47ab47169efb31/"
+            f"MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTT{index},,"
+        )
+        with open("fixtures/camera_ping.json") as f:
+            json_fixture = json.load(f)
+        requests_mock.post(
+            vpn_url + "/command/ping",
+            json=json_fixture,
+            headers={"content-type": "application/json"},
+        )
+    local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
+    with open("fixtures/camera_ping.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        local_url + "/command/ping",
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
     return pyatmo.CameraData(auth)

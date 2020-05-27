@@ -74,6 +74,18 @@ def test_HomeData_no_body(auth, requests_mock):
         assert pyatmo.HomeData(auth)
 
 
+def test_HomeData_no_homes(auth, requests_mock):
+    with open("fixtures/home_data_no_homes.json") as f:
+        json_fixture = json.load(f)
+    requests_mock.post(
+        pyatmo.thermostat._GETHOMESDATA_REQ,
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+    with pytest.raises(pyatmo.NoDevice):
+        assert pyatmo.HomeData(auth)
+
+
 def test_HomeData_no_home_name(auth, requests_mock):
     with open("fixtures/home_data_nohomename.json") as f:
         json_fixture = json.load(f)
@@ -388,7 +400,7 @@ def test_HomeStatus_boiler_status(homeStatus):
         ),
     ],
 )
-def test_HomeStatus_setThermmode(
+def test_HomeStatus_set_thermmode(
     homeStatus,
     requests_mock,
     caplog,
@@ -406,7 +418,9 @@ def test_HomeStatus_setThermmode(
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    res = homeStatus.setThermmode(mode=mode, end_time=end_time, schedule_id=schedule_id)
+    res = homeStatus.set_thermmode(
+        mode=mode, end_time=end_time, schedule_id=schedule_id
+    )
     if "error" in res:
         assert expected in res["error"]["message"]
     else:
@@ -454,7 +468,7 @@ def test_HomeStatus_setThermmode(
         ),
     ],
 )
-def test_HomeStatus_setroomThermpoint(
+def test_HomeStatus_set_room_thermpoint(
     homeStatus,
     requests_mock,
     caplog,
@@ -474,7 +488,7 @@ def test_HomeStatus_setroomThermpoint(
         headers={"content-type": "application/json"},
     )
     assert (
-        homeStatus.setroomThermpoint(
+        homeStatus.set_room_thermpoint(
             room_id=room_id, mode=mode, temp=temp, end_time=end_time
         )["status"]
         == expected
@@ -518,7 +532,7 @@ def test_HomeStatus_setroomThermpoint(
         ),
     ],
 )
-def test_HomeStatus_setroomThermpoint_error(
+def test_HomeStatus_set_room_thermpoint_error(
     homeStatus,
     requests_mock,
     caplog,
@@ -537,7 +551,7 @@ def test_HomeStatus_setroomThermpoint_error(
         headers={"content-type": "application/json"},
     )
     assert (
-        homeStatus.setroomThermpoint(room_id=room_id, mode=mode, temp=temp)["error"][
+        homeStatus.set_room_thermpoint(room_id=room_id, mode=mode, temp=temp)["error"][
             "message"
         ]
         == expected

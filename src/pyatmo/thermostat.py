@@ -32,8 +32,6 @@ class HomeData:
             raise NoDevice("No thermostat data available")
 
         self.homes = {d["id"]: d for d in self.rawData}
-        if not self.homes:
-            raise NoDevice("No thermostat available")
 
         self.modules = {}
         self.rooms = {}
@@ -42,43 +40,40 @@ class HomeData:
         self.setpoint_duration = {}
 
         for item in self.rawData:
-            idHome = item.get("id")
-            if not idHome:
-                LOG.error('No key ["id"] in %s', item.keys())
-                continue
+            home_id = item.get("id")
             nameHome = item.get("name")
             if not nameHome:
                 nameHome = "Unknown"
-                self.homes[idHome]["name"] = nameHome
+                self.homes[home_id]["name"] = nameHome
             if "modules" in item:
-                if idHome not in self.modules:
-                    self.modules[idHome] = {}
+                if home_id not in self.modules:
+                    self.modules[home_id] = {}
                 for m in item["modules"]:
-                    self.modules[idHome][m["id"]] = m
-                if idHome not in self.rooms:
-                    self.rooms[idHome] = {}
-                if idHome not in self.schedules:
-                    self.schedules[idHome] = {}
-                if idHome not in self.zones:
-                    self.zones[idHome] = {}
-                if idHome not in self.setpoint_duration:
-                    self.setpoint_duration[idHome] = {}
+                    self.modules[home_id][m["id"]] = m
+                if home_id not in self.rooms:
+                    self.rooms[home_id] = {}
+                if home_id not in self.schedules:
+                    self.schedules[home_id] = {}
+                if home_id not in self.zones:
+                    self.zones[home_id] = {}
+                if home_id not in self.setpoint_duration:
+                    self.setpoint_duration[home_id] = {}
                 if "therm_setpoint_default_duration" in item:
-                    self.setpoint_duration[idHome] = item[
+                    self.setpoint_duration[home_id] = item[
                         "therm_setpoint_default_duration"
                     ]
                 if "rooms" in item:
                     for room in item["rooms"]:
-                        self.rooms[idHome][room["id"]] = room
+                        self.rooms[home_id][room["id"]] = room
                 if "therm_schedules" in item:
                     for schedule in item["therm_schedules"]:
-                        self.schedules[idHome][schedule["id"]] = schedule
+                        self.schedules[home_id][schedule["id"]] = schedule
                     for schedule in item["therm_schedules"]:
                         scheduleId = schedule["id"]
-                        if scheduleId not in self.zones[idHome]:
-                            self.zones[idHome][scheduleId] = {}
+                        if scheduleId not in self.zones[home_id]:
+                            self.zones[home_id][scheduleId] = {}
                         for zone in schedule["zones"]:
-                            self.zones[idHome][scheduleId][zone["id"]] = zone
+                            self.zones[home_id][scheduleId][zone["id"]] = zone
 
     def get_selected_schedule(self, home_id: str):
         """Get the selected schedule for a given home ID."""
@@ -89,14 +84,9 @@ class HomeData:
 
     def switch_home_schedule(self, home_id: str, schedule_id: str):
         """."""
-        try:
-            schedules = self.schedules[home_id]
-        except KeyError:
-            raise NoSchedule("No schedules available for %s" % home_id)
-
         schedules = {
             self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
-            for s in self.schedules[home_id]
+            for s in self.schedules.get(home_id)
         }
         if schedule_id not in list(schedules.values()):
             raise NoSchedule("%s is not a valid schedule id" % schedule_id)
@@ -112,20 +102,14 @@ class HomeData:
 
     def get_hg_temp(self, home_id: str) -> float:
         """Return frost guard temperature value."""
-        try:
-            data = self.get_selected_schedule(home_id)
-        except NoSchedule:
-            LOG.debug("No Schedule for Home ID %s", home_id)
-        return data.get("hg_temp")
+        return self.get_selected_schedule(home_id).get("hg_temp")
 
     def get_away_temp(self, home_id: str) -> float:
-        try:
-            data = self.get_selected_schedule(home_id)
-        except NoSchedule:
-            LOG.debug("No Schedule for Home ID %s", home_id)
-        return data.get("away_temp")
+        """Return the configured away temperature value."""
+        return self.get_selected_schedule(home_id).get("away_temp")
 
     def get_thermostat_type(self, home_id: str, room_id: str):
+        """Return the thermostat type of the room."""
         for module in self.modules.get(home_id, {}).values():
             if module.get("room_id") == room_id:
                 return module.get("type")
@@ -214,7 +198,7 @@ class HomeStatus:
     def boiler_status(self, module_id: str):
         return self.get_thermostat(module_id).get("boiler_status")
 
-    def setThermmode(self, mode, end_time=None, schedule_id=None):
+    def set_thermmode(self, mode, end_time=None, schedule_id=None):
         postParams = {
             "home_id": self.home_id,
             "mode": mode,
@@ -225,7 +209,7 @@ class HomeStatus:
             postParams["schedule_id"] = schedule_id
         return self.authData.post_request(url=_SETTHERMMODE_REQ, params=postParams)
 
-    def setroomThermpoint(self, room_id: str, mode: str, temp=None, end_time=None):
+    def set_room_thermpoint(self, room_id: str, mode: str, temp=None, end_time=None):
         postParams = {
             "home_id": self.home_id,
             "room_id": room_id,

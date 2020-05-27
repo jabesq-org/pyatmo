@@ -1,0 +1,31 @@
+{
+    "body": {
+        "homes": [
+            {
+                "id": "91763b24c43d3e344f424e8c",
+                "altitude": 112,
+                "coordinates": [
+                    52.516263,
+                    13.377726
+                ],
+                "country": "DE",
+                "timezone": "Europe/Berlin",
+                "therm_setpoint_default_duration": 180,
+                "therm_mode": "schedule"
+            }
+        ],
+        "user": {
+            "email": "john@doe.com",
+            "language": "de-DE",
+            "locale": "de-DE",
+            "feel_like_algorithm": 0,
+            "unit_pressure": 0,
+            "unit_system": 0,
+            "unit_wind": 0,
+            "id": "91763b24c43d3e344f424e8b"
+        }
+    },
+    "status": "ok",
+    "time_exec": 0.056135892868042,
+    "time_server": 1559171003
+}

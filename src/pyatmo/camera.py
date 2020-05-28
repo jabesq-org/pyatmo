@@ -20,23 +20,23 @@ class CameraData:
     List of Netatmo camera informations
         (Homes, cameras, smoke detectors, modules, events, persons)
     Args:
-        authData (ClientAuth):
+        auth_data (ClientAuth):
             Authentication information with a valid access token
     """
 
-    def __init__(self, authData, size=15):
-        self.authData = authData
+    def __init__(self, auth_data, size=15):
+        self.auth_data = auth_data
 
-        postParams = {"size": size}
-        resp = self.authData.post_request(url=_GETHOMEDATA_REQ, params=postParams)
+        post_params = {"size": size}
+        resp = self.auth_data.post_request(url=_GETHOMEDATA_REQ, params=post_params)
         if resp is None or "body" not in resp:
             raise NoDevice("No device data returned by Netatmo server")
 
-        self.rawData = resp["body"].get("homes")
-        if not self.rawData:
+        self.raw_data = resp["body"].get("homes")
+        if not self.raw_data:
             raise NoDevice("No device data available")
 
-        self.homes = {d["id"]: d for d in self.rawData}
+        self.homes = {d["id"]: d for d in self.raw_data}
 
         self.persons = {}
         self.events = {}
@@ -48,18 +48,18 @@ class CameraData:
         self.outdoor_last_event = {}
         self.types = {}
 
-        for item in self.rawData:
-            homeId = item.get("id")
-            nameHome = item.get("name")
-            if not nameHome:
-                nameHome = "Unknown"
-                self.homes[homeId]["name"] = nameHome
-            if homeId not in self.cameras:
-                self.cameras[homeId] = {}
-            if homeId not in self.smokedetectors:
-                self.smokedetectors[homeId] = {}
-            if homeId not in self.types:
-                self.types[homeId] = {}
+        for item in self.raw_data:
+            home_id = item.get("id")
+            home_name = item.get("name")
+            if not home_name:
+                home_name = "Unknown"
+                self.homes[home_id]["name"] = home_name
+            if home_id not in self.cameras:
+                self.cameras[home_id] = {}
+            if home_id not in self.smokedetectors:
+                self.smokedetectors[home_id] = {}
+            if home_id not in self.types:
+                self.types[home_id] = {}
             for p in item["persons"]:
                 self.persons[p["id"]] = p
             if "events" in item:
@@ -73,18 +73,18 @@ class CameraData:
                             self.events[e["camera_id"]] = {}
                         self.events[e["camera_id"]][e["time"]] = e
             for c in item["cameras"]:
-                self.cameras[homeId][c["id"]] = c
-                self.cameras[homeId][c["id"]]["home_id"] = homeId
+                self.cameras[home_id][c["id"]] = c
+                self.cameras[home_id][c["id"]]["home_id"] = home_id
                 if c["type"] == "NACamera" and "modules" in c:
                     for m in c["modules"]:
                         self.modules[m["id"]] = m
                         self.modules[m["id"]]["cam_id"] = c["id"]
             for s in item["smokedetectors"]:
-                self.smokedetectors[homeId][s["id"]] = s
+                self.smokedetectors[home_id][s["id"]] = s
             for t in item["cameras"]:
-                self.types[homeId][t["type"]] = t
+                self.types[home_id][t["type"]] = t
             for t in item["smokedetectors"]:
-                self.types[homeId][t["type"]] = t
+                self.types[home_id][t["type"]] = t
         for camera in self.events:
             self.last_event[camera] = self.events[camera][
                 sorted(self.events[camera])[-1]
@@ -119,7 +119,7 @@ class CameraData:
     def camera_urls(self, cid: str) -> Tuple[str, str]:
         """
         Return the vpn_url and the local_url (if available) of a given camera
-        in order to access its live feed
+        in order to access its live feed.
         """
         camera_data = self.get_camera(cid)
         return camera_data.get("vpn_url", None), camera_data.get("local_url", None)
@@ -137,7 +137,7 @@ class CameraData:
                     if url is None:
                         return None
                     try:
-                        resp = self.authData.post_request(url=f"{url}/command/ping")
+                        resp = self.auth_data.post_request(url=f"{url}/command/ping")
                     except (ApiError, ReadTimeout):
                         LOG.debug("Timeout validation the camera url %s", url)
                         return None
@@ -166,11 +166,11 @@ class CameraData:
         """
         Mark persons as home.
         """
-        postParams = {
+        post_params = {
             "home_id": home_id,
             "person_ids[]": person_ids,
         }
-        resp = self.authData.post_request(url=_SETPERSONSHOME_REQ, params=postParams)
+        resp = self.auth_data.post_request(url=_SETPERSONSHOME_REQ, params=post_params)
         return resp
 
     def set_persons_away(self, person_id, home_id):
@@ -183,11 +183,11 @@ class CameraData:
         Returns:
             [type] -- [description]
         """
-        postParams = {
+        post_params = {
             "home_id": home_id,
             "person_id": person_id,
         }
-        resp = self.authData.post_request(url=_SETPERSONSAWAY_REQ, params=postParams)
+        resp = self.auth_data.post_request(url=_SETPERSONSAWAY_REQ, params=post_params)
         return resp
 
     def get_person_id(self, name: str) -> str:
@@ -206,11 +206,13 @@ class CameraData:
 
     def get_camera_picture(self, image_id: str, key: str):
         """Download a specific image (of an event or user face) from the camera."""
-        postParams = {
+        post_params = {
             "image_id": image_id,
             "key": key,
         }
-        resp = self.authData.post_request(url=_GETCAMERAPICTURE_REQ, params=postParams)
+        resp = self.auth_data.post_request(
+            url=_GETCAMERAPICTURE_REQ, params=post_params
+        )
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
@@ -269,24 +271,24 @@ class CameraData:
                     ] = self.outdoor_last_event[sid]
                 event_id = event_list[sorted(event_list)[0]]["id"]
 
-        postParams = {
+        post_params = {
             "home_id": home_id,
             "event_id": event_id,
         }
 
-        eventList = []
+        event_list = []
         try:
-            resp = self.authData.post_request(
-                url=_GETEVENTSUNTIL_REQ, params=postParams
+            resp = self.auth_data.post_request(
+                url=_GETEVENTSUNTIL_REQ, params=post_params
             )
-            eventList = resp["body"]["events_list"]
+            event_list = resp["body"]["events_list"]
         except ApiError:
             pass
         except KeyError:
-            LOG.debug("eventList response: %s", resp)
-            LOG.debug("eventList body: %s", resp["body"])
+            LOG.debug("event_list response: %s", resp)
+            LOG.debug("event_list body: %s", resp["body"])
 
-        for e in eventList:
+        for e in event_list:
             if e["type"] == "outdoor":
                 if e["camera_id"] not in self.outdoor_events:
                     self.outdoor_events[e["camera_id"]] = {}
@@ -517,12 +519,12 @@ class CameraData:
             else:
                 module[param] = val
 
-        postParams = {
+        post_params = {
             "json": {"home": {"id": home_id, "modules": [module]}},
         }
 
         try:
-            resp = self.authData.post_request(url=_SETSTATE_REQ, params=postParams)
+            resp = self.auth_data.post_request(url=_SETSTATE_REQ, params=post_params)
         except ApiError as err_msg:
             LOG.error("%s", err_msg)
             return False

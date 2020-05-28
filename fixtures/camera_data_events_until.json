@@ -1,0 +1,48 @@
+{
+    "body": {
+        "events_list": [
+            {
+                "id": "a1b2c3d4e5f6abcdef123461",
+                "type": "person",
+                "time": 1560506232,
+                "camera_id": "12:34:56:00:f1:62",
+                "device_id": "12:34:56:00:f1:62",
+                "person_id": "91827374-7e04-5298-83ad-a0cb8372dff1",
+                "video_status": "deleted",
+                "is_arrival": true,
+                "message": "<b>John Doe</b> gesehen"
+            },
+            {
+                "id": "a1b2c3d4e5f6abcdef123462",
+                "type": "person_away",
+                "time": 1560506237,
+                "camera_id": "12:34:56:00:f1:62",
+                "device_id": "12:34:56:00:f1:62",
+                "person_id": "91827374-7e04-5298-83ad-a0cb8372dff1",
+                "message": "<b>John Doe</b> hat das Haus verlassen",
+                "sub_message": "John Doe gilt als „Abwesend“, da das mit diesem Profil verbundene Telefon den Bereich des Hauses verlassen hat."
+            },
+            {
+                "id": "a1b2c3d4e5f6abcdef123463",
+                "type": "person",
+                "time": 1560506241,
+                "camera_id": "12:34:56:00:f1:62",
+                "device_id": "12:34:56:00:f1:62",
+                "person_id": "91827375-7e04-5298-83ae-a0cb8372dff2",
+                "snapshot": {
+                    "id": "19b13efa945ec892c6da2a8c",
+                    "version": 1,
+                    "key": "1704853cfc9571bd10618591dc9035e5bc0fa3203f44739c49a5b26d2f7ad67f",
+                    "url": "https://netatmocameraimage.blob.core.windows.net/production/5ecfa94c6da5e5bc0fa3203f3cfdc903489219b13e2a8c548547b26d2f7ad6717039c49ac9571bd10618591f"
+                },
+                "video_id": "f914-aa7da416643-4744-82f9-4e7d4440b",
+                "video_status": "available",
+                "is_arrival": false,
+                "message": "<b>Jane Doe</b> gesehen"
+            }
+        ]
+    },
+    "status": "ok",
+    "time_exec": 0.03666909215079,
+    "time_server": 15605062321
+}

@@ -110,7 +110,7 @@ class NetatmOAuth2:
         else:
             json_params = None
 
-        if "http://" in url:
+        if "https://" not in url:
             try:
                 resp = requests.post(url, data=params, timeout=timeout)
             except requests.exceptions.ChunkedEncodingError:
@@ -143,7 +143,7 @@ class NetatmOAuth2:
                     # Sleep for 1 sec to prevent authentication related
                     # timeouts after a token refresh.
                     sleep(1)
-                    return query(url, params, timeout, retries - 1)
+                    return query(url, params, timeout * 2, retries - 1)
 
             resp = query(url, params, timeout, 3)
 
@@ -168,11 +168,10 @@ class NetatmOAuth2:
                 )
 
         try:
-            return (
-                resp.json()
-                if "application/json" in resp.headers.get("content-type")
-                else resp.content
-            )
+            if "application/json" in resp.headers.get("content-type", []):
+                return resp.json()
+            if resp.content not in [b"", b"None"]:
+                return resp.content
         except (TypeError, AttributeError):
             LOG.debug("Invalid response %s", resp)
         return None

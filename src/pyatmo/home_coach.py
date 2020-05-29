@@ -8,8 +8,8 @@ class HomeCoachData(WeatherStationData):
     """
     List the Home Couch devices (stations and modules)
     Args:
-        authData (ClientAuth): Authentication information with a working access Token
+        auth_data (ClientAuth): Authentication information with a working access Token
     """
 
-    def __init__(self, authData):
-        super(HomeCoachData, self).__init__(authData, urlReq=_GETHOMECOACHDATA_REQ)
+    def __init__(self, auth_data):
+        super(HomeCoachData, self).__init__(auth_data, url_req=_GETHOMECOACHDATA_REQ)

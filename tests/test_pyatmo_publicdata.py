@@ -5,6 +5,11 @@ import pytest
 
 import pyatmo
 
+LON_NE = 6.221652
+LAT_NE = 46.610870
+LON_SW = 6.217828
+LAT_SW = 46.596485
+
 
 def test_PublicData(auth, requests_mock):
     with open("fixtures/public_data_simple.json") as f:
@@ -14,17 +19,20 @@ def test_PublicData(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    publicData = pyatmo.PublicData(auth)
+
+    publicData = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
     assert publicData.status == "ok"
 
-    publicData = pyatmo.PublicData(auth, required_data_type="temperature,rain_live")
+    publicData = pyatmo.PublicData(
+        auth, LAT_NE, LON_NE, LAT_SW, LON_SW, required_data_type="temperature,rain_live"
+    )
     assert publicData.status == "ok"
 
 
 def test_PublicData_unavailable(auth, requests_mock):
     requests_mock.post(pyatmo.public_data._GETPUBLIC_DATA, status_code=404)
     with pytest.raises(pyatmo.ApiError):
-        pyatmo.PublicData(auth)
+        pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
 
 def test_PublicData_error(auth, requests_mock):
@@ -36,7 +44,7 @@ def test_PublicData_error(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        pyatmo.PublicData(auth)
+        pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
 
 def test_PublicData_CountStationInArea(publicData):
@@ -51,7 +59,6 @@ def test_PublicData_getLatestRain(publicData):
         "70:ee:50:36:a9:fc": 0,
     }
     assert publicData.getLatestRain() == expected
-    assert publicData.getLive() == expected
 
 
 def test_PublicData_getAverageRain(publicData):
@@ -65,7 +72,6 @@ def test_PublicData_get60minRain(publicData):
         "70:ee:50:36:94:7c": 0.2,
         "70:ee:50:36:a9:fc": 0,
     }
-    assert publicData.get60min() == expected
     assert publicData.get60minRain() == expected
 
 
@@ -80,7 +86,6 @@ def test_PublicData_get24hRain(publicData):
         "70:ee:50:36:94:7c": 12.322000000000001,
         "70:ee:50:36:a9:fc": 11.009,
     }
-    assert publicData.get24h() == expected
     assert publicData.get24hRain() == expected
 
 
@@ -191,7 +196,6 @@ def test_PublicData_getTimeforMeasure(publicData):
         "70:ee:50:27:25:b0": 1560247896,
         "70:ee:50:36:94:7c": 1560248022,
     }
-    assert publicData.getTimeforMeasure() == expected
     assert publicData.getTimeForRainMeasures() == expected
 
 

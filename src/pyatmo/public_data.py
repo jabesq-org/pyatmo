@@ -2,10 +2,6 @@ from .exceptions import NoDevice
 from .helpers import _BASE_URL, toTimeString
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
-_LON_NE = 6.221652
-_LAT_NE = 46.610870
-_LON_SW = 6.217828
-_LAT_SW = 46.596485
 
 _STATION_TEMPERATURE_TYPE = "temperature"
 _STATION_PRESSURE_TYPE = "pressure"
@@ -26,13 +22,13 @@ class PublicData:
     def __init__(
         self,
         authData,
-        LAT_NE=_LAT_NE,
-        LON_NE=_LON_NE,
-        LAT_SW=_LAT_SW,
-        LON_SW=_LON_SW,
-        required_data_type=None,  # comma-separated list from above _STATION or _ACCESSORY values
-        filtering=False,
-    ):
+        LAT_NE: str,
+        LON_NE: str,
+        LAT_SW: str,
+        LON_SW: str,
+        required_data_type: str = None,  # comma-separated list from above _STATION or _ACCESSORY values
+        filtering: bool = False,
+    ) -> None:
         self.authData = authData
         postParams = {
             "lat_ne": LAT_NE,
@@ -50,6 +46,7 @@ class PublicData:
             self.raw_data = resp["body"]
         except (KeyError, TypeError):
             raise NoDevice("No public weather data returned by Netatmo server")
+
         self.status = resp["status"]
         self.time_exec = toTimeString(resp["time_exec"])
         self.time_server = toTimeString(resp["time_server"])
@@ -57,29 +54,17 @@ class PublicData:
     def CountStationInArea(self):
         return len(self.raw_data)
 
-    # Backwards compatibility for < 1.2
-    def getLive(self):
-        return self.getLatestRain()
-
     def getLatestRain(self):
         return self.getAccessoryMeasures(_ACCESSORY_RAIN_LIVE_TYPE)
 
     def getAverageRain(self):
         return averageMeasure(self.getLatestRain())
 
-    # Backwards compatibility for < 1.2
-    def get60min(self):
-        return self.get60minRain()
-
     def get60minRain(self):
         return self.getAccessoryMeasures(_ACCESSORY_RAIN_60MIN_TYPE)
 
     def getAverage60minRain(self):
         return averageMeasure(self.get60minRain())
-
-    # Backwards compatibility for < 1.2
-    def get24h(self):
-        return self.get24hRain()
 
     def get24hRain(self):
         return self.getAccessoryMeasures(_ACCESSORY_RAIN_24H_TYPE)
@@ -128,10 +113,6 @@ class PublicData:
         for station in self.raw_data:
             locations[station["_id"]] = station["place"]["location"]
         return locations
-
-    # Backwards compatibility for < 1.2
-    def getTimeforMeasure(self):
-        return self.getTimeForRainMeasures()
 
     def getTimeForRainMeasures(self):
         return self.getAccessoryMeasures(_ACCESSORY_RAIN_TIME_TYPE)

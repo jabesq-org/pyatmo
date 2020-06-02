@@ -1,6 +1,6 @@
 import imghdr
 import time
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 from requests.exceptions import ReadTimeout
 

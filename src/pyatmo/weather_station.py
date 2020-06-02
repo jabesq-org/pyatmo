@@ -76,7 +76,7 @@ class WeatherStationData:
         return list(res)
 
     def get_modules(self, station_id: str) -> Dict:
-        """Return a dict of modules for a given station."""
+        """Return a dict of modules per given station."""
         station_data = self.get_station(station_id)
 
         if not station_data:

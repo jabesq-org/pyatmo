@@ -116,7 +116,7 @@ class CameraData:
                 return self.smokedetectors[home][sid]
         return None
 
-    def camera_urls(self, cid: str) -> Tuple[Union[str, None], Union[str, None]]:
+    def camera_urls(self, cid: str) -> Tuple[Optional[str], Optional[str]]:
         """
         Return the vpn_url and the local_url (if available) of a given camera
         in order to access its live feed.

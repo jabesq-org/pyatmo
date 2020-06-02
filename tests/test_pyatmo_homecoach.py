@@ -24,8 +24,8 @@ def test_home_coach_data(home_coach_data):
         ),
     ],
 )
-def test_HomeCoachData_get_module_names(homeCoachData, station_id, expected):
-    assert sorted(homeCoachData.get_module_names(station_id)) == expected
+def test_home_coach_data_get_module_names(home_coach_data, station_id, expected):
+    assert sorted(home_coach_data.get_module_names(station_id)) == expected
 
 
 @pytest.mark.parametrize(
@@ -51,8 +51,8 @@ def test_HomeCoachData_get_module_names(homeCoachData, station_id, expected):
         ),
     ],
 )
-def test_HomeCoachData_get_modules(homeCoachData, station_id, expected):
-    assert homeCoachData.get_modules(station_id) == expected
+def test_home_coach_data_get_modules(home_coach_data, station_id, expected):
+    assert home_coach_data.get_modules(station_id) == expected
 
 
 def test_home_coach_data_no_devices(auth, requests_mock):

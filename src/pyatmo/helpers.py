@@ -33,9 +33,9 @@ def today_stamps() -> Tuple[int, int]:
     return today, today + 3600 * 24
 
 
-def fix_id(rawData: Dict) -> Dict:
-    if rawData:
-        for station in rawData:
+def fix_id(raw_data: Dict) -> Dict:
+    if raw_data:
+        for station in raw_data:
             station["_id"] = station["_id"].replace(" ", "")
             for module in station.get("modules", {}):
                 module["_id"] = module["_id"].replace(" ", "")

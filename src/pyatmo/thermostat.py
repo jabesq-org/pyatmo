@@ -1,18 +1,18 @@
 import logging
 from typing import Dict
 
-from .auth import NetatmOAuth2
+from .auth import NetatmoOAuth2
 from .exceptions import InvalidRoom, NoDevice, NoSchedule
 from .helpers import _BASE_URL
 
 LOG = logging.getLogger(__name__)
 
-_GETHOMESDATA_REQ = BASE_URL + "api/homesdata"
-_GETHOMESTATUS_REQ = BASE_URL + "api/homestatus"
-_SETTHERMMODE_REQ = BASE_URL + "api/setthermmode"
-_SETROOMTHERMPOINT_REQ = BASE_URL + "api/setroomthermpoint"
-_GETROOMMEASURE_REQ = BASE_URL + "api/getroommeasure"
-_SWITCHHOMESCHEDULE_REQ = BASE_URL + "api/switchhomeschedule"
+_GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
+_GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
+_SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
+_SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
+_GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
+_SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 
 class HomeData:
@@ -20,11 +20,11 @@ class HomeData:
     Class of Netatmo energy devices (relays, thermostat modules and valves)
     """
 
-    def __init__(self, auth: NetatmOAuth2) -> None:
+    def __init__(self, auth: NetatmoOAuth2) -> None:
         """Initialize self.
 
         Arguments:
-            auth {NetatmOAuth2} -- Authentication information with a valid access token
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
 
         Raises:
             NoDevice: No devices found.
@@ -34,11 +34,11 @@ class HomeData:
         if resp is None or "body" not in resp:
             raise NoDevice("No thermostat data returned by Netatmo server")
 
-        self.rawData = resp["body"].get("homes")
-        if not self.rawData:
+        self.raw_data = resp["body"].get("homes")
+        if not self.raw_data:
             raise NoDevice("No thermostat data available")
 
-        self.homes: Dict = {d["id"]: d for d in self.rawData}
+        self.homes: Dict = {d["id"]: d for d in self.raw_data}
 
         self.modules: Dict = {}
         self.rooms: Dict = {}
@@ -46,17 +46,17 @@ class HomeData:
         self.zones: Dict = {}
         self.setpoint_duration: Dict = {}
 
-        for item in self.rawData:
+        for item in self.raw_data:
             home_id = item.get("id")
-            nameHome = item.get("name")
-            if not nameHome:
-                nameHome = "Unknown"
-                self.homes[home_id]["name"] = nameHome
+            home_name = item.get("name")
+            if not home_name:
+                home_name = "Unknown"
+                self.homes[home_id]["name"] = home_name
             if "modules" in item:
                 if home_id not in self.modules:
                     self.modules[home_id] = {}
-                for m in item["modules"]:
-                    self.modules[home_id][m["id"]] = m
+                for module in item["modules"]:
+                    self.modules[home_id][module["id"]] = module
                 if home_id not in self.rooms:
                     self.rooms[home_id] = {}
                 if home_id not in self.schedules:
@@ -76,15 +76,15 @@ class HomeData:
                     for schedule in item["therm_schedules"]:
                         self.schedules[home_id][schedule["id"]] = schedule
                     for schedule in item["therm_schedules"]:
-                        scheduleId = schedule["id"]
-                        if scheduleId not in self.zones[home_id]:
-                            self.zones[home_id][scheduleId] = {}
+                        schedule_id = schedule["id"]
+                        if schedule_id not in self.zones[home_id]:
+                            self.zones[home_id][schedule_id] = {}
                         for zone in schedule["zones"]:
-                            self.zones[home_id][scheduleId][zone["id"]] = zone
+                            self.zones[home_id][schedule_id][zone["id"]] = zone
 
     def _get_selected_schedule(self, home_id: str):
         """Get the selected schedule for a given home ID."""
-        for key, value in self.schedules.get(home_id, {}).items():
+        for value in self.schedules.get(home_id, {}).values():
             if "selected" in value.keys():
                 return value
         return {}
@@ -98,20 +98,20 @@ class HomeData:
         if schedule_id not in list(schedules.values()):
             raise NoSchedule("%s is not a valid schedule id" % schedule_id)
 
-        postParams = {
+        post_params = {
             "home_id": home_id,
             "schedule_id": schedule_id,
         }
-        resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=postParams)
+        resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
         LOG.debug("Response: %s", resp)
 
     def get_hg_temp(self, home_id: str) -> float:
         """Return frost guard temperature value."""
-        return self.get_selected_schedule(home_id).get("hg_temp")
+        return self._get_selected_schedule(home_id).get("hg_temp")
 
     def get_away_temp(self, home_id: str) -> float:
         """Return the configured away temperature value."""
-        return self.get_selected_schedule(home_id).get("away_temp")
+        return self._get_selected_schedule(home_id).get("away_temp")
 
     def get_thermostat_type(self, home_id: str, room_id: str):
         """Return the thermostat type of the room."""
@@ -125,9 +125,9 @@ class HomeStatus:
         self.auth = auth
 
         self.home_id = home_id
-        postParams = {"home_id": self.home_id}
+        post_params = {"home_id": self.home_id}
 
-        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=postParams)
+        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=post_params)
         if (
             "errors" in resp
             or "body" not in resp
@@ -137,16 +137,16 @@ class HomeStatus:
             LOG.error("Errors in response: %s", resp)
             raise NoDevice("No device found, errors in response")
 
-        self.rawData = resp["body"]["home"]
+        self.raw_data = resp["body"]["home"]
         self.rooms = {}
         self.thermostats = {}
         self.valves = {}
         self.relays = {}
 
-        for r in self.rawData.get("rooms", []):
-            self.rooms[r["id"]] = r
+        for room in self.raw_data.get("rooms", []):
+            self.rooms[room["id"]] = room
 
-        for module in self.rawData.get("modules", []):
+        for module in self.raw_data.get("modules", []):
             if module["type"] == "NATherm1":
                 thermostat_id = module["id"]
                 if thermostat_id not in self.thermostats:
@@ -158,10 +158,10 @@ class HomeStatus:
                     self.valves[valve_id] = {}
                 self.valves[valve_id] = module
             elif module["type"] == "NAPlug":
-                relayId = module["id"]
-                if relayId not in self.relays:
-                    self.relays[relayId] = {}
-                self.relays[relayId] = module
+                relay_id = module["id"]
+                if relay_id not in self.relays:
+                    self.relays[relay_id] = {}
+                self.relays[relay_id] = module
 
     def get_room(self, room_id):
         for key, value in self.rooms.items():
@@ -204,18 +204,18 @@ class HomeStatus:
         return self.get_thermostat(module_id).get("boiler_status")
 
     def set_thermmode(self, mode, end_time=None, schedule_id=None):
-        postParams = {
+        post_params = {
             "home_id": self.home_id,
             "mode": mode,
         }
         if end_time is not None and mode in ("hg", "away"):
             post_params["endtime"] = end_time
         if schedule_id is not None and mode == "schedule":
-            postParams["schedule_id"] = schedule_id
-        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=postParams)
+            post_params["schedule_id"] = schedule_id
+        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
     def set_room_thermpoint(self, room_id: str, mode: str, temp=None, end_time=None):
-        postParams = {
+        post_params = {
             "home_id": self.home_id,
             "room_id": room_id,
             "mode": mode,
@@ -225,5 +225,5 @@ class HomeStatus:
         if temp is not None:
             post_params["temp"] = temp
         if end_time is not None:
-            postParams["endtime"] = end_time
-        return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=postParams)
+            post_params["endtime"] = end_time
+        return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=post_params)

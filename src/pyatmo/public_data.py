@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from .auth import NetatmOAuth2
+from .auth import NetatmoOAuth2
 from .exceptions import NoDevice
 from .helpers import _BASE_URL, to_time_string
 
@@ -28,7 +28,7 @@ class PublicData:
 
     def __init__(
         self,
-        auth: NetatmOAuth2,
+        auth: NetatmoOAuth2,
         LAT_NE: str,
         LON_NE: str,
         LAT_SW: str,
@@ -39,7 +39,7 @@ class PublicData:
         """Initialize self.
 
         Arguments:
-            auth {NetatmOAuth2} -- Authentication information with a valid access token
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
             LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
             LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
             LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
@@ -52,7 +52,7 @@ class PublicData:
             NoDevice: No devices found.
         """
         self.auth = auth
-        postParams: Dict = {
+        post_params: Dict = {
             "lat_ne": LAT_NE,
             "lon_ne": LON_NE,
             "lat_sw": LAT_SW,
@@ -63,7 +63,7 @@ class PublicData:
         if required_data_type:
             post_params["required_data"] = required_data_type
 
-        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=postParams)
+        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError):

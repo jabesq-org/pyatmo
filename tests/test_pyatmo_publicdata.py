@@ -21,13 +21,13 @@ def test_public_data(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
 
-    publicData = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
-    assert publicData.status == "ok"
+    public_data = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+    assert public_data.status == "ok"
 
-    publicData = pyatmo.PublicData(
+    public_data = pyatmo.PublicData(
         auth, LAT_NE, LON_NE, LAT_SW, LON_SW, required_data_type="temperature,rain_live"
     )
-    assert publicData.status == "ok"
+    assert public_data.status == "ok"
 
 
 def test_public_data_unavailable(auth, requests_mock):
@@ -48,53 +48,53 @@ def test_public_data_error(auth, requests_mock):
         pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
 
-def test_PublicData_stations_in_area(publicData):
-    assert publicData.stations_in_area() == 8
+def test_public_data_stations_in_area(public_data):
+    assert public_data.stations_in_area() == 8
 
 
-def test_PublicData_get_latest_rain(publicData):
+def test_public_data_get_latest_rain(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 0,
         "70:ee:50:27:25:b0": 0,
         "70:ee:50:36:94:7c": 0.5,
         "70:ee:50:36:a9:fc": 0,
     }
-    assert publicData.get_latest_rain() == expected
+    assert public_data.get_latest_rain() == expected
 
 
-def test_PublicData_get_average_rain(publicData):
-    assert publicData.get_average_rain() == 0.125
+def test_public_data_get_average_rain(public_data):
+    assert public_data.get_average_rain() == 0.125
 
 
-def test_PublicData_get_60_min_rain(publicData):
+def test_public_data_get_60_min_rain(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 0,
         "70:ee:50:27:25:b0": 0,
         "70:ee:50:36:94:7c": 0.2,
         "70:ee:50:36:a9:fc": 0,
     }
-    assert publicData.get_60_min_rain() == expected
+    assert public_data.get_60_min_rain() == expected
 
 
-def test_PublicData_get_average_60_min_rain(publicData):
-    assert publicData.get_average_60_min_rain() == 0.05
+def test_public_data_get_average_60_min_rain(public_data):
+    assert public_data.get_average_60_min_rain() == 0.05
 
 
-def test_PublicData_get_24_h_rain(publicData):
+def test_public_data_get_24_h_rain(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 9.999,
         "70:ee:50:27:25:b0": 11.716000000000001,
         "70:ee:50:36:94:7c": 12.322000000000001,
         "70:ee:50:36:a9:fc": 11.009,
     }
-    assert publicData.get_24_h_rain() == expected
+    assert public_data.get_24_h_rain() == expected
 
 
-def test_PublicData_get_average_24_h_rain(publicData):
-    assert publicData.get_average_24_h_rain() == 11.261500000000002
+def test_public_data_get_average_24_h_rain(public_data):
+    assert public_data.get_average_24_h_rain() == 11.261500000000002
 
 
-def test_PublicData_get_latest_pressures(publicData):
+def test_public_data_get_latest_pressures(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 1007.3,
         "70:ee:50:27:25:b0": 1012.8,
@@ -105,14 +105,14 @@ def test_PublicData_get_latest_pressures(publicData):
         "70:ee:50:27:9f:2c": 1010.6,
         "70:ee:50:3c:02:78": 1011.7,
     }
-    assert publicData.get_latest_pressures() == expected
+    assert public_data.get_latest_pressures() == expected
 
 
-def test_PublicData_get_average_pressure(publicData):
-    assert publicData.get_average_pressure() == 1010.3499999999999
+def test_public_data_get_average_pressure(public_data):
+    assert public_data.get_average_pressure() == 1010.3499999999999
 
 
-def test_PublicData_get_latest_temperatures(publicData):
+def test_public_data_get_latest_temperatures(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 21.1,
         "70:ee:50:27:25:b0": 23.2,
@@ -123,14 +123,14 @@ def test_PublicData_get_latest_temperatures(publicData):
         "70:ee:50:27:9f:2c": 25.5,
         "70:ee:50:3c:02:78": 23.3,
     }
-    assert publicData.get_latest_temperatures() == expected
+    assert public_data.get_latest_temperatures() == expected
 
 
-def test_PublicData_get_average_temperature(publicData):
-    assert publicData.get_average_temperature() == 22.725
+def test_public_data_get_average_temperature(public_data):
+    assert public_data.get_average_temperature() == 22.725
 
 
-def test_PublicData_get_latest_humidities(publicData):
+def test_public_data_get_latest_humidities(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 69,
         "70:ee:50:27:25:b0": 60,
@@ -141,42 +141,42 @@ def test_PublicData_get_latest_humidities(publicData):
         "70:ee:50:27:9f:2c": 56,
         "70:ee:50:3c:02:78": 58,
     }
-    assert publicData.get_latest_humidities() == expected
+    assert public_data.get_latest_humidities() == expected
 
 
-def test_PublicData_get_average_humidity(publicData):
-    assert publicData.get_average_humidity() == 63.25
+def test_public_data_get_average_humidity(public_data):
+    assert public_data.get_average_humidity() == 63.25
 
 
-def test_PublicData_get_latest_wind_strengths(publicData):
+def test_public_data_get_latest_wind_strengths(public_data):
     expected = {"70:ee:50:36:a9:fc": 15}
-    assert publicData.get_latest_wind_strengths() == expected
+    assert public_data.get_latest_wind_strengths() == expected
 
 
-def test_PublicData_get_average_wind_strength(publicData):
-    assert publicData.get_average_wind_strength() == 15
+def test_public_data_get_average_wind_strength(public_data):
+    assert public_data.get_average_wind_strength() == 15
 
 
-def test_PublicData_get_latest_wind_angles(publicData):
+def test_public_data_get_latest_wind_angles(public_data):
     expected = {"70:ee:50:36:a9:fc": 17}
-    assert publicData.get_latest_wind_angles() == expected
+    assert public_data.get_latest_wind_angles() == expected
 
 
-def test_PublicData_get_latest_gust_strengths(publicData):
+def test_public_data_get_latest_gust_strengths(public_data):
     expected = {"70:ee:50:36:a9:fc": 31}
-    assert publicData.get_latest_gust_strengths() == expected
+    assert public_data.get_latest_gust_strengths() == expected
 
 
-def test_PublicData_get_average_gust_strength(publicData):
-    assert publicData.get_average_gust_strength() == 31
+def test_public_data_get_average_gust_strength(public_data):
+    assert public_data.get_average_gust_strength() == 31
 
 
-def test_PublicData_get_latest_gust_angles(publicData):
+def test_public_data_get_latest_gust_angles(public_data):
     expected = {"70:ee:50:36:a9:fc": 217}
-    assert publicData.get_latest_gust_angles() == expected
+    assert public_data.get_latest_gust_angles() == expected
 
 
-def test_PublicData_get_locations(publicData):
+def test_public_data_get_locations(public_data):
     expected = {
         "70:ee:50:1f:68:9e": [8.795445200000017, 50.2130169],
         "70:ee:50:27:25:b0": [8.7807159, 50.1946167],
@@ -187,22 +187,22 @@ def test_PublicData_get_locations(publicData):
         "70:ee:50:27:9f:2c": [8.785342, 50.193573],
         "70:ee:50:3c:02:78": [8.795953681700666, 50.19530139868166],
     }
-    assert publicData.get_locations() == expected
+    assert public_data.get_locations() == expected
 
 
-def test_PublicData_get_time_for_rain_measures(publicData):
+def test_public_data_get_time_for_rain_measures(public_data):
     expected = {
         "70:ee:50:36:a9:fc": 1560248184,
         "70:ee:50:1f:68:9e": 1560248344,
         "70:ee:50:27:25:b0": 1560247896,
         "70:ee:50:36:94:7c": 1560248022,
     }
-    assert publicData.get_time_for_rain_measures() == expected
+    assert public_data.get_time_for_rain_measures() == expected
 
 
-def test_PublicData_get_time_for_wind_measures(publicData):
+def test_public_data_get_time_for_wind_measures(public_data):
     expected = {"70:ee:50:36:a9:fc": 1560248190}
-    assert publicData.get_time_for_wind_measures() == expected
+    assert public_data.get_time_for_wind_measures() == expected
 
 
 @pytest.mark.parametrize(
@@ -249,8 +249,8 @@ def test_PublicData_get_time_for_wind_measures(publicData):
         ),
     ],
 )
-def test_PublicData_get_latest_station_measures(publicData, test_input, expected):
-    assert publicData.get_latest_station_measures(test_input) == expected
+def test_public_data_get_latest_station_measures(public_data, test_input, expected):
+    assert public_data.get_latest_station_measures(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -263,8 +263,8 @@ def test_PublicData_get_latest_station_measures(publicData, test_input, expected
         ("wind_timeutc", {"70:ee:50:36:a9:fc": 1560248190}),
     ],
 )
-def test_PublicData_get_accessory_data(publicData, test_input, expected):
-    assert publicData.get_accessory_data(test_input) == expected
+def test_public_data_get_accessory_data(public_data, test_input, expected):
+    assert public_data.get_accessory_data(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -299,5 +299,5 @@ def test_PublicData_get_accessory_data(publicData, test_input, expected):
         ({}, 0),
     ],
 )
-def test_PublicData_average(test_input, expected):
+def test_public_data_average(test_input, expected):
     assert pyatmo.public_data.average(test_input) == expected

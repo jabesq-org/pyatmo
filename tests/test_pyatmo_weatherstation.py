@@ -66,8 +66,8 @@ def test_weather_station_data_no_data(auth, requests_mock):
         ),
     ],
 )
-def test_WeatherStationData_get_module_names(weatherStationData, station_id, expected):
-    assert sorted(weatherStationData.get_module_names(station_id)) == expected
+def test_weather_station_get_module_names(weather_station_data, station_id, expected):
+    assert sorted(weather_station_data.get_module_names(station_id)) == expected
 
 
 @pytest.mark.parametrize(
@@ -118,12 +118,12 @@ def test_WeatherStationData_get_module_names(weatherStationData, station_id, exp
         ),
     ],
 )
-def test_WeatherStationData_get_modules(weatherStationData, station_id, expected):
-    assert weatherStationData.get_modules(station_id) == expected
+def test_weather_station_get_modules(weather_station_data, station_id, expected):
+    assert weather_station_data.get_modules(station_id) == expected
 
 
-def test_WeatherStationData_get_station(weatherStationData):
-    result = weatherStationData.get_station("12:34:56:37:11:ca")
+def test_weather_station_get_station(weather_station_data):
+    result = weather_station_data.get_station("12:34:56:37:11:ca")
 
     assert result["_id"] == "12:34:56:37:11:ca"
     assert result["station_name"] == "MyStation"
@@ -137,23 +137,22 @@ def test_WeatherStationData_get_station(weatherStationData):
         "Pressure",
     ]
 
-    assert weatherStationData.get_station("NoValidStation") == {}
+    assert weather_station_data.get_station("NoValidStation") == {}
 
 
 @pytest.mark.parametrize(
-    "mid, sid, expected",
+    "mid, expected",
     [
-        ("12:34:56:07:bb:3e", None, "12:34:56:07:bb:3e"),
-        ("12:34:56:07:bb:3e", "12:34:56:37:11:ca", "12:34:56:07:bb:3e"),
-        ("", None, {}),
-        ("", "", {}),
-        (None, None, {}),
+        ("12:34:56:07:bb:3e", "12:34:56:07:bb:3e"),
+        ("12:34:56:07:bb:3e", "12:34:56:07:bb:3e"),
+        ("", {}),
+        (None, {}),
     ],
 )
-def test_WeatherStationData_get_module(weatherStationData, mid, sid, expected):
-    mod = weatherStationData.get_module(mid, sid)
+def test_weather_station_get_module(weather_station_data, mid, expected):
+    mod = weather_station_data.get_module(mid)
 
-    assert type(mod) == dict
+    assert isinstance(mod, dict) is True
     assert mod.get("_id", mod) == expected
 
 
@@ -234,10 +233,10 @@ def test_WeatherStationData_get_module(weatherStationData, mid, sid, expected):
         ),
     ],
 )
-def test_WeatherStationData_get_monitored_conditions(
-    weatherStationData, module_id, expected
+def test_weather_station_get_monitored_conditions(
+    weather_station_data, module_id, expected
 ):
-    assert sorted(weatherStationData.get_monitored_conditions(module_id)) == expected
+    assert sorted(weather_station_data.get_monitored_conditions(module_id)) == expected
 
 
 @freeze_time("2019-06-11")
@@ -284,10 +283,10 @@ def test_WeatherStationData_get_monitored_conditions(
         ),
     ],
 )
-def test_WeatherStationData_get_last_data(
-    weatherStationData, station_id, exclude, expected
+def test_weather_station_get_last_data(
+    weather_station_data, station_id, exclude, expected
 ):
-    mod = weatherStationData.get_last_data(station_id, exclude=exclude)
+    mod = weather_station_data.get_last_data(station_id, exclude=exclude)
     if mod:
         assert sorted(mod) == expected
     else:
@@ -319,10 +318,10 @@ def test_WeatherStationData_get_last_data(
         ),
     ],
 )
-def test_WeatherStationData_check_not_updated(
-    weatherStationData, station_id, delay, expected
+def test_weather_station_check_not_updated(
+    weather_station_data, station_id, delay, expected
 ):
-    mod = weatherStationData.check_not_updated(station_id, delay)
+    mod = weather_station_data.check_not_updated(station_id, delay)
     assert sorted(mod) == expected
 
 
@@ -345,10 +344,10 @@ def test_WeatherStationData_check_not_updated(
         ("12:34:56:37:11:ca", 100, [],),
     ],
 )
-def test_WeatherStationData_check_updated(
-    weatherStationData, station_id, delay, expected
+def test_weather_station_check_updated(
+    weather_station_data, station_id, delay, expected
 ):
-    mod = weatherStationData.check_updated(station_id, delay)
+    mod = weather_station_data.check_updated(station_id, delay)
     if mod:
         assert sorted(mod) == expected
     else:
@@ -359,8 +358,8 @@ def test_WeatherStationData_check_updated(
 @pytest.mark.parametrize(
     "device_id, scale, mtype, expected", [("MyStation", "scale", "type", [28.1])]
 )
-def test_WeatherStationData_get_measure(
-    weatherStationData, requests_mock, device_id, scale, mtype, expected
+def test_weather_station_get_measure(
+    weather_station_data, requests_mock, device_id, scale, mtype, expected
 ):
     with open("fixtures/weatherstation_measure.json") as json_file:
         json_fixture = json.load(json_file)
@@ -370,16 +369,16 @@ def test_WeatherStationData_get_measure(
         headers={"content-type": "application/json"},
     )
     assert (
-        weatherStationData.get_measure(device_id, scale, mtype)["body"]["1544558433"]
+        weather_station_data.get_measure(device_id, scale, mtype)["body"]["1544558433"]
         == expected
     )
 
 
-def test_WeatherStationData_get_last_data_measurements(weatherStationData):
+def test_weather_station_get_last_data_measurements(weather_station_data):
     station_id = "12:34:56:37:11:ca"
     module_id = "12:34:56:03:1b:e4"
 
-    mod = weatherStationData.get_last_data(station_id, None)
+    mod = weather_station_data.get_last_data(station_id, None)
 
     assert mod[station_id]["min_temp"] == 23.4
     assert mod[station_id]["max_temp"] == 25.6
@@ -411,10 +410,10 @@ def test_WeatherStationData_get_last_data_measurements(weatherStationData):
         ("12:34:56:00:aa:01", None, {},),
     ],
 )
-def test_WeatherStationData_get_last_data_bug_97(
-    weatherStationData, station_id, exclude, expected
+def test_weather_station_get_last_data_bug_97(
+    weather_station_data, station_id, exclude, expected
 ):
-    mod = weatherStationData.get_last_data(station_id, exclude)
+    mod = weather_station_data.get_last_data(station_id, exclude)
     if mod:
         assert sorted(mod) == expected
     else:

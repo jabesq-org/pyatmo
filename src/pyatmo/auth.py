@@ -8,15 +8,15 @@ from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError  # type: 
 from requests_oauthlib import OAuth2Session  # type: ignore
 
 from pyatmo.exceptions import ApiError
-from pyatmo.helpers import BASE_URL, ERRORS
+from pyatmo.helpers import _BASE_URL, ERRORS
 
 LOG = logging.getLogger(__name__)
 
 # Common definitions
-AUTH_REQ = BASE_URL + "oauth2/token"
-AUTH_URL = BASE_URL + "oauth2/authorize"
-WEBHOOK_URL_ADD = BASE_URL + "api/addwebhook"
-WEBHOOK_URL_DROP = BASE_URL + "api/dropwebhook"
+AUTH_REQ = _BASE_URL + "oauth2/token"
+AUTH_URL = _BASE_URL + "oauth2/authorize"
+WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
+WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
 
 
 # Possible scops

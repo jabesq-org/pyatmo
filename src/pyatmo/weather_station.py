@@ -2,14 +2,14 @@ import logging
 import time
 from typing import Dict, List
 
-from .auth import NetatmOAuth2
+from .auth import NetatmoOAuth2
 from .exceptions import NoDevice
 from .helpers import _BASE_URL, fix_id, today_stamps
 
 LOG = logging.getLogger(__name__)
 
-_GETMEASURE_REQ = BASE_URL + "api/getmeasure"
-_GETSTATIONDATA_REQ = BASE_URL + "api/getstationsdata"
+_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
+_GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
 class WeatherStationData:
@@ -17,11 +17,11 @@ class WeatherStationData:
     Class of Netatmo Weather Station devices (stations and modules)
     """
 
-    def __init__(self, auth: NetatmOAuth2, url_req: str = None) -> None:
+    def __init__(self, auth: NetatmoOAuth2, url_req: str = None) -> None:
         """Initialize self.
 
         Arguments:
-            auth {NetatmOAuth2} -- Authentication information with a valid access token
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
 
         Raises:
             NoDevice: No devices found.
@@ -34,31 +34,31 @@ class WeatherStationData:
         if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
         try:
-            self.rawData = fix_id(resp["body"].get("devices"))
+            self.raw_data = fix_id(resp["body"].get("devices"))
         except KeyError:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice("No weather station data returned by Netatmo server")
 
-        if not self.rawData:
+        if not self.raw_data:
             raise NoDevice("No weather station available")
 
-        self.stations = {d["_id"]: d for d in self.rawData}
+        self.stations = {d["_id"]: d for d in self.raw_data}
         self.modules = {}
 
-        for item in self.rawData:
+        for item in self.raw_data:
 
             if "modules" not in item:
                 item["modules"] = [item]
 
-            for m in item["modules"]:
-                if "module_name" not in m:
-                    if m["type"] == "NHC":
-                        m["module_name"] = m["station_name"]
+            for module in item["modules"]:
+                if "module_name" not in module:
+                    if module["type"] == "NHC":
+                        module["module_name"] = module["station_name"]
                     else:
                         continue
 
-                self.modules[m["_id"]] = m
-                self.modules[m["_id"]]["main_device"] = item["_id"]
+                self.modules[module["_id"]] = module
+                self.modules[module["_id"]]["main_device"] = item["_id"]
 
         self.default_station = list(self.stations.values())[0]["station_name"]
 
@@ -72,9 +72,9 @@ class WeatherStationData:
             return []
 
         res.add(station_data.get("module_name", station_data.get("type")))
-        for m in station_data["modules"]:
+        for module in station_data["modules"]:
             # Add module name, use module type if no name is available
-            res.add(m.get("module_name", m.get("type")))
+            res.add(module.get("module_name", module.get("type")))
 
         return list(res)
 
@@ -105,17 +105,9 @@ class WeatherStationData:
         """Return station by id."""
         return self.stations.get(station_id, {})
 
-    def get_module(self, mid, sid=None):
+    def get_module(self, module_id: str):
         """Return module by id."""
-        station = self.get_station(sid) if sid else None
-        if mid in self.modules:
-            if station:
-                for module in station["modules"]:
-                    if module["_id"] == mid:
-                        return module
-            else:
-                return self.modules[mid]
-        return {}
+        return self.modules.get(module_id, {})
 
     def get_monitored_conditions(self, module_id: str) -> List:
         """Return monitored conditions for given module(s)."""
@@ -161,32 +153,32 @@ class WeatherStationData:
         key = "_id"
 
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
-        lastD = {}
-        s = self.get_station(station_id)
+        last_data = {}
+        station = self.get_station(station_id)
 
-        if not s or "dashboard_data" not in s:
+        if not station or "dashboard_data" not in station:
             LOG.debug("No dashboard data for station %s", station_id)
-            return lastD
+            return last_data
 
         # Define oldest acceptable sensor measure event
         limit = (time.time() - exclude) if exclude else 0
 
-        ds = s["dashboard_data"]
-        if key in s and ds["time_utc"] > limit:
-            lastD[s[key]] = ds.copy()
-            lastD[s[key]]["When"] = lastD[s[key]].pop("time_utc")
-            lastD[s[key]]["wifi_status"] = s["wifi_status"]
-            lastD[s[key]]["reachable"] = s["reachable"]
+        data = station["dashboard_data"]
+        if key in station and data["time_utc"] > limit:
+            last_data[station[key]] = data.copy()
+            last_data[station[key]]["When"] = last_data[station[key]].pop("time_utc")
+            last_data[station[key]]["wifi_status"] = station["wifi_status"]
+            last_data[station[key]]["reachable"] = station["reachable"]
 
-        for module in s["modules"]:
+        for module in station["modules"]:
 
             if "dashboard_data" not in module or key not in module:
                 continue
 
-            ds = module["dashboard_data"]
-            if "time_utc" in ds and ds["time_utc"] > limit:
-                lastD[module[key]] = ds.copy()
-                lastD[module[key]]["When"] = lastD[module[key]].pop("time_utc")
+            data = module["dashboard_data"]
+            if "time_utc" in data and data["time_utc"] > limit:
+                last_data[module[key]] = data.copy()
+                last_data[module[key]]["When"] = last_data[module[key]].pop("time_utc")
 
                 # For potential use, add battery and radio coverage information to module data if present
                 for i in (
@@ -197,26 +189,26 @@ class WeatherStationData:
                     "wifi_status",
                 ):
                     if i in module:
-                        lastD[module[key]][i] = module[i]
+                        last_data[module[key]][i] = module[i]
 
-        return lastD
+        return last_data
 
     def check_not_updated(self, station_id: str, delay: int = 3600):
         """Check if a given station has not been updated."""
         res = self.get_last_data(station_id)
         ret = []
-        for mn, v in res.items():
-            if time.time() - v["When"] > delay:
-                ret.append(mn)
+        for key, value in res.items():
+            if time.time() - value["When"] > delay:
+                ret.append(key)
         return ret
 
     def check_updated(self, station_id: str, delay: int = 3600):
         """Check if a given station has been updated."""
         res = self.get_last_data(station_id)
         ret = []
-        for mn, v in res.items():
-            if time.time() - v["When"] < delay:
-                ret.append(mn)
+        for key, value in res.items():
+            if time.time() - value["When"] < delay:
+                ret.append(key)
         return ret
 
     def get_measure(
@@ -232,26 +224,26 @@ class WeatherStationData:
         real_time=False,
     ):
         """Retrieve data from a device or module."""
-        postParams = {"device_id": device_id}
+        post_params = {"device_id": device_id}
         if module_id:
-            postParams["module_id"] = module_id
+            post_params["module_id"] = module_id
 
-        postParams["scale"] = scale
-        postParams["type"] = mtype
+        post_params["scale"] = scale
+        post_params["type"] = mtype
 
         if date_begin:
-            postParams["date_begin"] = date_begin
+            post_params["date_begin"] = date_begin
 
         if date_end:
-            postParams["date_end"] = date_end
+            post_params["date_end"] = date_end
 
         if limit:
-            postParams["limit"] = limit
+            post_params["limit"] = limit
 
-        postParams["optimize"] = "true" if optimize else "false"
-        postParams["real_time"] = "true" if real_time else "false"
+        post_params["optimize"] = "true" if optimize else "false"
+        post_params["real_time"] = "true" if real_time else "false"
 
-        return self.auth.post_request(url=_GETMEASURE_REQ, params=postParams)
+        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params)
 
     def get_min_max_t_h(
         self, station_id: str, module_id: str = None, frame: str = "last24"
@@ -284,6 +276,6 @@ class WeatherStationData:
         )
 
         if resp:
-            T = [v[0] for v in resp["body"].values()]
-            H = [v[1] for v in resp["body"].values()]
-            return min(T), max(T), min(H), max(H)
+            temperature = [temp[0] for temp in resp["body"].values()]
+            humidity = [hum[1] for hum in resp["body"].values()]
+            return min(temperature), max(temperature), min(humidity), max(humidity)

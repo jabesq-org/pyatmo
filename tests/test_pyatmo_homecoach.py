@@ -8,7 +8,7 @@ import pyatmo
 
 
 def test_home_coach_data(home_coach_data):
-    assert home_coach_data.default_station == "Bedroom"
+    assert home_coach_data.stations["12:34:56:26:69:0c"]["station_name"] == "Bedroom"
 
 
 @pytest.mark.parametrize(

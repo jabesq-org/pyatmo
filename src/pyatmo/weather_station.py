@@ -60,13 +60,10 @@ class WeatherStationData:
                 self.modules[module["_id"]] = module
                 self.modules[module["_id"]]["main_device"] = item["_id"]
 
-        self.default_station = list(self.stations.values())[0]["station_name"]
-
     def get_module_names(self, station_id: str) -> List:
-        """Return a list of all module names for a given or all stations."""
+        """Return a list of all module names for a given station."""
         res = set()
         station_data = self.get_station(station_id)
-        print(station_data)
 
         if not station_data:
             return []
@@ -79,7 +76,7 @@ class WeatherStationData:
         return list(res)
 
     def get_modules(self, station_id: str) -> Dict:
-        """Return a dict of modules for a given or all stations."""
+        """Return a dict of modules for a given station."""
         station_data = self.get_station(station_id)
 
         if not station_data:
@@ -110,7 +107,7 @@ class WeatherStationData:
         return self.modules.get(module_id, {})
 
     def get_monitored_conditions(self, module_id: str) -> List:
-        """Return monitored conditions for given module(s)."""
+        """Return monitored conditions for given module."""
         module = self.get_module(module_id)
         if not module:
             module = self.get_station(module_id)

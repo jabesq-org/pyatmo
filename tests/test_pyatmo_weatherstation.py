@@ -9,7 +9,10 @@ import pyatmo
 
 
 def test_weather_station_data(weather_station_data):
-    assert weather_station_data.default_station == "MyStation"
+    assert (
+        weather_station_data.stations["12:34:56:37:11:ca"]["station_name"]
+        == "MyStation"
+    )
 
 
 def test_weather_station_data_no_response(auth, requests_mock):

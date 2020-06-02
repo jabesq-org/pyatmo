@@ -22,6 +22,10 @@ _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 
 
 class PublicData:
+    """
+    Class of Netatmo public weather data.
+    """
+
     def __init__(
         self,
         auth: NetatmOAuth2,
@@ -32,6 +36,21 @@ class PublicData:
         required_data_type: str = None,  # comma-separated list from above _STATION or _ACCESSORY values
         filtering: bool = False,
     ) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmOAuth2} -- Authentication information with a valid access token
+            LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
+            LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
+            LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
+            LON_SW {str} -- Longitude of the south west corner of the requested area. (-180 <= LON_SW <= 180)
+
+        Keyword Arguments:
+            required_data_type {str} -- [description] (default: {None})
+
+        Raises:
+            NoDevice: No devices found.
+        """
         self.auth = auth
         postParams: Dict = {
             "lat_ne": LAT_NE,

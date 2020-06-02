@@ -1,5 +1,7 @@
 import logging
+from typing import Dict
 
+from .auth import NetatmOAuth2
 from .exceptions import InvalidRoom, NoDevice, NoSchedule
 from .helpers import _BASE_URL
 
@@ -15,13 +17,18 @@ _SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 class HomeData:
     """
-    List of energy devices (relays, thermostat modules and valves)
-
-    Args:
-        auth (ClientAuth): Authentication information with a valid access token
+    Class of Netatmo energy devices (relays, thermostat modules and valves)
     """
 
-    def __init__(self, auth):
+    def __init__(self, auth: NetatmOAuth2) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmOAuth2} -- Authentication information with a valid access token
+
+        Raises:
+            NoDevice: No devices found.
+        """
         self.auth = auth
         resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
         if resp is None or "body" not in resp:
@@ -31,13 +38,13 @@ class HomeData:
         if not self.rawData:
             raise NoDevice("No thermostat data available")
 
-        self.homes = {d["id"]: d for d in self.rawData}
+        self.homes: Dict = {d["id"]: d for d in self.rawData}
 
-        self.modules = {}
-        self.rooms = {}
-        self.schedules = {}
-        self.zones = {}
-        self.setpoint_duration = {}
+        self.modules: Dict = {}
+        self.rooms: Dict = {}
+        self.schedules: Dict = {}
+        self.zones: Dict = {}
+        self.setpoint_duration: Dict = {}
 
         for item in self.rawData:
             home_id = item.get("id")
@@ -86,7 +93,7 @@ class HomeData:
         """."""
         schedules = {
             self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
-            for s in self.schedules.get(home_id)
+            for s in self.schedules.get(home_id, {})
         }
         if schedule_id not in list(schedules.values()):
             raise NoSchedule("%s is not a valid schedule id" % schedule_id)

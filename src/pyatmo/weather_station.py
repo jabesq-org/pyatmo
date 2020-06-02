@@ -2,6 +2,7 @@ import logging
 import time
 from typing import Dict, List
 
+from .auth import NetatmOAuth2
 from .exceptions import NoDevice
 from .helpers import _BASE_URL, fix_id, today_stamps
 
@@ -13,13 +14,18 @@ _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 class WeatherStationData:
     """
-    List the Weather Station devices (stations and modules)
-    Args:
-        auth (ClientAuth): Authentication information with a working access Token
+    Class of Netatmo Weather Station devices (stations and modules)
     """
 
-    def __init__(self, auth, url_req: str = None):
-        """Initialize the weather station class."""
+    def __init__(self, auth: NetatmOAuth2, url_req: str = None) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmOAuth2} -- Authentication information with a valid access token
+
+        Raises:
+            NoDevice: No devices found.
+        """
         self.url_req = url_req or _GETSTATIONDATA_REQ
         self.auth = auth
 

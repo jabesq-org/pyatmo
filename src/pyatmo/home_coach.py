@@ -1,3 +1,4 @@
+from .auth import NetatmOAuth2
 from .helpers import _BASE_URL
 from .weather_station import WeatherStationData
 
@@ -6,10 +7,16 @@ _GETHOMECOACHDATA_REQ = _BASE_URL + "api/gethomecoachsdata"
 
 class HomeCoachData(WeatherStationData):
     """
-    List the Home Couch devices (stations and modules)
-    Args:
-        auth (ClientAuth): Authentication information with a working access Token
+    Class of Netatmo Home Couch devices (stations and modules)
     """
 
-    def __init__(self, auth):
+    def __init__(self, auth: NetatmOAuth2) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmOAuth2} -- Authentication information with a valid access token
+
+        Raises:
+            NoDevice: No devices found.
+        """
         super(HomeCoachData, self).__init__(auth, url_req=_GETHOMECOACHDATA_REQ)

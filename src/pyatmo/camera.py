@@ -4,6 +4,7 @@ from typing import Dict, Optional, Tuple, Union
 
 from requests.exceptions import ReadTimeout
 
+from .auth import NetatmOAuth2
 from .exceptions import ApiError, NoDevice
 from .helpers import _BASE_URL, LOG
 
@@ -17,14 +18,22 @@ _SETSTATE_REQ = _BASE_URL + "api/setstate"
 
 class CameraData:
     """
-    List of Netatmo camera informations
+    Class of Netatmo camera informations
         (Homes, cameras, smoke detectors, modules, events, persons)
-    Args:
-        auth (ClientAuth):
-            Authentication information with a valid access token
     """
 
-    def __init__(self, auth, size=15):
+    def __init__(self, auth: NetatmOAuth2, size: int = 30) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmOAuth2} -- Authentication information with a valid access token
+
+        Keyword Arguments:
+            size {int} -- Number of events to retrieve. (default: {30})
+
+        Raises:
+            NoDevice: No devices found.
+        """
         self.auth = auth
 
         post_params = {"size": size}
@@ -36,21 +45,21 @@ class CameraData:
         if not self.raw_data:
             raise NoDevice("No device data available")
 
-        self.homes = {d["id"]: d for d in self.raw_data}
+        self.homes: Dict = {d["id"]: d for d in self.raw_data}
 
-        self.persons = {}
-        self.events = {}
-        self.outdoor_events = {}
-        self.cameras = {}
-        self.smokedetectors = {}
-        self.modules = {}
-        self.last_event = {}
-        self.outdoor_last_event = {}
-        self.types = {}
+        self.persons: Dict = {}
+        self.events: Dict = {}
+        self.outdoor_events: Dict = {}
+        self.cameras: Dict = {}
+        self.smokedetectors: Dict = {}
+        self.modules: Dict = {}
+        self.last_event: Dict = {}
+        self.outdoor_last_event: Dict = {}
+        self.types: Dict = {}
 
         for item in self.raw_data:
-            home_id = item.get("id")
-            home_name = item.get("name")
+            home_id: str = item.get("id")
+            home_name: str = item.get("name")
             if not home_name:
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name

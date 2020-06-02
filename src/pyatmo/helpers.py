@@ -2,12 +2,13 @@ import logging
 import time
 from calendar import timegm
 from datetime import datetime
+from typing import Dict, Tuple
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
-_BASE_URL = "https://api.netatmo.com/"
+_BASE_URL: str = "https://api.netatmo.com/"
 
-ERRORS = {
+ERRORS: Dict[int, str] = {
     400: "Bad request",
     401: "Unauthorized",
     403: "Forbidden",
@@ -19,20 +20,20 @@ ERRORS = {
 }
 
 
-def toTimeString(value):
+def to_time_string(value: str) -> str:
     return datetime.utcfromtimestamp(int(value)).isoformat(sep="_")
 
 
-def toEpoch(value):
+def to_epoch(value: str) -> int:
     return timegm(time.strptime(value + "GMT", "%Y-%m-%d_%H:%M:%S%Z"))
 
 
-def todayStamps():
-    today = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
+def today_stamps() -> Tuple[int, int]:
+    today: int = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
 
 
-def fixId(rawData):
+def fix_id(rawData: Dict) -> Dict:
     if rawData:
         for station in rawData:
             station["_id"] = station["_id"].replace(" ", "")

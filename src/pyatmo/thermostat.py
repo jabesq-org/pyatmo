@@ -18,12 +18,12 @@ class HomeData:
     List of energy devices (relays, thermostat modules and valves)
 
     Args:
-        authData (ClientAuth): Authentication information with a valid access token
+        auth (ClientAuth): Authentication information with a valid access token
     """
 
-    def __init__(self, authData):
-        self.authData = authData
-        resp = self.authData.post_request(url=_GETHOMESDATA_REQ)
+    def __init__(self, auth):
+        self.auth = auth
+        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
         if resp is None or "body" not in resp:
             raise NoDevice("No thermostat data returned by Netatmo server")
 
@@ -95,9 +95,7 @@ class HomeData:
             "home_id": home_id,
             "schedule_id": schedule_id,
         }
-        resp = self.authData.post_request(
-            url=_SWITCHHOMESCHEDULE_REQ, params=postParams
-        )
+        resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=postParams)
         LOG.debug("Response: %s", resp)
 
     def get_hg_temp(self, home_id: str) -> float:
@@ -116,13 +114,13 @@ class HomeData:
 
 
 class HomeStatus:
-    def __init__(self, authData, home_id):
-        self.authData = authData
+    def __init__(self, auth, home_id):
+        self.auth = auth
 
         self.home_id = home_id
         postParams = {"home_id": self.home_id}
 
-        resp = self.authData.post_request(url=_GETHOMESTATUS_REQ, params=postParams)
+        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=postParams)
         if (
             "errors" in resp
             or "body" not in resp
@@ -207,7 +205,7 @@ class HomeStatus:
             postParams["endtime"] = end_time
         if schedule_id is not None and mode == "schedule":
             postParams["schedule_id"] = schedule_id
-        return self.authData.post_request(url=_SETTHERMMODE_REQ, params=postParams)
+        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=postParams)
 
     def set_room_thermpoint(self, room_id: str, mode: str, temp=None, end_time=None):
         postParams = {
@@ -221,4 +219,4 @@ class HomeStatus:
             postParams["temp"] = temp
         if end_time is not None:
             postParams["endtime"] = end_time
-        return self.authData.post_request(url=_SETROOMTHERMPOINT_REQ, params=postParams)
+        return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=postParams)

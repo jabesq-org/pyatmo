@@ -3,7 +3,7 @@ import time
 from typing import Dict, List
 
 from .exceptions import NoDevice
-from .helpers import _BASE_URL, fixId, todayStamps
+from .helpers import _BASE_URL, fix_id, today_stamps
 
 LOG = logging.getLogger(__name__)
 
@@ -15,20 +15,20 @@ class WeatherStationData:
     """
     List the Weather Station devices (stations and modules)
     Args:
-        auth_data (ClientAuth): Authentication information with a working access Token
+        auth (ClientAuth): Authentication information with a working access Token
     """
 
-    def __init__(self, auth_data, url_req: str = None):
+    def __init__(self, auth, url_req: str = None):
         """Initialize the weather station class."""
         self.url_req = url_req or _GETSTATIONDATA_REQ
-        self.auth_data = auth_data
+        self.auth = auth
 
-        resp = self.auth_data.post_request(url=self.url_req)
+        resp = self.auth.post_request(url=self.url_req)
 
         if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
         try:
-            self.rawData = fixId(resp["body"].get("devices"))
+            self.rawData = fix_id(resp["body"].get("devices"))
         except KeyError:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice("No weather station data returned by Netatmo server")
@@ -245,7 +245,7 @@ class WeatherStationData:
         postParams["optimize"] = "true" if optimize else "false"
         postParams["real_time"] = "true" if real_time else "false"
 
-        return self.auth_data.post_request(url=_GETMEASURE_REQ, params=postParams)
+        return self.auth.post_request(url=_GETMEASURE_REQ, params=postParams)
 
     def get_min_max_t_h(
         self, station_id: str, module_id: str = None, frame: str = "last24"
@@ -266,7 +266,7 @@ class WeatherStationData:
             end = time.time()
             start = end - 24 * 3600  # 24 hours ago
         elif frame == "day":
-            start, end = todayStamps()
+            start, end = today_stamps()
 
         resp = self.get_measure(
             device_id=station_id,

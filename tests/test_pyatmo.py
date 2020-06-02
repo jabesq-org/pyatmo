@@ -84,9 +84,9 @@ def test_postRequest_fail(auth, requests_mock, test_input, expected):
         pytest.param({1}, None, marks=pytest.mark.xfail),
     ],
 )
-def test_toTimeString(test_input, expected):
+def test_to_time_string(test_input, expected):
     """Test time to string conversion."""
-    assert pyatmo.helpers.toTimeString(test_input) == expected
+    assert pyatmo.helpers.to_time_string(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -98,9 +98,9 @@ def test_toTimeString(test_input, expected):
         ("2033-05-18_03:33:20", 2000000000),
     ],
 )
-def test_toEpoch(test_input, expected):
+def test_to_epoch(test_input, expected):
     """Test time to epoch conversion."""
-    assert pyatmo.helpers.toEpoch(test_input) == expected
+    assert pyatmo.helpers.to_epoch(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -111,11 +111,11 @@ def test_toEpoch(test_input, expected):
         pytest.param("2000-04-31", None, marks=pytest.mark.xfail),
     ],
 )
-def test_todayStamps(monkeypatch, test_input, expected):
-    """Test todayStamps function."""
+def test_today_stamps(monkeypatch, test_input, expected):
+    """Test today_stamps function."""
 
     def mockreturn(format):
         return test_input
 
     monkeypatch.setattr(time, "strftime", mockreturn)
-    assert pyatmo.helpers.todayStamps() == expected
+    assert pyatmo.helpers.today_stamps() == expected

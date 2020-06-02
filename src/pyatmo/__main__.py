@@ -28,7 +28,7 @@ def main():
         )
         sys.exit(1)
 
-    authorization = ClientAuth(
+    auth = ClientAuth(
         clientId=CLIENT_ID,
         clientSecret=CLIENT_SECRET,
         username=USERNAME,
@@ -37,24 +37,24 @@ def main():
     )
 
     try:
-        WeatherStationData(authorization)
+        WeatherStationData(auth)
     except NoDevice:
         if sys.stdout.isatty():
             print("pyatmo.py : warning, no weather station available for testing")
 
     try:
-        CameraData(authorization)
+        CameraData(auth)
     except NoDevice:
         if sys.stdout.isatty():
             print("pyatmo.py : warning, no camera available for testing")
 
     try:
-        HomeData(authorization)
+        HomeData(auth)
     except NoDevice:
         if sys.stdout.isatty():
             print("pyatmo.py : warning, no thermostat available for testing")
 
-    PublicData(authorization)
+    PublicData(auth)
 
     # If we reach this line, all is OK
 

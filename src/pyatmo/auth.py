@@ -1,11 +1,11 @@
 import logging
 from json import JSONDecodeError
 from time import sleep
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import requests
-from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
-from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError  # type: ignore
+from requests_oauthlib import OAuth2Session  # type: ignore
 
 from .exceptions import ApiError
 from .helpers import _BASE_URL, ERRORS
@@ -66,7 +66,7 @@ class NetatmOAuth2:
         token: Optional[Dict[str, str]] = None,
         token_updater: Optional[Callable[[str], None]] = None,
         scope: Optional[str] = "read_station",
-    ):
+    ) -> None:
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
@@ -99,8 +99,8 @@ class NetatmOAuth2:
         return token
 
     def post_request(
-        self, url: str, params: Optional[Dict[str, str]] = None, timeout: int = 5
-    ):
+        self, url: str, params: Optional[Dict] = None, timeout: int = 5,
+    ) -> Any:
         """Wrapper for post requests."""
         if not params:
             params = {}

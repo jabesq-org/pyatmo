@@ -1,6 +1,6 @@
 import imghdr
 import time
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 from requests.exceptions import ReadTimeout
 
@@ -20,15 +20,15 @@ class CameraData:
     List of Netatmo camera informations
         (Homes, cameras, smoke detectors, modules, events, persons)
     Args:
-        auth_data (ClientAuth):
+        auth (ClientAuth):
             Authentication information with a valid access token
     """
 
-    def __init__(self, auth_data, size=15):
-        self.auth_data = auth_data
+    def __init__(self, auth, size=15):
+        self.auth = auth
 
         post_params = {"size": size}
-        resp = self.auth_data.post_request(url=_GETHOMEDATA_REQ, params=post_params)
+        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params=post_params)
         if resp is None or "body" not in resp:
             raise NoDevice("No device data returned by Netatmo server")
 
@@ -103,7 +103,7 @@ class CameraData:
         for home_id, _ in self.cameras.items():
             if cid in self.cameras[home_id]:
                 return self.cameras[home_id][cid]
-        return None
+        return {}
 
     def get_module(self, mid: str):
         """Get module data."""
@@ -116,7 +116,7 @@ class CameraData:
                 return self.smokedetectors[home][sid]
         return None
 
-    def camera_urls(self, cid: str) -> Tuple[str, str]:
+    def camera_urls(self, cid: str) -> Tuple[Union[str, None], Union[str, None]]:
         """
         Return the vpn_url and the local_url (if available) of a given camera
         in order to access its live feed.
@@ -131,23 +131,22 @@ class CameraData:
 
         if camera_data:
             vpn_url = camera_data.get("vpn_url")
-            if camera_data.get("is_local"):
+            if vpn_url and camera_data.get("is_local"):
 
-                def check_url(url: str) -> str:
-                    if url is None:
-                        return None
+                def check_url(url: str) -> Optional[str]:
                     try:
-                        resp = self.auth_data.post_request(url=f"{url}/command/ping")
+                        resp = self.auth.post_request(url=f"{url}/command/ping")
                     except (ApiError, ReadTimeout):
-                        LOG.debug("Timeout validation the camera url %s", url)
+                        LOG.debug("Timeout validation of camera url %s", url)
                         return None
                     else:
                         return resp.get("local_url")
 
                 temp_local_url = check_url(vpn_url)
-                self.cameras[home_id][cid]["local_url"] = check_url(temp_local_url)
+                if temp_local_url:
+                    self.cameras[home_id][cid]["local_url"] = check_url(temp_local_url)
 
-    def get_light_state(self, cid: str) -> str:
+    def get_light_state(self, cid: str) -> Optional[str]:
         """Return the current mode of the floodlight of a presence camera."""
         return self.get_camera(cid).get("light_mode_status")
 
@@ -163,14 +162,12 @@ class CameraData:
         return at_home
 
     def set_persons_home(self, person_ids, home_id):
-        """
-        Mark persons as home.
-        """
+        """Mark persons as home."""
         post_params = {
             "home_id": home_id,
             "person_ids[]": person_ids,
         }
-        resp = self.auth_data.post_request(url=_SETPERSONSHOME_REQ, params=post_params)
+        resp = self.auth.post_request(url=_SETPERSONSHOME_REQ, params=post_params)
         return resp
 
     def set_persons_away(self, person_id, home_id):
@@ -187,10 +184,10 @@ class CameraData:
             "home_id": home_id,
             "person_id": person_id,
         }
-        resp = self.auth_data.post_request(url=_SETPERSONSAWAY_REQ, params=post_params)
+        resp = self.auth.post_request(url=_SETPERSONSAWAY_REQ, params=post_params)
         return resp
 
-    def get_person_id(self, name: str) -> str:
+    def get_person_id(self, name: str) -> Optional[str]:
         """Retrieve the ID of a person.
 
         Arguments:
@@ -210,9 +207,7 @@ class CameraData:
             "image_id": image_id,
             "key": key,
         }
-        resp = self.auth_data.post_request(
-            url=_GETCAMERAPICTURE_REQ, params=post_params
-        )
+        resp = self.auth.post_request(url=_GETCAMERAPICTURE_REQ, params=post_params)
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
@@ -276,11 +271,8 @@ class CameraData:
             "event_id": event_id,
         }
 
-        event_list = []
         try:
-            resp = self.auth_data.post_request(
-                url=_GETEVENTSUNTIL_REQ, params=post_params
-            )
+            resp = self.auth.post_request(url=_GETEVENTSUNTIL_REQ, params=post_params)
             event_list = resp["body"]["events_list"]
         except ApiError:
             pass
@@ -524,7 +516,7 @@ class CameraData:
         }
 
         try:
-            resp = self.auth_data.post_request(url=_SETSTATE_REQ, params=post_params)
+            resp = self.auth.post_request(url=_SETSTATE_REQ, params=post_params)
         except ApiError as err_msg:
             LOG.error("%s", err_msg)
             return False

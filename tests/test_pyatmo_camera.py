@@ -48,10 +48,7 @@ def test_HomeData_no_homes(auth, requests_mock):
 )
 def test_CameraData_get_camera(cameraHomeData, cid, expected):
     camera = cameraHomeData.get_camera(cid)
-    if camera:
-        assert camera["name"] == expected
-    else:
-        assert camera is expected
+    assert camera.get("name") == expected
 
 
 def test_CameraData_get_module(cameraHomeData):

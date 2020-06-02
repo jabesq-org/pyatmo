@@ -24,7 +24,7 @@ _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 class PublicData:
     def __init__(
         self,
-        authData: NetatmOAuth2,
+        auth: NetatmOAuth2,
         LAT_NE: str,
         LON_NE: str,
         LAT_SW: str,
@@ -32,7 +32,7 @@ class PublicData:
         required_data_type: str = None,  # comma-separated list from above _STATION or _ACCESSORY values
         filtering: bool = False,
     ) -> None:
-        self.authData = authData
+        self.auth = auth
         postParams: Dict = {
             "lat_ne": LAT_NE,
             "lon_ne": LON_NE,
@@ -44,7 +44,7 @@ class PublicData:
         if required_data_type:
             postParams["required_data"] = required_data_type
 
-        resp = self.authData.post_request(url=_GETPUBLIC_DATA, params=postParams)
+        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=postParams)
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError):

@@ -1,4 +1,5 @@
 """Define tests for Public weather module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
@@ -11,9 +12,9 @@ LON_SW = 6.217828
 LAT_SW = 46.596485
 
 
-def test_PublicData(auth, requests_mock):
-    with open("fixtures/public_data_simple.json") as f:
-        json_fixture = json.load(f)
+def test_public_data(auth, requests_mock):
+    with open("fixtures/public_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,
@@ -29,15 +30,15 @@ def test_PublicData(auth, requests_mock):
     assert publicData.status == "ok"
 
 
-def test_PublicData_unavailable(auth, requests_mock):
+def test_public_data_unavailable(auth, requests_mock):
     requests_mock.post(pyatmo.public_data._GETPUBLIC_DATA, status_code=404)
     with pytest.raises(pyatmo.ApiError):
         pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
 
-def test_PublicData_error(auth, requests_mock):
-    with open("fixtures/public_data_error_mongo.json") as f:
-        json_fixture = json.load(f)
+def test_public_data_error(auth, requests_mock):
+    with open("fixtures/public_data_error_mongo.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,

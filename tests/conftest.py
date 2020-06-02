@@ -1,4 +1,5 @@
 """Define shared fixtures."""
+# pylint: disable=redefined-outer-name, protected-access
 import json
 from contextlib import contextmanager
 
@@ -14,16 +15,16 @@ def does_not_raise():
 
 @pytest.fixture(scope="function")
 def auth(requests_mock):
-    with open("fixtures/oauth2_token.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/oauth2_token.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.auth._AUTH_REQ,
+        pyatmo.auth.AUTH_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     authorization = pyatmo.ClientAuth(
-        clientId="CLIENT_ID",
-        clientSecret="CLIENT_SECRET",
+        client_id="CLIENT_ID",
+        client_secret="CLIENT_SECRET",
         username="USERNAME",
         password="PASSWORD",
         scope=" ".join(pyatmo.auth.ALL_SCOPES),
@@ -32,9 +33,9 @@ def auth(requests_mock):
 
 
 @pytest.fixture(scope="function")
-def homeData(auth, requests_mock):
-    with open("fixtures/home_data_simple.json") as f:
-        json_fixture = json.load(f)
+def home_data(auth, requests_mock):
+    with open("fixtures/home_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._GETHOMESDATA_REQ,
         json=json_fixture,
@@ -56,9 +57,9 @@ def homeStatus(auth, home_id, requests_mock):
 
 
 @pytest.fixture(scope="function")
-def publicData(auth, requests_mock):
-    with open("fixtures/public_data_simple.json") as f:
-        json_fixture = json.load(f)
+def public_data(auth, requests_mock):
+    with open("fixtures/public_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.public_data._GETPUBLIC_DATA,
         json=json_fixture,
@@ -74,9 +75,9 @@ def publicData(auth, requests_mock):
 
 
 @pytest.fixture(scope="function")
-def weatherStationData(auth, requests_mock):
-    with open("fixtures/weatherstation_data_simple.json") as f:
-        json_fixture = json.load(f)
+def weather_station_data(auth, requests_mock):
+    with open("fixtures/weatherstation_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
@@ -86,9 +87,9 @@ def weatherStationData(auth, requests_mock):
 
 
 @pytest.fixture(scope="function")
-def homeCoachData(auth, requests_mock):
-    with open("fixtures/home_coach_simple.json") as f:
-        json_fixture = json.load(f)
+def home_coach_data(auth, requests_mock):
+    with open("fixtures/home_coach_simple.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.home_coach._GETHOMECOACHDATA_REQ,
         json=json_fixture,
@@ -98,9 +99,9 @@ def homeCoachData(auth, requests_mock):
 
 
 @pytest.fixture(scope="function")
-def cameraHomeData(auth, requests_mock):
-    with open("fixtures/camera_home_data.json") as f:
-        json_fixture = json.load(f)
+def camera_home_data(auth, requests_mock):
+    with open("fixtures/camera_home_data.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.camera._GETHOMEDATA_REQ,
         json=json_fixture,

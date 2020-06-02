@@ -2,7 +2,7 @@ from .auth import NetatmOAuth2
 from .helpers import _BASE_URL
 from .weather_station import WeatherStationData
 
-_GETHOMECOACHDATA_REQ = _BASE_URL + "api/gethomecoachsdata"
+_GETHOMECOACHDATA_REQ = BASE_URL + "api/gethomecoachsdata"
 
 
 class HomeCoachData(WeatherStationData):

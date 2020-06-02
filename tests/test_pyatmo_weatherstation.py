@@ -1,4 +1,5 @@
 """Define tests for WeatherStation module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
@@ -7,19 +8,19 @@ from freezegun import freeze_time
 import pyatmo
 
 
-def test_WeatherStationData(weatherStationData):
-    assert weatherStationData.default_station == "MyStation"
+def test_weather_station_data(weather_station_data):
+    assert weather_station_data.default_station == "MyStation"
 
 
-def test_WeatherStationData_no_response(auth, requests_mock):
+def test_weather_station_data_no_response(auth, requests_mock):
     requests_mock.post(pyatmo.weather_station._GETSTATIONDATA_REQ, text="None")
     with pytest.raises(pyatmo.NoDevice):
         assert pyatmo.WeatherStationData(auth)
 
 
-def test_WeatherStationData_no_body(auth, requests_mock):
-    with open("fixtures/status_ok.json") as f:
-        json_fixture = json.load(f)
+def test_weather_station_data_no_body(auth, requests_mock):
+    with open("fixtures/status_ok.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
@@ -29,9 +30,9 @@ def test_WeatherStationData_no_body(auth, requests_mock):
         assert pyatmo.WeatherStationData(auth)
 
 
-def test_WeatherStationData_no_data(auth, requests_mock):
-    with open("fixtures/home_data_empty.json") as f:
-        json_fixture = json.load(f)
+def test_weather_station_data_no_data(auth, requests_mock):
+    with open("fixtures/home_data_empty.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
@@ -239,52 +240,6 @@ def test_WeatherStationData_get_monitored_conditions(
     assert sorted(weatherStationData.get_monitored_conditions(module_id)) == expected
 
 
-# @freeze_time("2019-06-11")
-# @pytest.mark.parametrize(
-#     "station_id, exclude, expected",
-#     [
-#         (
-#             "12:34:56:05:51:20",
-#             None,
-#             [
-#                 "Garden",
-#                 "Kitchen",
-#                 "Livingroom",
-#                 "NetatmoIndoor",
-#                 "NetatmoOutdoor",
-#                 "Yard",
-#             ],
-#         ),
-#         (
-#             "12:34:56:37:11:ca",
-#             798103,
-#             [
-#                 "12:34:56:02:b3:da",
-#                 "12:34:56:03:1b:e4",
-#                 "12:34:56:03:76:60",
-#                 "12:34:56:05:25:6e",
-#                 "12:34:56:05:51:20",
-#                 "12:34:56:07:bb:3e",
-#                 "12:34:56:1c:68:2e",
-#                 "12:34:56:32:a7:60",
-#                 "12:34:56:32:db:06",
-#                 "12:34:56:36:fc:de",
-#                 "12:34:56:36:fd:3c",
-#                 "12:34:56:37:11:ca",
-#             ],
-#         ),
-#     ],
-# )
-# def test_WeatherStationData_get_last_data(
-#     weatherStationData, station_id, exclude, expected
-# ):
-#     mod = weatherStationData.get_last_data(station_id, exclude=exclude)
-#     if mod:
-#         assert sorted(mod) == expected
-#     else:
-#         assert mod == expected
-
-
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
@@ -302,8 +257,8 @@ def test_WeatherStationData_get_monitored_conditions(
                 "12:34:56:37:11:ca",
             ],
         ),
-        ("", None, {},),
-        ("NoValidStation", None, {},),
+        ("", None, {}),
+        ("NoValidStation", None, {}),
         (
             "12:34:56:37:11:ca",
             1000000,
@@ -407,8 +362,8 @@ def test_WeatherStationData_check_updated(
 def test_WeatherStationData_get_measure(
     weatherStationData, requests_mock, device_id, scale, mtype, expected
 ):
-    with open("fixtures/weatherstation_measure.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/weatherstation_measure.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETMEASURE_REQ,
         json=json_fixture,

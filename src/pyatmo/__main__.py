@@ -1,3 +1,6 @@
+import os
+import sys
+
 from pyatmo.auth import ALL_SCOPES, ClientAuth
 from pyatmo.camera import CameraData
 from pyatmo.exceptions import NoDevice
@@ -7,32 +10,29 @@ from pyatmo.weather_station import WeatherStationData
 
 
 def main():
-    import sys
-
     try:
-        import os
-
         if (
             os.environ["CLIENT_ID"]
             and os.environ["CLIENT_SECRET"]
             and os.environ["USERNAME"]
             and os.environ["PASSWORD"]
         ):
-            CLIENT_ID = os.environ["CLIENT_ID"]
-            CLIENT_SECRET = os.environ["CLIENT_SECRET"]
-            USERNAME = os.environ["USERNAME"]
-            PASSWORD = os.environ["PASSWORD"]
+            client_id = os.environ["CLIENT_ID"]
+            client_secret = os.environ["CLIENT_SECRET"]
+            username = os.environ["USERNAME"]
+            password = os.environ["PASSWORD"]
     except KeyError:
         sys.stderr.write(
-            "No credentials passed to pyatmo.py (client_id, client_secret, username, password)\n"
+            "No credentials passed to pyatmo.py (client_id, client_secret, "
+            "username, password)\n"
         )
         sys.exit(1)
 
-    auth = ClientAuth(
-        clientId=CLIENT_ID,
-        clientSecret=CLIENT_SECRET,
-        username=USERNAME,
-        password=PASSWORD,
+    authorization = ClientAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        username=username,
+        password=password,
         scope=" ".join(ALL_SCOPES),
     )
 

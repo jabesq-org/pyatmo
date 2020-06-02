@@ -8,8 +8,8 @@ from .helpers import _BASE_URL, fix_id, today_stamps
 
 LOG = logging.getLogger(__name__)
 
-_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
-_GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
+_GETMEASURE_REQ = BASE_URL + "api/getmeasure"
+_GETSTATIONDATA_REQ = BASE_URL + "api/getstationsdata"
 
 
 class WeatherStationData:

@@ -39,4 +39,4 @@ def fix_id(rawData: Dict) -> Dict:
             station["_id"] = station["_id"].replace(" ", "")
             for module in station.get("modules", {}):
                 module["_id"] = module["_id"].replace(" ", "")
-    return rawData
+    return raw_data

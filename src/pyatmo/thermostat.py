@@ -7,12 +7,12 @@ from .helpers import _BASE_URL
 
 LOG = logging.getLogger(__name__)
 
-_GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
-_GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
-_SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
-_SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
-_GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
-_SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
+_GETHOMESDATA_REQ = BASE_URL + "api/homesdata"
+_GETHOMESTATUS_REQ = BASE_URL + "api/homestatus"
+_SETTHERMMODE_REQ = BASE_URL + "api/setthermmode"
+_SETROOMTHERMPOINT_REQ = BASE_URL + "api/setroomthermpoint"
+_GETROOMMEASURE_REQ = BASE_URL + "api/getroommeasure"
+_SWITCHHOMESCHEDULE_REQ = BASE_URL + "api/switchhomeschedule"
 
 
 class HomeData:
@@ -82,7 +82,7 @@ class HomeData:
                         for zone in schedule["zones"]:
                             self.zones[home_id][scheduleId][zone["id"]] = zone
 
-    def get_selected_schedule(self, home_id: str):
+    def _get_selected_schedule(self, home_id: str):
         """Get the selected schedule for a given home ID."""
         for key, value in self.schedules.get(home_id, {}).items():
             if "selected" in value.keys():
@@ -148,15 +148,15 @@ class HomeStatus:
 
         for module in self.rawData.get("modules", []):
             if module["type"] == "NATherm1":
-                thermostatId = module["id"]
-                if thermostatId not in self.thermostats:
-                    self.thermostats[thermostatId] = {}
-                self.thermostats[thermostatId] = module
+                thermostat_id = module["id"]
+                if thermostat_id not in self.thermostats:
+                    self.thermostats[thermostat_id] = {}
+                self.thermostats[thermostat_id] = module
             elif module["type"] == "NRV":
-                valveId = module["id"]
-                if valveId not in self.valves:
-                    self.valves[valveId] = {}
-                self.valves[valveId] = module
+                valve_id = module["id"]
+                if valve_id not in self.valves:
+                    self.valves[valve_id] = {}
+                self.valves[valve_id] = module
             elif module["type"] == "NAPlug":
                 relayId = module["id"]
                 if relayId not in self.relays:
@@ -209,7 +209,7 @@ class HomeStatus:
             "mode": mode,
         }
         if end_time is not None and mode in ("hg", "away"):
-            postParams["endtime"] = end_time
+            post_params["endtime"] = end_time
         if schedule_id is not None and mode == "schedule":
             postParams["schedule_id"] = schedule_id
         return self.auth.post_request(url=_SETTHERMMODE_REQ, params=postParams)
@@ -223,7 +223,7 @@ class HomeStatus:
         # Temp and endtime should only be send when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
-            postParams["temp"] = temp
+            post_params["temp"] = temp
         if end_time is not None:
             postParams["endtime"] = end_time
         return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=postParams)

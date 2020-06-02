@@ -1,5 +1,6 @@
 import imghdr
 import time
+from pprint import pformat
 from typing import Dict, Optional, Tuple
 
 from requests.exceptions import ReadTimeout
@@ -8,12 +9,12 @@ from .auth import NetatmOAuth2
 from .exceptions import ApiError, NoDevice
 from .helpers import _BASE_URL, LOG
 
-_GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
-_GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"
-_GETEVENTSUNTIL_REQ = _BASE_URL + "api/geteventsuntil"
-_SETPERSONSAWAY_REQ = _BASE_URL + "api/setpersonsaway"
-_SETPERSONSHOME_REQ = _BASE_URL + "api/setpersonshome"
-_SETSTATE_REQ = _BASE_URL + "api/setstate"
+_GETHOMEDATA_REQ = BASE_URL + "api/gethomedata"
+_GETCAMERAPICTURE_REQ = BASE_URL + "api/getcamerapicture"
+_GETEVENTSUNTIL_REQ = BASE_URL + "api/geteventsuntil"
+_SETPERSONSAWAY_REQ = BASE_URL + "api/setpersonsaway"
+_SETPERSONSHOME_REQ = BASE_URL + "api/setpersonshome"
+_SETSTATE_REQ = BASE_URL + "api/setstate"
 
 
 class CameraData:
@@ -107,7 +108,7 @@ class CameraData:
             for camera_id in self.cameras[home_id]:
                 self.update_camera_urls(camera_id)
 
-    def get_camera(self, cid: str) -> Dict[str, str]:
+    def get_camera(self, cid: str) -> Optional[Dict[str, str]]:
         """Get camera data."""
         for home_id, _ in self.cameras.items():
             if cid in self.cameras[home_id]:
@@ -157,7 +158,11 @@ class CameraData:
 
     def get_light_state(self, cid: str) -> Optional[str]:
         """Return the current mode of the floodlight of a presence camera."""
-        return self.get_camera(cid).get("light_mode_status")
+        camera_data = self.get_camera(cid)
+        if camera_data is None:
+            raise ValueError("Invalid Camera ID")
+
+        return camera_data.get("light_mode_status")
 
     def persons_at_home(self, home_id=None):
         """Return a list of known persons who are currently at home."""
@@ -323,6 +328,7 @@ class CameraData:
                     if "pseudo" in self.persons[person_id]:
                         if self.persons[person_id]["pseudo"] == name:
                             return True
+                          
         elif self.last_event[cid]["type"] == "person":
             person_id = self.last_event[cid]["person_id"]
             if "pseudo" in self.persons[person_id]:
@@ -332,9 +338,9 @@ class CameraData:
 
     def _known_persons(self):
         known_persons = {}
-        for p_id, p in self.persons.items():
-            if "pseudo" in p:
-                known_persons[p_id] = p
+        for person_id, person in self.persons.items():
+            if "pseudo" in person:
+                known_persons[person_id] = person
         return known_persons
 
     def known_persons(self):

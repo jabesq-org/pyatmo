@@ -1,4 +1,5 @@
 """Define tests for Camera module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
@@ -63,15 +64,15 @@ def test_CameraData_camera_urls(cameraHomeData, requests_mock):
         "MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTTg,,"
     )
     local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-    with open("fixtures/camera_ping.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/camera_ping.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         vpn_url + "/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with open("fixtures/camera_ping.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/camera_ping.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         local_url + "/command/ping",
         json=json_fixture,
@@ -92,41 +93,6 @@ def test_CameraData_update_camera_urls_empty(cameraHomeData):
     cameraHomeData.update_camera_urls(camera_id)
 
     assert cameraHomeData.camera_urls(camera_id) == (None, None)
-
-
-# def test_CameraData_update_camera_urls_timeout(auth, requests_mock):
-#     fake_url = "mock://test.com/6"
-#     camera_id = "12:34:56:00:f1:62"
-#     home_id = "91763b24c43d3e344f424e8b"
-
-#     with open("fixtures/camera_home_data.json") as f:
-#         json_fixture = json.load(f)
-#     requests_mock.post(
-#         pyatmo.camera._GETHOMEDATA_REQ,
-#         json=json_fixture,
-#         headers={"content-type": "application/json"},
-#     )
-#     for index in ["w", "z", "g"]:
-#         vpn_url = (
-#             f"https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
-#             f"6d278460699e56180d47ab47169efb31/"
-#             f"MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTT{index},,"
-#         )
-#         requests_mock.post(vpn_url + "/command/ping", exc=pyatmo.exceptions.ApiError)
-#     local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-#     requests_mock.post(local_url + "/command/ping", exc=pyatmo.exceptions.ApiError)
-
-#     with pytest.raises(pyatmo.exceptions.ApiError):
-#         cameraHomeData = pyatmo.CameraData(auth)
-#     cameraHomeData.cameras[home_id][camera_id]["vpn_url"] = fake_url
-#     cameraHomeData.cameras[home_id][camera_id]["local_url"] = fake_url
-
-#     requests_mock.post(fake_url + "/command/ping", exc=pyatmo.exceptions.ApiError)
-
-#     with pytest.raises(pyatmo.exceptions.ApiError):
-#         cameraHomeData.update_camera_urls(camera_id)
-
-#     assert cameraHomeData.camera_urls(camera_id) == (fake_url, None)
 
 
 def test_CameraData_camera_urls_disconnected(auth, requests_mock):
@@ -204,7 +170,7 @@ def test_CameraData_known_persons_names(cameraHomeData):
         "Jane Doe",
         "John Doe",
         "Richard Doe",
-    ]
+    }
 
 
 @freeze_time("2019-06-16")
@@ -221,7 +187,7 @@ def test_CameraData_get_person_id(cameraHomeData, name, expected):
 
 
 @pytest.mark.parametrize(
-    "hid, pid, json_fixture, expected",
+    "home_id, person_id, json_fixture, expected",
     [
         (
             "91763b24c43d3e344f424e8b",
@@ -240,8 +206,8 @@ def test_CameraData_get_person_id(cameraHomeData, name, expected):
 def test_CameraData_set_persons_away(
     cameraHomeData, requests_mock, hid, pid, json_fixture, expected
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.camera._SETPERSONSAWAY_REQ,
         json=json_fixture,
@@ -251,7 +217,7 @@ def test_CameraData_set_persons_away(
 
 
 @pytest.mark.parametrize(
-    "hid, pids, json_fixture, expected",
+    "home_id, person_ids, json_fixture, expected",
     [
         (
             "91763b24c43d3e344f424e8b",
@@ -273,8 +239,8 @@ def test_CameraData_set_persons_away(
 def test_CameraData_set_persons_home(
     cameraHomeData, requests_mock, hid, pids, json_fixture, expected
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.camera._SETPERSONSHOME_REQ,
         json=json_fixture,
@@ -395,8 +361,8 @@ def test_CameraData_get_smokedetector(cameraHomeData, sid, expected):
         ),
     ],
 )
-def test_CameraData_set_state(
-    cameraHomeData,
+def test_camera_data_set_state(
+    camera_home_data,
     requests_mock,
     home_id,
     camera_id,
@@ -405,15 +371,15 @@ def test_CameraData_set_state(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as f:
-        json_fixture = json.load(f)
+    with open("fixtures/%s" % json_fixture) as fixture_file:
+        json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._SETSTATE_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     assert (
-        cameraHomeData.set_state(
+        camera_home_data.set_state(
             home_id=home_id,
             camera_id=camera_id,
             floodlight=floodlight,

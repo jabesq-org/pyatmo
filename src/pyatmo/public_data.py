@@ -61,7 +61,7 @@ class PublicData:
         }
 
         if required_data_type:
-            postParams["required_data"] = required_data_type
+            post_params["required_data"] = required_data_type
 
         resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=postParams)
         try:
@@ -145,7 +145,7 @@ class PublicData:
     def get_latest_station_measures(self, data_type) -> Dict:
         measures: Dict = {}
         for station in self.raw_data:
-            for _, module in station["measures"].items():
+            for module in station["measures"].values():
                 if (
                     "type" in module
                     and data_type in module["type"]
@@ -162,7 +162,7 @@ class PublicData:
     def get_accessory_data(self, data_type: str) -> Dict[str, Any]:
         data: Dict = {}
         for station in self.raw_data:
-            for _, module in station["measures"].items():
+            for module in station["measures"].values():
                 if data_type in module:
                     data[station["_id"]] = module[data_type]
         return data

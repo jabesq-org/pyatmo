@@ -1,4 +1,5 @@
 """Define tests for HomeCoach module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
@@ -6,8 +7,8 @@ import pytest
 import pyatmo
 
 
-def test_HomeCoachData(homeCoachData):
-    assert homeCoachData.default_station == "Bedroom"
+def test_home_coach_data(home_coach_data):
+    assert home_coach_data.default_station == "Bedroom"
 
 
 @pytest.mark.parametrize(
@@ -54,9 +55,9 @@ def test_HomeCoachData_get_modules(homeCoachData, station_id, expected):
     assert homeCoachData.get_modules(station_id) == expected
 
 
-def test_HomeCoachData_no_devices(auth, requests_mock):
-    with open("fixtures/home_coach_no_devices.json") as f:
-        json_fixture = json.load(f)
+def test_home_coach_data_no_devices(auth, requests_mock):
+    with open("fixtures/home_coach_no_devices.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.home_coach._GETHOMECOACHDATA_REQ,
         json=json_fixture,

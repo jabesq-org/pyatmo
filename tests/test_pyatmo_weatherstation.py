@@ -356,10 +356,10 @@ def test_weather_station_check_updated(
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "device_id, scale, mtype, expected", [("MyStation", "scale", "type", [28.1])]
+    "device_id, scale, module_type, expected", [("MyStation", "scale", "type", [28.1])]
 )
-def test_weather_station_get_measure(
-    weather_station_data, requests_mock, device_id, scale, mtype, expected
+def test_weather_station_get_data(
+    weather_station_data, requests_mock, device_id, scale, module_type, expected
 ):
     with open("fixtures/weatherstation_measure.json") as json_file:
         json_fixture = json.load(json_file)
@@ -369,7 +369,9 @@ def test_weather_station_get_measure(
         headers={"content-type": "application/json"},
     )
     assert (
-        weather_station_data.get_measure(device_id, scale, mtype)["body"]["1544558433"]
+        weather_station_data.get_data(device_id, scale, module_type)["body"][
+            "1544558433"
+        ]
         == expected
     )
 

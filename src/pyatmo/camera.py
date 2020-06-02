@@ -341,17 +341,17 @@ class CameraData:
                     return True
         return False
 
-    def _known_persons(self):
+    def _known_persons(self) -> Dict[str, Dict]:
         known_persons = {}
         for person_id, person in self.persons.items():
             if "pseudo" in person:
                 known_persons[person_id] = person
         return known_persons
 
-    def known_persons(self):
+    def known_persons(self) -> Dict[str, str]:
         return {pid: p["pseudo"] for pid, p in self._known_persons().items()}
 
-    def known_persons_names(self):
+    def known_persons_names(self) -> List[str]:
         names = []
         for person in self._known_persons().values():
             names.append(person["pseudo"])

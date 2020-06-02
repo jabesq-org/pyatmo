@@ -148,12 +148,12 @@ class WeatherStationData:
             conditions.append("reachable")
         return conditions
 
-    def get_last_data(self, station_id=None, exclude=0):
+    def get_last_data(self, station_id: str, exclude: int = 0) -> Dict:
         """Return data for a given station and time frame."""
         key = "_id"
 
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
-        last_data = {}
+        last_data: Dict = {}
         station = self.get_station(station_id)
 
         if not station or "dashboard_data" not in station:
@@ -211,17 +211,17 @@ class WeatherStationData:
                 ret.append(key)
         return ret
 
-    def get_measure(
+    def get_data(
         self,
-        device_id,
-        scale,
-        mtype,
-        module_id=None,
-        date_begin=None,
-        date_end=None,
-        limit=None,
-        optimize=False,
-        real_time=False,
+        device_id: str,
+        scale: str,
+        module_type: str,
+        module_id: str = None,
+        date_begin: float = None,
+        date_end: float = None,
+        limit: int = None,
+        optimize: bool = False,
+        real_time: bool = False,
     ):
         """Retrieve data from a device or module."""
         post_params = {"device_id": device_id}
@@ -229,16 +229,16 @@ class WeatherStationData:
             post_params["module_id"] = module_id
 
         post_params["scale"] = scale
-        post_params["type"] = mtype
+        post_params["type"] = module_type
 
         if date_begin:
-            post_params["date_begin"] = date_begin
+            post_params["date_begin"] = f"{date_begin}"
 
         if date_end:
-            post_params["date_end"] = date_end
+            post_params["date_end"] = f"{date_end}"
 
         if limit:
-            post_params["limit"] = limit
+            post_params["limit"] = f"{limit}"
 
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
@@ -266,11 +266,11 @@ class WeatherStationData:
         elif frame == "day":
             start, end = today_stamps()
 
-        resp = self.get_measure(
+        resp = self.get_data(
             device_id=station_id,
             module_id=module_id,
             scale="max",
-            mtype="Temperature,Humidity",
+            module_type="Temperature,Humidity",
             date_begin=start,
             date_end=end,
         )

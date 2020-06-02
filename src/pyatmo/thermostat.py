@@ -163,7 +163,7 @@ class HomeStatus:
                     self.relays[relay_id] = {}
                 self.relays[relay_id] = module
 
-    def get_room(self, room_id):
+    def get_room(self, room_id: str) -> Dict:
         for key, value in self.rooms.items():
             if value["id"] == room_id:
                 return self.rooms[key]

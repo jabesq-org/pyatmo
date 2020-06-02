@@ -122,7 +122,7 @@ class NetatmoOAuth2:
                 LOG.debug("Remote end closed connection without response (%s)", url)
         else:
 
-            def query(url, params, timeout, retries):
+            def query(url: str, params: Dict, timeout: int, retries: int) -> Any:
                 if retries == 0:
                     LOG.error("Too many retries")
                     return

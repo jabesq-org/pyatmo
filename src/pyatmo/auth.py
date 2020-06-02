@@ -42,8 +42,8 @@ class NetatmoOAuth2:
 
     def __init__(
         self,
-        client_id: str,
-        client_secret: str,
+        client_id: str = None,
+        client_secret: str = None,
         redirect_uri: Optional[str] = None,
         token: Optional[Dict[str, str]] = None,
         token_updater: Optional[Callable[[str], None]] = None,

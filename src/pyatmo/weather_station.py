@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 from .auth import NetatmoOAuth2
 from .exceptions import NoDevice
@@ -105,7 +105,7 @@ class WeatherStationData:
         """Return station by id."""
         return self.stations.get(station_id, {})
 
-    def get_module(self, module_id: str):
+    def get_module(self, module_id: str) -> Dict:
         """Return module by id."""
         return self.modules.get(module_id, {})
 
@@ -193,7 +193,7 @@ class WeatherStationData:
 
         return last_data
 
-    def check_not_updated(self, station_id: str, delay: int = 3600):
+    def check_not_updated(self, station_id: str, delay: int = 3600) -> List:
         """Check if a given station has not been updated."""
         res = self.get_last_data(station_id)
         ret = []
@@ -202,7 +202,7 @@ class WeatherStationData:
                 ret.append(key)
         return ret
 
-    def check_updated(self, station_id: str, delay: int = 3600):
+    def check_updated(self, station_id: str, delay: int = 3600) -> List:
         """Check if a given station has been updated."""
         res = self.get_last_data(station_id)
         ret = []
@@ -222,7 +222,7 @@ class WeatherStationData:
         limit: int = None,
         optimize: bool = False,
         real_time: bool = False,
-    ):
+    ) -> Optional[Dict]:
         """Retrieve data from a device or module."""
         post_params = {"device_id": device_id}
         if module_id:
@@ -247,7 +247,7 @@ class WeatherStationData:
 
     def get_min_max_t_h(
         self, station_id: str, module_id: str = None, frame: str = "last24"
-    ):
+    ) -> Optional[Tuple[float, float, float, float]]:
         """Return minimum and maximum temperature and humidity over the given timeframe.
 
         Arguments:
@@ -279,3 +279,5 @@ class WeatherStationData:
             temperature = [temp[0] for temp in resp["body"].values()]
             humidity = [hum[1] for hum in resp["body"].values()]
             return min(temperature), max(temperature), min(humidity), max(humidity)
+
+        return None

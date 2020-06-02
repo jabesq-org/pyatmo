@@ -115,11 +115,11 @@ class CameraData:
                 return self.cameras[home_id][camera_id]
         return {}
 
-    def get_module(self, module_id: str):
+    def get_module(self, module_id: str) -> Optional[dict]:
         """Get module data."""
         return None if module_id not in self.modules else self.modules[module_id]
 
-    def get_smokedetector(self, smoke_id: str):
+    def get_smokedetector(self, smoke_id: str) -> Optional[dict]:
         """Get smoke detector."""
         for home_id, _ in self.smokedetectors.items():
             if smoke_id in self.smokedetectors[home_id]:
@@ -220,7 +220,9 @@ class CameraData:
                 return pid
         return None
 
-    def get_camera_picture(self, image_id: str, key: str):
+    def get_camera_picture(
+        self, image_id: str, key: str
+    ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {
             "image_id": image_id,
@@ -230,7 +232,7 @@ class CameraData:
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
-    def get_profile_image(self, name: str):
+    def get_profile_image(self, name: str) -> Tuple[Optional[bytes], Optional[str]]:
         """Retrieve the face of a given person."""
         for person in self.persons:
             if "pseudo" in self.persons[person]:
@@ -317,7 +319,9 @@ class CameraData:
                 sorted(self.outdoor_events[camera])[-1]
             ]
 
-    def person_seen_by_camera(self, name, camera_id, exclude=0):
+    def person_seen_by_camera(
+        self, name: str, camera_id: str, exclude: int = 0
+    ) -> bool:
         """
         Evaluate if a specific person has been seen
         """
@@ -401,7 +405,7 @@ class CameraData:
                 return True
         return False
 
-    def motion_detected(self, camera_id, exclude=0):
+    def motion_detected(self, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if movement has been detected."""
         if camera_id not in self.events:
             raise NoDevice

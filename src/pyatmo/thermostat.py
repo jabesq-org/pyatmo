@@ -1,5 +1,5 @@
 import logging
-from typing import Dict
+from typing import Any, Dict, Optional
 
 from .auth import NetatmoOAuth2
 from .exceptions import InvalidRoom, NoDevice, NoSchedule
@@ -82,15 +82,15 @@ class HomeData:
                         for zone in schedule["zones"]:
                             self.zones[home_id][schedule_id][zone["id"]] = zone
 
-    def _get_selected_schedule(self, home_id: str):
+    def _get_selected_schedule(self, home_id: str) -> Dict:
         """Get the selected schedule for a given home ID."""
         for value in self.schedules.get(home_id, {}).values():
             if "selected" in value.keys():
                 return value
         return {}
 
-    def switch_home_schedule(self, home_id: str, schedule_id: str):
-        """."""
+    def switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
+        """Switch the schedule for a give home ID."""
         schedules = {
             self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
             for s in self.schedules.get(home_id, {})
@@ -105,23 +105,24 @@ class HomeData:
         resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
         LOG.debug("Response: %s", resp)
 
-    def get_hg_temp(self, home_id: str) -> float:
+    def get_hg_temp(self, home_id: str) -> Optional[float]:
         """Return frost guard temperature value."""
         return self._get_selected_schedule(home_id).get("hg_temp")
 
-    def get_away_temp(self, home_id: str) -> float:
+    def get_away_temp(self, home_id: str) -> Optional[float]:
         """Return the configured away temperature value."""
         return self._get_selected_schedule(home_id).get("away_temp")
 
-    def get_thermostat_type(self, home_id: str, room_id: str):
+    def get_thermostat_type(self, home_id: str, room_id: str) -> Optional[str]:
         """Return the thermostat type of the room."""
         for module in self.modules.get(home_id, {}).values():
             if module.get("room_id") == room_id:
                 return module.get("type")
+        return None
 
 
 class HomeStatus:
-    def __init__(self, auth, home_id):
+    def __init__(self, auth: NetatmoOAuth2, home_id: str):
         self.auth = auth
 
         self.home_id = home_id
@@ -138,10 +139,10 @@ class HomeStatus:
             raise NoDevice("No device found, errors in response")
 
         self.raw_data = resp["body"]["home"]
-        self.rooms = {}
-        self.thermostats = {}
-        self.valves = {}
-        self.relays = {}
+        self.rooms: Dict = {}
+        self.thermostats: Dict = {}
+        self.valves: Dict = {}
+        self.relays: Dict = {}
 
         for room in self.raw_data.get("rooms", []):
             self.rooms[room["id"]] = room
@@ -169,52 +170,56 @@ class HomeStatus:
                 return self.rooms[key]
         raise InvalidRoom("No room with ID %s" % room_id)
 
-    def get_thermostat(self, room_id: str):
+    def get_thermostat(self, room_id: str) -> Dict:
         """Return thermostat data for a given room id."""
         for key, value in self.thermostats.items():
             if value["id"] == room_id:
                 return self.thermostats[key]
         raise InvalidRoom("No room with ID %s" % room_id)
 
-    def get_relay(self, room_id: str):
+    def get_relay(self, room_id: str) -> Dict:
         for key, value in self.relays.items():
             if value["id"] == room_id:
                 return self.relays[key]
         raise InvalidRoom("No room with ID %s" % room_id)
 
-    def get_valve(self, room_id: str):
+    def get_valve(self, room_id: str) -> Dict:
         for key, value in self.valves.items():
             if value["id"] == room_id:
                 return self.valves[key]
         raise InvalidRoom("No room with ID %s" % room_id)
 
-    def set_point(self, room_id: str):
+    def set_point(self, room_id: str) -> Optional[float]:
         """Return the setpoint of a given room."""
         return self.get_room(room_id).get("therm_setpoint_temperature")
 
-    def set_point_mode(self, room_id: str):
+    def set_point_mode(self, room_id: str) -> Optional[str]:
         """Return the setpointmode of a given room."""
         return self.get_room(room_id).get("therm_setpoint_mode")
 
-    def measured_temperature(self, room_id: str):
+    def measured_temperature(self, room_id: str) -> Optional[float]:
         """Return the measured temperature of a given room."""
         return self.get_room(room_id).get("therm_measured_temperature")
 
-    def boiler_status(self, module_id: str):
+    def boiler_status(self, module_id: str) -> Optional[bool]:
         return self.get_thermostat(module_id).get("boiler_status")
 
-    def set_thermmode(self, mode, end_time=None, schedule_id=None):
+    def set_thermmode(
+        self, mode: str, end_time: int = None, schedule_id: str = None
+    ) -> Optional[str]:
         post_params = {
             "home_id": self.home_id,
             "mode": mode,
         }
         if end_time is not None and mode in ("hg", "away"):
-            post_params["endtime"] = end_time
+            post_params["endtime"] = str(end_time)
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
         return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
-    def set_room_thermpoint(self, room_id: str, mode: str, temp=None, end_time=None):
+    def set_room_thermpoint(
+        self, room_id: str, mode: str, temp: float = None, end_time: int = None
+    ) -> Optional[str]:
         post_params = {
             "home_id": self.home_id,
             "room_id": room_id,
@@ -223,7 +228,7 @@ class HomeStatus:
         # Temp and endtime should only be send when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
-            post_params["temp"] = temp
+            post_params["temp"] = str(temp)
         if end_time is not None:
-            post_params["endtime"] = end_time
+            post_params["endtime"] = str(end_time)
         return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=post_params)

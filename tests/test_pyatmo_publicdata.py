@@ -6,6 +6,11 @@ import pytest
 
 import pyatmo
 
+LON_NE = 6.221652
+LAT_NE = 46.610870
+LON_SW = 6.217828
+LAT_SW = 46.596485
+
 
 def test_public_data(auth, requests_mock):
     with open("fixtures/public_data_simple.json") as json_file:
@@ -15,17 +20,20 @@ def test_public_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    public_data = pyatmo.PublicData(auth)
+
+    public_data = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
     assert public_data.status == "ok"
 
-    public_data = pyatmo.PublicData(auth, required_data_type="temperature,rain_live")
+    public_data = pyatmo.PublicData(
+        auth, LAT_NE, LON_NE, LAT_SW, LON_SW, required_data_type="temperature,rain_live"
+    )
     assert public_data.status == "ok"
 
 
 def test_public_data_unavailable(auth, requests_mock):
     requests_mock.post(pyatmo.public_data._GETPUBLIC_DATA, status_code=404)
     with pytest.raises(pyatmo.ApiError):
-        pyatmo.PublicData(auth)
+        pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
 
 def test_public_data_error(auth, requests_mock):
@@ -37,11 +45,11 @@ def test_public_data_error(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        pyatmo.PublicData(auth)
+        pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
 
-def test_public_data_count_station_in_area(public_data):
-    assert public_data.count_station_in_area() == 8
+def test_public_data_stations_in_area(public_data):
+    assert public_data.stations_in_area() == 8
 
 
 def test_public_data_get_latest_rain(public_data):
@@ -58,32 +66,32 @@ def test_public_data_get_average_rain(public_data):
     assert public_data.get_average_rain() == 0.125
 
 
-def test_public_data_get_60min_rain(public_data):
+def test_public_data_get_60_min_rain(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 0,
         "70:ee:50:27:25:b0": 0,
         "70:ee:50:36:94:7c": 0.2,
         "70:ee:50:36:a9:fc": 0,
     }
-    assert public_data.get_60min_rain() == expected
+    assert public_data.get_60_min_rain() == expected
 
 
-def test_public_data_get_average_60min_rain(public_data):
-    assert public_data.get_average_60min_rain() == 0.05
+def test_public_data_get_average_60_min_rain(public_data):
+    assert public_data.get_average_60_min_rain() == 0.05
 
 
-def test_public_data_get_24h_rain(public_data):
+def test_public_data_get_24_h_rain(public_data):
     expected = {
         "70:ee:50:1f:68:9e": 9.999,
         "70:ee:50:27:25:b0": 11.716000000000001,
         "70:ee:50:36:94:7c": 12.322000000000001,
         "70:ee:50:36:a9:fc": 11.009,
     }
-    assert public_data.get_24h_rain() == expected
+    assert public_data.get_24_h_rain() == expected
 
 
-def test_public_data_get_average_24h_rain(public_data):
-    assert public_data.get_average_24h_rain() == 11.261500000000002
+def test_public_data_get_average_24_h_rain(public_data):
+    assert public_data.get_average_24_h_rain() == 11.261500000000002
 
 
 def test_public_data_get_latest_pressures(public_data):
@@ -182,7 +190,7 @@ def test_public_data_get_locations(public_data):
     assert public_data.get_locations() == expected
 
 
-def test_public_data_get_time_for_measures(public_data):
+def test_public_data_get_time_for_rain_measures(public_data):
     expected = {
         "70:ee:50:36:a9:fc": 1560248184,
         "70:ee:50:1f:68:9e": 1560248344,
@@ -255,8 +263,8 @@ def test_public_data_get_latest_station_measures(public_data, test_input, expect
         ("wind_timeutc", {"70:ee:50:36:a9:fc": 1560248190}),
     ],
 )
-def test_public_data_get_accessory_measures(public_data, test_input, expected):
-    assert public_data.get_accessory_measures(test_input) == expected
+def test_public_data_get_accessory_data(public_data, test_input, expected):
+    assert public_data.get_accessory_data(test_input) == expected
 
 
 @pytest.mark.parametrize(
@@ -291,5 +299,5 @@ def test_public_data_get_accessory_measures(public_data, test_input, expected):
         ({}, 0),
     ],
 )
-def test_public_data_average_measure(test_input, expected):
-    assert pyatmo.public_data.average_measure(test_input) == expected
+def test_public_data_average(test_input, expected):
+    assert pyatmo.public_data.average(test_input) == expected

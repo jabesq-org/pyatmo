@@ -1,28 +1,36 @@
 import logging
 import time
+from typing import Dict, List, Optional, Tuple
 
-from pyatmo.exceptions import NoDevice
-from pyatmo.helpers import BASE_URL, fix_id, today_stamps
+from .auth import NetatmoOAuth2
+from .exceptions import NoDevice
+from .helpers import _BASE_URL, fix_id, today_stamps
 
 LOG = logging.getLogger(__name__)
 
-_GETMEASURE_REQ = BASE_URL + "api/getmeasure"
-_GETSTATIONDATA_REQ = BASE_URL + "api/getstationsdata"
+_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
+_GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
 class WeatherStationData:
     """
-    List the Weather Station devices (stations and modules)
-    Args:
-        auth_data (ClientAuth): Authentication information with a working access Token
+    Class of Netatmo Weather Station devices (stations and modules)
     """
 
-    def __init__(self, auth_data, url_req=None):
-        """Initialize the weather station class."""
-        self.url_req = url_req or _GETSTATIONDATA_REQ
-        self.auth_data = auth_data
+    def __init__(self, auth: NetatmoOAuth2, url_req: str = None) -> None:
+        """Initialize self.
 
-        resp = self.auth_data.post_request(url=self.url_req)
+        Arguments:
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+
+        Raises:
+            NoDevice: No devices found.
+        """
+        self.url_req = url_req or _GETSTATIONDATA_REQ
+        self.auth = auth
+
+        resp = self.auth.post_request(url=self.url_req)
+
         if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
         try:
@@ -36,7 +44,9 @@ class WeatherStationData:
 
         self.stations = {d["_id"]: d for d in self.raw_data}
         self.modules = {}
+
         for item in self.raw_data:
+
             if "modules" not in item:
                 item["modules"] = [item]
 
@@ -46,51 +56,41 @@ class WeatherStationData:
                         module["module_name"] = module["station_name"]
                     else:
                         continue
+
                 self.modules[module["_id"]] = module
                 self.modules[module["_id"]]["main_device"] = item["_id"]
 
-        self.default_station = list(self.stations.values())[0]["station_name"]
-
-    def modules_names_list(self, station_name=None, station_id=None):
-        """Return a list of all modules for a given or all stations."""
+    def get_module_names(self, station_id: str) -> List:
+        """Return a list of all module names for a given station."""
         res = set()
-        station_data = None
-        if station_id is not None:
-            station_data = self.station_by_id(station_id)
-        elif station_name is not None:
-            station_data = self.station_by_name(station_name)
+        station_data = self.get_station(station_id)
 
-        if station_data is not None:
-            res.add(station_data.get("module_name", station_data.get("type")))
-            for module in station_data["modules"]:
-                res.add(module.get("module_name", module.get("type")))
-        else:
-            res.update([m["module_name"] for m in self.modules.values()])
-            for station in self.stations.values():
-                res.add(station.get("module_name", station.get("type")))
+        if not station_data:
+            return []
+
+        res.add(station_data.get("module_name", station_data.get("type")))
+        for module in station_data["modules"]:
+            # Add module name, use module type if no name is available
+            res.add(module.get("module_name", module.get("type")))
+
         return list(res)
 
-    def get_modules(self, station_name=None, station_id=None):
-        """Return a dict or modules for a given or all stations."""
-        res = {}
-        station_data = None
-        if station_id is not None:
-            station_data = self.station_by_id(station_id)
-        elif station_name is not None:
-            station_data = self.station_by_name(station_name)
+    def get_modules(self, station_id: str) -> Dict:
+        """Return a dict of modules for a given station."""
+        station_data = self.get_station(station_id)
 
-        if station_data is not None:
-            stations = [self.stations[station_data["_id"]]]
-        else:
-            stations = self.stations.values()
-        for station in stations:
+        if not station_data:
+            return {}
+
+        res = {}
+        for station in [self.stations[station_data["_id"]]]:
             res[station["_id"]] = {
                 "station_name": station["station_name"],
                 "module_name": station.get("module_name", station.get("type")),
                 "id": station["_id"],
             }
 
-            for module in station.get("modules", {}):
+            for module in station["modules"]:
                 res[module["_id"]] = {
                     "station_name": module.get("station_name", station["station_name"]),
                     "module_name": module.get("module_name", module.get("type")),
@@ -98,88 +98,43 @@ class WeatherStationData:
                 }
         return res
 
-    def station_by_name(self, station_name=None):
-        """Return station by name."""
-        if not station_name:
-            station_name = self.default_station
-
-        for station_data in self.stations.values():
-            if station_data["station_name"] == station_name:
-                return station_data
-        return None
-
-    def station_by_id(self, sid):
+    def get_station(self, station_id: str) -> Dict:
         """Return station by id."""
-        return None if sid not in self.stations else self.stations[sid]
+        return self.stations.get(station_id, {})
 
-    def module_by_name(self, module_name, station_name=None):
-        """Return module by name."""
-        station = None
-        if station_name:
-            station = self.station_by_name(station_name)
-            if not station:
-                return None
-            if station["module_name"] == module_name:
-                return station
-
-        else:
-            for station in self.stations.values():
-                if "module_name" in station:
-                    if station["module_name"] == module_name:
-                        return station
-                    break
-
-        for module in self.modules.values():
-            if module["module_name"] == module_name:
-                if not station or module["main_device"] == station["_id"]:
-                    return module
-        return None
-
-    def module_by_id(self, mid, sid=None):
+    def get_module(self, module_id: str) -> Dict:
         """Return module by id."""
-        station_data = self.station_by_id(sid) if sid else None
-        if mid in self.modules:
-            if station_data is not None:
-                for module in station_data.get("modules"):
-                    if module["_id"] == mid:
-                        return module
-            else:
-                return self.modules[mid]
+        return self.modules.get(module_id, {})
 
-    def monitored_conditions(self, module=None, module_id=None):
-        """Return monitored conditions for given module(s)."""
-        if module_id:
-            mod = self.module_by_id(module_id)
-            if not mod:
-                mod = self.station_by_id(module_id)
-        elif module:
-            mod = self.module_by_name(module)
-            if not mod:
-                mod = self.station_by_name(module)
-        else:
-            return None
+    def get_monitored_conditions(self, module_id: str) -> List:
+        """Return monitored conditions for given module."""
+        module = self.get_module(module_id)
+        if not module:
+            module = self.get_station(module_id)
+
+        if not module:
+            return []
+
         conditions = []
-        if not mod:
-            return conditions
-        for cond in mod.get("data_type", []):
-            if cond == "Wind":
+        for condition in module.get("data_type", []):
+            if condition == "Wind":
                 # the Wind meter actually exposes the following conditions
                 conditions.extend(
                     ["WindAngle", "WindStrength", "GustAngle", "GustStrength"]
                 )
-            elif cond == "Rain":
+            elif condition == "Rain":
                 conditions.extend(["Rain", "sum_rain_24", "sum_rain_1"])
             else:
-                conditions.append(cond)
-        if mod["type"] in ["NAMain", "NHC"]:
+                conditions.append(condition)
+        if module["type"] in ["NAMain", "NHC"]:
             # the main module has wifi_status
             conditions.append("wifi_status")
         else:
             # assume all other modules have rf_status, battery_vp, and battery_percent
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
-        if mod["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
+        if module["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
             conditions.extend(["min_temp", "max_temp"])
-        if mod["type"] in [
+        if module["type"] in [
             "NAMain",
             "NAModule1",
             "NAModule2",
@@ -190,153 +145,136 @@ class WeatherStationData:
             conditions.append("reachable")
         return conditions
 
-    def last_data(self, station=None, exclude=0, by_id=False):
+    def get_last_data(self, station_id: str, exclude: int = 0) -> Dict:
         """Return data for a given station and time frame."""
-        key = "_id" if by_id else "module_name"
-        if station is not None:
-            stations = [station]
-        elif by_id:
-            stations = [s["_id"] for s in self.stations.values()]
-        else:
-            stations = [s["station_name"] for s in self.stations.values()]
+        key = "_id"
 
         # Breaking change from Netatmo : dashboard_data no longer available if station lost
-        last_data = {}
-        for _station in stations:
-            station_data = (
-                self.station_by_id(_station)
-                if by_id
-                else self.station_by_name(_station)
-            )
-            if not station_data or "dashboard_data" not in station_data:
-                LOG.info("No dashboard data for station %s", _station)
+        last_data: Dict = {}
+        station = self.get_station(station_id)
+
+        if not station or "dashboard_data" not in station:
+            LOG.debug("No dashboard data for station %s", station_id)
+            return last_data
+
+        # Define oldest acceptable sensor measure event
+        limit = (time.time() - exclude) if exclude else 0
+
+        data = station["dashboard_data"]
+        if key in station and data["time_utc"] > limit:
+            last_data[station[key]] = data.copy()
+            last_data[station[key]]["When"] = last_data[station[key]].pop("time_utc")
+            last_data[station[key]]["wifi_status"] = station["wifi_status"]
+            last_data[station[key]]["reachable"] = station["reachable"]
+
+        for module in station["modules"]:
+
+            if "dashboard_data" not in module or key not in module:
                 continue
 
-            # Define oldest acceptable sensor measure event
-            limit = (time.time() - exclude) if exclude else 0
-            dashboard_data = station_data["dashboard_data"]
-            if key in station_data and dashboard_data["time_utc"] > limit:
-                last_data[station_data[key]] = dashboard_data.copy()
-                last_data[station_data[key]]["When"] = last_data[station_data[key]].pop(
-                    "time_utc"
-                )
-                last_data[station_data[key]]["wifi_status"] = station_data[
-                    "wifi_status"
-                ]
-                last_data[station_data[key]]["reachable"] = station_data["reachable"]
+            data = module["dashboard_data"]
+            if "time_utc" in data and data["time_utc"] > limit:
+                last_data[module[key]] = data.copy()
+                last_data[module[key]]["When"] = last_data[module[key]].pop("time_utc")
 
-            for module in station_data["modules"]:
-                if "dashboard_data" not in module or key not in module:
-                    continue
-                dashboard_data = module["dashboard_data"]
-                if "time_utc" in dashboard_data and dashboard_data["time_utc"] > limit:
-                    last_data[module[key]] = dashboard_data.copy()
-                    last_data[module[key]]["When"] = last_data[module[key]].pop(
-                        "time_utc"
-                    )
+                # For potential use, add battery and radio coverage information to module data if present
+                for i in (
+                    "rf_status",
+                    "battery_vp",
+                    "battery_percent",
+                    "reachable",
+                    "wifi_status",
+                ):
+                    if i in module:
+                        last_data[module[key]][i] = module[i]
 
-                    for i in (
-                        "rf_status",
-                        "battery_vp",
-                        "battery_percent",
-                        "reachable",
-                        "wifi_status",
-                    ):
-                        if i in module:
-                            last_data[module[key]][i] = module[i]
         return last_data
 
-    def check_not_updated(self, station=None, delay=3600):
+    def check_not_updated(self, station_id: str, delay: int = 3600) -> List:
         """Check if a given station has not been updated."""
-        res = self.last_data(station)
+        res = self.get_last_data(station_id)
         ret = []
-        for i, value_data in res.items():
-            if time.time() - value_data["When"] > delay:
-                ret.append(i)
-        return ret if ret else None
+        for key, value in res.items():
+            if time.time() - value["When"] > delay:
+                ret.append(key)
+        return ret
 
-    def check_updated(self, station=None, delay=3600):
+    def check_updated(self, station_id: str, delay: int = 3600) -> List:
         """Check if a given station has been updated."""
-        res = self.last_data(station)
+        res = self.get_last_data(station_id)
         ret = []
-        for i, value_data in res.items():
-            if time.time() - value_data["When"] < delay:
-                ret.append(i)
-        return ret if ret else None
+        for key, value in res.items():
+            if time.time() - value["When"] < delay:
+                ret.append(key)
+        return ret
 
-    def get_measure(
+    def get_data(
         self,
-        device_id,
-        scale,
-        mtype,
-        module_id=None,
-        date_begin=None,
-        date_end=None,
-        limit=None,
-        optimize=False,
-        real_time=False,
-    ):
+        device_id: str,
+        scale: str,
+        module_type: str,
+        module_id: str = None,
+        date_begin: float = None,
+        date_end: float = None,
+        limit: int = None,
+        optimize: bool = False,
+        real_time: bool = False,
+    ) -> Optional[Dict]:
+        """Retrieve data from a device or module."""
         post_params = {"device_id": device_id}
         if module_id:
             post_params["module_id"] = module_id
+
         post_params["scale"] = scale
-        post_params["type"] = mtype
+        post_params["type"] = module_type
+
         if date_begin:
-            post_params["date_begin"] = date_begin
+            post_params["date_begin"] = f"{date_begin}"
+
         if date_end:
-            post_params["date_end"] = date_end
+            post_params["date_end"] = f"{date_end}"
+
         if limit:
-            post_params["limit"] = limit
+            post_params["limit"] = f"{limit}"
+
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
-        return self.auth_data.post_request(url=_GETMEASURE_REQ, params=post_params)
 
-    def min_max_th(self, station=None, module=None, frame="last24"):
-        if not station:
-            station = self.default_station
-        station_data = self.station_by_name(station)
-        if not station_data:
-            station_data = self.station_by_id(station)
-            if not station_data:
-                return None
+        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params)
 
+    def get_min_max_t_h(
+        self, station_id: str, module_id: str = None, frame: str = "last24"
+    ) -> Optional[Tuple[float, float, float, float]]:
+        """Return minimum and maximum temperature and humidity over the given timeframe.
+
+        Arguments:
+            station_id {str} -- Station ID
+
+        Keyword Arguments:
+            module_id {str} -- Module ID (default: {None})
+            frame {str} -- Timeframe can be "last24" or "day" (default: {"last24"})
+
+        Returns:
+            (min_t {float}, max_t {float}, min_h {float}, max_h {float}) -- minimum and maximum for temperature and humidity
+        """
         if frame == "last24":
             end = time.time()
             start = end - 24 * 3600  # 24 hours ago
         elif frame == "day":
             start, end = today_stamps()
 
-        if module and module != station_data["module_name"]:
-            module_data = self.module_by_name(module, station_data["station_name"])
-            if not module_data:
-                module_data = self.module_by_id(station_data["_id"], module)
-                if not module_data:
-                    return None
-            # retrieve module's data
-            resp = self.get_measure(
-                device_id=station_data["_id"],
-                module_id=module_data["_id"],
-                scale="max",
-                mtype="Temperature,Humidity",
-                date_begin=start,
-                date_end=end,
-            )
-        else:  # retrieve station's data
-            resp = self.get_measure(
-                device_id=station_data["_id"],
-                scale="max",
-                mtype="Temperature,Humidity",
-                date_begin=start,
-                date_end=end,
-            )
+        resp = self.get_data(
+            device_id=station_id,
+            module_id=module_id,
+            scale="max",
+            module_type="Temperature,Humidity",
+            date_begin=start,
+            date_end=end,
+        )
 
         if resp:
-            temperatures = [v[0] for v in resp["body"].values()]
-            humidities = [v[1] for v in resp["body"].values()]
-            return (
-                min(temperatures),
-                max(temperatures),
-                min(humidities),
-                max(humidities),
-            )
+            temperature = [temp[0] for temp in resp["body"].values()]
+            humidity = [hum[1] for hum in resp["body"].values()]
+            return min(temperature), max(temperature), min(humidity), max(humidity)
+
         return None

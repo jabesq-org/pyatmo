@@ -38,22 +38,22 @@ def test_client_auth_invalid(requests_mock):
 def test_post_request_json(auth, requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
-        pyatmo.helpers.BASE_URL,
+        pyatmo.helpers._BASE_URL,
         json={"a": "b"},
         headers={"content-type": "application/json"},
     )
-    resp = auth.post_request(pyatmo.helpers.BASE_URL, None)
+    resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
     assert resp == {"a": "b"}
 
 
 def test_post_request_binary(auth, requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
-        pyatmo.helpers.BASE_URL,
+        pyatmo.helpers._BASE_URL,
         text="Success",
         headers={"content-type": "application/text"},
     )
-    resp = auth.post_request(pyatmo.helpers.BASE_URL, None)
+    resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
     assert resp == b"Success"
 
 
@@ -62,14 +62,14 @@ def test_post_request_binary(auth, requests_mock):
 )
 def test_post_request_fail(auth, requests_mock, test_input, expected):
     """Test failing requests against the Netatmo API."""
-    requests_mock.post(pyatmo.helpers.BASE_URL, status_code=test_input)
+    requests_mock.post(pyatmo.helpers._BASE_URL, status_code=test_input)
 
     if test_input == 200:
-        resp = auth.post_request(pyatmo.helpers.BASE_URL, None)
+        resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
         assert resp is expected
     else:
         with pytest.raises(pyatmo.ApiError):
-            resp = auth.post_request(pyatmo.helpers.BASE_URL, None)
+            resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
 
 
 @pytest.mark.parametrize(

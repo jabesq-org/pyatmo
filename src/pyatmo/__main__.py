@@ -8,6 +8,11 @@ from pyatmo.public_data import PublicData
 from pyatmo.thermostat import HomeData
 from pyatmo.weather_station import WeatherStationData
 
+LON_NE = 6.221652
+LAT_NE = 46.610870
+LON_SW = 6.217828
+LAT_SW = 46.596485
+
 
 def main():
     try:
@@ -28,7 +33,7 @@ def main():
         )
         sys.exit(1)
 
-    authorization = ClientAuth(
+    auth = ClientAuth(
         client_id=client_id,
         client_secret=client_secret,
         username=username,
@@ -37,24 +42,24 @@ def main():
     )
 
     try:
-        WeatherStationData(authorization)
+        WeatherStationData(auth)
     except NoDevice:
         if sys.stdout.isatty():
             print("pyatmo.py : warning, no weather station available for testing")
 
     try:
-        CameraData(authorization)
+        CameraData(auth)
     except NoDevice:
         if sys.stdout.isatty():
             print("pyatmo.py : warning, no camera available for testing")
 
     try:
-        HomeData(authorization)
+        HomeData(auth)
     except NoDevice:
         if sys.stdout.isatty():
             print("pyatmo.py : warning, no thermostat available for testing")
 
-    PublicData(authorization)
+    PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
     # If we reach this line, all is OK
 

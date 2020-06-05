@@ -22,14 +22,13 @@ def auth(requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    authorization = pyatmo.ClientAuth(
+    return pyatmo.ClientAuth(
         client_id="CLIENT_ID",
         client_secret="CLIENT_SECRET",
         username="USERNAME",
         password="PASSWORD",
         scope=" ".join(pyatmo.auth.ALL_SCOPES),
     )
-    return authorization
 
 
 @pytest.fixture(scope="function")

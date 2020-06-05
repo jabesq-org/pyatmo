@@ -203,8 +203,8 @@ class WeatherStationData:
             if key in s and ds["time_utc"] > limit:
                 lastD[s[key]] = ds.copy()
                 lastD[s[key]]["When"] = lastD[s[key]].pop("time_utc")
-                lastD[s[key]]["wifi_status"] = s["wifi_status"]
-                lastD[s[key]]["reachable"] = s["reachable"]
+                lastD[s[key]]["wifi_status"] = s.get("wifi_status")
+                lastD[s[key]]["reachable"] = s.get("reachable")
             for module in s["modules"]:
                 if "dashboard_data" not in module or key not in module:
                     continue

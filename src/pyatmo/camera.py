@@ -146,8 +146,11 @@ class CameraData:
                 def check_url(url: str) -> Optional[str]:
                     try:
                         resp = self.auth.post_request(url=f"{url}/command/ping")
-                    except (ApiError, ReadTimeout):
+                    except ReadTimeout:
                         LOG.debug("Timeout validation of camera url %s", url)
+                        return None
+                    except ApiError:
+                        LOG.debug("Api error for camera url %s", url)
                         return None
                     else:
                         return resp.get("local_url")

@@ -49,36 +49,48 @@ class HomeData:
         for item in self.raw_data:
             home_id = item.get("id")
             home_name = item.get("name")
+
             if not home_name:
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name
+
             if "modules" in item:
                 if home_id not in self.modules:
                     self.modules[home_id] = {}
+
                 for module in item["modules"]:
                     self.modules[home_id][module["id"]] = module
+
                 if home_id not in self.rooms:
                     self.rooms[home_id] = {}
+
                 if home_id not in self.schedules:
                     self.schedules[home_id] = {}
+
                 if home_id not in self.zones:
                     self.zones[home_id] = {}
+
                 if home_id not in self.setpoint_duration:
                     self.setpoint_duration[home_id] = {}
+
                 if "therm_setpoint_default_duration" in item:
                     self.setpoint_duration[home_id] = item[
                         "therm_setpoint_default_duration"
                     ]
+
                 if "rooms" in item:
                     for room in item["rooms"]:
                         self.rooms[home_id][room["id"]] = room
+
                 if "therm_schedules" in item:
                     for schedule in item["therm_schedules"]:
                         self.schedules[home_id][schedule["id"]] = schedule
+
                     for schedule in item["therm_schedules"]:
                         schedule_id = schedule["id"]
                         if schedule_id not in self.zones[home_id]:
                             self.zones[home_id][schedule_id] = {}
+
                         for zone in schedule["zones"]:
                             self.zones[home_id][schedule_id][zone["id"]] = zone
 
@@ -87,6 +99,7 @@ class HomeData:
         for value in self.schedules.get(home_id, {}).values():
             if "selected" in value.keys():
                 return value
+
         return {}
 
     def switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
@@ -118,6 +131,7 @@ class HomeData:
         for module in self.modules.get(home_id, {}).values():
             if module.get("room_id") == room_id:
                 return module.get("type")
+
         return None
 
 
@@ -152,22 +166,28 @@ class HomeStatus:
                 thermostat_id = module["id"]
                 if thermostat_id not in self.thermostats:
                     self.thermostats[thermostat_id] = {}
+
                 self.thermostats[thermostat_id] = module
+
             elif module["type"] == "NRV":
                 valve_id = module["id"]
                 if valve_id not in self.valves:
                     self.valves[valve_id] = {}
+
                 self.valves[valve_id] = module
+
             elif module["type"] == "NAPlug":
                 relay_id = module["id"]
                 if relay_id not in self.relays:
                     self.relays[relay_id] = {}
+
                 self.relays[relay_id] = module
 
     def get_room(self, room_id: str) -> Dict:
         for key, value in self.rooms.items():
             if value["id"] == room_id:
                 return self.rooms[key]
+
         raise InvalidRoom("No room with ID %s" % room_id)
 
     def get_thermostat(self, room_id: str) -> Dict:
@@ -175,18 +195,21 @@ class HomeStatus:
         for key, value in self.thermostats.items():
             if value["id"] == room_id:
                 return self.thermostats[key]
+
         raise InvalidRoom("No room with ID %s" % room_id)
 
     def get_relay(self, room_id: str) -> Dict:
         for key, value in self.relays.items():
             if value["id"] == room_id:
                 return self.relays[key]
+
         raise InvalidRoom("No room with ID %s" % room_id)
 
     def get_valve(self, room_id: str) -> Dict:
         for key, value in self.valves.items():
             if value["id"] == room_id:
                 return self.valves[key]
+
         raise InvalidRoom("No room with ID %s" % room_id)
 
     def set_point(self, room_id: str) -> Optional[float]:
@@ -213,8 +236,10 @@ class HomeStatus:
         }
         if end_time is not None and mode in ("hg", "away"):
             post_params["endtime"] = str(end_time)
+
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
+
         return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
     def set_room_thermpoint(
@@ -229,6 +254,8 @@ class HomeStatus:
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             post_params["temp"] = str(temp)
+
         if end_time is not None:
             post_params["endtime"] = str(end_time)
+
         return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=post_params)

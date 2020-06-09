@@ -31,6 +31,7 @@ class WeatherStationData:
 
         if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
+
         try:
             self.raw_data = fix_id(resp["body"].get("devices"))
         except KeyError:
@@ -52,6 +53,7 @@ class WeatherStationData:
                 if "module_name" not in module:
                     if module["type"] == "NHC":
                         module["module_name"] = module["station_name"]
+
                     else:
                         continue
 
@@ -94,6 +96,7 @@ class WeatherStationData:
                     "module_name": module.get("module_name", module.get("type")),
                     "id": module["_id"],
                 }
+
         return res
 
     def get_station(self, station_id: str) -> Dict:

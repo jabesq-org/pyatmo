@@ -33,7 +33,7 @@ class PublicData:
         LON_NE: str,
         LAT_SW: str,
         LON_SW: str,
-        required_data_type: str = None,  # comma-separated list from above _STATION or _ACCESSORY values
+        required_data_type: str = None,
         filtering: bool = False,
     ) -> None:
         """Initialize self.
@@ -46,7 +46,7 @@ class PublicData:
             LON_SW {str} -- Longitude of the south west corner of the requested area. (-180 <= LON_SW <= 180)
 
         Keyword Arguments:
-            required_data_type {str} -- [description] (default: {None})
+            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
 
         Raises:
             NoDevice: No devices found.
@@ -134,6 +134,7 @@ class PublicData:
         locations: Dict = {}
         for station in self.raw_data:
             locations[station["_id"]] = station["place"]["location"]
+
         return locations
 
     def get_time_for_rain_measures(self) -> Dict:
@@ -157,6 +158,7 @@ class PublicData:
                     measures[station["_id"]] = module["res"][latest_timestamp][
                         measure_index
                     ]
+
         return measures
 
     def get_accessory_data(self, data_type: str) -> Dict[str, Any]:
@@ -165,10 +167,9 @@ class PublicData:
             for module in station["measures"].values():
                 if data_type in module:
                     data[station["_id"]] = module[data_type]
+
         return data
 
 
 def average(data: dict) -> float:
-    if data:
-        return sum(data.values()) / len(data)
-    return 0.0
+    return sum(data.values()) / len(data) if data else 0.0

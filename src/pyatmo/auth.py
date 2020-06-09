@@ -74,8 +74,10 @@ class NetatmoOAuth2:
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.token_updater = token_updater
+
         if token:
             self.scope = " ".join(token["scope"])
+
         else:
             self.scope = " ".join(ALL_SCOPES) if not scope else scope
 
@@ -108,6 +110,7 @@ class NetatmoOAuth2:
 
         if "json" in params:
             json_params: Optional[str] = params.pop("json")
+
         else:
             json_params = None
 
@@ -120,21 +123,25 @@ class NetatmoOAuth2:
                 LOG.debug("Connection to %s timed out", url)
             except requests.exceptions.ConnectionError:
                 LOG.debug("Remote end closed connection without response (%s)", url)
+
         else:
 
             def query(url: str, params: Dict, timeout: int, retries: int) -> Any:
                 if retries == 0:
                     LOG.error("Too many retries")
                     return
+
                 try:
                     if json_params:
                         rsp = self._oauth.post(
                             url=url, json=json_params, timeout=timeout
                         )
+
                     else:
                         rsp = self._oauth.post(url=url, data=params, timeout=timeout)
 
                     return rsp
+
                 except (
                     TokenExpiredError,
                     requests.exceptions.ReadTimeout,
@@ -163,6 +170,7 @@ class NetatmoOAuth2:
                     f"({resp.json()['error']['code']}) "
                     f"when accessing '{url}'"
                 )
+
             except JSONDecodeError:
                 raise ApiError(
                     f"{resp.status_code} - "
@@ -173,8 +181,10 @@ class NetatmoOAuth2:
         try:
             if "application/json" in resp.headers.get("content-type", []):
                 return resp.json()
+
             if resp.content not in [b"", b"None"]:
                 return resp.content
+
         except (TypeError, AttributeError):
             LOG.debug("Invalid response %s", resp)
 

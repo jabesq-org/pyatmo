@@ -159,6 +159,8 @@ def test_camera_data_person_seen_by_camera(
 
 def test_camera_data__known_persons(camera_home_data):
     known_persons = camera_home_data._known_persons()
+    print(known_persons)
+    print(known_persons.keys())
     assert len(known_persons) == 3
     assert known_persons["91827374-7e04-5298-83ad-a0cb8372dff1"]["pseudo"] == "John Doe"
 
@@ -434,7 +436,7 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
         ("91763b24c43d3e344f424e8b", None, "NSD", does_not_raise()),
     ],
 )
-def test_camera_data_update_event(
+def test_camera_data_update_events(
     camera_home_data, requests_mock, home_id, event_id, device_type, exception
 ):
     with open("fixtures/camera_data_events_until.json") as fixture_file:
@@ -445,12 +447,16 @@ def test_camera_data_update_event(
         headers={"content-type": "application/json"},
     )
     with exception:
+        before_outdoor = camera_home_data.outdoor_last_event.copy()
+        before = camera_home_data.last_event.copy()
         assert (
             camera_home_data.update_events(
                 home_id=home_id, event_id=event_id, device_type=device_type
             )
             is None
         )
+        assert camera_home_data.outdoor_last_event != before_outdoor
+        assert camera_home_data.last_event != before
 
 
 def test_camera_data_outdoor_motion_detected(camera_home_data):

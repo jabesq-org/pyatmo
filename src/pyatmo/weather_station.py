@@ -13,9 +13,7 @@ _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
 class WeatherStationData:
-    """
-    Class of Netatmo Weather Station devices (stations and modules)
-    """
+    """Class of Netatmo Weather Station devices (stations and modules)."""
 
     def __init__(self, auth: NetatmoOAuth2, url_req: str = None) -> None:
         """Initialize self.
@@ -122,18 +120,24 @@ class WeatherStationData:
                 conditions.extend(
                     ["WindAngle", "WindStrength", "GustAngle", "GustStrength"]
                 )
+
             elif condition == "Rain":
                 conditions.extend(["Rain", "sum_rain_24", "sum_rain_1"])
+
             else:
                 conditions.append(condition)
+
         if module["type"] in ["NAMain", "NHC"]:
             # the main module has wifi_status
             conditions.append("wifi_status")
+
         else:
             # assume all other modules have rf_status, battery_vp, and battery_percent
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
+
         if module["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
             conditions.extend(["min_temp", "max_temp"])
+
         if module["type"] in [
             "NAMain",
             "NAModule1",
@@ -143,6 +147,7 @@ class WeatherStationData:
             "NHC",
         ]:
             conditions.append("reachable")
+
         return conditions
 
     def get_last_data(self, station_id: str, exclude: int = 0) -> Dict:
@@ -197,6 +202,7 @@ class WeatherStationData:
         for key, value in res.items():
             if time.time() - value["When"] > delay:
                 ret.append(key)
+
         return ret
 
     def check_updated(self, station_id: str, delay: int = 3600) -> List:
@@ -206,6 +212,7 @@ class WeatherStationData:
         for key, value in res.items():
             if time.time() - value["When"] < delay:
                 ret.append(key)
+
         return ret
 
     def get_data(
@@ -260,6 +267,7 @@ class WeatherStationData:
         if frame == "last24":
             end = time.time()
             start = end - 24 * 3600  # 24 hours ago
+
         elif frame == "day":
             start, end = today_stamps()
 

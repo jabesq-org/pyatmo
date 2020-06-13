@@ -154,27 +154,31 @@ class CameraData:
         camera_data = self.get_camera(camera_id)
         home_id = camera_data["home_id"]
 
-        if camera_data:
-            vpn_url = camera_data.get("vpn_url")
-            if vpn_url and camera_data.get("is_local"):
+        if not camera_data or camera_data.get("status") == "disconnected":
+            self.cameras[home_id][camera_id]["local_url"] = None
+            self.cameras[home_id][camera_id]["vpn_url"] = None
+            return
 
-                def check_url(url: str) -> Optional[str]:
-                    try:
-                        resp = self.auth.post_request(url=f"{url}/command/ping")
-                    except ReadTimeout:
-                        LOG.debug("Timeout validation of camera url %s", url)
-                        return None
-                    except ApiError:
-                        LOG.debug("Api error for camera url %s", url)
-                        return None
-                    else:
-                        return resp.get("local_url")
+        vpn_url = camera_data.get("vpn_url")
+        if vpn_url and camera_data.get("is_local"):
 
-                temp_local_url = check_url(vpn_url)
-                if temp_local_url:
-                    self.cameras[home_id][camera_id]["local_url"] = check_url(
-                        temp_local_url
-                    )
+            def check_url(url: str) -> Optional[str]:
+                try:
+                    resp = self.auth.post_request(url=f"{url}/command/ping")
+                except ReadTimeout:
+                    LOG.debug("Timeout validation of camera url %s", url)
+                    return None
+                except ApiError:
+                    LOG.debug("Api error for camera url %s", url)
+                    return None
+                else:
+                    return resp.get("local_url")
+
+            temp_local_url = check_url(vpn_url)
+            if temp_local_url:
+                self.cameras[home_id][camera_id]["local_url"] = check_url(
+                    temp_local_url
+                )
 
     def get_light_state(self, camera_id: str) -> Optional[str]:
         """Return the current mode of the floodlight of a presence camera."""

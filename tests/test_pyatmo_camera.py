@@ -104,29 +104,10 @@ def test_camera_data_camera_urls_disconnected(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     camera_data = pyatmo.CameraData(auth)
-
     cid = "12:34:56:00:f1:62"
-    vpn_url = (
-        "https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
-        "6d278460699e56180d47ab47169efb31/"
-        "MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTTg,,"
-    )
-    local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-    with open("fixtures/camera_ping.json") as fixture_file:
-        json_fixture = json.load(fixture_file)
-    requests_mock.post(
-        vpn_url + "/command/ping",
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
-    with open("fixtures/camera_ping.json") as fixture_file:
-        json_fixture = json.load(fixture_file)
-    requests_mock.post(
-        local_url + "/command/ping",
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
+
     camera_data.update_camera_urls(cid)
+
     assert camera_data.camera_urls(cid) == (None, None)
 
 

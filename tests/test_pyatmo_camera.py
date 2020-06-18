@@ -104,29 +104,10 @@ def test_camera_data_camera_urls_disconnected(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     camera_data = pyatmo.CameraData(auth)
-
     cid = "12:34:56:00:f1:62"
-    vpn_url = (
-        "https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
-        "6d278460699e56180d47ab47169efb31/"
-        "MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTTg,,"
-    )
-    local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-    with open("fixtures/camera_ping.json") as fixture_file:
-        json_fixture = json.load(fixture_file)
-    requests_mock.post(
-        vpn_url + "/command/ping",
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
-    with open("fixtures/camera_ping.json") as fixture_file:
-        json_fixture = json.load(fixture_file)
-    requests_mock.post(
-        local_url + "/command/ping",
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
+
     camera_data.update_camera_urls(cid)
+
     assert camera_data.camera_urls(cid) == (None, None)
 
 
@@ -159,6 +140,8 @@ def test_camera_data_person_seen_by_camera(
 
 def test_camera_data__known_persons(camera_home_data):
     known_persons = camera_home_data._known_persons()
+    print(known_persons)
+    print(known_persons.keys())
     assert len(known_persons) == 3
     assert known_persons["91827374-7e04-5298-83ad-a0cb8372dff1"]["pseudo"] == "John Doe"
 
@@ -434,7 +417,7 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
         ("91763b24c43d3e344f424e8b", None, "NSD", does_not_raise()),
     ],
 )
-def test_camera_data_update_event(
+def test_camera_data_update_events(
     camera_home_data, requests_mock, home_id, event_id, device_type, exception
 ):
     with open("fixtures/camera_data_events_until.json") as fixture_file:
@@ -445,12 +428,16 @@ def test_camera_data_update_event(
         headers={"content-type": "application/json"},
     )
     with exception:
+        before_outdoor = camera_home_data.outdoor_last_event.copy()
+        before = camera_home_data.last_event.copy()
         assert (
             camera_home_data.update_events(
                 home_id=home_id, event_id=event_id, device_type=device_type
             )
             is None
         )
+        assert camera_home_data.outdoor_last_event != before_outdoor
+        assert camera_home_data.last_event != before
 
 
 def test_camera_data_outdoor_motion_detected(camera_home_data):

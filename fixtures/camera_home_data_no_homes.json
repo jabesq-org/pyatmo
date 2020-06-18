@@ -1,0 +1,17 @@
+{
+    "body": {
+        "homes": [],
+        "user": {
+            "reg_locale": "de-DE",
+            "lang": "de-DE",
+            "country": "DE",
+            "mail": "john@doe.com"
+        },
+        "global_info": {
+            "show_tags": true
+        }
+    },
+    "status": "ok",
+    "time_exec": 0.03621506690979,
+    "time_server": 1560626960
+}

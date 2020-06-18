@@ -1,0 +1,100 @@
+{
+    "body": {
+        "events_list": [
+            {
+                "id": "a1b2c3d4e5f6abcdef123461",
+                "type": "person",
+                "time": 1560706232,
+                "camera_id": "12:34:56:00:f1:62",
+                "device_id": "12:34:56:00:f1:62",
+                "person_id": "91827374-7e04-5298-83ad-a0cb8372dff1",
+                "video_status": "deleted",
+                "is_arrival": true,
+                "message": "<b>John Doe</b> gesehen"
+            },
+            {
+                "id": "a1b2c3d4e5f6abcdef123462",
+                "type": "person_away",
+                "time": 1560706237,
+                "camera_id": "12:34:56:00:f1:62",
+                "device_id": "12:34:56:00:f1:62",
+                "person_id": "91827374-7e04-5298-83ad-a0cb8372dff1",
+                "message": "<b>John Doe</b> hat das Haus verlassen",
+                "sub_message": "John Doe gilt als „Abwesend“, da das mit diesem Profil verbundene Telefon den Bereich des Hauses verlassen hat."
+            },
+            {
+                "id": "a1b2c3d4e5f6abcdef123463",
+                "type": "person",
+                "time": 1560706241,
+                "camera_id": "12:34:56:00:f1:62",
+                "device_id": "12:34:56:00:f1:62",
+                "person_id": "91827375-7e04-5298-83ae-a0cb8372dff2",
+                "snapshot": {
+                    "id": "19b13efa945ec892c6da2a8c",
+                    "version": 1,
+                    "key": "1704853cfc9571bd10618591dc9035e5bc0fa3203f44739c49a5b26d2f7ad67f",
+                    "url": "https://netatmocameraimage.blob.core.windows.net/production/5ecfa94c6da5e5bc0fa3203f3cfdc903489219b13e2a8c548547b26d2f7ad6717039c49ac9571bd10618591f"
+                },
+                "video_id": "f914-aa7da416643-4744-82f9-4e7d4440b",
+                "video_status": "available",
+                "is_arrival": false,
+                "message": "<b>Jane Doe</b> gesehen"
+            },
+            {
+                "id": "a1b2c3d4e5f6abcdef123464",
+                "type": "wifi_status",
+                "time": 1560706271,
+                "camera_id": "12:34:56:00:8b:a2",
+                "device_id": "12:34:56:00:8b:a2",
+                "sub_type": 1,
+                "message": "Hall:WLAN-Verbindung erfolgreich hergestellt"
+            },
+            {
+                "id": "a1b2c3d4e5f6abcdef123465",
+                "type": "outdoor",
+                "time": 1560706283,
+                "camera_id": "12:34:56:00:a5:a4",
+                "device_id": "12:34:56:00:a5:a4",
+                "video_id": "string",
+                "video_status": "available",
+                "event_list": [
+                    {
+                        "type": "string",
+                        "time": 1560706283,
+                        "offset": 0,
+                        "id": "c81bcf7b-2cfg-4ac9-8455-487ed00c0001",
+                        "message": "Animal détecté",
+                        "snapshot": {
+                            "id": "5715e16849c75xxxx00000000xxxxx",
+                            "version": 1,
+                            "key": "7ac578d05030d0e170643a787ee0a29663dxxx00000xxxxx00000",
+                            "url": "https://netatmocameraimage.blob.core.windows.net/production/1aa"
+                        },
+                        "vignette": {
+                            "id": "5715e16849c75xxxx00000000xxxxx",
+                            "version": 1,
+                            "key": "7ac578d05030d0e170643a787ee0a29663dxxx00000xxxxx00000",
+                            "url": "https://netatmocameraimage.blob.core.windows.net/production/1aa00000"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "time": 1560706283,
+                        "offset": 0,
+                        "id": "c81bcf7b-2cfg-4ac9-8455-487ed00c0002",
+                        "message": "Animal détecté",
+                        "snapshot": {
+                            "filename": "vod\/af74631d-8311-42dc-825b-82e3abeaab09\/events\/c53b-aze7a.jpg"
+                        },
+                        "vignette": {
+                            "filename": "vod\/af74631d-8311-42dc-825b-82e3abeaab09\/events\/c5.jpg"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "status": "ok",
+    "time_exec": 0.03666909215079,
+    "time_server": 15607062321
+}

@@ -79,8 +79,8 @@ CLIENT_SECRET = '123456789abcd1234'
 USERNAME = 'your@account.com'
 PASSWORD = 'abcdef-123456-ghijkl'
 authorization = pyatmo.ClientAuth(
-    clientId=CLIENT_ID,
-    clientSecret=CLIENT_SECRET,
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
     username=USERNAME,
     password=PASSWORD,
 )
@@ -92,8 +92,8 @@ weatherData = pyatmo.WeatherStationData(authorization)
 print(
     "Current temperature (inside/outside): %s / %s °C"
     % (
-        weatherData.lastData()["indoor"]["Temperature"],
-        weatherData.lastData()["outdoor"]["Temperature"],
+        weatherData.last_data()["indoor"]["Temperature"],
+        weatherData.last_data()["outdoor"]["Temperature"],
     )
 )
 ```
@@ -104,7 +104,7 @@ The Netatmo design is based on stations (usually the in-house module) and module
 
 Sensor design is not exactly the same for station and external modules and they are not addressed the same way wether in the station or an external module. This is a design issue of the API that restrict the ability to write generic code that could work for station sensor the same way than other modules sensors. The station role (the reporting device) and module role (getting environmental data) should not have been mixed. The fact that a sensor is physically built in the station should not interfere with this two distincts objects.
 
-The consequence is that, for the API, we will use terms of station data (for the sensors inside the station) and module data (for external(s) module). Lookup methods like moduleByName look for external modules and **NOT station
+The consequence is that, for the API, we will use terms of station data (for the sensors inside the station) and module data (for external(s) module). Lookup methods like module_by_name look for external modules and **NOT station
 modules**.
 
 Having two roles, the station has a 'station_name' property as well as a 'module_name' for its internal sensor.
@@ -142,8 +142,8 @@ Constructor
 
 ```python
 authorization = pyatmo.ClientAuth(
-    clientId=CLIENT_ID,
-    clientSecret=CLIENT_SECRET,
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
     username=USERNAME,
     password=PASSWORD,
     scope="read_station",
@@ -207,27 +207,27 @@ Properties, all properties are read-only unless specified:
 Methods :
 
 
-  * **stationByName** (station=None) : Find a station by it's station name
+  * **station_by_name** (station=None) : Find a station by it's station name
     * Input : Station name to lookup (str)
     * Output : station dictionary or None
 
-  * **stationById** (sid) : Find a station by it's Netatmo ID (mac address)
+  * **station_by_id** (sid) : Find a station by it's Netatmo ID (mac address)
     * Input : Station ID
     * Output : station dictionary or None
 
-  * **moduleByName** (module, station=None) : Find a module by it's module name
+  * **module_by_name** (module, station=None) : Find a module by it's module name
     * Input : module name and optional station name
     * Output : module dictionary or None
 
      The station name parameter, if provided, is used to check wether the module belongs to the appropriate station (in case multiple stations would have same module name).
 
-  * **moduleById** (mid, sid=None) : Find a module by it's ID and belonging station's ID
+  * **module_by_id** (mid, sid=None) : Find a module by it's ID and belonging station's ID
     * Input : module ID and optional Station ID
     * Output : module dictionary or None
 
-  * **modulesNamesList** (station=None) : Get the list of modules names, including the station module name. Each of them should have a corresponding entry in lastData. It is an equivalent (at lower cost) for lastData.keys()
+  * **modules_names_list** (station=None) : Get the list of modules names, including the station module name. Each of them should have a corresponding entry in last_data. It is an equivalent (at lower cost) for last_data.keys()
 
-  * **lastData** (station=None, exclude=0) : Get the last data uploaded by the station, exclude sensors with measurement older than given value (default return all)
+  * **last_data** (station=None, exclude=0) : Get the last data uploaded by the station, exclude sensors with measurement older than given value (default return all)
     * Input : station name OR id. If not provided default_station is used. Exclude is the delay in seconds from now to filter sensor readings.
     * Output : Sensors data dictionary (Key is sensor name)
 
@@ -243,37 +243,37 @@ Methods :
 ```python
 # Last data access example
 
-theData = weatherData.lastData()
+theData = weatherData.last_data()
 print('Available modules : ', theData.keys())
 print('In-house CO2 level : ', theData['indoor']['Co2'])
 print('Outside temperature : ', theData['outdoor']['Temperature'])
 print('External module battery : ', "OK" if int(theData['outdoor']['battery_vp']) > 5000 \
                                          else "NEEDS TO BE REPLACED")
 ```
-  * **checkNotUpdated** (station=None, delay=3600) :
+  * **check_not_updated** (station=None, delay=3600) :
     * Input : optional station name (else default_station is used)
-    * Output : list of modules name for which last data update is older than specified delay (default 1 hour). If the station itself is lost, the module_name of the station will be returned (the key item of lastData information).
+    * Output : list of modules name for which last data update is older than specified delay (default 1 hour). If the station itself is lost, the module_name of the station will be returned (the key item of last_data information).
 
      For example (following the previous one)
 
 ```python
 # Ensure data sanity
 
-for m in weatherData.checkNotUpdated("<optional station name>"):
+for m in weatherData.check_not_updated("<optional station name>"):
     print("Warning, sensor %s information is obsolete" % m)
-    if moduleByName(m) == None : # Sensor is not an external module
+    if module_by_name(m) == None : # Sensor is not an external module
         print("The station is lost")
 ```
-  * **checkUpdated** (station=None, delay=3600) :
+  * **check_updated** (station=None, delay=3600) :
     * Input : optional station name (else default_station is used)
     * Output : list of modules name for which last data update is newer than specified delay (default 1 hour).
 
      Complement of the previous service
 
-  * **getMeasure** (device_id, scale, mtype, module_id=None, date_begin=None, date_end=None, limit=None, optimize=False) :
+  * **get_measure** (device_id, scale, mtype, module_id=None, date_begin=None, date_end=None, limit=None, optimize=False) :
     * Input : All parameters specified in the Netatmo API service GETMEASURE (type being a python reserved word as been replaced by mtype).
     * Output : A python dictionary reflecting the full service response. No transformation is applied.
-  * **MinMaxTH** (station=None, module=None, frame="last24") : Return min and max temperature and humidity for the given station/module in the given timeframe
+  * **min_max_th** (station=None, module=None, frame="last24") : Return min and max temperature and humidity for the given station/module in the given timeframe
     * Input :
       * An optional station Name or ID, default_station is used if not supplied,
       * An optional module name or ID, default : station sensor data is used
@@ -320,54 +320,54 @@ Properties, all properties are read-only unless specified:
 
 Methods :
 
-  * **homeById** (hid) : Find a home by its Netatmo ID
+  * **home_by_id** (hid) : Find a home by its Netatmo ID
     * Input : Home ID
     * Output : home dictionary or None
 
-  * **homeByName** (home=None) : Find a home by it's home name
+  * **home_by_name** (home=None) : Find a home by it's home name
     * Input : home name to lookup (str)
     * Output : home dictionary or None
 
-  * **cameraById** (hid) : Find a camera by its Netatmo ID
+  * **camera_by_id** (hid) : Find a camera by its Netatmo ID
     * Input : camera ID
     * Output : camera dictionary or None
 
-  * **cameraByName** (camera=None, home=None) : Find a camera by it's camera name
+  * **camera_by_name** (camera=None, home=None) : Find a camera by it's camera name
     * Input : camera name and home name to lookup (str)
     * Output : camera dictionary or None
 
-  * **cameraType** (camera=None, home=None, cid=None) : Return the type of a given camera.
+  * **camera_type** (camera=None, home=None, cid=None) : Return the type of a given camera.
     * Input : camera name and home name or cameraID to lookup (str)
     * Output : Return the type of a given camera
 
-  * **cameraUrls** (camera=None, home=None, cid=None) : return Urls to access camera live feed
+  * **camera_urls_by_name** (camera=None, home=None, cid=None) : return Urls to access camera live feed
     * Input : camera name and home name or cameraID to lookup (str)
     * Output : tuple with the vpn_url (for remote access) and local url to access the camera live feed
 
-  * **personsAtHome** (home=None) : return the list of known persons who are at home
+  * **persons_at_home_by_name** (home=None) : return the list of known persons who are at home
     * Input : home name to lookup (str)
     * Output : list of persons seen
 
-  * **getCameraPicture** (image_id, key): Download a specific image (of an event or user face) from the camera
+  * **get_camera_picture** (image_id, key): Download a specific image (of an event or user face) from the camera
     * Input : image_id and key of an events or person face
     * Output: Tuple with image data (to be stored in a file) and image type (jpg, png...)
 
-  * **getProfileImage** (name) : Retrieve the face of a given person
+  * **get_profile_image** (name) : Retrieve the face of a given person
     * Input : person name (str)
-    * Output: **getCameraPicture** data
+    * Output: **get_camera_picture** data
 
-  * **updateEvent** (event=None, home=None, cameratype=None): Update the list of events
+  * **update_event** (event=None, home=None, cameratype=None): Update the list of events
     * Input: Id of the latest event, home name and cameratype to update event list
 
-  * **personSeenByCamera** (name, home=None, camera=None): Return true is a specific person has been seen by the camera in the last event
+  * **person_seen_by_camera** (name, home=None, camera=None): Return true is a specific person has been seen by the camera in the last event
 
-  * **someoneKnownSeen** (home=None, camera=None) : Return true is a known person has been in the last event
+  * **someone_known_seen** (home=None, camera=None) : Return true is a known person has been in the last event
 
-  * **someoneUnknownSeen** (home=None, camera=None) : Return true is an unknown person has been seen in the last event
+  * **someone_unknown_seen** (home=None, camera=None) : Return true is an unknown person has been seen in the last event
 
-  * **motionDetected** (home=None, camera=None) : Return true is a movement has been detected in the last event
+  * **motion_detected** (home=None, camera=None) : Return true is a movement has been detected in the last event
 
-  * **outdoormotionDetected** (home=None, camera=None) : Return true is a outdoor movement has been detected in the last event
+  * **outdoormotion_detected** (home=None, camera=None) : Return true is a outdoor movement has been detected in the last event
 
   * **humanDetected** (home=None, camera=None) : Return True if a human has been detected in the last outdoor events
 
@@ -419,11 +419,11 @@ Methods :
       * Input : device name to lookup (str)
       * Output : device dictionary or None
 
-  * **moduleById** (hid) : Find a module by its Netatmo ID
+  * **module_by_id** (hid) : Find a module by its Netatmo ID
       * Input : module ID
       * Output : module dictionary or None
 
-  * **moduleByName** (module=None, device=None) : Find a module by it's module name
+  * **module_by_name** (module=None, device=None) : Find a module by it's module name
       * Input : module name and device name to lookup (str)
       * Output : module dictionary or None
 
@@ -436,7 +436,7 @@ Methods :
 #### 4-6 Utilities functions ####
 
 
-  * **toTimeString** (timestamp) : Convert a Netatmo time stamp to a readable date/time format.
-  * **toEpoch**( dateString) : Convert a date string (form YYYY-MM-DD_HH:MM:SS) to timestamp
-  * **todayStamps**() : Return a couple of epoch time (start, end) for the current day
+  * **to_time_string** (timestamp) : Convert a Netatmo time stamp to a readable date/time format.
+  * **to_epoch**( dateString) : Convert a date string (form YYYY-MM-DD_HH:MM:SS) to timestamp
+  * **today_stamps**() : Return a couple of epoch time (start, end) for the current day
 

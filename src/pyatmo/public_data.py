@@ -1,11 +1,10 @@
+from typing import Any, Dict
+
+from .auth import NetatmoOAuth2
 from .exceptions import NoDevice
-from .helpers import _BASE_URL, toTimeString
+from .helpers import _BASE_URL, to_time_string
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
-_LON_NE = 6.221652
-_LAT_NE = 46.610870
-_LON_SW = 6.217828
-_LAT_SW = 46.596485
 
 _STATION_TEMPERATURE_TYPE = "temperature"
 _STATION_PRESSURE_TYPE = "pressure"
@@ -23,18 +22,37 @@ _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 
 
 class PublicData:
+    """
+    Class of Netatmo public weather data.
+    """
+
     def __init__(
         self,
-        authData,
-        LAT_NE=_LAT_NE,
-        LON_NE=_LON_NE,
-        LAT_SW=_LAT_SW,
-        LON_SW=_LON_SW,
-        required_data_type=None,  # comma-separated list from above _STATION or _ACCESSORY values
-        filtering=False,
-    ):
-        self.authData = authData
-        postParams = {
+        auth: NetatmoOAuth2,
+        LAT_NE: str,
+        LON_NE: str,
+        LAT_SW: str,
+        LON_SW: str,
+        required_data_type: str = None,
+        filtering: bool = False,
+    ) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
+            LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
+            LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
+            LON_SW {str} -- Longitude of the south west corner of the requested area. (-180 <= LON_SW <= 180)
+
+        Keyword Arguments:
+            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
+
+        Raises:
+            NoDevice: No devices found.
+        """
+        self.auth = auth
+        post_params: Dict = {
             "lat_ne": LAT_NE,
             "lon_ne": LON_NE,
             "lat_sw": LAT_SW,
@@ -43,106 +61,92 @@ class PublicData:
         }
 
         if required_data_type:
-            postParams["required_data"] = required_data_type
+            post_params["required_data"] = required_data_type
 
-        resp = self.authData.post_request(url=_GETPUBLIC_DATA, params=postParams)
+        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError):
             raise NoDevice("No public weather data returned by Netatmo server")
-        self.status = resp["status"]
-        self.time_exec = toTimeString(resp["time_exec"])
-        self.time_server = toTimeString(resp["time_server"])
 
-    def CountStationInArea(self):
+        self.status = resp["status"]
+        self.time_exec = to_time_string(resp["time_exec"])
+        self.time_server = to_time_string(resp["time_server"])
+
+    def stations_in_area(self) -> int:
         return len(self.raw_data)
 
-    # Backwards compatibility for < 1.2
-    def getLive(self):
-        return self.getLatestRain()
+    def get_latest_rain(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_RAIN_LIVE_TYPE)
 
-    def getLatestRain(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_LIVE_TYPE)
+    def get_average_rain(self) -> float:
+        return average(self.get_latest_rain())
 
-    def getAverageRain(self):
-        return averageMeasure(self.getLatestRain())
+    def get_60_min_rain(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_RAIN_60MIN_TYPE)
 
-    # Backwards compatibility for < 1.2
-    def get60min(self):
-        return self.get60minRain()
+    def get_average_60_min_rain(self) -> float:
+        return average(self.get_60_min_rain())
 
-    def get60minRain(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_60MIN_TYPE)
+    def get_24_h_rain(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_RAIN_24H_TYPE)
 
-    def getAverage60minRain(self):
-        return averageMeasure(self.get60minRain())
+    def get_average_24_h_rain(self) -> float:
+        return average(self.get_24_h_rain())
 
-    # Backwards compatibility for < 1.2
-    def get24h(self):
-        return self.get24hRain()
+    def get_latest_pressures(self) -> Dict:
+        return self.get_latest_station_measures(_STATION_PRESSURE_TYPE)
 
-    def get24hRain(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_24H_TYPE)
+    def get_average_pressure(self) -> float:
+        return average(self.get_latest_pressures())
 
-    def getAverage24hRain(self):
-        return averageMeasure(self.get24hRain())
+    def get_latest_temperatures(self) -> Dict:
+        return self.get_latest_station_measures(_STATION_TEMPERATURE_TYPE)
 
-    def getLatestPressures(self):
-        return self.getLatestStationMeasures(_STATION_PRESSURE_TYPE)
+    def get_average_temperature(self) -> float:
+        return average(self.get_latest_temperatures())
 
-    def getAveragePressure(self):
-        return averageMeasure(self.getLatestPressures())
+    def get_latest_humidities(self) -> Dict:
+        return self.get_latest_station_measures(_STATION_HUMIDITY_TYPE)
 
-    def getLatestTemperatures(self):
-        return self.getLatestStationMeasures(_STATION_TEMPERATURE_TYPE)
+    def get_average_humidity(self) -> float:
+        return average(self.get_latest_humidities())
 
-    def getAverageTemperature(self):
-        return averageMeasure(self.getLatestTemperatures())
+    def get_latest_wind_strengths(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_WIND_STRENGTH_TYPE)
 
-    def getLatestHumidities(self):
-        return self.getLatestStationMeasures(_STATION_HUMIDITY_TYPE)
+    def get_average_wind_strength(self) -> float:
+        return average(self.get_latest_wind_strengths())
 
-    def getAverageHumidity(self):
-        return averageMeasure(self.getLatestHumidities())
+    def get_latest_wind_angles(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_WIND_ANGLE_TYPE)
 
-    def getLatestWindStrengths(self):
-        return self.getAccessoryMeasures(_ACCESSORY_WIND_STRENGTH_TYPE)
+    def get_latest_gust_strengths(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_GUST_STRENGTH_TYPE)
 
-    def getAverageWindStrength(self):
-        return averageMeasure(self.getLatestWindStrengths())
+    def get_average_gust_strength(self) -> float:
+        return average(self.get_latest_gust_strengths())
 
-    def getLatestWindAngles(self):
-        return self.getAccessoryMeasures(_ACCESSORY_WIND_ANGLE_TYPE)
+    def get_latest_gust_angles(self):
+        return self.get_accessory_data(_ACCESSORY_GUST_ANGLE_TYPE)
 
-    def getLatestGustStrengths(self):
-        return self.getAccessoryMeasures(_ACCESSORY_GUST_STRENGTH_TYPE)
-
-    def getAverageGustStrength(self):
-        return averageMeasure(self.getLatestGustStrengths())
-
-    def getLatestGustAngles(self):
-        return self.getAccessoryMeasures(_ACCESSORY_GUST_ANGLE_TYPE)
-
-    def getLocations(self):
-        locations = {}
+    def get_locations(self) -> Dict:
+        locations: Dict = {}
         for station in self.raw_data:
             locations[station["_id"]] = station["place"]["location"]
+
         return locations
 
-    # Backwards compatibility for < 1.2
-    def getTimeforMeasure(self):
-        return self.getTimeForRainMeasures()
+    def get_time_for_rain_measures(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_RAIN_TIME_TYPE)
 
-    def getTimeForRainMeasures(self):
-        return self.getAccessoryMeasures(_ACCESSORY_RAIN_TIME_TYPE)
+    def get_time_for_wind_measures(self) -> Dict:
+        return self.get_accessory_data(_ACCESSORY_WIND_TIME_TYPE)
 
-    def getTimeForWindMeasures(self):
-        return self.getAccessoryMeasures(_ACCESSORY_WIND_TIME_TYPE)
-
-    def getLatestStationMeasures(self, data_type):
-        measures = {}
+    def get_latest_station_measures(self, data_type) -> Dict:
+        measures: Dict = {}
         for station in self.raw_data:
-            for _, module in station["measures"].items():
+            for module in station["measures"].values():
                 if (
                     "type" in module
                     and data_type in module["type"]
@@ -154,18 +158,18 @@ class PublicData:
                     measures[station["_id"]] = module["res"][latest_timestamp][
                         measure_index
                     ]
+
         return measures
 
-    def getAccessoryMeasures(self, data_type):
-        measures = {}
+    def get_accessory_data(self, data_type: str) -> Dict[str, Any]:
+        data: Dict = {}
         for station in self.raw_data:
-            for _, module in station["measures"].items():
+            for module in station["measures"].values():
                 if data_type in module:
-                    measures[station["_id"]] = module[data_type]
-        return measures
+                    data[station["_id"]] = module[data_type]
+
+        return data
 
 
-def averageMeasure(measures):
-    if measures:
-        return sum(measures.values()) / len(measures)
-    return 0.0
+def average(data: dict) -> float:
+    return sum(data.values()) / len(data) if data else 0.0

@@ -1,4 +1,5 @@
 """Define tests for WeatherStation module."""
+# pylint: disable=protected-access
 import json
 
 import pytest
@@ -7,19 +8,22 @@ from freezegun import freeze_time
 import pyatmo
 
 
-def test_WeatherStationData(weatherStationData):
-    assert weatherStationData.default_station == "MyStation"
+def test_weather_station_data(weather_station_data):
+    assert (
+        weather_station_data.stations["12:34:56:37:11:ca"]["station_name"]
+        == "MyStation"
+    )
 
 
-def test_WeatherStationData_no_response(auth, requests_mock):
+def test_weather_station_data_no_response(auth, requests_mock):
     requests_mock.post(pyatmo.weather_station._GETSTATIONDATA_REQ, text="None")
     with pytest.raises(pyatmo.NoDevice):
         assert pyatmo.WeatherStationData(auth)
 
 
-def test_WeatherStationData_no_body(auth, requests_mock):
-    with open("fixtures/status_ok.json") as f:
-        json_fixture = json.load(f)
+def test_weather_station_data_no_body(auth, requests_mock):
+    with open("fixtures/status_ok.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
@@ -29,9 +33,9 @@ def test_WeatherStationData_no_body(auth, requests_mock):
         assert pyatmo.WeatherStationData(auth)
 
 
-def test_WeatherStationData_no_data(auth, requests_mock):
-    with open("fixtures/home_data_empty.json") as f:
-        json_fixture = json.load(f)
+def test_weather_station_data_no_data(auth, requests_mock):
+    with open("fixtures/home_data_empty.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
         json=json_fixture,
@@ -42,29 +46,10 @@ def test_WeatherStationData_no_data(auth, requests_mock):
 
 
 @pytest.mark.parametrize(
-    "station, expected",
+    "station_id, expected",
     [
         (
-            None,
-            [
-                "Garden",
-                "Indoor",
-                "Inne - Nere",
-                "Inne - Uppe",
-                "Kitchen",
-                "Livingroom",
-                "Module",
-                "NAMain",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Rain Gauge",
-                "Regnmätare",
-                "Ute",
-                "Yard",
-            ],
-        ),
-        (
-            "MyStation",
+            "12:34:56:37:11:ca",
             [
                 "Garden",
                 "Kitchen",
@@ -74,7 +59,7 @@ def test_WeatherStationData_no_data(auth, requests_mock):
                 "Yard",
             ],
         ),
-        ("Valley Road", ["Module", "NAMain", "Rain Gauge"],),
+        ("12:34:56:36:fd:3c", ["Module", "NAMain", "Rain Gauge"],),
         pytest.param(
             "NoValidStation",
             None,
@@ -84,90 +69,16 @@ def test_WeatherStationData_no_data(auth, requests_mock):
         ),
     ],
 )
-def test_WeatherStationData_modulesNamesList(weatherStationData, station, expected):
-    assert sorted(weatherStationData.modulesNamesList(station)) == expected
+def test_weather_station_get_module_names(weather_station_data, station_id, expected):
+    assert sorted(weather_station_data.get_module_names(station_id)) == expected
 
 
 @pytest.mark.parametrize(
-    "station, expected",
+    "station_id, expected",
     [
+        (None, {},),
         (
-            None,
-            {
-                "12:34:56:02:b3:da": {
-                    "id": "12:34:56:02:b3:da",
-                    "module_name": "Regnmätare",
-                    "station_name": "Bolås",
-                },
-                "12:34:56:03:1b:e4": {
-                    "id": "12:34:56:03:1b:e4",
-                    "module_name": "Garden",
-                    "station_name": "MyStation",
-                },
-                "12:34:56:03:76:60": {
-                    "id": "12:34:56:03:76:60",
-                    "module_name": "Inne - Uppe",
-                    "station_name": "Bolås",
-                },
-                "12:34:56:05:51:20": {
-                    "id": "12:34:56:05:51:20",
-                    "module_name": "Yard",
-                    "station_name": "MyStation",
-                },
-                "12:34:56:07:bb:0e": {
-                    "id": "12:34:56:07:bb:0e",
-                    "module_name": "Livingroom",
-                    "station_name": "MyStation",
-                },
-                "12:34:56:07:bb:3e": {
-                    "id": "12:34:56:07:bb:3e",
-                    "module_name": "Kitchen",
-                    "station_name": "MyStation",
-                },
-                "12:34:56:36:fc:de": {
-                    "id": "12:34:56:36:fc:de",
-                    "module_name": "NetatmoOutdoor",
-                    "station_name": "MyStation",
-                },
-                "12:34:56:37:11:ca": {
-                    "id": "12:34:56:37:11:ca",
-                    "module_name": "NetatmoIndoor",
-                    "station_name": "MyStation",
-                },
-                "12:34:56:1c:68:2e": {
-                    "id": "12:34:56:1c:68:2e",
-                    "module_name": "Inne - Nere",
-                    "station_name": "Bolås",
-                },
-                "12:34:56:32:a7:60": {
-                    "id": "12:34:56:32:a7:60",
-                    "module_name": "Indoor",
-                    "station_name": "Ateljen",
-                },
-                "12:34:56:32:db:06": {
-                    "id": "12:34:56:32:db:06",
-                    "module_name": "Ute",
-                    "station_name": "Bolås",
-                },
-                "12:34:56:36:e6:c0": {
-                    "id": "12:34:56:36:e6:c0",
-                    "module_name": "Module",
-                    "station_name": "Valley Road",
-                },
-                "12:34:56:36:fd:3c": {
-                    "id": "12:34:56:36:fd:3c",
-                    "module_name": "NAMain",
-                    "station_name": "Valley Road",
-                },
-                "12:34:56:05:25:6e": {
-                    "id": "12:34:56:05:25:6e",
-                    "module_name": "Rain Gauge",
-                    "station_name": "Valley Road",
-                },
-            },
-        ),
-        (
-            "MyStation",
+            "12:34:56:37:11:ca",
             {
                 "12:34:56:03:1b:e4": {
                     "id": "12:34:56:03:1b:e4",
@@ -210,12 +121,13 @@ def test_WeatherStationData_modulesNamesList(weatherStationData, station, expect
         ),
     ],
 )
-def test_WeatherStationData_getModules(weatherStationData, station, expected):
-    assert weatherStationData.getModules(station) == expected
+def test_weather_station_get_modules(weather_station_data, station_id, expected):
+    assert weather_station_data.get_modules(station_id) == expected
 
 
-def test_WeatherStationData_stationByName(weatherStationData):
-    result = weatherStationData.stationByName()
+def test_weather_station_get_station(weather_station_data):
+    result = weather_station_data.get_station("12:34:56:37:11:ca")
+
     assert result["_id"] == "12:34:56:37:11:ca"
     assert result["station_name"] == "MyStation"
     assert result["module_name"] == "NetatmoIndoor"
@@ -227,53 +139,30 @@ def test_WeatherStationData_stationByName(weatherStationData):
         "Noise",
         "Pressure",
     ]
-    assert weatherStationData.stationByName("NoValidStation") is None
+
+    assert weather_station_data.get_station("NoValidStation") == {}
 
 
 @pytest.mark.parametrize(
-    "module, station, expected",
+    "mid, expected",
     [
-        ("Kitchen", None, "12:34:56:07:bb:3e"),
-        ("Kitchen", "MyStation", "12:34:56:07:bb:3e"),
-        ("Kitchen", "NoValidStation", None),
-        ("NetatmoIndoor", None, "12:34:56:37:11:ca"),
-        ("NetatmoIndoor", "MyStation", "12:34:56:37:11:ca"),
-        ("", None, None),
-        ("", "", None),
-        (None, None, None),
+        ("12:34:56:07:bb:3e", "12:34:56:07:bb:3e"),
+        ("12:34:56:07:bb:3e", "12:34:56:07:bb:3e"),
+        ("", {}),
+        (None, {}),
     ],
 )
-def test_WeatherStationData_moduleByName(weatherStationData, module, station, expected):
-    mod = weatherStationData.moduleByName(module, station)
-    if mod:
-        assert mod["_id"] == expected
-    else:
-        assert mod is expected
+def test_weather_station_get_module(weather_station_data, mid, expected):
+    mod = weather_station_data.get_module(mid)
+
+    assert isinstance(mod, dict) is True
+    assert mod.get("_id", mod) == expected
 
 
 @pytest.mark.parametrize(
-    "mid, sid, expected",
-    [
-        ("12:34:56:07:bb:3e", None, "12:34:56:07:bb:3e"),
-        ("12:34:56:07:bb:3e", "12:34:56:37:11:ca", "12:34:56:07:bb:3e"),
-        ("", None, None),
-        ("", "", None),
-        (None, None, None),
-    ],
-)
-def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
-    mod = weatherStationData.moduleById(mid, sid)
-    if mod:
-        assert mod["_id"] == expected
-    else:
-        assert mod is expected
-
-
-@pytest.mark.parametrize(
-    "module, moduleId, expected",
+    "module_id, expected",
     [
         (
-            None,
             "12:34:56:07:bb:3e",
             [
                 "CO2",
@@ -288,8 +177,7 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
             ],
         ),
         (
-            "Kitchen",
-            None,
+            "12:34:56:07:bb:3e",
             [
                 "CO2",
                 "Humidity",
@@ -303,8 +191,7 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
             ],
         ),
         (
-            "Garden",
-            None,
+            "12:34:56:03:1b:e4",
             [
                 "GustAngle",
                 "GustStrength",
@@ -317,8 +204,7 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
             ],
         ),
         (
-            "Yard",
-            None,
+            "12:34:56:05:51:20",
             [
                 "Rain",
                 "battery_percent",
@@ -330,8 +216,7 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
             ],
         ),
         (
-            "NetatmoIndoor",
-            None,
+            "12:34:56:37:11:ca",
             [
                 "CO2",
                 "Humidity",
@@ -345,137 +230,23 @@ def test_WeatherStationData_moduleById(weatherStationData, mid, sid, expected):
             ],
         ),
         pytest.param(
-            "12:34:56:07:bb:3e",
-            None,
-            None,
-            marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
-        ),
-        pytest.param(
-            "",
-            None,
-            None,
-            marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
-        ),
-        pytest.param(
-            None,
             None,
             None,
             marks=pytest.mark.xfail(reason="Invalid module names are not handled yet."),
         ),
     ],
 )
-def test_WeatherStationData_monitoredConditions(
-    weatherStationData, module, moduleId, expected
+def test_weather_station_get_monitored_conditions(
+    weather_station_data, module_id, expected
 ):
-    assert (
-        sorted(weatherStationData.monitoredConditions(module=module, moduleId=moduleId))
-        == expected
-    )
+    assert sorted(weather_station_data.get_monitored_conditions(module_id)) == expected
 
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "station, exclude, byId, expected",
+    "station_id, exclude, expected",
     [
-        (
-            "MyStation",
-            None,
-            False,
-            [
-                "Garden",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Yard",
-            ],
-        ),
-        (
-            "",
-            None,
-            False,
-            [
-                "Garden",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Yard",
-            ],
-        ),
-        ("NoValidStation", None, False, {}),
-        (
-            None,
-            1000000,
-            False,
-            [
-                "Garden",
-                "Indoor",
-                "Inne - Nere",
-                "Inne - Uppe",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Rain Gauge",
-                "Regnmätare",
-                "Ute",
-                "Yard",
-            ],
-        ),
-        (
-            None,
-            798103,
-            False,
-            [
-                "Garden",
-                "Indoor",
-                "Inne - Nere",
-                "Inne - Uppe",
-                "Kitchen",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Rain Gauge",
-                "Regnmätare",
-                "Ute",
-                "Yard",
-            ],
-        ),
-        (
-            None,
-            798103,
-            True,
-            [
-                "12:34:56:02:b3:da",
-                "12:34:56:03:1b:e4",
-                "12:34:56:03:76:60",
-                "12:34:56:05:25:6e",
-                "12:34:56:05:51:20",
-                "12:34:56:07:bb:3e",
-                "12:34:56:1c:68:2e",
-                "12:34:56:32:a7:60",
-                "12:34:56:32:db:06",
-                "12:34:56:36:fc:de",
-                "12:34:56:36:fd:3c",
-                "12:34:56:37:11:ca",
-            ],
-        ),
-    ],
-)
-def test_WeatherStationData_lastData(
-    weatherStationData, station, exclude, byId, expected
-):
-    mod = weatherStationData.lastData(station=station, exclude=exclude, byId=byId)
-    if mod:
-        assert sorted(mod) == expected
-    else:
-        assert mod == expected
-
-
-@freeze_time("2019-06-11")
-@pytest.mark.parametrize(
-    "station, exclude, expected",
-    [
+        ("12:34:56:05:51:20", None, {},),
         (
             "12:34:56:37:11:ca",
             None,
@@ -488,8 +259,8 @@ def test_WeatherStationData_lastData(
                 "12:34:56:37:11:ca",
             ],
         ),
-        ("", None, {},),
-        ("NoValidStation", None, {},),
+        ("", None, {}),
+        ("NoValidStation", None, {}),
         (
             "12:34:56:37:11:ca",
             1000000,
@@ -515,10 +286,10 @@ def test_WeatherStationData_lastData(
         ),
     ],
 )
-def test_WeatherStationData_lastData_byId(
-    weatherStationData, station, exclude, expected
+def test_weather_station_get_last_data(
+    weather_station_data, station_id, exclude, expected
 ):
-    mod = weatherStationData.lastData(station, exclude, byId=True)
+    mod = weather_station_data.get_last_data(station_id, exclude=exclude)
     if mod:
         assert sorted(mod) == expected
     else:
@@ -527,44 +298,21 @@ def test_WeatherStationData_lastData_byId(
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "station, delay, expected",
+    "station_id, delay, expected",
     [
         (
-            "MyStation",
+            "12:34:56:37:11:ca",
             3600,
             [
-                "Garden",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Yard",
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
             ],
         ),
-        (
-            None,
-            3600,
-            [
-                "Garden",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Yard",
-            ],
-        ),
-        (
-            "",
-            3600,
-            [
-                "Garden",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Yard",
-            ],
-        ),
+        ("12:34:56:37:11:ca", 798500, [],),
         pytest.param(
             "NoValidStation",
             3600,
@@ -573,89 +321,83 @@ def test_WeatherStationData_lastData_byId(
         ),
     ],
 )
-def test_WeatherStationData_checkNotUpdated(
-    weatherStationData, station, delay, expected
+def test_weather_station_check_not_updated(
+    weather_station_data, station_id, delay, expected
 ):
-    mod = weatherStationData.checkNotUpdated(station, delay)
+    mod = weather_station_data.check_not_updated(station_id, delay)
     assert sorted(mod) == expected
 
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "station, delay, expected",
+    "station_id, delay, expected",
     [
         (
-            "MyStation",
+            "12:34:56:37:11:ca",
             798500,
             [
-                "Garden",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Yard",
+                "12:34:56:03:1b:e4",
+                "12:34:56:05:51:20",
+                "12:34:56:07:bb:0e",
+                "12:34:56:07:bb:3e",
+                "12:34:56:36:fc:de",
+                "12:34:56:37:11:ca",
             ],
         ),
-        (
-            None,
-            798500,
-            [
-                "Garden",
-                "Indoor",
-                "Inne - Nere",
-                "Inne - Uppe",
-                "Kitchen",
-                "Livingroom",
-                "NetatmoIndoor",
-                "NetatmoOutdoor",
-                "Rain Gauge",
-                "Regnmätare",
-                "Ute",
-                "Yard",
-            ],
-        ),
+        ("12:34:56:37:11:ca", 100, [],),
     ],
 )
-def test_WeatherStationData_checkUpdated(weatherStationData, station, delay, expected):
-    mod = weatherStationData.checkUpdated(station, delay)
-    assert sorted(mod) == expected
+def test_weather_station_check_updated(
+    weather_station_data, station_id, delay, expected
+):
+    mod = weather_station_data.check_updated(station_id, delay)
+    if mod:
+        assert sorted(mod) == expected
+    else:
+        assert mod == expected
 
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "device_id, scale, mtype, expected", [("MyStation", "scale", "type", [28.1])]
+    "device_id, scale, module_type, expected", [("MyStation", "scale", "type", [28.1])]
 )
-def test_WeatherStationData_getMeasure(
-    weatherStationData, requests_mock, device_id, scale, mtype, expected
+def test_weather_station_get_data(
+    weather_station_data, requests_mock, device_id, scale, module_type, expected
 ):
-    with open("fixtures/weatherstation_measure.json") as f:
-        json_fixture = json.load(f)
+    with open("fixtures/weatherstation_measure.json") as json_file:
+        json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETMEASURE_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     assert (
-        weatherStationData.getMeasure(device_id, scale, mtype)["body"]["1544558433"]
+        weather_station_data.get_data(device_id, scale, module_type)["body"][
+            "1544558433"
+        ]
         == expected
     )
 
 
-def test_WeatherStationData_lastData_measurements(weatherStationData):
-    mod = weatherStationData.lastData("MyStation", None)
-    assert mod["NetatmoIndoor"]["min_temp"] == 23.4
-    assert mod["NetatmoIndoor"]["max_temp"] == 25.6
-    assert mod["NetatmoIndoor"]["Temperature"] == 24.6
-    assert mod["NetatmoIndoor"]["Pressure"] == 1017.3
-    assert mod["Garden"]["WindAngle"] == 217
-    assert mod["Garden"]["WindStrength"] == 4
-    assert mod["Garden"]["GustAngle"] == 206
-    assert mod["Garden"]["GustStrength"] == 9
+def test_weather_station_get_last_data_measurements(weather_station_data):
+    station_id = "12:34:56:37:11:ca"
+    module_id = "12:34:56:03:1b:e4"
+
+    mod = weather_station_data.get_last_data(station_id, None)
+
+    assert mod[station_id]["min_temp"] == 23.4
+    assert mod[station_id]["max_temp"] == 25.6
+    assert mod[station_id]["Temperature"] == 24.6
+    assert mod[station_id]["Pressure"] == 1017.3
+    assert mod[module_id]["WindAngle"] == 217
+    assert mod[module_id]["WindStrength"] == 4
+    assert mod[module_id]["GustAngle"] == 206
+    assert mod[module_id]["GustStrength"] == 9
 
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "station, exclude, expected",
+    "station_id, exclude, expected",
     [
         (
             "12:34:56:37:11:ca",
@@ -669,32 +411,14 @@ def test_WeatherStationData_lastData_measurements(weatherStationData):
                 "12:34:56:37:11:ca",
             ],
         ),
-        (
-            None,
-            None,
-            [
-                "12:34:56:02:b3:da",
-                "12:34:56:03:1b:e4",
-                "12:34:56:03:76:60",
-                "12:34:56:05:25:6e",
-                "12:34:56:05:51:20",
-                "12:34:56:07:bb:0e",
-                "12:34:56:07:bb:3e",
-                "12:34:56:1c:68:2e",
-                "12:34:56:32:a7:60",
-                "12:34:56:32:db:06",
-                "12:34:56:36:fc:de",
-                "12:34:56:36:fd:3c",
-                "12:34:56:37:11:ca",
-            ],
-        ),
+        (None, None, {},),
         ("12:34:56:00:aa:01", None, {},),
     ],
 )
-def test_WeatherStationData_lastData_bug_97(
-    weatherStationData, station, exclude, expected
+def test_weather_station_get_last_data_bug_97(
+    weather_station_data, station_id, exclude, expected
 ):
-    mod = weatherStationData.lastData(station, exclude, byId=True)
+    mod = weather_station_data.get_last_data(station_id, exclude)
     if mod:
         assert sorted(mod) == expected
     else:

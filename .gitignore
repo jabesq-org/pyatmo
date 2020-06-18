@@ -8,6 +8,10 @@ pyatmo.egg-info/
 *.pyc
 .DS_Store
 
+archive/
+access.token
+cov.xml
+
 venv/
 .venv
 
@@ -214,10 +218,6 @@ dmypy.json
 
 ### Code ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # End of https://www.gitignore.io/api/code
 

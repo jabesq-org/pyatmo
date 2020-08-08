@@ -255,6 +255,8 @@ class ClientAuth(NetatmoOAuth2):
         # pylint: disable=super-init-not-called
         self._client_id = client_id
         self._client_secret = client_secret
+        
+        self.extra = {"client_id": self.client_id, "client_secret": self.client_secret}
 
         self._oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
         self._oauth.fetch_token(

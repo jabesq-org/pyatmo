@@ -252,18 +252,16 @@ class ClientAuth(NetatmoOAuth2):
         password: str,
         scope="read_station",
     ):
-        # pylint: disable=super-init-not-called
-        self._client_id = client_id
-        self._client_secret = client_secret
-        
-        self.extra = {"client_id": self.client_id, "client_secret": self.client_secret}
+        super().__init__(client_id=client_id, client_secret=client_secret, scope=scope)
 
-        self._oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
+        self._oauth = OAuth2Session(
+            client=LegacyApplicationClient(client_id=self.client_id)
+        )
         self._oauth.fetch_token(
             token_url=AUTH_REQ,
             username=username,
             password=password,
-            client_id=client_id,
-            client_secret=client_secret,
-            scope=scope,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            scope=self.scope,
         )

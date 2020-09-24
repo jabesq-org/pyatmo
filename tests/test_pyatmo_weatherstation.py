@@ -112,6 +112,16 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
                 },
             },
         ),
+        (
+            "12:34:56:1d:68:2e",
+            {
+                "12:34:56:1d:68:2e": {
+                    "id": "12:34:56:1d:68:2e",
+                    "module_name": "Basisstation",
+                    "station_name": "NAMain",
+                }
+            },
+        ),
         pytest.param(
             "NoValidStation",
             None,

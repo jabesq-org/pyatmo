@@ -391,7 +391,13 @@ def test_home_status_boiler_status(home_status):
     ],
 )
 def test_home_status_set_thermmode(
-    home_status, requests_mock, mode, end_time, schedule_id, json_fixture, expected,
+    home_status,
+    requests_mock,
+    mode,
+    end_time,
+    schedule_id,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -451,7 +457,14 @@ def test_home_status_set_thermmode(
     ],
 )
 def test_home_status_set_room_thermpoint(
-    home_status, requests_mock, room_id, mode, temp, end_time, json_fixture, expected,
+    home_status,
+    requests_mock,
+    room_id,
+    mode,
+    temp,
+    end_time,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -506,7 +519,13 @@ def test_home_status_set_room_thermpoint(
     ],
 )
 def test_home_status_set_room_thermpoint_error(
-    home_status, requests_mock, room_id, mode, temp, json_fixture, expected,
+    home_status,
+    requests_mock,
+    room_id,
+    mode,
+    temp,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)

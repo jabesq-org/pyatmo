@@ -84,15 +84,17 @@ class WeatherStationData:
 
         res = {}
         for station in [self.stations[station_data["_id"]]]:
+            station_type = station.get("type")
+            station_name = station.get("station_name", station_type)
             res[station["_id"]] = {
-                "station_name": station["station_name"],
-                "module_name": station.get("module_name", station.get("type")),
+                "station_name": station_name,
+                "module_name": station.get("module_name", station_type),
                 "id": station["_id"],
             }
 
             for module in station["modules"]:
                 res[module["_id"]] = {
-                    "station_name": module.get("station_name", station["station_name"]),
+                    "station_name": module.get("station_name", station_name),
                     "module_name": module.get("module_name", module.get("type")),
                     "id": module["_id"],
                 }

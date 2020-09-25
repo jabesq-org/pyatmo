@@ -59,7 +59,10 @@ def test_weather_station_data_no_data(auth, requests_mock):
                 "Yard",
             ],
         ),
-        ("12:34:56:36:fd:3c", ["Module", "NAMain", "Rain Gauge"],),
+        (
+            "12:34:56:36:fd:3c",
+            ["Module", "NAMain", "Rain Gauge"],
+        ),
         pytest.param(
             "NoValidStation",
             None,
@@ -76,7 +79,10 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
 @pytest.mark.parametrize(
     "station_id, expected",
     [
-        (None, {},),
+        (
+            None,
+            {},
+        ),
         (
             "12:34:56:37:11:ca",
             {
@@ -110,6 +116,16 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
                     "module_name": "NetatmoIndoor",
                     "station_name": "MyStation",
                 },
+            },
+        ),
+        (
+            "12:34:56:1d:68:2e",
+            {
+                "12:34:56:1d:68:2e": {
+                    "id": "12:34:56:1d:68:2e",
+                    "module_name": "Basisstation",
+                    "station_name": "NAMain",
+                }
             },
         ),
         pytest.param(
@@ -246,7 +262,11 @@ def test_weather_station_get_monitored_conditions(
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
     [
-        ("12:34:56:05:51:20", None, {},),
+        (
+            "12:34:56:05:51:20",
+            None,
+            {},
+        ),
         (
             "12:34:56:37:11:ca",
             None,
@@ -312,7 +332,11 @@ def test_weather_station_get_last_data(
                 "12:34:56:37:11:ca",
             ],
         ),
-        ("12:34:56:37:11:ca", 798500, [],),
+        (
+            "12:34:56:37:11:ca",
+            798500,
+            [],
+        ),
         pytest.param(
             "NoValidStation",
             3600,
@@ -344,7 +368,11 @@ def test_weather_station_check_not_updated(
                 "12:34:56:37:11:ca",
             ],
         ),
-        ("12:34:56:37:11:ca", 100, [],),
+        (
+            "12:34:56:37:11:ca",
+            100,
+            [],
+        ),
     ],
 )
 def test_weather_station_check_updated(
@@ -411,8 +439,16 @@ def test_weather_station_get_last_data_measurements(weather_station_data):
                 "12:34:56:37:11:ca",
             ],
         ),
-        (None, None, {},),
-        ("12:34:56:00:aa:01", None, {},),
+        (
+            None,
+            None,
+            {},
+        ),
+        (
+            "12:34:56:00:aa:01",
+            None,
+            {},
+        ),
     ],
 )
 def test_weather_station_get_last_data_bug_97(

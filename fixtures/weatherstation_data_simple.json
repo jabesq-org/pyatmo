@@ -459,6 +459,52 @@
                         }
                     }
                 ]
+            },
+            {
+                "_id": "12:34:56:1d:68:2e",
+                "date_setup": 1470935500,
+                "last_setup": 1470935500,
+                "type": "NAMain",
+                "last_status_store": 1588481399,
+                "module_name": "Basisstation",
+                "firmware": 177,
+                "last_upgrade": 1470935401,
+                "wifi_status": 13,
+                "reachable": true,
+                "co2_calibrating": false,
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure"
+                ],
+                "place": {
+                    "altitude": 93,
+                    "city": "Gothenburg",
+                    "country": "SE",
+                    "timezone": "Europe/Stockholm",
+                    "location": [
+                        11.6136629,
+                        57.7006827
+                    ]
+                },
+                "dashboard_data": {
+                    "time_utc": 1588481387,
+                    "Temperature": 20.8,
+                    "CO2": 674,
+                    "Humidity": 41,
+                    "Noise": 34,
+                    "Pressure": 1012.1,
+                    "AbsolutePressure": 1001,
+                    "min_temp": 20.8,
+                    "max_temp": 22.2,
+                    "date_max_temp": 1588456859,
+                    "date_min_temp": 1588480176,
+                    "temp_trend": "stable",
+                    "pressure_trend": "up"
+                },
+                "modules": []
             }
         ],
         "user": {

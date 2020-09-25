@@ -101,7 +101,10 @@ class NetatmoOAuth2:
         return token
 
     def post_request(
-        self, url: str, params: Optional[Dict] = None, timeout: int = 5,
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        timeout: int = 5,
     ) -> Any:
         """Wrapper for post requests."""
         resp = None

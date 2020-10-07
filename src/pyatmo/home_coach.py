@@ -19,4 +19,4 @@ class HomeCoachData(WeatherStationData):
         Raises:
             NoDevice: No devices found.
         """
-        super(HomeCoachData, self).__init__(auth, url_req=_GETHOMECOACHDATA_REQ)
+        super().__init__(auth, url_req=_GETHOMECOACHDATA_REQ)

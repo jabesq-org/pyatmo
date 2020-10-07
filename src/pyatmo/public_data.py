@@ -66,8 +66,8 @@ class PublicData:
         resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
         try:
             self.raw_data = resp["body"]
-        except (KeyError, TypeError):
-            raise NoDevice("No public weather data returned by Netatmo server")
+        except (KeyError, TypeError) as exc:
+            raise NoDevice("No public weather data returned by Netatmo server") from exc
 
         self.status = resp["status"]
         self.time_exec = to_time_string(resp["time_exec"])

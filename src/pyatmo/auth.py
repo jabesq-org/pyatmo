@@ -101,7 +101,10 @@ class NetatmoOAuth2:
         return token
 
     def post_request(
-        self, url: str, params: Optional[Dict] = None, timeout: int = 5,
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        timeout: int = 5,
     ) -> Any:
         """Wrapper for post requests."""
         resp = None
@@ -171,12 +174,12 @@ class NetatmoOAuth2:
                     f"when accessing '{url}'"
                 )
 
-            except JSONDecodeError:
+            except JSONDecodeError as exc:
                 raise ApiError(
                     f"{resp.status_code} - "
                     f"{ERRORS.get(resp.status_code, '')} - "
                     f"when accessing '{url}'"
-                )
+                ) from exc
 
         try:
             if "application/json" in resp.headers.get("content-type", []):
@@ -252,16 +255,16 @@ class ClientAuth(NetatmoOAuth2):
         password: str,
         scope="read_station",
     ):
-        # pylint: disable=super-init-not-called
-        self._client_id = client_id
-        self._client_secret = client_secret
+        super().__init__(client_id=client_id, client_secret=client_secret, scope=scope)
 
-        self._oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
+        self._oauth = OAuth2Session(
+            client=LegacyApplicationClient(client_id=self.client_id)
+        )
         self._oauth.fetch_token(
             token_url=AUTH_REQ,
             username=username,
             password=password,
-            client_id=client_id,
-            client_secret=client_secret,
-            scope=scope,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            scope=self.scope,
         )

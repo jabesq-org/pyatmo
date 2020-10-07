@@ -34,9 +34,11 @@ class WeatherStationData:
 
         try:
             self.raw_data = fix_id(resp["body"].get("devices"))
-        except KeyError:
+        except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
-            raise NoDevice("No weather station data returned by Netatmo server")
+            raise NoDevice(
+                "No weather station data returned by Netatmo server"
+            ) from exc
 
         if not self.raw_data:
             raise NoDevice("No weather station available")
@@ -84,15 +86,17 @@ class WeatherStationData:
 
         res = {}
         for station in [self.stations[station_data["_id"]]]:
+            station_type = station.get("type")
+            station_name = station.get("station_name", station_type)
             res[station["_id"]] = {
-                "station_name": station["station_name"],
-                "module_name": station.get("module_name", station.get("type")),
+                "station_name": station_name,
+                "module_name": station.get("module_name", station_type),
                 "id": station["_id"],
             }
 
             for module in station["modules"]:
                 res[module["_id"]] = {
-                    "station_name": module.get("station_name", station["station_name"]),
+                    "station_name": module.get("station_name", station_name),
                     "module_name": module.get("module_name", module.get("type")),
                     "id": module["_id"],
                 }
@@ -140,6 +144,12 @@ class WeatherStationData:
 
         if module["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
             conditions.extend(["min_temp", "max_temp"])
+
+        if module["type"] in ["NAMain", "NAModule1", "NAModule4"]:
+            conditions.extend(["temp_trend"])
+
+        if module["type"] == "NAMain":
+            conditions.extend(["pressure_trend"])
 
         if module["type"] in [
             "NAMain",

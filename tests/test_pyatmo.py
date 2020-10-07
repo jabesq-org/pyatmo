@@ -58,7 +58,8 @@ def test_post_request_binary(auth, requests_mock):
 
 
 @pytest.mark.parametrize(
-    "test_input,expected", [(200, None), (404, None), (401, None)],
+    "test_input,expected",
+    [(200, None), (404, None), (401, None)],
 )
 def test_post_request_fail(auth, requests_mock, test_input, expected):
     """Test failing requests against the Netatmo API."""

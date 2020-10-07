@@ -112,7 +112,8 @@ def test_camera_data_camera_urls_disconnected(auth, requests_mock):
 
 
 @pytest.mark.parametrize(
-    "home_id, expected", [("91763b24c43d3e344f424e8b", ["Richard Doe"])],
+    "home_id, expected",
+    [("91763b24c43d3e344f424e8b", ["Richard Doe"])],
 )
 def test_camera_data_persons_at_home(camera_home_data, home_id, expected):
     assert camera_home_data.persons_at_home(home_id) == expected
@@ -321,7 +322,14 @@ def test_camera_data_get_smokedetector(camera_home_data, sid, expected):
             "camera_set_state_ok.json",
             True,
         ),
-        (None, "12:34:56:00:f1:62", None, "on", "camera_set_state_ok.json", True,),
+        (
+            None,
+            "12:34:56:00:f1:62",
+            None,
+            "on",
+            "camera_set_state_ok.json",
+            True,
+        ),
         (
             "91763b24c43d3e344f424e8b",
             "12:34:56:00:f1:62",

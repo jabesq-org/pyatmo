@@ -190,6 +190,7 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "min_temp",
                 "reachable",
                 "rf_status",
+                "temp_trend",
             ],
         ),
         (
@@ -204,6 +205,7 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "min_temp",
                 "reachable",
                 "rf_status",
+                "temp_trend",
             ],
         ),
         (
@@ -241,7 +243,9 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "Temperature",
                 "max_temp",
                 "min_temp",
+                "pressure_trend",
                 "reachable",
+                "temp_trend",
                 "wifi_status",
             ],
         ),

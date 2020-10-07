@@ -143,6 +143,12 @@ class WeatherStationData:
         if module["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
             conditions.extend(["min_temp", "max_temp"])
 
+        if module["type"] in ["NAMain", "NAModule1", "NAModule4"]:
+            conditions.extend(["temp_trend"])
+
+        if module["type"] == "NAMain":
+            conditions.extend(["pressure_trend"])
+
         if module["type"] in [
             "NAMain",
             "NAModule1",

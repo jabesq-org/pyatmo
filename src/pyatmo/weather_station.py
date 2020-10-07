@@ -34,9 +34,11 @@ class WeatherStationData:
 
         try:
             self.raw_data = fix_id(resp["body"].get("devices"))
-        except KeyError:
+        except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
-            raise NoDevice("No weather station data returned by Netatmo server")
+            raise NoDevice(
+                "No weather station data returned by Netatmo server"
+            ) from exc
 
         if not self.raw_data:
             raise NoDevice("No weather station available")

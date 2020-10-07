@@ -174,12 +174,12 @@ class NetatmoOAuth2:
                     f"when accessing '{url}'"
                 )
 
-            except JSONDecodeError:
+            except JSONDecodeError as exc:
                 raise ApiError(
                     f"{resp.status_code} - "
                     f"{ERRORS.get(resp.status_code, '')} - "
                     f"when accessing '{url}'"
-                )
+                ) from exc
 
         try:
             if "application/json" in resp.headers.get("content-type", []):

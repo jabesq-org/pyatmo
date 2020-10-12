@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        python-version: [3.6]
+        python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v2.3.3
@@ -27,14 +27,14 @@ jobs:
     - name: Check with black
       run: |
         pip install black
-        black --check src/pyatmo/ tests/ setup.py
+        black --check --diff src/pyatmo/ tests/ setup.py
 
   linter:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1
+      max-parallel: 4
       matrix:
-        python-version: [3.6]
+        python-version: [ 3.7, 3.8 ]
 
     steps:
     - uses: actions/checkout@v2.3.3
@@ -56,7 +56,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2.3.3

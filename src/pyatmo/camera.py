@@ -177,7 +177,7 @@ class CameraData:
             temp_local_url = check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = check_url(
-                    temp_local_url
+                    temp_local_url,
                 )
 
     def get_light_state(self, camera_id: str) -> Optional[str]:
@@ -239,7 +239,9 @@ class CameraData:
         return None
 
     def get_camera_picture(
-        self, image_id: str, key: str
+        self,
+        image_id: str,
+        key: str,
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {
@@ -264,7 +266,10 @@ class CameraData:
         return None, None
 
     def update_events(
-        self, home_id: str, event_id: str = None, device_type: str = None
+        self,
+        home_id: str,
+        event_id: str = None,
+        device_type: str = None,
     ) -> None:
         """Update the list of events."""
         # Either event_id or device_type must be given
@@ -332,7 +337,10 @@ class CameraData:
             ]
 
     def person_seen_by_camera(
-        self, name: str, camera_id: str, exclude: int = 0
+        self,
+        name: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
@@ -468,7 +476,7 @@ class CameraData:
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == "human" and event["time"] + offset > int(
-                    time.time()
+                    time.time(),
                 ):
                     return True
 
@@ -479,7 +487,7 @@ class CameraData:
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == "animal" and event["time"] + offset > int(
-                    time.time()
+                    time.time(),
                 ):
                     return True
 
@@ -490,14 +498,17 @@ class CameraData:
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == "vehicle" and event["time"] + offset > int(
-                    time.time()
+                    time.time(),
                 ):
                     return True
 
         return False
 
     def module_motion_detected(
-        self, module_id: str, camera_id: str, exclude: int = 0
+        self,
+        module_id: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if movement has been detected."""
         if exclude:

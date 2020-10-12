@@ -3,6 +3,30 @@
 default_stages: [commit, push]
 exclude: ^(fixtures/)
 repos:
+  - repo: https://github.com/asottile/seed-isort-config
+    rev: v2.2.0
+    hooks:
+    -   id: seed-isort-config
+        args: [--application-directories,./src]
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.7.2
+    hooks:
+    - id: pyupgrade
+      args: [--py37-plus]
+      exclude: 'external_src/int-tools'
+
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v2.0.1
+    hooks:
+      - id: add-trailing-comma
+        args: [ --py36-plus ]
+        exclude: 'external_src/int-tools'
+
+  - repo: https://github.com/asottile/yesqa
+    rev: v1.2.2
+    hooks:
+      - id: yesqa
   - repo: local
     hooks:
       - id: isort
@@ -11,24 +35,50 @@ repos:
         entry: pipenv run isort
         types: [python]
         exclude: tests/
+
       - id: black
         name: black
         language: system
         entry: pipenv run black
         types: [python]
+
       - id: pylint
         name: pylint
         language: system
         entry: pipenv run pylint
         types: [python]
-      - id: flake8
-        name: flake8
-        language: system
-        entry: pipenv run flake8
-        types: [python]
+
       - id: mypy
         name: mypy
         language: system
         entry: pipenv run mypy
         types: [python]
         exclude: tests/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0  # Use the ref you want to point at
+    hooks:
+      - id: check-ast
+      - id: no-commit-to-branch
+        args: [--branch, master, --branch, devel]
+      - id: forbid-new-submodules
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+      - id: debug-statements
+      - id: check-toml
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.4  # pick a git hash / tag to point to
+    hooks:
+      - id: flake8
+        exclude: (otp)
+        additional_dependencies: [flake8-typing-imports==1.10.0]
+
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v1.15.0
+    hooks:
+      - id: setup-cfg-fmt

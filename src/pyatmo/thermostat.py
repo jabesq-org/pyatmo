@@ -228,7 +228,10 @@ class HomeStatus:
         return self.get_thermostat(module_id).get("boiler_status")
 
     def set_thermmode(
-        self, mode: str, end_time: int = None, schedule_id: str = None
+        self,
+        mode: str,
+        end_time: int = None,
+        schedule_id: str = None,
     ) -> Optional[str]:
         post_params = {
             "home_id": self.home_id,
@@ -243,7 +246,11 @@ class HomeStatus:
         return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
     def set_room_thermpoint(
-        self, room_id: str, mode: str, temp: float = None, end_time: int = None
+        self,
+        room_id: str,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
     ) -> Optional[str]:
         post_params = {
             "home_id": self.home_id,

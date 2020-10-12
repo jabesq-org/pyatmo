@@ -132,7 +132,11 @@ def test_camera_data_persons_at_home(camera_home_data, home_id, expected):
     ],
 )
 def test_camera_data_person_seen_by_camera(
-    camera_home_data, name, cid, exclude, expected
+    camera_home_data,
+    name,
+    cid,
+    exclude,
+    expected,
 ):
     assert (
         camera_home_data.person_seen_by_camera(name, cid, exclude=exclude) is expected
@@ -192,7 +196,12 @@ def test_camera_data_get_person_id(camera_home_data, name, expected):
     ],
 )
 def test_camera_data_set_persons_away(
-    camera_home_data, requests_mock, home_id, person_id, json_fixture, expected
+    camera_home_data,
+    requests_mock,
+    home_id,
+    person_id,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -225,7 +234,12 @@ def test_camera_data_set_persons_away(
     ],
 )
 def test_camera_data_set_persons_home(
-    camera_home_data, requests_mock, home_id, person_ids, json_fixture, expected
+    camera_home_data,
+    requests_mock,
+    home_id,
+    person_ids,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -247,7 +261,11 @@ def test_camera_data_set_persons_home(
     ],
 )
 def test_camera_data_someone_known_seen(
-    camera_home_data, camera_id, exclude, expected, expectation
+    camera_home_data,
+    camera_id,
+    exclude,
+    expected,
+    expectation,
 ):
     with expectation:
         assert camera_home_data.someone_known_seen(camera_id, exclude) == expected
@@ -263,7 +281,11 @@ def test_camera_data_someone_known_seen(
     ],
 )
 def test_camera_data_someone_unknown_seen(
-    camera_home_data, camera_id, exclude, expected, expectation
+    camera_home_data,
+    camera_id,
+    exclude,
+    expected,
+    expectation,
 ):
     with expectation:
         assert camera_home_data.someone_unknown_seen(camera_id, exclude) == expected
@@ -280,7 +302,11 @@ def test_camera_data_someone_unknown_seen(
     ],
 )
 def test_camera_data_motion_detected(
-    camera_home_data, camera_id, exclude, expected, expectation
+    camera_home_data,
+    camera_id,
+    exclude,
+    expected,
+    expectation,
 ):
     with expectation:
         assert camera_home_data.motion_detected(camera_id, exclude) == expected
@@ -426,7 +452,12 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
     ],
 )
 def test_camera_data_update_events(
-    camera_home_data, requests_mock, home_id, event_id, device_type, exception
+    camera_home_data,
+    requests_mock,
+    home_id,
+    event_id,
+    device_type,
+    exception,
 ):
     with open("fixtures/camera_data_events_until.json") as fixture_file:
         json_fixture = json.load(fixture_file)
@@ -440,7 +471,9 @@ def test_camera_data_update_events(
         before = camera_home_data.last_event.copy()
         assert (
             camera_home_data.update_events(
-                home_id=home_id, event_id=event_id, device_type=device_type
+                home_id=home_id,
+                event_id=event_id,
+                device_type=device_type,
             )
             is None
         )

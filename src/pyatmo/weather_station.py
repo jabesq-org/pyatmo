@@ -47,6 +47,7 @@ class WeatherStationData:
         self.modules = {}
 
         for item in self.raw_data:
+            # The station name is sometimes not contained in the backend data
             if "station_name" not in item:
                 item["station_name"] = item.get("home_name", item["type"])
 

@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distributions 📦 to TestPyPI
+name: Publish 📦 to TestPyPI
 
 on:
   create:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to TestPyPI
+    name: Build and publish 📦 to TestPyPI
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master

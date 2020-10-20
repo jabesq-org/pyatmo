@@ -145,9 +145,6 @@ class WeatherStationData:
             # assume all other modules have rf_status, battery_vp, and battery_percent
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
 
-        if module["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
-            conditions.extend(["min_temp", "max_temp"])
-
         if module["type"] in ["NAMain", "NAModule1", "NAModule4"]:
             conditions.extend(["temp_trend"])
 

@@ -186,8 +186,6 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "Temperature",
                 "battery_percent",
                 "battery_vp",
-                "max_temp",
-                "min_temp",
                 "reachable",
                 "rf_status",
                 "temp_trend",
@@ -201,8 +199,6 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "Temperature",
                 "battery_percent",
                 "battery_vp",
-                "max_temp",
-                "min_temp",
                 "reachable",
                 "rf_status",
                 "temp_trend",
@@ -241,8 +237,6 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "Noise",
                 "Pressure",
                 "Temperature",
-                "max_temp",
-                "min_temp",
                 "pressure_trend",
                 "reachable",
                 "temp_trend",
@@ -417,8 +411,6 @@ def test_weather_station_get_last_data_measurements(weather_station_data):
 
     mod = weather_station_data.get_last_data(station_id, None)
 
-    assert mod[station_id]["min_temp"] == 23.4
-    assert mod[station_id]["max_temp"] == 25.6
     assert mod[station_id]["Temperature"] == 24.6
     assert mod[station_id]["Pressure"] == 1017.3
     assert mod[module_id]["WindAngle"] == 217

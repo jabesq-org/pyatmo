@@ -1,6 +1,7 @@
 import imghdr
 import time
-from typing import Dict, List, Optional, Tuple
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 from requests.exceptions import ReadTimeout
 
@@ -48,53 +49,39 @@ class CameraData:
         self.homes: Dict = {d["id"]: d for d in self.raw_data}
 
         self.persons: Dict = {}
-        self.events: Dict = {}
-        self.outdoor_events: Dict = {}
-        self.cameras: Dict = {}
-        self.smokedetectors: Dict = {}
+        self.events: Dict = defaultdict(dict)
+        self.outdoor_events: Dict = defaultdict(dict)
+        self.cameras: Dict = defaultdict(dict)
+        self.smokedetectors: Dict = defaultdict(dict)
         self.modules: Dict = {}
         self.last_event: Dict = {}
         self.outdoor_last_event: Dict = {}
-        self.types: Dict = {}
+        self.types: Dict = defaultdict(dict)
 
         for item in self.raw_data:
-            home_id: str = item.get("id")
-            home_name: str = item.get("name")
+            home_id: str = item.get("id", "")
+            home_name: str = item.get("name", "")
 
             if not home_name:
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name
 
-            if home_id not in self.cameras:
-                self.cameras[home_id] = {}
-
-            if home_id not in self.smokedetectors:
-                self.smokedetectors[home_id] = {}
-
-            if home_id not in self.types:
-                self.types[home_id] = {}
-
             for person in item["persons"]:
                 self.persons[person["id"]] = person
 
-            if "events" in item:
-                for event in item["events"]:
-                    if event["type"] == "outdoor":
-                        if event["camera_id"] not in self.outdoor_events:
-                            self.outdoor_events[event["camera_id"]] = {}
-                        self.outdoor_events[event["camera_id"]][event["time"]] = event
+            for event in item.get("events", []):
+                if event["type"] == "outdoor":
+                    self.outdoor_events[event["camera_id"]][event["time"]] = event
 
-                    else:
-                        if event["camera_id"] not in self.events:
-                            self.events[event["camera_id"]] = {}
-                        self.events[event["camera_id"]][event["time"]] = event
+                else:
+                    self.events[event["camera_id"]][event["time"]] = event
 
             for camera in item["cameras"]:
                 self.cameras[home_id][camera["id"]] = camera
                 self.cameras[home_id][camera["id"]]["home_id"] = home_id
 
-                if camera["type"] == "NACamera" and "modules" in camera:
-                    for module in camera["modules"]:
+                if camera["type"] == "NACamera":
+                    for module in camera.get("modules", []):
                         self.modules[module["id"]] = module
                         self.modules[module["id"]]["cam_id"] = camera["id"]
 
@@ -306,24 +293,26 @@ class CameraData:
             "event_id": event_id,
         }
 
+        event_list = []
+        resp: Optional[Dict[str, Any]] = None
         try:
             resp = self.auth.post_request(url=_GETEVENTSUNTIL_REQ, params=post_params)
-            event_list = resp["body"]["events_list"]
+            if resp is not None:
+                event_list = resp["body"]["events_list"]
         except ApiError:
             pass
         except KeyError:
-            LOG.debug("event_list response: %s", resp)
-            LOG.debug("event_list body: %s", resp["body"])
+            if resp is not None:
+                LOG.debug("event_list response: %s", resp)
+                LOG.debug("event_list body: %s", dict(resp)["body"])
+            else:
+                LOG.debug("No resp received")
 
         for event in event_list:
             if event["type"] == "outdoor":
-                if event["camera_id"] not in self.outdoor_events:
-                    self.outdoor_events[event["camera_id"]] = {}
                 self.outdoor_events[event["camera_id"]][event["time"]] = event
 
             else:
-                if event["camera_id"] not in self.events:
-                    self.events[event["camera_id"]] = {}
                 self.events[event["camera_id"]][event["time"]] = event
 
         for camera in self.events:

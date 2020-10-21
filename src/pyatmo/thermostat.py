@@ -55,28 +55,28 @@ class HomeData:
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name
 
-            if "modules" in item:
+            if "modules" not in item:
+                continue
 
-                for module in item["modules"]:
-                    self.modules[home_id][module["id"]] = module
+            for module in item["modules"]:
+                self.modules[home_id][module["id"]] = module
 
-                if "therm_setpoint_default_duration" in item:
-                    self.setpoint_duration[home_id] = item[
-                        "therm_setpoint_default_duration"
-                    ]
+            self.setpoint_duration[home_id] = item.get(
+                "therm_setpoint_default_duration",
+            )
 
-                for room in item.get("rooms", []):
-                    self.rooms[home_id][room["id"]] = room
+            for room in item.get("rooms", []):
+                self.rooms[home_id][room["id"]] = room
 
-                for schedule in item.get("therm_schedules", []):
-                    schedule_id = schedule["id"]
-                    self.schedules[home_id][schedule_id] = schedule
+            for schedule in item.get("therm_schedules", []):
+                schedule_id = schedule["id"]
+                self.schedules[home_id][schedule_id] = schedule
 
-                    if schedule_id not in self.zones[home_id]:
-                        self.zones[home_id][schedule_id] = {}
+                if schedule_id not in self.zones[home_id]:
+                    self.zones[home_id][schedule_id] = {}
 
-                    for zone in schedule["zones"]:
-                        self.zones[home_id][schedule_id][zone["id"]] = zone
+                for zone in schedule["zones"]:
+                    self.zones[home_id][schedule_id][zone["id"]] = zone
 
     def _get_selected_schedule(self, home_id: str) -> Dict:
         """Get the selected schedule for a given home ID."""
@@ -138,34 +138,22 @@ class HomeStatus:
 
         self.raw_data = resp["body"]["home"]
         self.rooms: Dict = {}
-        self.thermostats: Dict = {}
-        self.valves: Dict = {}
-        self.relays: Dict = {}
+        self.thermostats: Dict = defaultdict(dict)
+        self.valves: Dict = defaultdict(dict)
+        self.relays: Dict = defaultdict(dict)
 
         for room in self.raw_data.get("rooms", []):
             self.rooms[room["id"]] = room
 
         for module in self.raw_data.get("modules", []):
             if module["type"] == "NATherm1":
-                thermostat_id = module["id"]
-                if thermostat_id not in self.thermostats:
-                    self.thermostats[thermostat_id] = {}
-
-                self.thermostats[thermostat_id] = module
+                self.thermostats[module["id"]] = module
 
             elif module["type"] == "NRV":
-                valve_id = module["id"]
-                if valve_id not in self.valves:
-                    self.valves[valve_id] = {}
-
-                self.valves[valve_id] = module
+                self.valves[module["id"]] = module
 
             elif module["type"] == "NAPlug":
-                relay_id = module["id"]
-                if relay_id not in self.relays:
-                    self.relays[relay_id] = {}
-
-                self.relays[relay_id] = module
+                self.relays[module["id"]] = module
 
     def get_room(self, room_id: str) -> Dict:
         for key, value in self.rooms.items():

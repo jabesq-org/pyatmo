@@ -72,9 +72,9 @@ class CameraData:
 
             for camera in item.get("cameras", []):
                 self.cameras[home_id][camera["id"]] = camera
-                self.cameras[home_id][camera["id"]]["home_id"] = home_id
-
                 self.types[home_id][camera["type"]] = camera
+
+                self.cameras[home_id][camera["id"]]["home_id"] = home_id
                 if camera["type"] == "NACamera":
                     for module in camera.get("modules", []):
                         self.modules[module["id"]] = module
@@ -308,11 +308,11 @@ class CameraData:
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
-        def _person_in_event(current_event, name):
-            if current_event["type"] == "person":
-                person_id = current_event["person_id"]
+        def _person_in_event(curr_event, person_name):
+            if curr_event["type"] == "person":
+                person_id = curr_event["person_id"]
 
-                if self.persons[person_id].get("pseudo") == name:
+                if self.persons[person_id].get("pseudo") == person_name:
                     return True
             return None
 
@@ -361,18 +361,17 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
-                if self.events[camera_id][time_ev]["type"] == "person":
-                    if (
-                        self.events[camera_id][time_ev]["person_id"]
-                        in self._known_persons()
-                    ):
+                curr_event = self.events[camera_id][time_ev]
+                if curr_event["type"] == "person":
+                    if curr_event["person_id"] in self._known_persons():
                         return True
 
         # Check in the last event if someone known has been seen
-        elif self.last_event[camera_id]["type"] == "person":
-
-            if self.last_event[camera_id]["person_id"] in self._known_persons():
-                return True
+        else:
+            curr_event = self.last_event[camera_id]
+            if curr_event["type"] == "person":
+                if curr_event["person_id"] in self._known_persons():
+                    return True
 
         return False
 
@@ -389,19 +388,17 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
-                if self.events[camera_id][time_ev]["type"] == "person":
-
-                    if (
-                        self.events[camera_id][time_ev]["person_id"]
-                        not in self._known_persons()
-                    ):
+                curr_event = self.events[camera_id][time_ev]
+                if curr_event["type"] == "person":
+                    if curr_event["person_id"] not in self._known_persons():
                         return True
 
         # Check in the last event is noone known has been seen
-        elif self.last_event[camera_id]["type"] == "person":
-
-            if self.last_event[camera_id]["person_id"] not in self._known_persons():
-                return True
+        else:
+            curr_event = self.last_event[camera_id]
+            if curr_event["type"] == "person":
+                if curr_event["person_id"] not in self._known_persons():
+                    return True
 
         return False
 
@@ -428,45 +425,38 @@ class CameraData:
 
     def outdoor_motion_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if outdoor movement has been detected."""
+        if camera_id not in self.last_event:
+            return False
+
+        last_event = self.last_event[camera_id]
         return (
-            camera_id in self.last_event
-            and self.last_event[camera_id]["type"] == "movement"
-            and self.last_event[camera_id]["video_status"] == "recording"
-            and self.last_event[camera_id]["time"] + offset > int(time.time())
+            last_event["type"] == "movement"
+            and last_event["video_status"] == "recording"
+            and last_event["time"] + offset > int(time.time())
         )
 
-    def human_detected(self, camera_id: str, offset: int = 0) -> bool:
+    def _stuff_detected(self, stuff_name: str, camera_id: str, offset: int) -> bool:
         """Evaluate if a human has been detected."""
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == "human" and event["time"] + offset > int(
-                    time.time(),
+                if event["type"] == stuff_name and (
+                    event["time"] + offset > int(time.time())
                 ):
                     return True
 
         return False
+
+    def human_detected(self, camera_id: str, offset: int = 0) -> bool:
+        """Evaluate if a human has been detected."""
+        return self._stuff_detected("human", camera_id, offset)
 
     def animal_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if an animal has been detected."""
-        if self.outdoor_last_event[camera_id]["video_status"] == "recording":
-            for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == "animal" and event["time"] + offset > int(
-                    time.time(),
-                ):
-                    return True
-
-        return False
+        return self._stuff_detected("animal", camera_id, offset)
 
     def car_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if a car has been detected."""
-        if self.outdoor_last_event[camera_id]["video_status"] == "recording":
-            for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == "vehicle" and event["time"] + offset > int(
-                    time.time(),
-                ):
-                    return True
-
-        return False
+        return self._stuff_detected("vehicle", camera_id, offset)
 
     def module_motion_detected(
         self,
@@ -483,19 +473,23 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
+                curr_event = self.events[camera_id][time_ev]
                 if (
-                    self.events[camera_id][time_ev]["type"]
-                    in ["tag_big_move", "tag_small_move"]
-                    and self.events[camera_id][time_ev]["module_id"] == module_id
+                    curr_event["type"] in {"tag_big_move", "tag_small_move"}
+                    and curr_event["module_id"] == module_id
                 ):
                     return True
 
-        elif (
-            camera_id in self.last_event
-            and self.last_event[camera_id]["type"] in ["tag_big_move", "tag_small_move"]
-            and self.last_event[camera_id]["module_id"] == module_id
-        ):
-            return True
+        else:
+            if camera_id not in self.last_event:
+                return False
+
+            curr_event = self.last_event[camera_id]
+            if (
+                curr_event["type"] in {"tag_big_move", "tag_small_move"}
+                and curr_event["module_id"] == module_id
+            ):
+                return True
 
         return False
 
@@ -509,17 +503,23 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
+                curr_event = self.events[camera_id][time_ev]
                 if (
-                    self.events[camera_id][time_ev]["type"] == "tag_open"
-                    and self.events[camera_id][time_ev]["module_id"] == module_id
+                    curr_event["type"] == "tag_open"
+                    and curr_event["module_id"] == module_id
                 ):
                     return True
 
-        elif camera_id in self.last_event and (
-            self.last_event[camera_id]["type"] == "tag_open"
-            and self.last_event[camera_id]["module_id"] == module_id
-        ):
-            return True
+        else:
+            if camera_id not in self.last_event:
+                return False
+
+            curr_event = self.last_event[camera_id]
+            if (
+                curr_event["type"] == "tag_open"
+                and curr_event["module_id"] == module_id
+            ):
+                return True
 
         return False
 
@@ -548,15 +548,15 @@ class CameraData:
 
         if floodlight:
             param, val = "floodlight", floodlight.lower()
-            if val not in ["on", "off", "auto"]:
+            if val not in {"on", "off", "auto"}:
                 LOG.error("Invalid value for floodlight")
             else:
                 module[param] = val
 
         if monitoring:
             param, val = "monitoring", monitoring.lower()
-            if val not in ["on", "off"]:
-                LOG.error("Invalid value für monitoring")
+            if val not in {"on", "off"}:
+                LOG.error("Invalid value for monitoring")
             else:
                 module[param] = val
 

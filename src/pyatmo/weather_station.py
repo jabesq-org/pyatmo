@@ -281,6 +281,9 @@ class WeatherStationData:
         elif frame == "day":
             start, end = today_stamps()
 
+        else:
+            raise ValueError("'frame' value can only be 'last24' or 'day'")
+
         resp = self.get_data(
             device_id=station_id,
             module_id=module_id,

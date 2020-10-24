@@ -130,7 +130,7 @@ The results are Python data structures, mostly dictionaries as they mirror easil
 _BASE_URL and _*_REQ : Various URL to access Netatmo web services. They are
 documented in http://dev.netatmo.com/doc/ They should not be changed unless
 Netatmo API changes.
-```  
+```
 
 
 
@@ -439,4 +439,3 @@ Methods :
   * **to_time_string** (timestamp) : Convert a Netatmo time stamp to a readable date/time format.
   * **to_epoch**( dateString) : Convert a date string (form YYYY-MM-DD_HH:MM:SS) to timestamp
   * **today_stamps**() : Return a couple of epoch time (start, end) for the current day
-

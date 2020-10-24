@@ -4,8 +4,8 @@ from time import sleep
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import requests
-from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError  # type: ignore
-from requests_oauthlib import OAuth2Session  # type: ignore
+from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
+from requests_oauthlib import OAuth2Session
 
 from pyatmo.exceptions import ApiError
 from pyatmo.helpers import _BASE_URL, ERRORS
@@ -137,7 +137,9 @@ class NetatmoOAuth2:
                 try:
                     if json_params:
                         rsp = self._oauth.post(
-                            url=url, json=json_params, timeout=timeout
+                            url=url,
+                            json=json_params,
+                            timeout=timeout,
                         )
 
                     else:
@@ -171,14 +173,14 @@ class NetatmoOAuth2:
                     f"{ERRORS.get(resp.status_code, '')} - "
                     f"{resp.json()['error']['message']} "
                     f"({resp.json()['error']['code']}) "
-                    f"when accessing '{url}'"
+                    f"when accessing '{url}'",
                 )
 
             except JSONDecodeError as exc:
                 raise ApiError(
                     f"{resp.status_code} - "
                     f"{ERRORS.get(resp.status_code, '')} - "
-                    f"when accessing '{url}'"
+                    f"when accessing '{url}'",
                 ) from exc
 
         try:
@@ -197,7 +199,9 @@ class NetatmoOAuth2:
         return self._oauth.authorization_url(AUTH_URL, state)
 
     def request_token(
-        self, authorization_response: Optional[str] = None, code: Optional[str] = None
+        self,
+        authorization_response: Optional[str] = None,
+        code: Optional[str] = None,
     ) -> Dict[str, str]:
         """
         Generic method for fetching a Netatmo access token.
@@ -258,7 +262,7 @@ class ClientAuth(NetatmoOAuth2):
         super().__init__(client_id=client_id, client_secret=client_secret, scope=scope)
 
         self._oauth = OAuth2Session(
-            client=LegacyApplicationClient(client_id=self.client_id)
+            client=LegacyApplicationClient(client_id=self.client_id),
         )
         self._oauth.fetch_token(
             token_url=AUTH_REQ,

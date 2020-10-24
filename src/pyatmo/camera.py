@@ -1,6 +1,7 @@
 import imghdr
 import time
-from typing import Dict, List, Optional, Tuple
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 from requests.exceptions import ReadTimeout
 
@@ -48,53 +49,39 @@ class CameraData:
         self.homes: Dict = {d["id"]: d for d in self.raw_data}
 
         self.persons: Dict = {}
-        self.events: Dict = {}
-        self.outdoor_events: Dict = {}
-        self.cameras: Dict = {}
-        self.smokedetectors: Dict = {}
+        self.events: Dict = defaultdict(dict)
+        self.outdoor_events: Dict = defaultdict(dict)
+        self.cameras: Dict = defaultdict(dict)
+        self.smokedetectors: Dict = defaultdict(dict)
         self.modules: Dict = {}
         self.last_event: Dict = {}
         self.outdoor_last_event: Dict = {}
-        self.types: Dict = {}
+        self.types: Dict = defaultdict(dict)
 
         for item in self.raw_data:
-            home_id: str = item.get("id")
-            home_name: str = item.get("name")
+            home_id: str = item.get("id", "")
+            home_name: str = item.get("name", "")
 
             if not home_name:
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name
 
-            if home_id not in self.cameras:
-                self.cameras[home_id] = {}
-
-            if home_id not in self.smokedetectors:
-                self.smokedetectors[home_id] = {}
-
-            if home_id not in self.types:
-                self.types[home_id] = {}
-
             for person in item["persons"]:
                 self.persons[person["id"]] = person
 
-            if "events" in item:
-                for event in item["events"]:
-                    if event["type"] == "outdoor":
-                        if event["camera_id"] not in self.outdoor_events:
-                            self.outdoor_events[event["camera_id"]] = {}
-                        self.outdoor_events[event["camera_id"]][event["time"]] = event
+            for event in item.get("events", []):
+                if event["type"] == "outdoor":
+                    self.outdoor_events[event["camera_id"]][event["time"]] = event
 
-                    else:
-                        if event["camera_id"] not in self.events:
-                            self.events[event["camera_id"]] = {}
-                        self.events[event["camera_id"]][event["time"]] = event
+                else:
+                    self.events[event["camera_id"]][event["time"]] = event
 
             for camera in item["cameras"]:
                 self.cameras[home_id][camera["id"]] = camera
                 self.cameras[home_id][camera["id"]]["home_id"] = home_id
 
-                if camera["type"] == "NACamera" and "modules" in camera:
-                    for module in camera["modules"]:
+                if camera["type"] == "NACamera":
+                    for module in camera.get("modules", []):
                         self.modules[module["id"]] = module
                         self.modules[module["id"]]["cam_id"] = camera["id"]
 
@@ -177,7 +164,7 @@ class CameraData:
             temp_local_url = check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = check_url(
-                    temp_local_url
+                    temp_local_url,
                 )
 
     def get_light_state(self, camera_id: str) -> Optional[str]:
@@ -239,7 +226,9 @@ class CameraData:
         return None
 
     def get_camera_picture(
-        self, image_id: str, key: str
+        self,
+        image_id: str,
+        key: str,
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {
@@ -264,7 +253,10 @@ class CameraData:
         return None, None
 
     def update_events(
-        self, home_id: str, event_id: str = None, device_type: str = None
+        self,
+        home_id: str,
+        event_id: str = None,
+        device_type: str = None,
     ) -> None:
         """Update the list of events."""
         # Either event_id or device_type must be given
@@ -301,24 +293,26 @@ class CameraData:
             "event_id": event_id,
         }
 
+        event_list = []
+        resp: Optional[Dict[str, Any]] = None
         try:
             resp = self.auth.post_request(url=_GETEVENTSUNTIL_REQ, params=post_params)
-            event_list = resp["body"]["events_list"]
+            if resp is not None:
+                event_list = resp["body"]["events_list"]
         except ApiError:
             pass
         except KeyError:
-            LOG.debug("event_list response: %s", resp)
-            LOG.debug("event_list body: %s", resp["body"])
+            if resp is not None:
+                LOG.debug("event_list response: %s", resp)
+                LOG.debug("event_list body: %s", dict(resp)["body"])
+            else:
+                LOG.debug("No resp received")
 
         for event in event_list:
             if event["type"] == "outdoor":
-                if event["camera_id"] not in self.outdoor_events:
-                    self.outdoor_events[event["camera_id"]] = {}
                 self.outdoor_events[event["camera_id"]][event["time"]] = event
 
             else:
-                if event["camera_id"] not in self.events:
-                    self.events[event["camera_id"]] = {}
                 self.events[event["camera_id"]][event["time"]] = event
 
         for camera in self.events:
@@ -332,7 +326,10 @@ class CameraData:
             ]
 
     def person_seen_by_camera(
-        self, name: str, camera_id: str, exclude: int = 0
+        self,
+        name: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
@@ -468,7 +465,7 @@ class CameraData:
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == "human" and event["time"] + offset > int(
-                    time.time()
+                    time.time(),
                 ):
                     return True
 
@@ -479,7 +476,7 @@ class CameraData:
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == "animal" and event["time"] + offset > int(
-                    time.time()
+                    time.time(),
                 ):
                     return True
 
@@ -490,14 +487,17 @@ class CameraData:
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == "vehicle" and event["time"] + offset > int(
-                    time.time()
+                    time.time(),
                 ):
                     return True
 
         return False
 
     def module_motion_detected(
-        self, module_id: str, camera_id: str, exclude: int = 0
+        self,
+        module_id: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if movement has been detected."""
         if exclude:

@@ -34,7 +34,7 @@ Development
 
 Clone the repo and install dependencies:
 
-    git clone 
+    git clone
     cd netatmo-api-python
     pipenv install --dev
 

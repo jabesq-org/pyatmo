@@ -435,11 +435,11 @@ class CameraData:
             and last_event["time"] + offset > int(time.time())
         )
 
-    def _stuff_detected(self, stuff_name: str, camera_id: str, offset: int) -> bool:
+    def _object_detected(self, object_name: str, camera_id: str, offset: int) -> bool:
         """Evaluate if a human has been detected."""
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == stuff_name and (
+                if event["type"] == object_name and (
                     event["time"] + offset > int(time.time())
                 ):
                     return True
@@ -448,15 +448,15 @@ class CameraData:
 
     def human_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if a human has been detected."""
-        return self._stuff_detected("human", camera_id, offset)
+        return self._object_detected("human", camera_id, offset)
 
     def animal_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if an animal has been detected."""
-        return self._stuff_detected("animal", camera_id, offset)
+        return self._object_detected("animal", camera_id, offset)
 
     def car_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if a car has been detected."""
-        return self._stuff_detected("vehicle", camera_id, offset)
+        return self._object_detected("vehicle", camera_id, offset)
 
     def module_motion_detected(
         self,

@@ -28,4 +28,4 @@ jobs:
         if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
         with:
-          password: ${{ secrets.pypi-prod-token }}
+          password: ${{ secrets.pypi_prod_token }}

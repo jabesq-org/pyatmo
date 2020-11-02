@@ -29,10 +29,10 @@ class PublicData:
     def __init__(
         self,
         auth: NetatmoOAuth2,
-        LAT_NE: str,
-        LON_NE: str,
-        LAT_SW: str,
-        LON_SW: str,
+        lat_ne: str,
+        lon_ne: str,
+        lat_sw: str,
+        lon_sw: str,
         required_data_type: str = None,
         filtering: bool = False,
     ) -> None:
@@ -53,10 +53,10 @@ class PublicData:
         """
         self.auth = auth
         post_params: Dict = {
-            "lat_ne": LAT_NE,
-            "lon_ne": LON_NE,
-            "lat_sw": LAT_SW,
-            "lon_sw": LON_SW,
+            "lat_ne": lat_ne,
+            "lon_ne": lon_ne,
+            "lat_sw": lat_sw,
+            "lon_sw": lon_sw,
             "filter": filtering,
         }
 

@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from typing import Any, Dict, Optional
 
 from .auth import NetatmoOAuth2
@@ -40,11 +41,11 @@ class HomeData:
 
         self.homes: Dict = {d["id"]: d for d in self.raw_data}
 
-        self.modules: Dict = {}
-        self.rooms: Dict = {}
-        self.schedules: Dict = {}
-        self.zones: Dict = {}
-        self.setpoint_duration: Dict = {}
+        self.modules: Dict = defaultdict(dict)
+        self.rooms: Dict = defaultdict(dict)
+        self.schedules: Dict = defaultdict(dict)
+        self.zones: Dict = defaultdict(dict)
+        self.setpoint_duration: Dict = defaultdict(dict)
 
         for item in self.raw_data:
             home_id = item.get("id")
@@ -54,45 +55,28 @@ class HomeData:
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name
 
-            if "modules" in item:
-                if home_id not in self.modules:
-                    self.modules[home_id] = {}
+            if "modules" not in item:
+                continue
 
-                for module in item["modules"]:
-                    self.modules[home_id][module["id"]] = module
+            for module in item["modules"]:
+                self.modules[home_id][module["id"]] = module
 
-                if home_id not in self.rooms:
-                    self.rooms[home_id] = {}
+            self.setpoint_duration[home_id] = item.get(
+                "therm_setpoint_default_duration",
+            )
 
-                if home_id not in self.schedules:
-                    self.schedules[home_id] = {}
+            for room in item.get("rooms", []):
+                self.rooms[home_id][room["id"]] = room
 
-                if home_id not in self.zones:
-                    self.zones[home_id] = {}
+            for schedule in item.get("therm_schedules", []):
+                schedule_id = schedule["id"]
+                self.schedules[home_id][schedule_id] = schedule
 
-                if home_id not in self.setpoint_duration:
-                    self.setpoint_duration[home_id] = {}
+                if schedule_id not in self.zones[home_id]:
+                    self.zones[home_id][schedule_id] = {}
 
-                if "therm_setpoint_default_duration" in item:
-                    self.setpoint_duration[home_id] = item[
-                        "therm_setpoint_default_duration"
-                    ]
-
-                if "rooms" in item:
-                    for room in item["rooms"]:
-                        self.rooms[home_id][room["id"]] = room
-
-                if "therm_schedules" in item:
-                    for schedule in item["therm_schedules"]:
-                        self.schedules[home_id][schedule["id"]] = schedule
-
-                    for schedule in item["therm_schedules"]:
-                        schedule_id = schedule["id"]
-                        if schedule_id not in self.zones[home_id]:
-                            self.zones[home_id][schedule_id] = {}
-
-                        for zone in schedule["zones"]:
-                            self.zones[home_id][schedule_id][zone["id"]] = zone
+                for zone in schedule["zones"]:
+                    self.zones[home_id][schedule_id][zone["id"]] = zone
 
     def _get_selected_schedule(self, home_id: str) -> Dict:
         """Get the selected schedule for a given home ID."""
@@ -154,34 +138,22 @@ class HomeStatus:
 
         self.raw_data = resp["body"]["home"]
         self.rooms: Dict = {}
-        self.thermostats: Dict = {}
-        self.valves: Dict = {}
-        self.relays: Dict = {}
+        self.thermostats: Dict = defaultdict(dict)
+        self.valves: Dict = defaultdict(dict)
+        self.relays: Dict = defaultdict(dict)
 
         for room in self.raw_data.get("rooms", []):
             self.rooms[room["id"]] = room
 
         for module in self.raw_data.get("modules", []):
             if module["type"] == "NATherm1":
-                thermostat_id = module["id"]
-                if thermostat_id not in self.thermostats:
-                    self.thermostats[thermostat_id] = {}
-
-                self.thermostats[thermostat_id] = module
+                self.thermostats[module["id"]] = module
 
             elif module["type"] == "NRV":
-                valve_id = module["id"]
-                if valve_id not in self.valves:
-                    self.valves[valve_id] = {}
-
-                self.valves[valve_id] = module
+                self.valves[module["id"]] = module
 
             elif module["type"] == "NAPlug":
-                relay_id = module["id"]
-                if relay_id not in self.relays:
-                    self.relays[relay_id] = {}
-
-                self.relays[relay_id] = module
+                self.relays[module["id"]] = module
 
     def get_room(self, room_id: str) -> Dict:
         for key, value in self.rooms.items():
@@ -228,7 +200,10 @@ class HomeStatus:
         return self.get_thermostat(module_id).get("boiler_status")
 
     def set_thermmode(
-        self, mode: str, end_time: int = None, schedule_id: str = None
+        self,
+        mode: str,
+        end_time: int = None,
+        schedule_id: str = None,
     ) -> Optional[str]:
         post_params = {
             "home_id": self.home_id,
@@ -243,7 +218,11 @@ class HomeStatus:
         return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
     def set_room_thermpoint(
-        self, room_id: str, mode: str, temp: float = None, end_time: int = None
+        self,
+        room_id: str,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
     ) -> Optional[str]:
         post_params = {
             "home_id": self.home_id,

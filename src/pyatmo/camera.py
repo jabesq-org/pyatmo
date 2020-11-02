@@ -1,6 +1,7 @@
 import imghdr
 import time
-from typing import Dict, List, Optional, Tuple
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 from requests.exceptions import ReadTimeout
 
@@ -48,65 +49,55 @@ class CameraData:
         self.homes: Dict = {d["id"]: d for d in self.raw_data}
 
         self.persons: Dict = {}
-        self.events: Dict = {}
-        self.outdoor_events: Dict = {}
-        self.cameras: Dict = {}
-        self.smokedetectors: Dict = {}
+        self.events: Dict = defaultdict(dict)
+        self.outdoor_events: Dict = defaultdict(dict)
+        self.cameras: Dict = defaultdict(dict)
+        self.smokedetectors: Dict = defaultdict(dict)
         self.modules: Dict = {}
         self.last_event: Dict = {}
         self.outdoor_last_event: Dict = {}
-        self.types: Dict = {}
+        self.types: Dict = defaultdict(dict)
 
         for item in self.raw_data:
-            home_id: str = item.get("id")
-            home_name: str = item.get("name")
+            home_id: str = item.get("id", "")
 
-            if not home_name:
-                home_name = "Unknown"
-                self.homes[home_id]["name"] = home_name
+            if not item.get("name"):
+                self.homes[home_id]["name"] = "Unknown"
 
-            if home_id not in self.cameras:
-                self.cameras[home_id] = {}
-
-            if home_id not in self.smokedetectors:
-                self.smokedetectors[home_id] = {}
-
-            if home_id not in self.types:
-                self.types[home_id] = {}
-
-            for person in item["persons"]:
+            for person in item.get("persons", []):
                 self.persons[person["id"]] = person
 
-            if "events" in item:
-                for event in item["events"]:
-                    if event["type"] == "outdoor":
-                        if event["camera_id"] not in self.outdoor_events:
-                            self.outdoor_events[event["camera_id"]] = {}
-                        self.outdoor_events[event["camera_id"]][event["time"]] = event
+            for event in item.get("events", []):
+                self._store_events(event)
 
-                    else:
-                        if event["camera_id"] not in self.events:
-                            self.events[event["camera_id"]] = {}
-                        self.events[event["camera_id"]][event["time"]] = event
-
-            for camera in item["cameras"]:
+            for camera in item.get("cameras", []):
                 self.cameras[home_id][camera["id"]] = camera
-                self.cameras[home_id][camera["id"]]["home_id"] = home_id
+                self.types[home_id][camera["type"]] = camera
 
-                if camera["type"] == "NACamera" and "modules" in camera:
-                    for module in camera["modules"]:
+                self.cameras[home_id][camera["id"]]["home_id"] = home_id
+                if camera["type"] == "NACamera":
+                    for module in camera.get("modules", []):
                         self.modules[module["id"]] = module
                         self.modules[module["id"]]["cam_id"] = camera["id"]
 
-            for smoke in item["smokedetectors"]:
+            for smoke in item.get("smokedetectors", []):
                 self.smokedetectors[home_id][smoke["id"]] = smoke
+                self.types[home_id][smoke["type"]] = smoke
 
-            for camera_type in item["cameras"]:
-                self.types[home_id][camera_type["type"]] = camera_type
+        self._store_last_event()
 
-            for smoke_type in item["smokedetectors"]:
-                self.types[home_id][smoke_type["type"]] = smoke_type
+        for home_id in self.homes:
+            for camera_id in self.cameras[home_id]:
+                self.update_camera_urls(camera_id)
 
+    def _store_events(self, event):
+        if event["type"] == "outdoor":
+            self.outdoor_events[event["camera_id"]][event["time"]] = event
+
+        else:
+            self.events[event["camera_id"]][event["time"]] = event
+
+    def _store_last_event(self):
         for camera in self.events:
             self.last_event[camera] = self.events[camera][
                 sorted(self.events[camera])[-1]
@@ -117,13 +108,9 @@ class CameraData:
                 sorted(self.outdoor_events[camera])[-1]
             ]
 
-        for home_id in self.homes:
-            for camera_id in self.cameras[home_id]:
-                self.update_camera_urls(camera_id)
-
     def get_camera(self, camera_id: str) -> Dict[str, str]:
         """Get camera data."""
-        for home_id, _ in self.cameras.items():
+        for home_id in self.cameras:
             if camera_id in self.cameras[home_id]:
                 return self.cameras[home_id][camera_id]
 
@@ -135,7 +122,7 @@ class CameraData:
 
     def get_smokedetector(self, smoke_id: str) -> Optional[dict]:
         """Get smoke detector."""
-        for home_id, _ in self.smokedetectors.items():
+        for home_id in self.smokedetectors:
             if smoke_id in self.smokedetectors[home_id]:
                 return self.smokedetectors[home_id][smoke_id]
 
@@ -177,7 +164,7 @@ class CameraData:
             temp_local_url = check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = check_url(
-                    temp_local_url
+                    temp_local_url,
                 )
 
     def get_light_state(self, camera_id: str) -> Optional[str]:
@@ -233,13 +220,15 @@ class CameraData:
             str -- ID of a person
         """
         for pid, data in self.persons.items():
-            if "pseudo" in data and name == data["pseudo"]:
+            if name == data.get("pseudo"):
                 return pid
 
         return None
 
     def get_camera_picture(
-        self, image_id: str, key: str
+        self,
+        image_id: str,
+        key: str,
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {
@@ -253,10 +242,7 @@ class CameraData:
     def get_profile_image(self, name: str) -> Tuple[Optional[bytes], Optional[str]]:
         """Retrieve the face of a given person."""
         for person in self.persons:
-            if (
-                "pseudo" in self.persons[person]
-                and name == self.persons[person]["pseudo"]
-            ):
+            if name == self.persons[person].get("pseudo"):
                 image_id = self.persons[person]["face"]["id"]
                 key = self.persons[person]["face"]["key"]
                 return self.get_camera_picture(image_id, key)
@@ -264,7 +250,10 @@ class CameraData:
         return None, None
 
     def update_events(
-        self, home_id: str, event_id: str = None, device_type: str = None
+        self,
+        home_id: str,
+        event_id: str = None,
+        device_type: str = None,
     ) -> None:
         """Update the list of events."""
         # Either event_id or device_type must be given
@@ -275,25 +264,15 @@ class CameraData:
             events = {e["time"]: e for e in data.values()}
             return min(events.items())[1].get("id")
 
-        if device_type == "NACamera":
-            # for the Welcome camera
-            if not event_id:
-                # If no event is provided we need to retrieve the oldest of
-                # the last event seen by each camera
+        if not event_id:
+            # If no event is provided we need to retrieve the oldest of
+            # the last event seen by each camera
+            if device_type == "NACamera":
+                # for the Welcome camera
                 event_id = get_event_id(self.last_event)
 
-        elif device_type == "NOC":
-            # for the Presence camera
-            if not event_id:
-                # If no event is provided we need to retrieve the oldest of
-                # the last event seen by each camera
-                event_id = get_event_id(self.outdoor_last_event)
-
-        elif device_type == "NSD":
-            # for the smoke detector
-            if not event_id:
-                # If no event is provided we need to retrieve the oldest of
-                # the last event by each smoke detector
+            elif device_type in {"NOC", "NSD"}:
+                # for the Presence camera and for the smoke detector
                 event_id = get_event_id(self.outdoor_last_event)
 
         post_params = {
@@ -301,41 +280,42 @@ class CameraData:
             "event_id": event_id,
         }
 
+        event_list = []
+        resp: Optional[Dict[str, Any]] = None
         try:
             resp = self.auth.post_request(url=_GETEVENTSUNTIL_REQ, params=post_params)
-            event_list = resp["body"]["events_list"]
+            if resp is not None:
+                event_list = resp["body"]["events_list"]
         except ApiError:
             pass
         except KeyError:
-            LOG.debug("event_list response: %s", resp)
-            LOG.debug("event_list body: %s", resp["body"])
+            if resp is not None:
+                LOG.debug("event_list response: %s", resp)
+                LOG.debug("event_list body: %s", dict(resp)["body"])
+            else:
+                LOG.debug("No resp received")
 
         for event in event_list:
-            if event["type"] == "outdoor":
-                if event["camera_id"] not in self.outdoor_events:
-                    self.outdoor_events[event["camera_id"]] = {}
-                self.outdoor_events[event["camera_id"]][event["time"]] = event
+            self._store_events(event)
 
-            else:
-                if event["camera_id"] not in self.events:
-                    self.events[event["camera_id"]] = {}
-                self.events[event["camera_id"]][event["time"]] = event
-
-        for camera in self.events:
-            self.last_event[camera] = self.events[camera][
-                sorted(self.events[camera])[-1]
-            ]
-
-        for camera in self.outdoor_events:
-            self.outdoor_last_event[camera] = self.outdoor_events[camera][
-                sorted(self.outdoor_events[camera])[-1]
-            ]
+        self._store_last_event()
 
     def person_seen_by_camera(
-        self, name: str, camera_id: str, exclude: int = 0
+        self,
+        name: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
+        def _person_in_event(curr_event, person_name):
+            if curr_event["type"] == "person":
+                person_id = curr_event["person_id"]
+
+                if self.persons[person_id].get("pseudo") == person_name:
+                    return True
+            return None
+
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
@@ -344,23 +324,15 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
-                if self.events[camera_id][time_ev]["type"] == "person":
-                    person_id = self.events[camera_id][time_ev]["person_id"]
+                current_event = self.events[camera_id][time_ev]
+                if _person_in_event(current_event, name) is True:
+                    return True
 
-                    if (
-                        "pseudo" in self.persons[person_id]
-                        and self.persons[person_id]["pseudo"] == name
-                    ):
-                        return True
+            return False
 
-        elif self.last_event[camera_id]["type"] == "person":
-            person_id = self.last_event[camera_id]["person_id"]
-
-            if (
-                "pseudo" in self.persons[person_id]
-                and self.persons[person_id]["pseudo"] == name
-            ):
-                return True
+        current_event = self.last_event[camera_id]
+        if _person_in_event(current_event, name) is True:
+            return True
 
         return False
 
@@ -389,18 +361,17 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
-                if self.events[camera_id][time_ev]["type"] == "person":
-                    if (
-                        self.events[camera_id][time_ev]["person_id"]
-                        in self._known_persons()
-                    ):
+                curr_event = self.events[camera_id][time_ev]
+                if curr_event["type"] == "person":
+                    if curr_event["person_id"] in self._known_persons():
                         return True
 
         # Check in the last event if someone known has been seen
-        elif self.last_event[camera_id]["type"] == "person":
-
-            if self.last_event[camera_id]["person_id"] in self._known_persons():
-                return True
+        else:
+            curr_event = self.last_event[camera_id]
+            if curr_event["type"] == "person":
+                if curr_event["person_id"] in self._known_persons():
+                    return True
 
         return False
 
@@ -417,19 +388,17 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
-                if self.events[camera_id][time_ev]["type"] == "person":
-
-                    if (
-                        self.events[camera_id][time_ev]["person_id"]
-                        not in self._known_persons()
-                    ):
+                curr_event = self.events[camera_id][time_ev]
+                if curr_event["type"] == "person":
+                    if curr_event["person_id"] not in self._known_persons():
                         return True
 
         # Check in the last event is noone known has been seen
-        elif self.last_event[camera_id]["type"] == "person":
-
-            if self.last_event[camera_id]["person_id"] not in self._known_persons():
-                return True
+        else:
+            curr_event = self.last_event[camera_id]
+            if curr_event["type"] == "person":
+                if curr_event["person_id"] not in self._known_persons():
+                    return True
 
         return False
 
@@ -456,48 +425,44 @@ class CameraData:
 
     def outdoor_motion_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if outdoor movement has been detected."""
+        if camera_id not in self.last_event:
+            return False
+
+        last_event = self.last_event[camera_id]
         return (
-            camera_id in self.last_event
-            and self.last_event[camera_id]["type"] == "movement"
-            and self.last_event[camera_id]["video_status"] == "recording"
-            and self.last_event[camera_id]["time"] + offset > int(time.time())
+            last_event["type"] == "movement"
+            and last_event["video_status"] == "recording"
+            and last_event["time"] + offset > int(time.time())
         )
 
-    def human_detected(self, camera_id: str, offset: int = 0) -> bool:
+    def _object_detected(self, object_name: str, camera_id: str, offset: int) -> bool:
         """Evaluate if a human has been detected."""
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == "human" and event["time"] + offset > int(
-                    time.time()
+                if event["type"] == object_name and (
+                    event["time"] + offset > int(time.time())
                 ):
                     return True
 
         return False
+
+    def human_detected(self, camera_id: str, offset: int = 0) -> bool:
+        """Evaluate if a human has been detected."""
+        return self._object_detected("human", camera_id, offset)
 
     def animal_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if an animal has been detected."""
-        if self.outdoor_last_event[camera_id]["video_status"] == "recording":
-            for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == "animal" and event["time"] + offset > int(
-                    time.time()
-                ):
-                    return True
-
-        return False
+        return self._object_detected("animal", camera_id, offset)
 
     def car_detected(self, camera_id: str, offset: int = 0) -> bool:
         """Evaluate if a car has been detected."""
-        if self.outdoor_last_event[camera_id]["video_status"] == "recording":
-            for event in self.outdoor_last_event[camera_id]["event_list"]:
-                if event["type"] == "vehicle" and event["time"] + offset > int(
-                    time.time()
-                ):
-                    return True
-
-        return False
+        return self._object_detected("vehicle", camera_id, offset)
 
     def module_motion_detected(
-        self, module_id: str, camera_id: str, exclude: int = 0
+        self,
+        module_id: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if movement has been detected."""
         if exclude:
@@ -508,19 +473,23 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
+                curr_event = self.events[camera_id][time_ev]
                 if (
-                    self.events[camera_id][time_ev]["type"]
-                    in ["tag_big_move", "tag_small_move"]
-                    and self.events[camera_id][time_ev]["module_id"] == module_id
+                    curr_event["type"] in {"tag_big_move", "tag_small_move"}
+                    and curr_event["module_id"] == module_id
                 ):
                     return True
 
-        elif (
-            camera_id in self.last_event
-            and self.last_event[camera_id]["type"] in ["tag_big_move", "tag_small_move"]
-            and self.last_event[camera_id]["module_id"] == module_id
-        ):
-            return True
+        else:
+            if camera_id not in self.last_event:
+                return False
+
+            curr_event = self.last_event[camera_id]
+            if (
+                curr_event["type"] in {"tag_big_move", "tag_small_move"}
+                and curr_event["module_id"] == module_id
+            ):
+                return True
 
         return False
 
@@ -534,17 +503,23 @@ class CameraData:
                 if time_ev < limit:
                     return False
 
+                curr_event = self.events[camera_id][time_ev]
                 if (
-                    self.events[camera_id][time_ev]["type"] == "tag_open"
-                    and self.events[camera_id][time_ev]["module_id"] == module_id
+                    curr_event["type"] == "tag_open"
+                    and curr_event["module_id"] == module_id
                 ):
                     return True
 
-        elif camera_id in self.last_event and (
-            self.last_event[camera_id]["type"] == "tag_open"
-            and self.last_event[camera_id]["module_id"] == module_id
-        ):
-            return True
+        else:
+            if camera_id not in self.last_event:
+                return False
+
+            curr_event = self.last_event[camera_id]
+            if (
+                curr_event["type"] == "tag_open"
+                and curr_event["module_id"] == module_id
+            ):
+                return True
 
         return False
 
@@ -573,15 +548,15 @@ class CameraData:
 
         if floodlight:
             param, val = "floodlight", floodlight.lower()
-            if val not in ["on", "off", "auto"]:
+            if val not in {"on", "off", "auto"}:
                 LOG.error("Invalid value for floodlight")
             else:
                 module[param] = val
 
         if monitoring:
             param, val = "monitoring", monitoring.lower()
-            if val not in ["on", "off"]:
-                LOG.error("Invalid value für monitoring")
+            if val not in {"on", "off"}:
+                LOG.error("Invalid value for monitoring")
             else:
                 module[param] = val
 

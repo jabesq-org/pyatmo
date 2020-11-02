@@ -25,7 +25,12 @@ def test_public_data(auth, requests_mock):
     assert public_data.status == "ok"
 
     public_data = pyatmo.PublicData(
-        auth, LAT_NE, LON_NE, LAT_SW, LON_SW, required_data_type="temperature,rain_live"
+        auth,
+        LAT_NE,
+        LON_NE,
+        LAT_SW,
+        LON_SW,
+        required_data_type="temperature,rain_live",
     )
     assert public_data.status == "ok"
 

@@ -29,7 +29,7 @@ def main():
     except KeyError:
         sys.stderr.write(
             "No credentials passed to pyatmo.py (client_id, client_secret, "
-            "username, password)\n"
+            "username, password)\n",
         )
         sys.exit(1)
 

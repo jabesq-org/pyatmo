@@ -37,7 +37,7 @@ class WeatherStationData:
         except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice(
-                "No weather station data returned by Netatmo server"
+                "No weather station data returned by Netatmo server",
             ) from exc
 
         if not self.raw_data:
@@ -47,6 +47,9 @@ class WeatherStationData:
         self.modules = {}
 
         for item in self.raw_data:
+            # The station name is sometimes not contained in the backend data
+            if "station_name" not in item:
+                item["station_name"] = item.get("home_name", item["type"])
 
             if "modules" not in item:
                 item["modules"] = [item]
@@ -125,7 +128,7 @@ class WeatherStationData:
             if condition == "Wind":
                 # the Wind meter actually exposes the following conditions
                 conditions.extend(
-                    ["WindAngle", "WindStrength", "GustAngle", "GustStrength"]
+                    ["WindAngle", "WindStrength", "GustAngle", "GustStrength"],
                 )
 
             elif condition == "Rain":
@@ -141,9 +144,6 @@ class WeatherStationData:
         else:
             # assume all other modules have rf_status, battery_vp, and battery_percent
             conditions.extend(["rf_status", "battery_vp", "battery_percent"])
-
-        if module["type"] in ["NAMain", "NAModule1", "NAModule4", "NHC"]:
-            conditions.extend(["min_temp", "max_temp"])
 
         if module["type"] in ["NAMain", "NAModule1", "NAModule4"]:
             conditions.extend(["temp_trend"])
@@ -211,22 +211,16 @@ class WeatherStationData:
     def check_not_updated(self, station_id: str, delay: int = 3600) -> List:
         """Check if a given station has not been updated."""
         res = self.get_last_data(station_id)
-        ret = []
-        for key, value in res.items():
-            if time.time() - value["When"] > delay:
-                ret.append(key)
-
-        return ret
+        return [
+            key for key, value in res.items() if time.time() - value["When"] > delay
+        ]
 
     def check_updated(self, station_id: str, delay: int = 3600) -> List:
         """Check if a given station has been updated."""
         res = self.get_last_data(station_id)
-        ret = []
-        for key, value in res.items():
-            if time.time() - value["When"] < delay:
-                ret.append(key)
-
-        return ret
+        return [
+            key for key, value in res.items() if time.time() - value["When"] < delay
+        ]
 
     def get_data(
         self,
@@ -263,7 +257,10 @@ class WeatherStationData:
         return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params)
 
     def get_min_max_t_h(
-        self, station_id: str, module_id: str = None, frame: str = "last24"
+        self,
+        station_id: str,
+        module_id: str = None,
+        frame: str = "last24",
     ) -> Optional[Tuple[float, float, float, float]]:
         """Return minimum and maximum temperature and humidity over the given timeframe.
 
@@ -283,6 +280,9 @@ class WeatherStationData:
 
         elif frame == "day":
             start, end = today_stamps()
+
+        else:
+            raise ValueError("'frame' value can only be 'last24' or 'day'")
 
         resp = self.get_data(
             device_id=station_id,

@@ -10,7 +10,7 @@ repos:
         args: [--application-directories,./src]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.7.2
+    rev: v2.7.3
     hooks:
     - id: pyupgrade
       args: [--py37-plus]
@@ -56,7 +56,7 @@ repos:
         exclude: tests/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0  # Use the ref you want to point at
+    rev: v3.3.0  # Use the ref you want to point at
     hooks:
       - id: check-ast
       - id: no-commit-to-branch
@@ -79,6 +79,6 @@ repos:
         additional_dependencies: [flake8-typing-imports==1.10.0]
 
   - repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.15.0
+    rev: v1.15.1
     hooks:
       - id: setup-cfg-fmt

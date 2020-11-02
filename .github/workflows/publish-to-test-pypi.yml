@@ -1,16 +1,18 @@
 name: Publish 📦 to TestPyPI
 
 on:
-  create:
+  push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   build-n-publish:
     name: Build and publish 📦 to TestPyPI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
+        with:
+          ref: development
       - name: Set up Python 3.7
         uses: actions/setup-python@v2.1.4
         with:
@@ -25,5 +27,5 @@ jobs:
       - name: Publish 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
-          password: ${{ secrets.pypi_test_token }}
+          password: ${{ secrets.PYPI_TEST_TOKEN }}
           repository_url: https://test.pypi.org/legacy/

@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    tags-ignore:
-      - "*.*b*"
+    paths:
+      - "**/version.py"
 
 jobs:
   build-n-publish:

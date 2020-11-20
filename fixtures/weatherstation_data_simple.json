@@ -505,6 +505,80 @@
                     "pressure_trend": "up"
                 },
                 "modules": []
+            },
+            {
+                "_id": "12:34:56:58:c8:54",
+                "date_setup": 1605594014,
+                "last_setup": 1605594014,
+                "type": "NAMain",
+                "last_status_store": 1605878352,
+                "firmware": 178,
+                "wifi_status": 47,
+                "reachable": true,
+                "co2_calibrating": false,
+                "data_type": [
+                    "Temperature",
+                    "CO2",
+                    "Humidity",
+                    "Noise",
+                    "Pressure"
+                ],
+                "place": {
+                    "altitude": 65,
+                    "city": "Njurunda District",
+                    "country": "SE",
+                    "timezone": "Europe/Stockholm",
+                    "location": [
+                        17.123456,
+                        62.123456
+                    ]
+                },
+                "station_name": "Njurunda (Indoor)",
+                "home_id": "5fb36b9ec68fd10c6467ca65",
+                "home_name": "Njurunda",
+                "dashboard_data": {
+                    "time_utc": 1605878349,
+                    "Temperature": 19.7,
+                    "CO2": 993,
+                    "Humidity": 40,
+                    "Noise": 40,
+                    "Pressure": 1015.6,
+                    "AbsolutePressure": 1007.8,
+                    "min_temp": 19.7,
+                    "max_temp": 20.4,
+                    "date_max_temp": 1605826917,
+                    "date_min_temp": 1605873207,
+                    "temp_trend": "stable",
+                    "pressure_trend": "up"
+                },
+                "modules": [
+                    {
+                        "_id": "12:34:56:58:e6:38",
+                        "type": "NAModule1",
+                        "last_setup": 1605594034,
+                        "data_type": [
+                            "Temperature",
+                            "Humidity"
+                        ],
+                        "battery_percent": 100,
+                        "reachable": true,
+                        "firmware": 50,
+                        "last_message": 1605878347,
+                        "last_seen": 1605878328,
+                        "rf_status": 62,
+                        "battery_vp": 6198,
+                        "dashboard_data": {
+                            "time_utc": 1605878328,
+                            "Temperature": 0.6,
+                            "Humidity": 77,
+                            "min_temp": -2.1,
+                            "max_temp": 1.5,
+                            "date_max_temp": 1605865920,
+                            "date_min_temp": 1605826904,
+                            "temp_trend": "down"
+                        }
+                    }
+                ]
             }
         ],
         "user": {

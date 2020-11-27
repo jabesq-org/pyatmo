@@ -280,7 +280,7 @@ class CameraData:
             "event_id": event_id,
         }
 
-        event_list = []
+        event_list: List = []
         resp: Optional[Dict[str, Any]] = None
         try:
             resp = self.auth.post_request(url=_GETEVENTSUNTIL_REQ, params=post_params)

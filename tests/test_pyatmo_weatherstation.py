@@ -128,6 +128,21 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
                 },
             },
         ),
+        (
+            "12:34:56:58:c8:54",
+            {
+                "12:34:56:58:c8:54": {
+                    "id": "12:34:56:58:c8:54",
+                    "module_name": "NAMain",
+                    "station_name": "Njurunda (Indoor)",
+                },
+                "12:34:56:58:e6:38": {
+                    "id": "12:34:56:58:e6:38",
+                    "module_name": "NAModule1",
+                    "station_name": "Njurunda (Indoor)",
+                },
+            },
+        ),
         pytest.param(
             "NoValidStation",
             None,
@@ -241,6 +256,32 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
                 "reachable",
                 "temp_trend",
                 "wifi_status",
+            ],
+        ),
+        (
+            "12:34:56:58:c8:54",
+            [
+                "CO2",
+                "Humidity",
+                "Noise",
+                "Pressure",
+                "Temperature",
+                "pressure_trend",
+                "reachable",
+                "temp_trend",
+                "wifi_status",
+            ],
+        ),
+        (
+            "12:34:56:58:e6:38",
+            [
+                "Humidity",
+                "Temperature",
+                "battery_percent",
+                "battery_vp",
+                "reachable",
+                "rf_status",
+                "temp_trend",
             ],
         ),
         pytest.param(

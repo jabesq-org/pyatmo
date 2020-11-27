@@ -55,12 +55,8 @@ class WeatherStationData:
                 item["modules"] = [item]
 
             for module in item["modules"]:
-                if "module_name" not in module:
-                    if module["type"] == "NHC":
-                        module["module_name"] = module["station_name"]
-
-                    else:
-                        continue
+                if "module_name" not in module and module["type"] == "NHC":
+                    module["module_name"] = module["station_name"]
 
                 self.modules[module["_id"]] = module
                 self.modules[module["_id"]]["main_device"] = item["_id"]

@@ -16,12 +16,12 @@ repos:
       args: [--py37-plus]
       exclude: 'external_src/int-tools'
 
-  - repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.0.1
-    hooks:
-      - id: add-trailing-comma
-        args: [ --py36-plus ]
-        exclude: 'external_src/int-tools'
+  # - repo: https://github.com/asottile/add-trailing-comma
+  #   rev: v2.0.1
+  #   hooks:
+  #     - id: add-trailing-comma
+  #       args: [ --py36-plus ]
+  #       exclude: 'external_src/int-tools'
 
   - repo: https://github.com/asottile/yesqa
     rev: v1.2.2
@@ -56,7 +56,7 @@ repos:
         exclude: tests/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.3.0  # Use the ref you want to point at
+    rev: v3.4.0  # Use the ref you want to point at
     hooks:
       - id: check-ast
       - id: no-commit-to-branch
@@ -79,6 +79,6 @@ repos:
         additional_dependencies: [flake8-typing-imports==1.10.0]
 
   - repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.15.1
+    rev: v1.16.0
     hooks:
       - id: setup-cfg-fmt

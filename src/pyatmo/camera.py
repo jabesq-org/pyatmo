@@ -158,13 +158,13 @@ class CameraData:
                 except ApiError:
                     LOG.debug("Api error for camera url %s", url)
                     return None
-                else:
-                    return resp.get("local_url")
+
+                return resp.get("local_url") if resp else None
 
             temp_local_url = check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = check_url(
-                    temp_local_url,
+                    temp_local_url
                 )
 
     def get_light_state(self, camera_id: str) -> Optional[str]:
@@ -191,10 +191,7 @@ class CameraData:
             person_ids {list} -- IDs of persons
             home_id {str} -- ID of a home
         """
-        post_params = {
-            "home_id": home_id,
-            "person_ids[]": person_ids,
-        }
+        post_params = {"home_id": home_id, "person_ids[]": person_ids}
         return self.auth.post_request(url=_SETPERSONSHOME_REQ, params=post_params)
 
     def set_persons_away(self, person_id: str, home_id: str):
@@ -204,10 +201,7 @@ class CameraData:
             person_id {str} -- ID of a person
             home_id {str} -- ID of a home
         """
-        post_params = {
-            "home_id": home_id,
-            "person_id": person_id,
-        }
+        post_params = {"home_id": home_id, "person_id": person_id}
         return self.auth.post_request(url=_SETPERSONSAWAY_REQ, params=post_params)
 
     def get_person_id(self, name: str) -> Optional[str]:
@@ -226,15 +220,10 @@ class CameraData:
         return None
 
     def get_camera_picture(
-        self,
-        image_id: str,
-        key: str,
+        self, image_id: str, key: str
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
-        post_params = {
-            "image_id": image_id,
-            "key": key,
-        }
+        post_params = {"image_id": image_id, "key": key}
         resp = self.auth.post_request(url=_GETCAMERAPICTURE_REQ, params=post_params)
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
@@ -250,10 +239,7 @@ class CameraData:
         return None, None
 
     def update_events(
-        self,
-        home_id: str,
-        event_id: str = None,
-        device_type: str = None,
+        self, home_id: str, event_id: str = None, device_type: str = None
     ) -> None:
         """Update the list of events."""
         # Either event_id or device_type must be given
@@ -275,10 +261,7 @@ class CameraData:
                 # for the Presence camera and for the smoke detector
                 event_id = get_event_id(self.outdoor_last_event)
 
-        post_params = {
-            "home_id": home_id,
-            "event_id": event_id,
-        }
+        post_params = {"home_id": home_id, "event_id": event_id}
 
         event_list: List = []
         resp: Optional[Dict[str, Any]] = None
@@ -301,10 +284,7 @@ class CameraData:
         self._store_last_event()
 
     def person_seen_by_camera(
-        self,
-        name: str,
-        camera_id: str,
-        exclude: int = 0,
+        self, name: str, camera_id: str, exclude: int = 0
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
@@ -459,10 +439,7 @@ class CameraData:
         return self._object_detected("vehicle", camera_id, offset)
 
     def module_motion_detected(
-        self,
-        module_id: str,
-        camera_id: str,
-        exclude: int = 0,
+        self, module_id: str, camera_id: str, exclude: int = 0
     ) -> bool:
         """Evaluate if movement has been detected."""
         if exclude:
@@ -560,9 +537,7 @@ class CameraData:
             else:
                 module[param] = val
 
-        post_params = {
-            "json": {"home": {"id": home_id, "modules": [module]}},
-        }
+        post_params = {"json": {"home": {"id": home_id, "modules": [module]}}}
 
         try:
             resp = self.auth.post_request(url=_SETSTATE_REQ, params=post_params)

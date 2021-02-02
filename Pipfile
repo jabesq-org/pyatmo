@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 black = "*"
-bleach = "~=3.2"
+bleach = "~=3.3"
 docutils = "*"
 flake8 = "*"
 freezegun = "*"

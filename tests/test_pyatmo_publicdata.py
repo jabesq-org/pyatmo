@@ -22,6 +22,7 @@ def test_public_data(auth, requests_mock):
     )
 
     public_data = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+    public_data.update()
     assert public_data.status == "ok"
 
     public_data = pyatmo.PublicData(
@@ -32,13 +33,15 @@ def test_public_data(auth, requests_mock):
         LON_SW,
         required_data_type="temperature,rain_live",
     )
+    public_data.update()
     assert public_data.status == "ok"
 
 
 def test_public_data_unavailable(auth, requests_mock):
     requests_mock.post(pyatmo.public_data._GETPUBLIC_DATA, status_code=404)
     with pytest.raises(pyatmo.ApiError):
-        pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+        public_data = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+        public_data.update()
 
 
 def test_public_data_error(auth, requests_mock):
@@ -50,7 +53,8 @@ def test_public_data_error(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+        public_data = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+        public_data.update()
 
 
 def test_public_data_stations_in_area(public_data):

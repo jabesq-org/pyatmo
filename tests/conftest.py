@@ -69,12 +69,14 @@ def public_data(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
 
-    lon_ne = 6.221652
-    lat_ne = 46.610870
-    lon_sw = 6.217828
-    lat_sw = 46.596485
+    lon_ne = str(6.221652)
+    lat_ne = str(46.610870)
+    lon_sw = str(6.217828)
+    lat_sw = str(46.596485)
 
-    return pyatmo.PublicData(auth, lat_ne, lon_ne, lat_sw, lon_sw)
+    public_data = pyatmo.PublicData(auth, lat_ne, lon_ne, lat_sw, lon_sw)
+    public_data.update()
+    return public_data
 
 
 @pytest.fixture(scope="function")

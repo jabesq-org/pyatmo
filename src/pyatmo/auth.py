@@ -108,9 +108,7 @@ class NetatmoOAuth2:
     ) -> Any:
         """Wrapper for post requests."""
         resp = None
-        req_args = {}
-
-        req_args["data"] = params if params is not None else {}
+        req_args = {"data": params if params is not None else {}}
 
         if "json" in req_args["data"]:
             req_args["json"] = req_args["data"]["json"]

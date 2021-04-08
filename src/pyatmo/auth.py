@@ -108,14 +108,13 @@ class NetatmoOAuth2:
     ) -> Any:
         """Wrapper for post requests."""
         resp = None
-        if not params:
-            params = {}
+        req_args = {}
 
-        if "json" in params:
-            json_params: Optional[str] = params.pop("json")
+        req_args["data"] = params if params is not None else {}
 
-        else:
-            json_params = None
+        if "json" in req_args["data"]:
+            req_args["json"] = req_args["data"]["json"]
+            req_args.pop("data")
 
         if "https://" not in url:
             try:
@@ -135,17 +134,7 @@ class NetatmoOAuth2:
                     return
 
                 try:
-                    if json_params:
-                        rsp = self._oauth.post(
-                            url=url,
-                            json=json_params,
-                            timeout=timeout,
-                        )
-
-                    else:
-                        rsp = self._oauth.post(url=url, data=params, timeout=timeout)
-
-                    return rsp
+                    return self._oauth.post(url=url, timeout=timeout, **params)
 
                 except (
                     TokenExpiredError,
@@ -158,15 +147,18 @@ class NetatmoOAuth2:
                     sleep(1)
                     return query(url, params, timeout * 2, retries - 1)
 
-            resp = query(url, params, timeout, 3)
+            resp = query(url, req_args, timeout, 3)
 
         if resp is None:
             LOG.debug("Resp is None - %s", resp)
             return None
 
         if not resp.ok:
-            LOG.debug("The Netatmo API returned %s", resp.status_code)
-            LOG.debug("Netato API error: %s", resp.content)
+            LOG.debug(
+                "The Netatmo API returned %s (%s)",
+                resp.content,
+                resp.status_code,
+            )
             try:
                 raise ApiError(
                     f"{resp.status_code} - "

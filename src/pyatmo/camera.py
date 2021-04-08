@@ -43,7 +43,7 @@ class CameraData:
         self.events: Dict = defaultdict(dict)
         self.outdoor_events: Dict = defaultdict(dict)
         self.cameras: Dict = defaultdict(dict)
-        self.smokedetectors: Dict = defaultdict(dict)
+        self.smoke_detectors: Dict = defaultdict(dict)
         self.modules: Dict = {}
         self.last_event: Dict = {}
         self.outdoor_last_event: Dict = {}
@@ -51,14 +51,15 @@ class CameraData:
 
     def update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
-        post_params = {"size": events}
-        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params=post_params)
+        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params={"size": events})
         if resp is None or "body" not in resp:
             raise NoDevice("No device data returned by Netatmo server")
 
         self._raw_data = resp["body"].get("homes")
         if not self._raw_data:
             raise NoDevice("No device data available")
+
+        self.process()
 
     def process(self) -> None:
         """Process data from API."""
@@ -87,7 +88,7 @@ class CameraData:
                         self.modules[module["id"]]["cam_id"] = camera["id"]
 
             for smoke in item.get("smokedetectors", []):
-                self.smokedetectors[home_id][smoke["id"]] = smoke
+                self.smoke_detectors[home_id][smoke["id"]] = smoke
                 self.types[home_id][smoke["type"]] = smoke
 
         self._store_last_event()
@@ -128,9 +129,9 @@ class CameraData:
 
     def get_smokedetector(self, smoke_id: str) -> Optional[dict]:
         """Get smoke detector."""
-        for home_id in self.smokedetectors:
-            if smoke_id in self.smokedetectors[home_id]:
-                return self.smokedetectors[home_id][smoke_id]
+        for home_id in self.smoke_detectors:
+            if smoke_id in self.smoke_detectors[home_id]:
+                return self.smoke_detectors[home_id][smoke_id]
 
         return None
 

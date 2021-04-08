@@ -50,6 +50,8 @@ class HomeData:
         if not self._raw_data:
             raise NoDevice("No thermostat data available")
 
+        self.process()
+
     def process(self) -> None:
         """Process data from API."""
         self.homes = {d["id"]: d for d in self._raw_data}
@@ -153,6 +155,8 @@ class HomeStatus:
             raise NoDevice("No device found, errors in response")
 
         self._raw_data = resp["body"]["home"]
+
+        self.process()
 
     def process(self) -> None:
         """Process data from API."""

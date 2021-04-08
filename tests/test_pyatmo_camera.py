@@ -25,7 +25,6 @@ def test_home_data_no_body(auth, requests_mock):
     with pytest.raises(pyatmo.NoDevice):
         camera_data = pyatmo.CameraData(auth)
         camera_data.update()
-        camera_data.process()
 
 
 def test_home_data_no_homes(auth, requests_mock):
@@ -39,7 +38,6 @@ def test_home_data_no_homes(auth, requests_mock):
     with pytest.raises(pyatmo.NoDevice):
         camera_data = pyatmo.CameraData(auth)
         camera_data.update()
-        camera_data.process()
 
 
 @pytest.mark.parametrize(
@@ -109,7 +107,6 @@ def test_camera_data_camera_urls_disconnected(auth, requests_mock):
     )
     camera_data = pyatmo.CameraData(auth)
     camera_data.update()
-    camera_data.process()
     cid = "12:34:56:00:f1:62"
 
     camera_data.update_camera_urls(cid)

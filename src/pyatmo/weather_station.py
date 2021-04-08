@@ -49,6 +49,8 @@ class WeatherStationData:
         if not self._raw_data:
             raise NoDevice("No weather station available")
 
+        self.process()
+
     def process(self) -> None:
         """Process data from API."""
         self.stations = {d["_id"]: d for d in self._raw_data}
@@ -171,7 +173,6 @@ class WeatherStationData:
         """Return data for a given station and time frame."""
         key = "_id"
 
-        # Breaking change from Netatmo : dashboard_data no longer available if station lost
         last_data: Dict = {}
         station = self.get_station(station_id)
 

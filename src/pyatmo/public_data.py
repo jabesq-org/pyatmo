@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Any, Dict
 
 from .auth import NetatmoOAuth2
@@ -19,6 +20,18 @@ _ACCESSORY_WIND_ANGLE_TYPE = "wind_angle"
 _ACCESSORY_WIND_TIME_TYPE = "wind_timeutc"
 _ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
 _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
+
+
+@dataclasses.dataclass
+class Location:
+    """
+    Class of Netatmo public weather location.
+    """
+
+    lat_ne: str
+    lon_ne: str
+    lat_sw: str
+    lon_sw: str
 
 
 class PublicData:
@@ -53,10 +66,7 @@ class PublicData:
         """
         self.auth = auth
         self.required_data_type = required_data_type
-        self.lat_ne: str = lat_ne
-        self.lon_ne: str = lon_ne
-        self.lat_sw: str = lat_sw
-        self.lon_sw: str = lon_sw
+        self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
         self.filtering: bool = filtering
 
         self._raw_data: dict = {}
@@ -67,10 +77,7 @@ class PublicData:
     def update(self) -> None:
         """Fetch and process data from API."""
         post_params: Dict = {
-            "lat_ne": self.lat_ne,
-            "lon_ne": self.lon_ne,
-            "lat_sw": self.lat_sw,
-            "lon_sw": self.lon_sw,
+            **dataclasses.asdict(self.location),
             "filter": self.filtering,
         }
 
@@ -145,11 +152,9 @@ class PublicData:
         return self.get_accessory_data(_ACCESSORY_GUST_ANGLE_TYPE)
 
     def get_locations(self) -> Dict:
-        locations: Dict = {}
-        for station in self._raw_data:
-            locations[station["_id"]] = station["place"]["location"]
-
-        return locations
+        return {
+            station["_id"]: station["place"]["location"] for station in self._raw_data
+        }
 
     def get_time_for_rain_measures(self) -> Dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_TIME_TYPE)

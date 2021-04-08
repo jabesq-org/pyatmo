@@ -40,7 +40,9 @@ def home_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeData(auth)
+    home_data = pyatmo.HomeData(auth)
+    home_data.update()
+    return home_data
 
 
 @pytest.fixture(scope="function")
@@ -52,7 +54,9 @@ def home_status(auth, home_id, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeStatus(auth, home_id)
+    home_status = pyatmo.HomeStatus(auth, home_id)
+    home_status.update()
+    return home_status
 
 
 @pytest.fixture(scope="function")

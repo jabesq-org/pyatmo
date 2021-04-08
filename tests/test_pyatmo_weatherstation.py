@@ -18,7 +18,8 @@ def test_weather_station_data(weather_station_data):
 def test_weather_station_data_no_response(auth, requests_mock):
     requests_mock.post(pyatmo.weather_station._GETSTATIONDATA_REQ, text="None")
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.WeatherStationData(auth)
+        wsd = pyatmo.WeatherStationData(auth)
+        wsd.update()
 
 
 def test_weather_station_data_no_body(auth, requests_mock):
@@ -30,7 +31,8 @@ def test_weather_station_data_no_body(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.WeatherStationData(auth)
+        wsd = pyatmo.WeatherStationData(auth)
+        wsd.update()
 
 
 def test_weather_station_data_no_data(auth, requests_mock):
@@ -42,7 +44,8 @@ def test_weather_station_data_no_data(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.WeatherStationData(auth)
+        wsd = pyatmo.WeatherStationData(auth)
+        wsd.update()
 
 
 @pytest.mark.parametrize(
@@ -59,10 +62,7 @@ def test_weather_station_data_no_data(auth, requests_mock):
                 "Yard",
             ],
         ),
-        (
-            "12:34:56:36:fd:3c",
-            ["Module", "NAMain", "Rain Gauge"],
-        ),
+        ("12:34:56:36:fd:3c", ["Module", "NAMain", "Rain Gauge"]),
         pytest.param(
             "NoValidStation",
             None,
@@ -79,10 +79,7 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
 @pytest.mark.parametrize(
     "station_id, expected",
     [
-        (
-            None,
-            {},
-        ),
+        (None, {}),
         (
             "12:34:56:37:11:ca",
             {
@@ -303,11 +300,7 @@ def test_weather_station_get_monitored_conditions(
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
     [
-        (
-            "12:34:56:05:51:20",
-            None,
-            {},
-        ),
+        ("12:34:56:05:51:20", None, {}),
         (
             "12:34:56:37:11:ca",
             None,
@@ -376,11 +369,7 @@ def test_weather_station_get_last_data(
                 "12:34:56:37:11:ca",
             ],
         ),
-        (
-            "12:34:56:37:11:ca",
-            798500,
-            [],
-        ),
+        ("12:34:56:37:11:ca", 798500, []),
         pytest.param(
             "NoValidStation",
             3600,
@@ -415,11 +404,7 @@ def test_weather_station_check_not_updated(
                 "12:34:56:37:11:ca",
             ],
         ),
-        (
-            "12:34:56:37:11:ca",
-            100,
-            [],
-        ),
+        ("12:34:56:37:11:ca", 100, []),
     ],
 )
 def test_weather_station_check_updated(
@@ -493,16 +478,8 @@ def test_weather_station_get_last_data_measurements(weather_station_data):
                 "12:34:56:37:11:ca",
             ],
         ),
-        (
-            None,
-            None,
-            {},
-        ),
-        (
-            "12:34:56:00:aa:01",
-            None,
-            {},
-        ),
+        (None, None, {}),
+        ("12:34:56:00:aa:01", None, {}),
     ],
 )
 def test_weather_station_get_last_data_bug_97(

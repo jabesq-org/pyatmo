@@ -1,5 +1,6 @@
 import logging
 import time
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 from .auth import NetatmoOAuth2
@@ -15,7 +16,7 @@ _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 class WeatherStationData:
     """Class of Netatmo Weather Station devices (stations and modules)."""
 
-    def __init__(self, auth: NetatmoOAuth2, url_req: str = None) -> None:
+    def __init__(self, auth: NetatmoOAuth2, url_req: str = _GETSTATIONDATA_REQ) -> None:
         """Initialize self.
 
         Arguments:
@@ -24,29 +25,34 @@ class WeatherStationData:
         Raises:
             NoDevice: No devices found.
         """
-        self.url_req = url_req or _GETSTATIONDATA_REQ
+        self.url_req = url_req
         self.auth = auth
+        self._raw_data = defaultdict(dict)
+        self.stations = defaultdict(dict)
+        self.modules = defaultdict(dict)
 
+    def update(self):
+        """Update data."""
         resp = self.auth.post_request(url=self.url_req)
 
         if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
 
         try:
-            self.raw_data = fix_id(resp["body"].get("devices"))
+            self._raw_data = fix_id(resp["body"].get("devices"))
         except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice(
                 "No weather station data returned by Netatmo server",
             ) from exc
 
-        if not self.raw_data:
+        if not self._raw_data:
             raise NoDevice("No weather station available")
 
-        self.stations = {d["_id"]: d for d in self.raw_data}
+        self.stations = {d["_id"]: d for d in self._raw_data}
         self.modules = {}
 
-        for item in self.raw_data:
+        for item in self._raw_data:
             # The station name is sometimes not contained in the backend data
             if "station_name" not in item:
                 item["station_name"] = item.get("home_name", item["type"])

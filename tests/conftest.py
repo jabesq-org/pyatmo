@@ -82,7 +82,9 @@ def weather_station_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.WeatherStationData(auth)
+    wsd = pyatmo.WeatherStationData(auth)
+    wsd.update()
+    return wsd
 
 
 @pytest.fixture(scope="function")
@@ -94,7 +96,9 @@ def home_coach_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeCoachData(auth)
+    hcd = pyatmo.HomeCoachData(auth)
+    hcd.update()
+    return hcd
 
 
 @pytest.fixture(scope="function")

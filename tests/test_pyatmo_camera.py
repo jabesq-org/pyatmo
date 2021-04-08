@@ -25,6 +25,7 @@ def test_home_data_no_body(auth, requests_mock):
     with pytest.raises(pyatmo.NoDevice):
         camera_data = pyatmo.CameraData(auth)
         camera_data.update()
+        camera_data.process()
 
 
 def test_home_data_no_homes(auth, requests_mock):
@@ -38,6 +39,7 @@ def test_home_data_no_homes(auth, requests_mock):
     with pytest.raises(pyatmo.NoDevice):
         camera_data = pyatmo.CameraData(auth)
         camera_data.update()
+        camera_data.process()
 
 
 @pytest.mark.parametrize(
@@ -107,6 +109,7 @@ def test_camera_data_camera_urls_disconnected(auth, requests_mock):
     )
     camera_data = pyatmo.CameraData(auth)
     camera_data.update()
+    camera_data.process()
     cid = "12:34:56:00:f1:62"
 
     camera_data.update_camera_urls(cid)
@@ -148,8 +151,6 @@ def test_camera_data_person_seen_by_camera(
 
 def test_camera_data__known_persons(camera_home_data):
     known_persons = camera_home_data._known_persons()
-    print(known_persons)
-    print(known_persons.keys())
     assert len(known_persons) == 3
     assert known_persons["91827374-7e04-5298-83ad-a0cb8372dff1"]["pseudo"] == "John Doe"
 

@@ -100,6 +100,7 @@ def test_home_data_no_home_name(auth, requests_mock):
     )
     home_data = pyatmo.HomeData(auth)
     home_data.update()
+    home_data.process()
     home_id = "91763b24c43d3e344f424e8b"
     assert home_data.homes.get(home_id)["name"] == "Unknown"
 
@@ -210,6 +211,7 @@ def test_home_status_error_and_data(auth, requests_mock):
     )
     home_status = pyatmo.HomeStatus(auth, home_id="91763b24c43d3e344f424e8b")
     home_status.update()
+    home_status.process()
     assert len(home_status.rooms) == 3
 
     expexted = {

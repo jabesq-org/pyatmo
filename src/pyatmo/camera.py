@@ -60,6 +60,8 @@ class CameraData:
         if not self._raw_data:
             raise NoDevice("No device data available")
 
+    def process(self) -> None:
+        """Process data from API."""
         self.homes = {d["id"]: d for d in self._raw_data}
 
         for item in self._raw_data:

@@ -42,6 +42,7 @@ def home_data(auth, requests_mock):
     )
     home_data = pyatmo.HomeData(auth)
     home_data.update()
+    home_data.process()
     return home_data
 
 
@@ -56,6 +57,7 @@ def home_status(auth, home_id, requests_mock):
     )
     home_status = pyatmo.HomeStatus(auth, home_id)
     home_status.update()
+    home_status.process()
     return home_status
 
 
@@ -90,6 +92,7 @@ def weather_station_data(auth, requests_mock):
     )
     wsd = pyatmo.WeatherStationData(auth)
     wsd.update()
+    wsd.process()
     return wsd
 
 
@@ -104,6 +107,7 @@ def home_coach_data(auth, requests_mock):
     )
     hcd = pyatmo.HomeCoachData(auth)
     hcd.update()
+    hcd.process()
     return hcd
 
 
@@ -139,4 +143,5 @@ def camera_home_data(auth, requests_mock):
     )
     camera_data = pyatmo.CameraData(auth)
     camera_data.update()
+    camera_data.process()
     return camera_data

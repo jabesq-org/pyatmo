@@ -32,7 +32,7 @@ class WeatherStationData:
         self.modules = defaultdict(dict)
 
     def update(self):
-        """Fetch and process data from API."""
+        """Fetch data from API."""
         resp = self.auth.post_request(url=self.url_req)
 
         if resp is None or "body" not in resp:
@@ -49,6 +49,8 @@ class WeatherStationData:
         if not self._raw_data:
             raise NoDevice("No weather station available")
 
+    def process(self) -> None:
+        """Process data from API."""
         self.stations = {d["_id"]: d for d in self._raw_data}
         self.modules = {}
 

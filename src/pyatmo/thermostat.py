@@ -50,6 +50,8 @@ class HomeData:
         if not self._raw_data:
             raise NoDevice("No thermostat data available")
 
+    def process(self) -> None:
+        """Process data from API."""
         self.homes = {d["id"]: d for d in self._raw_data}
 
         for item in self._raw_data:
@@ -152,6 +154,8 @@ class HomeStatus:
 
         self._raw_data = resp["body"]["home"]
 
+    def process(self) -> None:
+        """Process data from API."""
         for room in self._raw_data.get("rooms", []):
             self.rooms[room["id"]] = room
 

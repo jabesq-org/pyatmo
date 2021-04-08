@@ -32,7 +32,7 @@ class WeatherStationData:
         self.modules = defaultdict(dict)
 
     def update(self):
-        """Update data."""
+        """Fetch and process data from API."""
         resp = self.auth.post_request(url=self.url_req)
 
         if resp is None or "body" not in resp:

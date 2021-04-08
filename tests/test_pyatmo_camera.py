@@ -23,7 +23,8 @@ def test_home_data_no_body(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.CameraData(auth)
+        camera_data = pyatmo.CameraData(auth)
+        camera_data.update()
 
 
 def test_home_data_no_homes(auth, requests_mock):
@@ -35,7 +36,8 @@ def test_home_data_no_homes(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.CameraData(auth)
+        camera_data = pyatmo.CameraData(auth)
+        camera_data.update()
 
 
 @pytest.mark.parametrize(
@@ -104,6 +106,7 @@ def test_camera_data_camera_urls_disconnected(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     camera_data = pyatmo.CameraData(auth)
+    camera_data.update()
     cid = "12:34:56:00:f1:62"
 
     camera_data.update_camera_urls(cid)
@@ -253,7 +256,7 @@ def test_camera_data_set_persons_home(
 
 @freeze_time("2019-06-16")
 @pytest.mark.parametrize(
-    "camera_id, exclude, expected,expectation",
+    "camera_id, exclude, expected, expectation",
     [
         ("12:34:56:00:f1:62", None, True, does_not_raise()),
         ("12:34:56:00:f1:62", 5, False, does_not_raise()),
@@ -348,14 +351,7 @@ def test_camera_data_get_smokedetector(camera_home_data, sid, expected):
             "camera_set_state_ok.json",
             True,
         ),
-        (
-            None,
-            "12:34:56:00:f1:62",
-            None,
-            "on",
-            "camera_set_state_ok.json",
-            True,
-        ),
+        (None, "12:34:56:00:f1:62", None, "on", "camera_set_state_ok.json", True),
         (
             "91763b24c43d3e344f424e8b",
             "12:34:56:00:f1:62",

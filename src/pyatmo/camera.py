@@ -23,7 +23,7 @@ class CameraData:
         (Homes, cameras, smoke detectors, modules, events, persons)
     """
 
-    def __init__(self, auth: NetatmoOAuth2, size: int = 30) -> None:
+    def __init__(self, auth: NetatmoOAuth2) -> None:
         """Initialize self.
 
         Arguments:
@@ -37,17 +37,8 @@ class CameraData:
         """
         self.auth = auth
 
-        post_params = {"size": size}
-        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params=post_params)
-        if resp is None or "body" not in resp:
-            raise NoDevice("No device data returned by Netatmo server")
-
-        self.raw_data = resp["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No device data available")
-
-        self.homes: Dict = {d["id"]: d for d in self.raw_data}
-
+        self._raw_data: Dict = defaultdict(dict)
+        self.homes: Dict = defaultdict(dict)
         self.persons: Dict = {}
         self.events: Dict = defaultdict(dict)
         self.outdoor_events: Dict = defaultdict(dict)
@@ -58,7 +49,20 @@ class CameraData:
         self.outdoor_last_event: Dict = {}
         self.types: Dict = defaultdict(dict)
 
-        for item in self.raw_data:
+    def update(self, events: int = 30) -> None:
+        """Fetch and process data from API."""
+        post_params = {"size": events}
+        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params=post_params)
+        if resp is None or "body" not in resp:
+            raise NoDevice("No device data returned by Netatmo server")
+
+        self._raw_data = resp["body"].get("homes")
+        if not self._raw_data:
+            raise NoDevice("No device data available")
+
+        self.homes = {d["id"]: d for d in self._raw_data}
+
+        for item in self._raw_data:
             home_id: str = item.get("id", "")
 
             if not item.get("name"):
@@ -164,7 +168,7 @@ class CameraData:
             temp_local_url = check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = check_url(
-                    temp_local_url
+                    temp_local_url,
                 )
 
     def get_light_state(self, camera_id: str) -> Optional[str]:
@@ -220,7 +224,9 @@ class CameraData:
         return None
 
     def get_camera_picture(
-        self, image_id: str, key: str
+        self,
+        image_id: str,
+        key: str,
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {"image_id": image_id, "key": key}
@@ -239,7 +245,10 @@ class CameraData:
         return None, None
 
     def update_events(
-        self, home_id: str, event_id: str = None, device_type: str = None
+        self,
+        home_id: str,
+        event_id: str = None,
+        device_type: str = None,
     ) -> None:
         """Update the list of events."""
         # Either event_id or device_type must be given
@@ -284,7 +293,10 @@ class CameraData:
         self._store_last_event()
 
     def person_seen_by_camera(
-        self, name: str, camera_id: str, exclude: int = 0
+        self,
+        name: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
@@ -439,7 +451,10 @@ class CameraData:
         return self._object_detected("vehicle", camera_id, offset)
 
     def module_motion_detected(
-        self, module_id: str, camera_id: str, exclude: int = 0
+        self,
+        module_id: str,
+        camera_id: str,
+        exclude: int = 0,
     ) -> bool:
         """Evaluate if movement has been detected."""
         if exclude:

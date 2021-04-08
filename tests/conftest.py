@@ -131,4 +131,6 @@ def camera_home_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.CameraData(auth)
+    camera_data = pyatmo.CameraData(auth)
+    camera_data.update()
+    return camera_data

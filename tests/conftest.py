@@ -40,7 +40,9 @@ def home_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeData(auth)
+    home_data = pyatmo.HomeData(auth)
+    home_data.update()
+    return home_data
 
 
 @pytest.fixture(scope="function")
@@ -52,7 +54,9 @@ def home_status(auth, home_id, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeStatus(auth, home_id)
+    home_status = pyatmo.HomeStatus(auth, home_id)
+    home_status.update()
+    return home_status
 
 
 @pytest.fixture(scope="function")
@@ -65,12 +69,14 @@ def public_data(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
 
-    lon_ne = 6.221652
-    lat_ne = 46.610870
-    lon_sw = 6.217828
-    lat_sw = 46.596485
+    lon_ne = str(6.221652)
+    lat_ne = str(46.610870)
+    lon_sw = str(6.217828)
+    lat_sw = str(46.596485)
 
-    return pyatmo.PublicData(auth, lat_ne, lon_ne, lat_sw, lon_sw)
+    public_data = pyatmo.PublicData(auth, lat_ne, lon_ne, lat_sw, lon_sw)
+    public_data.update()
+    return public_data
 
 
 @pytest.fixture(scope="function")
@@ -82,7 +88,9 @@ def weather_station_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.WeatherStationData(auth)
+    wsd = pyatmo.WeatherStationData(auth)
+    wsd.update()
+    return wsd
 
 
 @pytest.fixture(scope="function")
@@ -94,7 +102,9 @@ def home_coach_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.HomeCoachData(auth)
+    hcd = pyatmo.HomeCoachData(auth)
+    hcd.update()
+    return hcd
 
 
 @pytest.fixture(scope="function")
@@ -127,4 +137,6 @@ def camera_home_data(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    return pyatmo.CameraData(auth)
+    camera_data = pyatmo.CameraData(auth)
+    camera_data.update()
+    return camera_data

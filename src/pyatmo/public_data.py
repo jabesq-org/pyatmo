@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Any, Dict
 
 from .auth import NetatmoOAuth2
@@ -19,6 +20,18 @@ _ACCESSORY_WIND_ANGLE_TYPE = "wind_angle"
 _ACCESSORY_WIND_TIME_TYPE = "wind_timeutc"
 _ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
 _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
+
+
+@dataclasses.dataclass
+class Location:
+    """
+    Class of Netatmo public weather location.
+    """
+
+    lat_ne: str
+    lon_ne: str
+    lat_sw: str
+    lon_sw: str
 
 
 class PublicData:
@@ -52,20 +65,28 @@ class PublicData:
             NoDevice: No devices found.
         """
         self.auth = auth
+        self.required_data_type = required_data_type
+        self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
+        self.filtering: bool = filtering
+
+        self._raw_data: dict = {}
+        self.status: str = ""
+        self.time_exec: str = ""
+        self.time_server: str = ""
+
+    def update(self) -> None:
+        """Fetch and process data from API."""
         post_params: Dict = {
-            "lat_ne": lat_ne,
-            "lon_ne": lon_ne,
-            "lat_sw": lat_sw,
-            "lon_sw": lon_sw,
-            "filter": filtering,
+            **dataclasses.asdict(self.location),
+            "filter": self.filtering,
         }
 
-        if required_data_type:
-            post_params["required_data"] = required_data_type
+        if self.required_data_type:
+            post_params["required_data"] = self.required_data_type
 
         resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
         try:
-            self.raw_data = resp["body"]
+            self._raw_data = resp["body"]
         except (KeyError, TypeError) as exc:
             raise NoDevice("No public weather data returned by Netatmo server") from exc
 
@@ -74,7 +95,7 @@ class PublicData:
         self.time_server = to_time_string(resp["time_server"])
 
     def stations_in_area(self) -> int:
-        return len(self.raw_data)
+        return len(self._raw_data)
 
     def get_latest_rain(self) -> Dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_LIVE_TYPE)
@@ -131,11 +152,9 @@ class PublicData:
         return self.get_accessory_data(_ACCESSORY_GUST_ANGLE_TYPE)
 
     def get_locations(self) -> Dict:
-        locations: Dict = {}
-        for station in self.raw_data:
-            locations[station["_id"]] = station["place"]["location"]
-
-        return locations
+        return {
+            station["_id"]: station["place"]["location"] for station in self._raw_data
+        }
 
     def get_time_for_rain_measures(self) -> Dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_TIME_TYPE)
@@ -145,7 +164,7 @@ class PublicData:
 
     def get_latest_station_measures(self, data_type) -> Dict:
         measures: Dict = {}
-        for station in self.raw_data:
+        for station in self._raw_data:
             for module in station["measures"].values():
                 if (
                     "type" in module
@@ -163,7 +182,7 @@ class PublicData:
 
     def get_accessory_data(self, data_type: str) -> Dict[str, Any]:
         data: Dict = {}
-        for station in self.raw_data:
+        for station in self._raw_data:
             for module in station["measures"].values():
                 if data_type in module:
                     data[station["_id"]] = module[data_type]

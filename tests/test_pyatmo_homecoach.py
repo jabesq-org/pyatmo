@@ -64,4 +64,5 @@ def test_home_coach_data_no_devices(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.home_coach.HomeCoachData(auth)
+        hcd = pyatmo.home_coach.HomeCoachData(auth)
+        hcd.update()

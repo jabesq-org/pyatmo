@@ -31,23 +31,32 @@ class HomeData:
             NoDevice: No devices found.
         """
         self.auth = auth
-        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
-        if resp is None or "body" not in resp:
-            raise NoDevice("No thermostat data returned by Netatmo server")
 
-        self.raw_data = resp["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No thermostat data available")
-
-        self.homes: Dict = {d["id"]: d for d in self.raw_data}
-
+        self._raw_data: Dict = defaultdict(dict)
+        self.homes: Dict = defaultdict(dict)
         self.modules: Dict = defaultdict(dict)
         self.rooms: Dict = defaultdict(dict)
         self.schedules: Dict = defaultdict(dict)
         self.zones: Dict = defaultdict(dict)
         self.setpoint_duration: Dict = defaultdict(dict)
 
-        for item in self.raw_data:
+    def update(self) -> None:
+        """Fetch and process data from API."""
+        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
+        if resp is None or "body" not in resp:
+            raise NoDevice("No thermostat data returned by Netatmo server")
+
+        self._raw_data = resp["body"].get("homes")
+        if not self._raw_data:
+            raise NoDevice("No thermostat data available")
+
+        self.process()
+
+    def process(self) -> None:
+        """Process data from API."""
+        self.homes = {d["id"]: d for d in self._raw_data}
+
+        for item in self._raw_data:
             home_id = item.get("id")
             home_name = item.get("name")
 
@@ -124,6 +133,15 @@ class HomeStatus:
         self.auth = auth
 
         self.home_id = home_id
+
+        self._raw_data: Dict = defaultdict(dict)
+        self.rooms: Dict = defaultdict(dict)
+        self.thermostats: Dict = defaultdict(dict)
+        self.valves: Dict = defaultdict(dict)
+        self.relays: Dict = defaultdict(dict)
+
+    def update(self) -> None:
+        """Fetch and process data from API."""
         post_params = {"home_id": self.home_id}
 
         resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=post_params)
@@ -136,16 +154,16 @@ class HomeStatus:
             LOG.error("Errors in response: %s", resp)
             raise NoDevice("No device found, errors in response")
 
-        self.raw_data = resp["body"]["home"]
-        self.rooms: Dict = {}
-        self.thermostats: Dict = defaultdict(dict)
-        self.valves: Dict = defaultdict(dict)
-        self.relays: Dict = defaultdict(dict)
+        self._raw_data = resp["body"]["home"]
 
-        for room in self.raw_data.get("rooms", []):
+        self.process()
+
+    def process(self) -> None:
+        """Process data from API."""
+        for room in self._raw_data.get("rooms", []):
             self.rooms[room["id"]] = room
 
-        for module in self.raw_data.get("modules", []):
+        for module in self._raw_data.get("modules", []):
             if module["type"] == "NATherm1":
                 self.thermostats[module["id"]] = module
 

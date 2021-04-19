@@ -3,7 +3,7 @@ from .camera import AsyncCameraData, CameraData
 from .exceptions import ApiError, InvalidHome, InvalidRoom, NoDevice, NoSchedule
 from .home_coach import AsyncHomeCoachData, HomeCoachData
 from .public_data import PublicData
-from .thermostat import HomeData, HomeStatus
+from .thermostat import AsyncHomeData, AsyncHomeStatus, HomeData, HomeStatus
 from .weather_station import AsyncWeatherStationData, WeatherStationData
 
 __all__ = [
@@ -13,7 +13,9 @@ __all__ = [
     "ClientAuth",
     "AsyncHomeCoachData",
     "HomeCoachData",
+    "AsyncHomeData",
     "HomeData",
+    "AsyncHomeStatus",
     "HomeStatus",
     "InvalidHome",
     "InvalidRoom",

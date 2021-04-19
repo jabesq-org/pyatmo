@@ -32,7 +32,7 @@ class HomeData:
         """
         self.auth = auth
 
-        self._raw_data: Dict = defaultdict(dict)
+        self.raw_data: Dict = defaultdict(dict)
         self.homes: Dict = defaultdict(dict)
         self.modules: Dict = defaultdict(dict)
         self.rooms: Dict = defaultdict(dict)
@@ -46,17 +46,17 @@ class HomeData:
         if resp is None or "body" not in resp:
             raise NoDevice("No thermostat data returned by Netatmo server")
 
-        self._raw_data = resp["body"].get("homes")
-        if not self._raw_data:
+        self.raw_data = resp["body"].get("homes")
+        if not self.raw_data:
             raise NoDevice("No thermostat data available")
 
         self.process()
 
     def process(self) -> None:
         """Process data from API."""
-        self.homes = {d["id"]: d for d in self._raw_data}
+        self.homes = {d["id"]: d for d in self.raw_data}
 
-        for item in self._raw_data:
+        for item in self.raw_data:
             home_id = item.get("id")
             home_name = item.get("name")
 
@@ -104,10 +104,7 @@ class HomeData:
         if schedule_id not in list(schedules.values()):
             raise NoSchedule("%s is not a valid schedule id" % schedule_id)
 
-        post_params = {
-            "home_id": home_id,
-            "schedule_id": schedule_id,
-        }
+        post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
         LOG.debug("Response: %s", resp)
 
@@ -134,7 +131,7 @@ class HomeStatus:
 
         self.home_id = home_id
 
-        self._raw_data: Dict = defaultdict(dict)
+        self.raw_data: Dict = defaultdict(dict)
         self.rooms: Dict = defaultdict(dict)
         self.thermostats: Dict = defaultdict(dict)
         self.valves: Dict = defaultdict(dict)
@@ -154,16 +151,16 @@ class HomeStatus:
             LOG.error("Errors in response: %s", resp)
             raise NoDevice("No device found, errors in response")
 
-        self._raw_data = resp["body"]["home"]
+        self.raw_data = resp["body"]["home"]
 
         self.process()
 
     def process(self) -> None:
         """Process data from API."""
-        for room in self._raw_data.get("rooms", []):
+        for room in self.raw_data.get("rooms", []):
             self.rooms[room["id"]] = room
 
-        for module in self._raw_data.get("modules", []):
+        for module in self.raw_data.get("modules", []):
             if module["type"] == "NATherm1":
                 self.thermostats[module["id"]] = module
 
@@ -223,10 +220,7 @@ class HomeStatus:
         end_time: int = None,
         schedule_id: str = None,
     ) -> Optional[str]:
-        post_params = {
-            "home_id": self.home_id,
-            "mode": mode,
-        }
+        post_params = {"home_id": self.home_id, "mode": mode}
         if end_time is not None and mode in ("hg", "away"):
             post_params["endtime"] = str(end_time)
 
@@ -242,11 +236,7 @@ class HomeStatus:
         temp: float = None,
         end_time: int = None,
     ) -> Optional[str]:
-        post_params = {
-            "home_id": self.home_id,
-            "room_id": room_id,
-            "mode": mode,
-        }
+        post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
         # Temp and endtime should only be send when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:

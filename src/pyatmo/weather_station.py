@@ -27,7 +27,7 @@ class WeatherStationData:
         """
         self.url_req = url_req
         self.auth = auth
-        self._raw_data = defaultdict(dict)
+        self.raw_data = defaultdict(dict)
         self.stations = defaultdict(dict)
         self.modules = defaultdict(dict)
 
@@ -39,24 +39,24 @@ class WeatherStationData:
             raise NoDevice("No weather station data returned by Netatmo server")
 
         try:
-            self._raw_data = fix_id(resp["body"].get("devices"))
+            self.raw_data = fix_id(resp["body"].get("devices"))
         except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice(
                 "No weather station data returned by Netatmo server",
             ) from exc
 
-        if not self._raw_data:
+        if not self.raw_data:
             raise NoDevice("No weather station available")
 
         self.process()
 
     def process(self) -> None:
         """Process data from API."""
-        self.stations = {d["_id"]: d for d in self._raw_data}
+        self.stations = {d["_id"]: d for d in self.raw_data}
         self.modules = {}
 
-        for item in self._raw_data:
+        for item in self.raw_data:
             # The station name is sometimes not contained in the backend data
             if "station_name" not in item:
                 item["station_name"] = item.get("home_name", item["type"])

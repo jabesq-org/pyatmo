@@ -108,14 +108,7 @@ def home_coach_data(auth, requests_mock):
 
 
 @pytest.fixture(scope="function")
-def camera_home_data(auth, requests_mock):
-    with open("fixtures/camera_home_data.json") as json_file:
-        json_fixture = json.load(json_file)
-    requests_mock.post(
-        pyatmo.camera._GETHOMEDATA_REQ,
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
+def camera_ping(requests_mock):
     for index in ["w", "z", "g"]:
         vpn_url = (
             f"https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
@@ -134,6 +127,17 @@ def camera_home_data(auth, requests_mock):
         json_fixture = json.load(json_file)
     requests_mock.post(
         local_url + "/command/ping",
+        json=json_fixture,
+        headers={"content-type": "application/json"},
+    )
+
+
+@pytest.fixture(scope="function")
+def camera_home_data(auth, camera_ping, requests_mock):
+    with open("fixtures/camera_home_data.json") as json_file:
+        json_fixture = json.load(json_file)
+    requests_mock.post(
+        pyatmo.camera._GETHOMEDATA_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

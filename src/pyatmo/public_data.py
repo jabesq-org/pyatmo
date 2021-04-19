@@ -69,7 +69,7 @@ class PublicData:
         self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
         self.filtering: bool = filtering
 
-        self._raw_data: dict = {}
+        self.raw_data: dict = {}
         self.status: str = ""
         self.time_exec: str = ""
         self.time_server: str = ""
@@ -86,16 +86,20 @@ class PublicData:
 
         resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
         try:
-            self._raw_data = resp["body"]
+            self.raw_data = resp["body"]
         except (KeyError, TypeError) as exc:
             raise NoDevice("No public weather data returned by Netatmo server") from exc
 
+        self.process(resp)
+
+    def process(self, resp: dict) -> None:
+        """Process data from API."""
         self.status = resp["status"]
         self.time_exec = to_time_string(resp["time_exec"])
         self.time_server = to_time_string(resp["time_server"])
 
     def stations_in_area(self) -> int:
-        return len(self._raw_data)
+        return len(self.raw_data)
 
     def get_latest_rain(self) -> Dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_LIVE_TYPE)
@@ -153,7 +157,7 @@ class PublicData:
 
     def get_locations(self) -> Dict:
         return {
-            station["_id"]: station["place"]["location"] for station in self._raw_data
+            station["_id"]: station["place"]["location"] for station in self.raw_data
         }
 
     def get_time_for_rain_measures(self) -> Dict:
@@ -164,7 +168,7 @@ class PublicData:
 
     def get_latest_station_measures(self, data_type) -> Dict:
         measures: Dict = {}
-        for station in self._raw_data:
+        for station in self.raw_data:
             for module in station["measures"].values():
                 if (
                     "type" in module
@@ -182,7 +186,7 @@ class PublicData:
 
     def get_accessory_data(self, data_type: str) -> Dict[str, Any]:
         data: Dict = {}
-        for station in self._raw_data:
+        for station in self.raw_data:
             for module in station["measures"].values():
                 if data_type in module:
                     data[station["_id"]] = module[data_type]

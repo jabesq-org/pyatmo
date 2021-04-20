@@ -24,6 +24,7 @@ twine = "*"
 [packages]
 requests = "*"
 requests-oauthlib = "*"
+aiohttp = "*"
 
 [requires]
 python_version = "3.8"

@@ -93,10 +93,7 @@ class AbstractHomeData(ABC):
             self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
             for s in self.schedules.get(home_id, {})
         }
-        if schedule_id not in list(schedules.values()):
-            return False
-
-        return True
+        return schedule_id in list(schedules.values())
 
 
 class HomeData(AbstractHomeData):

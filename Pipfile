@@ -20,6 +20,7 @@ pytest-mock = "*"
 requests-mock = "*"
 tox = "*"
 twine = "*"
+aiohttp = "*"
 
 [packages]
 requests = "*"

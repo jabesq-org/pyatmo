@@ -1,3 +1,4 @@
+"""Expose submodules."""
 from .auth import AbstractAsyncAuth, ClientAuth, NetatmoOAuth2
 from .camera import AsyncCameraData, CameraData
 from .exceptions import ApiError, InvalidHome, InvalidRoom, NoDevice, NoSchedule

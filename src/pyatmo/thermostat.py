@@ -1,3 +1,4 @@
+"""Support for Netatmo energy devices (relays, thermostats and valves)."""
 import logging
 from abc import ABC
 from collections import defaultdict
@@ -18,7 +19,7 @@ _SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 
 class AbstractHomeData(ABC):
-    """Class of Netatmo energy devices (relays, thermostat modules and valves)."""
+    """Abstract class of Netatmo energy devices."""
 
     raw_data: Dict = defaultdict(dict)
     homes: Dict = defaultdict(dict)
@@ -97,12 +98,10 @@ class AbstractHomeData(ABC):
 
 
 class HomeData(AbstractHomeData):
-    """
-    Class of Netatmo energy devices (relays, thermostat modules and valves)
-    """
+    """Class of Netatmo energy devices."""
 
     def __init__(self, auth: NetatmoOAuth2) -> None:
-        """Initialize self.
+        """Initialize the Netatmo home data.
 
         Arguments:
             auth {NetatmoOAuth2} -- Authentication information with a valid access token
@@ -132,13 +131,13 @@ class HomeData(AbstractHomeData):
 
 
 class AsyncHomeData(AbstractHomeData):
-    """Class of Netatmo energy devices (relays, thermostat modules and valves)"""
+    """Class of Netatmo energy devices."""
 
     def __init__(self, auth: AbstractAsyncAuth) -> None:
-        """Initialize self.
+        """Initialize the Netatmo home data.
 
         Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
         """
         self.auth = auth
 
@@ -168,7 +167,7 @@ class AsyncHomeData(AbstractHomeData):
 
 
 class AbstractHomeStatus(ABC):
-    """."""
+    """Abstract class of the Netatmo home status."""
 
     raw_data: Dict = defaultdict(dict)
     rooms: Dict = defaultdict(dict)
@@ -192,6 +191,7 @@ class AbstractHomeStatus(ABC):
                 self.relays[module["id"]] = module
 
     def get_room(self, room_id: str) -> Dict:
+        """Return room data for a given room id."""
         for key, value in self.rooms.items():
             if value["id"] == room_id:
                 return self.rooms[key]
@@ -207,6 +207,7 @@ class AbstractHomeStatus(ABC):
         raise InvalidRoom("No room with ID %s" % room_id)
 
     def get_relay(self, room_id: str) -> Dict:
+        """Return relay data for a given room id."""
         for key, value in self.relays.items():
             if value["id"] == room_id:
                 return self.relays[key]
@@ -214,6 +215,7 @@ class AbstractHomeStatus(ABC):
         raise InvalidRoom("No room with ID %s" % room_id)
 
     def get_valve(self, room_id: str) -> Dict:
+        """Return valve data for a given room id."""
         for key, value in self.valves.items():
             if value["id"] == room_id:
                 return self.valves[key]
@@ -233,11 +235,20 @@ class AbstractHomeStatus(ABC):
         return self.get_room(room_id).get("therm_measured_temperature")
 
     def boiler_status(self, module_id: str) -> Optional[bool]:
+        """Return the status of the boiler status."""
         return self.get_thermostat(module_id).get("boiler_status")
 
 
 class HomeStatus(AbstractHomeStatus):
+    """Class of the Netatmo home status."""
+
     def __init__(self, auth: NetatmoOAuth2, home_id: str):
+        """Initialize the Netatmo home status.
+
+        Arguments:
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            home_id {str} -- ID for targeted home
+        """
         self.auth = auth
 
         self.home_id = home_id
@@ -266,6 +277,7 @@ class HomeStatus(AbstractHomeStatus):
         end_time: int = None,
         schedule_id: str = None,
     ) -> Optional[str]:
+        """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
         if end_time is not None and mode in ("hg", "away"):
             post_params["endtime"] = str(end_time)
@@ -282,6 +294,7 @@ class HomeStatus(AbstractHomeStatus):
         temp: float = None,
         end_time: int = None,
     ) -> Optional[str]:
+        """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
         # Temp and endtime should only be send when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
@@ -295,7 +308,15 @@ class HomeStatus(AbstractHomeStatus):
 
 
 class AsyncHomeStatus(AbstractHomeStatus):
+    """Class of the Netatmo home status."""
+
     def __init__(self, auth: AbstractAsyncAuth, home_id: str):
+        """Initialize the Netatmo home status.
+
+        Arguments:
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            home_id {str} -- ID for targeted home
+        """
         self.auth = auth
 
         self.home_id = home_id
@@ -327,6 +348,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
         end_time: int = None,
         schedule_id: str = None,
     ) -> Optional[str]:
+        """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
         if end_time is not None and mode in ("hg", "away"):
             post_params["endtime"] = str(end_time)
@@ -346,6 +368,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
         temp: float = None,
         end_time: int = None,
     ) -> Optional[str]:
+        """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
         # Temp and endtime should only be send when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense

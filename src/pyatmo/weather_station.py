@@ -1,3 +1,4 @@
+"""Support for Netatmo weather station devices (stations and modules)."""
 import logging
 import time
 from abc import ABC
@@ -15,11 +16,11 @@ _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
 class AbstractWeatherStationData(ABC):
-    """Class of Netatmo Weather Station devices (stations and modules)."""
+    """Abstract class of Netatmo Weather Station devices."""
 
-    raw_data = defaultdict(dict)
-    stations = defaultdict(dict)
-    modules = defaultdict(dict)
+    raw_data: Dict = defaultdict(dict)
+    stations: Dict = defaultdict(dict)
+    modules: Dict = defaultdict(dict)
 
     def process(self) -> None:
         """Process data from API."""
@@ -170,7 +171,8 @@ class AbstractWeatherStationData(ABC):
                 last_data[module[key]] = data.copy()
                 last_data[module[key]]["When"] = last_data[module[key]].pop("time_utc")
 
-                # For potential use, add battery and radio coverage information to module data if present
+                # For potential use, add battery and radio coverage information
+                # to module data if present
                 for i in (
                     "rf_status",
                     "battery_vp",
@@ -199,13 +201,14 @@ class AbstractWeatherStationData(ABC):
 
 
 class WeatherStationData(AbstractWeatherStationData):
-    """Class of Netatmo Weather Station devices (stations and modules)."""
+    """Class of Netatmo weather station devices."""
 
     def __init__(self, auth: NetatmoOAuth2, url_req: str = _GETSTATIONDATA_REQ) -> None:
-        """Initialize self.
+        """Initialize the Netatmo weather station data.
 
         Arguments:
             auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            url_req {str} -- Optional request endpoint
         """
         self.auth = auth
         self.url_req = url_req
@@ -310,17 +313,18 @@ class WeatherStationData(AbstractWeatherStationData):
 
 
 class AsyncWeatherStationData(AbstractWeatherStationData):
-    """Class of Netatmo Weather Station devices (stations and modules)."""
+    """Class of Netatmo weather station devices."""
 
     def __init__(
         self,
         auth: AbstractAsyncAuth,
         url_req: str = _GETSTATIONDATA_REQ,
     ) -> None:
-        """Initialize self.
+        """Initialize the Netatmo weather station data.
 
         Arguments:
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            url_req {str} -- Optional request endpoint
         """
         self.auth = auth
         self.url_req = url_req

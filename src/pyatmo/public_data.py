@@ -1,3 +1,4 @@
+"""Support for Netatmo public weather data."""
 import dataclasses
 from abc import ABC
 from collections import defaultdict
@@ -26,9 +27,7 @@ _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 
 @dataclasses.dataclass
 class Location:
-    """
-    Class of Netatmo public weather location.
-    """
+    """Class of Netatmo public weather location."""
 
     lat_ne: str
     lon_ne: str
@@ -147,9 +146,7 @@ class AbstractPublicData(ABC):
 
 
 class PublicData(AbstractPublicData):
-    """
-    Class of Netatmo public weather data.
-    """
+    """Class of Netatmo public weather data."""
 
     def __init__(
         self,
@@ -213,7 +210,7 @@ class AsyncPublicData(AbstractPublicData):
         """Initialize self.
 
         Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
             LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
             LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
             LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
@@ -221,9 +218,6 @@ class AsyncPublicData(AbstractPublicData):
 
         Keyword Arguments:
             required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
-
-        Raises:
-            NoDevice: No devices found.
         """
         self.auth = auth
         self.required_data_type = required_data_type

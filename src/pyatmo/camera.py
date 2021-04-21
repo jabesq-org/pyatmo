@@ -1,3 +1,4 @@
+"""Support for Netatmo security devices (cameras, smoke detectors, sirens, window sensors, events and persons)."""
 import imghdr
 import time
 from abc import ABC
@@ -19,7 +20,7 @@ _SETSTATE_REQ = _BASE_URL + "api/setstate"
 
 
 class AbstractCameraData(ABC):
-    """Abstract class for camera data."""
+    """Abstract class of Netatmo camera data."""
 
     raw_data: Dict = defaultdict(dict)
     homes: Dict = defaultdict(dict)
@@ -408,13 +409,10 @@ class AbstractCameraData(ABC):
 
 
 class CameraData(AbstractCameraData):
-    """
-    Class of Netatmo camera informations
-        (Homes, cameras, smoke detectors, modules, events, persons)
-    """
+    """Class of Netatmo camera data."""
 
     def __init__(self, auth: NetatmoOAuth2) -> None:
-        """Initialize self.
+        """Initialize the Netatmo camera data.
 
         Arguments:
             auth {NetatmoOAuth2} -- Authentication information with a valid access token
@@ -582,13 +580,10 @@ class CameraData(AbstractCameraData):
 
 
 class AsyncCameraData(AbstractCameraData):
-    """
-    Class of Netatmo camera informations
-        (Homes, cameras, smoke detectors, modules, events, persons)
-    """
+    """Class of Netatmo camera data."""
 
     def __init__(self, auth: AbstractAsyncAuth) -> None:
-        """Initialize self.
+        """Initialize the Netatmo camera data.
 
         Arguments:
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
@@ -597,7 +592,6 @@ class AsyncCameraData(AbstractCameraData):
 
     async def async_update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
-        # async request
         resp = await self.auth.async_post_request(
             url=_GETHOMEDATA_REQ,
             params={"size": events},
@@ -712,7 +706,7 @@ class AsyncCameraData(AbstractCameraData):
         )
 
     async def async_get_live_snapshot(self, camera_id: str):
-        """."""
+        """Retrieve live snapshot from camera."""
         local, vpn = self.camera_urls(camera_id)
         if not local and not vpn:
             return None

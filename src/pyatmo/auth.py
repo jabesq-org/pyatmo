@@ -16,8 +16,10 @@ from pyatmo.helpers import _BASE_URL, ERRORS
 LOG = logging.getLogger(__name__)
 
 # Common definitions
-AUTH_REQ = _BASE_URL + "oauth2/token"
-AUTH_URL = _BASE_URL + "oauth2/authorize"
+AUTH_REQ_ENDPOINT = "oauth2/token"
+AUTH_REQ = _BASE_URL + AUTH_REQ_ENDPOINT
+AUTH_URL_ENDPOINT = "oauth2/authorize"
+AUTH_URL = _BASE_URL + AUTH_URL_ENDPOINT
 WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
 WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
 

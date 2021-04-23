@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name, protected-access
 import json
 from contextlib import contextmanager
+from unittest.mock import patch, AsyncMock
 
 import pytest
 
@@ -144,3 +145,89 @@ def camera_home_data(auth, camera_ping, requests_mock):
     camera_data = pyatmo.CameraData(auth)
     camera_data.update()
     return camera_data
+
+
+@pytest.fixture(scope="function")
+async def async_auth():
+    with patch("pyatmo.auth.AbstractAsyncAuth", AsyncMock()) as auth:
+        yield auth
+
+
+@pytest.fixture(scope="function")
+async def async_camera_home_data(async_auth):
+    with open("fixtures/camera_home_data.json") as json_file:
+        json_fixture = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_request:
+        camera_data = pyatmo.AsyncCameraData(async_auth)
+        await camera_data.async_update()
+
+        mock_request.assert_called()
+        yield camera_data
+
+
+@pytest.fixture(scope="function")
+async def async_home_coach_data(async_auth):
+    with open("fixtures/home_coach_simple.json") as json_file:
+        json_fixture = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_request:
+        hcd = pyatmo.AsyncHomeCoachData(async_auth)
+        await hcd.async_update()
+
+        mock_request.assert_called()
+        yield hcd
+
+
+@pytest.fixture(scope="function")
+async def async_home_data(async_auth):
+    with open("fixtures/home_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_request:
+        home_data = pyatmo.AsyncHomeData(async_auth)
+        await home_data.async_update()
+
+        mock_request.assert_called()
+        return home_data
+
+
+@pytest.fixture(scope="function")
+async def async_home_status(async_auth, home_id):
+    with open("fixtures/home_status_simple.json") as json_file:
+        json_fixture = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_request:
+        home_status = pyatmo.AsyncHomeStatus(async_auth, home_id)
+        await home_status.async_update()
+
+        mock_request.assert_called()
+        return home_status
+
+
+@pytest.fixture(scope="function")
+async def async_weather_station_data(async_auth):
+    with open("fixtures/weatherstation_data_simple.json") as json_file:
+        json_fixture = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_request:
+        wsd = pyatmo.AsyncWeatherStationData(async_auth)
+        await wsd.async_update()
+
+        mock_request.assert_called()
+        return wsd

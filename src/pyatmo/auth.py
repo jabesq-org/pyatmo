@@ -1,9 +1,12 @@
+"""Support for Netatmo authentication."""
 import logging
+from abc import ABC, abstractmethod
 from json import JSONDecodeError
 from time import sleep
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import requests
+from aiohttp import ClientError, ClientSession
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
@@ -13,10 +16,14 @@ from pyatmo.helpers import _BASE_URL, ERRORS
 LOG = logging.getLogger(__name__)
 
 # Common definitions
-AUTH_REQ = _BASE_URL + "oauth2/token"
-AUTH_URL = _BASE_URL + "oauth2/authorize"
+AUTH_REQ_ENDPOINT = "oauth2/token"
+AUTH_REQ = _BASE_URL + AUTH_REQ_ENDPOINT
+AUTH_URL_ENDPOINT = "oauth2/authorize"
+AUTH_URL = _BASE_URL + AUTH_URL_ENDPOINT
 WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
 WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
+
+AUTHORIZATION_HEADER = "Authorization"
 
 
 # Possible scops
@@ -262,3 +269,90 @@ class ClientAuth(NetatmoOAuth2):
             client_secret=self.client_secret,
             scope=self.scope,
         )
+
+
+class AbstractAsyncAuth(ABC):
+    """Abstract class to make authenticated requests."""
+
+    def __init__(self, websession: ClientSession):
+        """Initialize the auth."""
+        self.websession = websession
+
+    @abstractmethod
+    async def async_get_access_token(self) -> str:
+        """Return a valid access token."""
+
+    async def async_post_request(
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        timeout: int = 5,
+    ) -> Any:
+        """Wrapper for async post requests."""
+        try:
+            access_token = await self.async_get_access_token()
+        except ClientError as err:
+            raise ApiError(f"Access token failure: {err}") from err
+        headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+
+        req_args = {"data": params if params is not None else {}}
+
+        if "json" in req_args["data"]:
+            req_args["json"] = req_args["data"]["json"]
+            req_args.pop("data")
+
+        async with self.websession.post(
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
+        ) as resp:
+            resp_status = resp.status
+            if resp.headers.get("content-type") == "image/jpeg":
+                return await resp.read()
+
+            resp_json = await resp.json()
+            resp_content = await resp.read()
+
+            if not resp.ok:
+                LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
+                try:
+                    raise ApiError(
+                        f"{resp_status} - "
+                        f"{ERRORS.get(resp_status, '')} - "
+                        f"{resp_json['error']['message']} "
+                        f"({resp_json['error']['code']}) "
+                        f"when accessing '{url}'",
+                    )
+
+                except JSONDecodeError as exc:
+                    raise ApiError(
+                        f"{resp_status} - "
+                        f"{ERRORS.get(resp_status, '')} - "
+                        f"when accessing '{url}'",
+                    ) from exc
+
+            try:
+                if "application/json" in resp.headers.get("content-type", []):
+                    return resp_json
+
+                if resp_content not in [b"", b"None"]:
+                    return resp_content
+
+            except (TypeError, AttributeError):
+                LOG.debug("Invalid response %s", resp)
+
+        return None
+
+    async def async_addwebhook(self, webhook_url: str) -> None:
+        """Register webhook."""
+        resp = await self.async_post_request(WEBHOOK_URL_ADD, {"url": webhook_url})
+        LOG.debug("addwebhook: %s", resp)
+
+    async def async_dropwebhook(self) -> None:
+        """Unregister webhook."""
+        resp = await self.async_post_request(
+            WEBHOOK_URL_DROP,
+            {"app_types": "app_security"},
+        )
+        LOG.debug("dropwebhook: %s", resp)

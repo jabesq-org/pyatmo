@@ -41,3 +41,6 @@ expected-line-ending-format=LF
 
 [EXCEPTIONS]
 overgeneral-exceptions=Exception
+
+[MASTER]
+load-plugins=pylint_pytest

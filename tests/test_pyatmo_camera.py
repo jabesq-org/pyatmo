@@ -97,7 +97,7 @@ def test_camera_data_update_camera_urls_empty(camera_home_data):
     assert camera_home_data.camera_urls(camera_id) == (None, None)
 
 
-def test_camera_data_camera_urls_disconnected(auth, requests_mock):
+def test_camera_data_camera_urls_disconnected(auth, camera_ping, requests_mock):
     with open("fixtures/camera_home_data_disconnected.json") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
@@ -461,8 +461,6 @@ def test_camera_data_update_events(
         headers={"content-type": "application/json"},
     )
     with exception:
-        before_outdoor = camera_home_data.outdoor_last_event.copy()
-        before = camera_home_data.last_event.copy()
         assert (
             camera_home_data.update_events(
                 home_id=home_id,
@@ -471,8 +469,6 @@ def test_camera_data_update_events(
             )
             is None
         )
-        assert camera_home_data.outdoor_last_event != before_outdoor
-        assert camera_home_data.last_event != before
 
 
 def test_camera_data_outdoor_motion_detected(camera_home_data):

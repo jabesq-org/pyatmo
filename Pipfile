@@ -13,20 +13,26 @@ isort = "*"
 mypy = "*"
 pre-commit = "*"
 pylint = "*"
+pylint-pytest = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 requests-mock = "*"
 tox = "*"
 twine = "*"
+aiohttp = "*"
 
 [packages]
 requests = "*"
 requests-oauthlib = "*"
-pyatmo = {editable = true,path = "."}
+aiohttp = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true
+
+[packages.pyatmo]
+editable = true
+path = "."

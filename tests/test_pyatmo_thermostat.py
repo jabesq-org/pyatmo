@@ -59,8 +59,9 @@ def test_home_data(home_data):
 
 def test_home_data_no_data(auth, requests_mock):
     requests_mock.post(pyatmo.thermostat._GETHOMESDATA_REQ, text="None")
+    home_data = pyatmo.HomeData(auth)
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.HomeData(auth)
+        home_data.update()
 
 
 def test_home_data_no_body(auth, requests_mock):
@@ -71,8 +72,9 @@ def test_home_data_no_body(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
+    home_data = pyatmo.HomeData(auth)
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.HomeData(auth)
+        home_data.update()
 
 
 def test_home_data_no_homes(auth, requests_mock):
@@ -83,8 +85,9 @@ def test_home_data_no_homes(auth, requests_mock):
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
+    home_data = pyatmo.HomeData(auth)
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.HomeData(auth)
+        home_data.update()
 
 
 def test_home_data_no_home_name(auth, requests_mock):
@@ -96,6 +99,7 @@ def test_home_data_no_home_name(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     home_data = pyatmo.HomeData(auth)
+    home_data.update()
     home_id = "91763b24c43d3e344f424e8b"
     assert home_data.homes.get(home_id)["name"] == "Unknown"
 
@@ -205,6 +209,7 @@ def test_home_status_error_and_data(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     home_status = pyatmo.HomeStatus(auth, home_id="91763b24c43d3e344f424e8b")
+    home_status.update()
     assert len(home_status.rooms) == 3
 
     expexted = {
@@ -235,7 +240,8 @@ def test_home_status_error(auth, requests_mock):
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        assert pyatmo.HomeStatus(auth, home_id="91763b24c43d3e344f424e8b")
+        home_status = pyatmo.HomeStatus(auth, home_id="91763b24c43d3e344f424e8b")
+        home_status.update()
 
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
@@ -571,4 +577,5 @@ def test_home_status_error_disconnected(
         headers={"content-type": "application/json"},
     )
     with pytest.raises(pyatmo.NoDevice):
-        pyatmo.HomeStatus(auth, home_id)
+        home_status = pyatmo.HomeStatus(auth, home_id)
+        home_status.update()

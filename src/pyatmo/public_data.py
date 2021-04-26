@@ -1,6 +1,10 @@
+"""Support for Netatmo public weather data."""
+import dataclasses
+from abc import ABC
+from collections import defaultdict
 from typing import Any, Dict
 
-from .auth import NetatmoOAuth2
+from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import NoDevice
 from .helpers import _BASE_URL, to_time_string
 
@@ -21,54 +25,26 @@ _ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
 _ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 
 
-class PublicData:
-    """
-    Class of Netatmo public weather data.
-    """
+@dataclasses.dataclass
+class Location:
+    """Class of Netatmo public weather location."""
 
-    def __init__(
-        self,
-        auth: NetatmoOAuth2,
-        lat_ne: str,
-        lon_ne: str,
-        lat_sw: str,
-        lon_sw: str,
-        required_data_type: str = None,
-        filtering: bool = False,
-    ) -> None:
-        """Initialize self.
+    lat_ne: str
+    lon_ne: str
+    lat_sw: str
+    lon_sw: str
 
-        Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
-            LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
-            LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
-            LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
-            LON_SW {str} -- Longitude of the south west corner of the requested area. (-180 <= LON_SW <= 180)
 
-        Keyword Arguments:
-            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
+class AbstractPublicData(ABC):
+    """Class of Netatmo public weather data."""
 
-        Raises:
-            NoDevice: No devices found.
-        """
-        self.auth = auth
-        post_params: Dict = {
-            "lat_ne": lat_ne,
-            "lon_ne": lon_ne,
-            "lat_sw": lat_sw,
-            "lon_sw": lon_sw,
-            "filter": filtering,
-        }
+    raw_data: dict = defaultdict(dict)
+    status: str = ""
+    time_exec: str = ""
+    time_server: str = ""
 
-        if required_data_type:
-            post_params["required_data"] = required_data_type
-
-        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
-        try:
-            self.raw_data = resp["body"]
-        except (KeyError, TypeError) as exc:
-            raise NoDevice("No public weather data returned by Netatmo server") from exc
-
+    def process(self, resp: dict) -> None:
+        """Process data from API."""
         self.status = resp["status"]
         self.time_exec = to_time_string(resp["time_exec"])
         self.time_server = to_time_string(resp["time_server"])
@@ -131,11 +107,9 @@ class PublicData:
         return self.get_accessory_data(_ACCESSORY_GUST_ANGLE_TYPE)
 
     def get_locations(self) -> Dict:
-        locations: Dict = {}
-        for station in self.raw_data:
-            locations[station["_id"]] = station["place"]["location"]
-
-        return locations
+        return {
+            station["_id"]: station["place"]["location"] for station in self.raw_data
+        }
 
     def get_time_for_rain_measures(self) -> Dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_TIME_TYPE)
@@ -169,6 +143,107 @@ class PublicData:
                     data[station["_id"]] = module[data_type]
 
         return data
+
+
+class PublicData(AbstractPublicData):
+    """Class of Netatmo public weather data."""
+
+    def __init__(
+        self,
+        auth: NetatmoOAuth2,
+        lat_ne: str,
+        lon_ne: str,
+        lat_sw: str,
+        lon_sw: str,
+        required_data_type: str = None,
+        filtering: bool = False,
+    ) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
+            LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
+            LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
+            LON_SW {str} -- Longitude of the south west corner of the requested area. (-180 <= LON_SW <= 180)
+
+        Keyword Arguments:
+            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
+        """
+        self.auth = auth
+        self.required_data_type = required_data_type
+        self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
+        self.filtering: bool = filtering
+
+    def update(self) -> None:
+        """Fetch and process data from API."""
+        post_params: Dict = {
+            **dataclasses.asdict(self.location),
+            "filter": self.filtering,
+        }
+
+        if self.required_data_type:
+            post_params["required_data"] = self.required_data_type
+
+        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
+        try:
+            self.raw_data = resp["body"]
+        except (KeyError, TypeError) as exc:
+            raise NoDevice("No public weather data returned by Netatmo server") from exc
+
+        self.process(resp)
+
+
+class AsyncPublicData(AbstractPublicData):
+    """Class of Netatmo public weather data."""
+
+    def __init__(
+        self,
+        auth: AbstractAsyncAuth,
+        lat_ne: str,
+        lon_ne: str,
+        lat_sw: str,
+        lon_sw: str,
+        required_data_type: str = None,
+        filtering: bool = False,
+    ) -> None:
+        """Initialize self.
+
+        Arguments:
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            LAT_NE {str} -- Latitude of the north east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
+            LON_NE {str} -- Longitude of the north east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
+            LAT_SW {str} -- latitude of the south west corner of the requested area. (-85 <= LAT_SW <= 85)
+            LON_SW {str} -- Longitude of the south west corner of the requested area. (-180 <= LON_SW <= 180)
+
+        Keyword Arguments:
+            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
+        """
+        self.auth = auth
+        self.required_data_type = required_data_type
+        self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
+        self.filtering: bool = filtering
+
+    async def async_update(self) -> None:
+        """Fetch and process data from API."""
+        post_params: Dict = {
+            **dataclasses.asdict(self.location),
+            "filter": self.filtering,
+        }
+
+        if self.required_data_type:
+            post_params["required_data"] = self.required_data_type
+
+        resp = await self.auth.async_post_request(
+            url=_GETPUBLIC_DATA,
+            params=post_params,
+        )
+        try:
+            self.raw_data = resp["body"]
+        except (KeyError, TypeError) as exc:
+            raise NoDevice("No public weather data returned by Netatmo server") from exc
+
+        self.process(resp)
 
 
 def average(data: dict) -> float:

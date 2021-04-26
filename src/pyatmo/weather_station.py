@@ -1,8 +1,11 @@
+"""Support for Netatmo weather station devices (stations and modules)."""
 import logging
 import time
+from abc import ABC
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from .auth import NetatmoOAuth2
+from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import NoDevice
 from .helpers import _BASE_URL, fix_id, today_stamps
 
@@ -12,37 +15,15 @@ _GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
 _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
-class WeatherStationData:
-    """Class of Netatmo Weather Station devices (stations and modules)."""
+class AbstractWeatherStationData(ABC):
+    """Abstract class of Netatmo Weather Station devices."""
 
-    def __init__(self, auth: NetatmoOAuth2, url_req: str = None) -> None:
-        """Initialize self.
+    raw_data: Dict = defaultdict(dict)
+    stations: Dict = defaultdict(dict)
+    modules: Dict = defaultdict(dict)
 
-        Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
-
-        Raises:
-            NoDevice: No devices found.
-        """
-        self.url_req = url_req or _GETSTATIONDATA_REQ
-        self.auth = auth
-
-        resp = self.auth.post_request(url=self.url_req)
-
-        if resp is None or "body" not in resp:
-            raise NoDevice("No weather station data returned by Netatmo server")
-
-        try:
-            self.raw_data = fix_id(resp["body"].get("devices"))
-        except KeyError as exc:
-            LOG.debug("No <body> in response %s", resp)
-            raise NoDevice(
-                "No weather station data returned by Netatmo server",
-            ) from exc
-
-        if not self.raw_data:
-            raise NoDevice("No weather station available")
-
+    def process(self) -> None:
+        """Process data from API."""
         self.stations = {d["_id"]: d for d in self.raw_data}
         self.modules = {}
 
@@ -163,7 +144,6 @@ class WeatherStationData:
         """Return data for a given station and time frame."""
         key = "_id"
 
-        # Breaking change from Netatmo : dashboard_data no longer available if station lost
         last_data: Dict = {}
         station = self.get_station(station_id)
 
@@ -191,7 +171,8 @@ class WeatherStationData:
                 last_data[module[key]] = data.copy()
                 last_data[module[key]]["When"] = last_data[module[key]].pop("time_utc")
 
-                # For potential use, add battery and radio coverage information to module data if present
+                # For potential use, add battery and radio coverage information
+                # to module data if present
                 for i in (
                     "rf_status",
                     "battery_vp",
@@ -217,6 +198,40 @@ class WeatherStationData:
         return [
             key for key, value in res.items() if time.time() - value["When"] < delay
         ]
+
+
+class WeatherStationData(AbstractWeatherStationData):
+    """Class of Netatmo weather station devices."""
+
+    def __init__(self, auth: NetatmoOAuth2, url_req: str = _GETSTATIONDATA_REQ) -> None:
+        """Initialize the Netatmo weather station data.
+
+        Arguments:
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            url_req {str} -- Optional request endpoint
+        """
+        self.auth = auth
+        self.url_req = url_req
+
+    def update(self):
+        """Fetch data from API."""
+        resp = self.auth.post_request(url=self.url_req)
+
+        if resp is None or "body" not in resp:
+            raise NoDevice("No weather station data returned by Netatmo server")
+
+        try:
+            self.raw_data = fix_id(resp["body"].get("devices"))
+        except KeyError as exc:
+            LOG.debug("No <body> in response %s", resp)
+            raise NoDevice(
+                "No weather station data returned by Netatmo server",
+            ) from exc
+
+        if not self.raw_data:
+            raise NoDevice("No weather station available")
+
+        self.process()
 
     def get_data(
         self,
@@ -295,3 +310,41 @@ class WeatherStationData:
             return min(temperature), max(temperature), min(humidity), max(humidity)
 
         return None
+
+
+class AsyncWeatherStationData(AbstractWeatherStationData):
+    """Class of Netatmo weather station devices."""
+
+    def __init__(
+        self,
+        auth: AbstractAsyncAuth,
+        url_req: str = _GETSTATIONDATA_REQ,
+    ) -> None:
+        """Initialize the Netatmo weather station data.
+
+        Arguments:
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            url_req {str} -- Optional request endpoint
+        """
+        self.auth = auth
+        self.url_req = url_req
+
+    async def async_update(self):
+        """Fetch data from API."""
+        resp = await self.auth.async_post_request(url=self.url_req)
+
+        if resp is None or "body" not in resp:
+            raise NoDevice("No weather station data returned by Netatmo server")
+
+        try:
+            self.raw_data = fix_id(resp["body"].get("devices"))
+        except KeyError as exc:
+            LOG.debug("No <body> in response %s", resp)
+            raise NoDevice(
+                "No weather station data returned by Netatmo server",
+            ) from exc
+
+        if not self.raw_data:
+            raise NoDevice("No weather station available")
+
+        self.process()

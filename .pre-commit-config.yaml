@@ -3,21 +3,15 @@
 default_stages: [commit, push]
 exclude: ^(fixtures/)
 repos:
-  - repo: https://github.com/asottile/seed-isort-config
-    rev: v2.2.0
-    hooks:
-    -   id: seed-isort-config
-        args: [--application-directories,./src]
-
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.7.4
+    rev: v2.11.0
     hooks:
     - id: pyupgrade
       args: [--py37-plus]
       exclude: 'external_src/int-tools'
 
   - repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.0.1
+    rev: v2.1.0
     hooks:
       - id: add-trailing-comma
         args: [ --py36-plus ]

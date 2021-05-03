@@ -33,21 +33,21 @@ repos:
 
       - id: black
         name: black
-        language: system
+        language: python
         additional_dependencies: [pipenv]
         entry: pipenv run black
         types: [python]
 
       - id: pylint
         name: pylint
-        language: system
+        language: python
         additional_dependencies: [pipenv]
         entry: pipenv run pylint
         types: [python]
 
       - id: mypy
         name: mypy
-        language: system
+        language: python
         additional_dependencies: [pipenv]
         entry: pipenv run mypy
         types: [python]

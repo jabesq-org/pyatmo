@@ -26,7 +26,6 @@ repos:
       - id: isort
         name: isort
         language: system
-        additional_dependencies: [pipenv]
         entry: pipenv run isort
         types: [python]
         exclude: tests/
@@ -34,21 +33,18 @@ repos:
       - id: black
         name: black
         language: system
-        additional_dependencies: [pipenv]
         entry: pipenv run black
         types: [python]
 
       - id: pylint
         name: pylint
         language: system
-        additional_dependencies: [pipenv]
         entry: pipenv run pylint
         types: [python]
 
       - id: mypy
         name: mypy
         language: system
-        additional_dependencies: [pipenv]
         entry: pipenv run mypy
         types: [python]
         exclude: tests/

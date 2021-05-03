@@ -108,10 +108,7 @@ class NetatmoOAuth2:
         return token
 
     def post_request(
-        self,
-        url: str,
-        params: Optional[Dict] = None,
-        timeout: int = 5,
+        self, url: str, params: Optional[Dict] = None, timeout: int = 5
     ) -> Any:
         """Wrapper for post requests."""
         resp = None
@@ -160,9 +157,7 @@ class NetatmoOAuth2:
 
         if not resp.ok:
             LOG.debug(
-                "The Netatmo API returned %s (%s)",
-                resp.content,
-                resp.status_code,
+                "The Netatmo API returned %s (%s)", resp.content, resp.status_code
             )
             try:
                 raise ApiError(
@@ -170,14 +165,14 @@ class NetatmoOAuth2:
                     f"{ERRORS.get(resp.status_code, '')} - "
                     f"{resp.json()['error']['message']} "
                     f"({resp.json()['error']['code']}) "
-                    f"when accessing '{url}'",
+                    f"when accessing '{url}'"
                 )
 
             except JSONDecodeError as exc:
                 raise ApiError(
                     f"{resp.status_code} - "
                     f"{ERRORS.get(resp.status_code, '')} - "
-                    f"when accessing '{url}'",
+                    f"when accessing '{url}'"
                 ) from exc
 
         try:
@@ -196,9 +191,7 @@ class NetatmoOAuth2:
         return self._oauth.authorization_url(AUTH_URL, state)
 
     def request_token(
-        self,
-        authorization_response: Optional[str] = None,
-        code: Optional[str] = None,
+        self, authorization_response: Optional[str] = None, code: Optional[str] = None
     ) -> Dict[str, str]:
         """
         Generic method for fetching a Netatmo access token.
@@ -259,7 +252,7 @@ class ClientAuth(NetatmoOAuth2):
         super().__init__(client_id=client_id, client_secret=client_secret, scope=scope)
 
         self._oauth = OAuth2Session(
-            client=LegacyApplicationClient(client_id=self.client_id),
+            client=LegacyApplicationClient(client_id=self.client_id)
         )
         self._oauth.fetch_token(
             token_url=AUTH_REQ,
@@ -283,10 +276,7 @@ class AbstractAsyncAuth(ABC):
         """Return a valid access token."""
 
     async def async_post_request(
-        self,
-        url: str,
-        params: Optional[Dict] = None,
-        timeout: int = 5,
+        self, url: str, params: Optional[Dict] = None, timeout: int = 5
     ) -> Any:
         """Wrapper for async post requests."""
         try:
@@ -302,10 +292,7 @@ class AbstractAsyncAuth(ABC):
             req_args.pop("data")
 
         async with self.websession.post(
-            url,
-            **req_args,
-            headers=headers,
-            timeout=timeout,
+            url, **req_args, headers=headers, timeout=timeout
         ) as resp:
             resp_status = resp.status
             if resp.headers.get("content-type") == "image/jpeg":
@@ -322,14 +309,14 @@ class AbstractAsyncAuth(ABC):
                         f"{ERRORS.get(resp_status, '')} - "
                         f"{resp_json['error']['message']} "
                         f"({resp_json['error']['code']}) "
-                        f"when accessing '{url}'",
+                        f"when accessing '{url}'"
                     )
 
                 except JSONDecodeError as exc:
                     raise ApiError(
                         f"{resp_status} - "
                         f"{ERRORS.get(resp_status, '')} - "
-                        f"when accessing '{url}'",
+                        f"when accessing '{url}'"
                     ) from exc
 
             try:
@@ -352,7 +339,6 @@ class AbstractAsyncAuth(ABC):
     async def async_dropwebhook(self) -> None:
         """Unregister webhook."""
         resp = await self.async_post_request(
-            WEBHOOK_URL_DROP,
-            {"app_types": "app_security"},
+            WEBHOOK_URL_DROP, {"app_types": "app_security"}
         )
         LOG.debug("dropwebhook: %s", resp)

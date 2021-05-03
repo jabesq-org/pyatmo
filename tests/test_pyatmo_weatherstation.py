@@ -67,7 +67,7 @@ def test_weather_station_data_no_data(auth, requests_mock):
             "NoValidStation",
             None,
             marks=pytest.mark.xfail(
-                reason="Invalid station names are not handled yet.",
+                reason="Invalid station names are not handled yet."
             ),
         ),
     ],
@@ -122,7 +122,7 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
                     "id": "12:34:56:1d:68:2e",
                     "module_name": "Basisstation",
                     "station_name": "NAMain",
-                },
+                }
             },
         ),
         (
@@ -144,7 +144,7 @@ def test_weather_station_get_module_names(weather_station_data, station_id, expe
             "NoValidStation",
             None,
             marks=pytest.mark.xfail(
-                reason="Invalid station names are not handled yet.",
+                reason="Invalid station names are not handled yet."
             ),
         ),
     ],
@@ -289,9 +289,7 @@ def test_weather_station_get_module(weather_station_data, mid, expected):
     ],
 )
 def test_weather_station_get_monitored_conditions(
-    weather_station_data,
-    module_id,
-    expected,
+    weather_station_data, module_id, expected
 ):
     assert sorted(weather_station_data.get_monitored_conditions(module_id)) == expected
 
@@ -341,10 +339,7 @@ def test_weather_station_get_monitored_conditions(
     ],
 )
 def test_weather_station_get_last_data(
-    weather_station_data,
-    station_id,
-    exclude,
-    expected,
+    weather_station_data, station_id, exclude, expected
 ):
     mod = weather_station_data.get_last_data(station_id, exclude=exclude)
     if mod:
@@ -379,10 +374,7 @@ def test_weather_station_get_last_data(
     ],
 )
 def test_weather_station_check_not_updated(
-    weather_station_data,
-    station_id,
-    delay,
-    expected,
+    weather_station_data, station_id, delay, expected
 ):
     mod = weather_station_data.check_not_updated(station_id, delay)
     assert sorted(mod) == expected
@@ -408,10 +400,7 @@ def test_weather_station_check_not_updated(
     ],
 )
 def test_weather_station_check_updated(
-    weather_station_data,
-    station_id,
-    delay,
-    expected,
+    weather_station_data, station_id, delay, expected
 ):
     mod = weather_station_data.check_updated(station_id, delay)
     if mod:
@@ -422,16 +411,10 @@ def test_weather_station_check_updated(
 
 @freeze_time("2019-06-11")
 @pytest.mark.parametrize(
-    "device_id, scale, module_type, expected",
-    [("MyStation", "scale", "type", [28.1])],
+    "device_id, scale, module_type, expected", [("MyStation", "scale", "type", [28.1])]
 )
 def test_weather_station_get_data(
-    weather_station_data,
-    requests_mock,
-    device_id,
-    scale,
-    module_type,
-    expected,
+    weather_station_data, requests_mock, device_id, scale, module_type, expected
 ):
     with open("fixtures/weatherstation_measure.json") as json_file:
         json_fixture = json.load(json_file)
@@ -483,10 +466,7 @@ def test_weather_station_get_last_data_measurements(weather_station_data):
     ],
 )
 def test_weather_station_get_last_data_bug_97(
-    weather_station_data,
-    station_id,
-    exclude,
-    expected,
+    weather_station_data, station_id, exclude, expected
 ):
     mod = weather_station_data.get_last_data(station_id, exclude)
     if mod:

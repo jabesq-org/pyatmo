@@ -205,10 +205,7 @@ async def test_async_data_no_body(async_auth):
 )
 @pytest.mark.asyncio
 async def test_async_home_data_switch_home_schedule(
-    async_home_data,
-    t_home_id,
-    t_sched_id,
-    expected,
+    async_home_data, t_home_id, t_sched_id, expected
 ):
     with open("fixtures/status_ok.json") as json_file:
         json_fixture = json.load(json_file)
@@ -219,8 +216,7 @@ async def test_async_home_data_switch_home_schedule(
     ):
         with expected:
             await async_home_data.async_switch_home_schedule(
-                home_id=t_home_id,
-                schedule_id=t_sched_id,
+                home_id=t_home_id, schedule_id=t_sched_id
             )
 
 
@@ -239,7 +235,7 @@ async def test_async_home_data_switch_home_schedule(
                 "therm_setpoint_start_time": 1559229567,
                 "therm_setpoint_end_time": 0,
             },
-        ),
+        )
     ],
 )
 @pytest.mark.asyncio
@@ -313,12 +309,7 @@ async def test_async_home_status(async_home_status, room_id, expected):
 )
 @pytest.mark.asyncio
 async def test_async_home_status_set_thermmode(
-    async_home_status,
-    mode,
-    end_time,
-    schedule_id,
-    json_fixture,
-    expected,
+    async_home_status, mode, end_time, schedule_id, json_fixture, expected
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -328,9 +319,7 @@ async def test_async_home_status_set_thermmode(
         AsyncMock(return_value=json_fixture),
     ):
         res = await async_home_status.async_set_thermmode(
-            mode=mode,
-            end_time=end_time,
-            schedule_id=schedule_id,
+            mode=mode, end_time=end_time, schedule_id=schedule_id
         )
         if "error" in res:
             assert expected in res["error"]["message"]
@@ -381,13 +370,7 @@ async def test_async_home_status_set_thermmode(
 )
 @pytest.mark.asyncio
 async def test_async_home_status_set_room_thermpoint(
-    async_home_status,
-    room_id,
-    mode,
-    temp,
-    end_time,
-    json_fixture,
-    expected,
+    async_home_status, room_id, mode, temp, end_time, json_fixture, expected
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -397,9 +380,6 @@ async def test_async_home_status_set_room_thermpoint(
         AsyncMock(return_value=json_fixture),
     ):
         result = await async_home_status.async_set_room_thermpoint(
-            room_id=room_id,
-            mode=mode,
-            temp=temp,
-            end_time=end_time,
+            room_id=room_id, mode=mode, temp=temp, end_time=end_time
         )
         assert result["status"] == expected

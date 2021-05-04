@@ -1,7 +1,7 @@
 """Define tests for untility methods."""
 # pylint: disable=protected-access
 import json
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

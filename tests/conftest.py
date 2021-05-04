@@ -2,7 +2,7 @@
 # pylint: disable=redefined-outer-name, protected-access
 import json
 from contextlib import contextmanager
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

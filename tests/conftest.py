@@ -16,6 +16,7 @@ def does_not_raise():
 
 @pytest.fixture(scope="function")
 def auth(requests_mock):
+    """Auth fixture."""
     with open("fixtures/oauth2_token.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -34,6 +35,7 @@ def auth(requests_mock):
 
 @pytest.fixture(scope="function")
 def home_data(auth, requests_mock):
+    """HomeData fixture."""
     with open("fixtures/home_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -48,6 +50,7 @@ def home_data(auth, requests_mock):
 
 @pytest.fixture(scope="function")
 def home_status(auth, home_id, requests_mock):
+    """HomeStatus fixture."""
     with open("fixtures/home_status_simple.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -62,6 +65,7 @@ def home_status(auth, home_id, requests_mock):
 
 @pytest.fixture(scope="function")
 def public_data(auth, requests_mock):
+    """PublicData fixture."""
     with open("fixtures/public_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -82,6 +86,7 @@ def public_data(auth, requests_mock):
 
 @pytest.fixture(scope="function")
 def weather_station_data(auth, requests_mock):
+    """WeatherStationData fixture."""
     with open("fixtures/weatherstation_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -96,6 +101,7 @@ def weather_station_data(auth, requests_mock):
 
 @pytest.fixture(scope="function")
 def home_coach_data(auth, requests_mock):
+    """HomeCoachData fixture."""
     with open("fixtures/home_coach_simple.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -110,6 +116,7 @@ def home_coach_data(auth, requests_mock):
 
 @pytest.fixture(scope="function")
 def camera_ping(requests_mock):
+    """Camera ping fixture."""
     for index in ["w", "z", "g"]:
         vpn_url = (
             f"https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
@@ -135,6 +142,7 @@ def camera_ping(requests_mock):
 
 @pytest.fixture(scope="function")
 def camera_home_data(auth, camera_ping, requests_mock):
+    """CameraHomeData fixture."""
     with open("fixtures/camera_home_data.json") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
@@ -149,12 +157,14 @@ def camera_home_data(auth, camera_ping, requests_mock):
 
 @pytest.fixture(scope="function")
 async def async_auth():
+    """AsyncAuth fixture."""
     with patch("pyatmo.auth.AbstractAsyncAuth", AsyncMock()) as auth:
         yield auth
 
 
 @pytest.fixture(scope="function")
 async def async_camera_home_data(async_auth):
+    """AsyncCameraHomeData fixture."""
     with open("fixtures/camera_home_data.json") as json_file:
         json_fixture = json.load(json_file)
 
@@ -171,6 +181,7 @@ async def async_camera_home_data(async_auth):
 
 @pytest.fixture(scope="function")
 async def async_home_coach_data(async_auth):
+    """AsyncHomeCoacheData fixture."""
     with open("fixtures/home_coach_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
@@ -187,6 +198,7 @@ async def async_home_coach_data(async_auth):
 
 @pytest.fixture(scope="function")
 async def async_home_data(async_auth):
+    """AsyncHomeData fixture."""
     with open("fixtures/home_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
@@ -203,6 +215,7 @@ async def async_home_data(async_auth):
 
 @pytest.fixture(scope="function")
 async def async_home_status(async_auth, home_id):
+    """AsyncHomeStatus fixture."""
     with open("fixtures/home_status_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
@@ -219,6 +232,7 @@ async def async_home_status(async_auth, home_id):
 
 @pytest.fixture(scope="function")
 async def async_weather_station_data(async_auth):
+    """AsyncWeatherStationData fixture."""
     with open("fixtures/weatherstation_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
 

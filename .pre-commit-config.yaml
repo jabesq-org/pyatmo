@@ -21,12 +21,6 @@ repos:
     rev: v1.2.2
     hooks:
       - id: yesqa
-
-  - repo: https://github.com/psf/black
-    rev: 19.3b0
-    hooks:
-    - id: black
-
   - repo: local
     hooks:
       - id: isort
@@ -35,6 +29,12 @@ repos:
         entry: pipenv run isort
         types: [python]
         exclude: tests/
+
+      - id: black
+        name: black
+        language: system
+        entry: pipenv run black
+        types: [python]
 
       - id: pylint
         name: pylint

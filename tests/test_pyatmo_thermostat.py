@@ -132,7 +132,11 @@ def test_home_data_get_selected_schedule(home_data):
     ],
 )
 def test_home_data_switch_home_schedule(
-    home_data, requests_mock, t_home_id, t_sched_id, expected,
+    home_data,
+    requests_mock,
+    t_home_id,
+    t_sched_id,
+    expected,
 ):
     with open("fixtures/status_ok.json") as json_file:
         json_fixture = json.load(json_file)
@@ -397,7 +401,13 @@ def test_home_status_boiler_status(home_status):
     ],
 )
 def test_home_status_set_thermmode(
-    home_status, requests_mock, mode, end_time, schedule_id, json_fixture, expected,
+    home_status,
+    requests_mock,
+    mode,
+    end_time,
+    schedule_id,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -407,7 +417,9 @@ def test_home_status_set_thermmode(
         headers={"content-type": "application/json"},
     )
     res = home_status.set_thermmode(
-        mode=mode, end_time=end_time, schedule_id=schedule_id,
+        mode=mode,
+        end_time=end_time,
+        schedule_id=schedule_id,
     )
     if "error" in res:
         assert expected in res["error"]["message"]
@@ -457,7 +469,14 @@ def test_home_status_set_thermmode(
     ],
 )
 def test_home_status_set_room_thermpoint(
-    home_status, requests_mock, room_id, mode, temp, end_time, json_fixture, expected,
+    home_status,
+    requests_mock,
+    room_id,
+    mode,
+    temp,
+    end_time,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -468,7 +487,10 @@ def test_home_status_set_room_thermpoint(
     )
     assert (
         home_status.set_room_thermpoint(
-            room_id=room_id, mode=mode, temp=temp, end_time=end_time,
+            room_id=room_id,
+            mode=mode,
+            temp=temp,
+            end_time=end_time,
         )["status"]
         == expected
     )
@@ -512,7 +534,13 @@ def test_home_status_set_room_thermpoint(
     ],
 )
 def test_home_status_set_room_thermpoint_error(
-    home_status, requests_mock, room_id, mode, temp, json_fixture, expected,
+    home_status,
+    requests_mock,
+    room_id,
+    mode,
+    temp,
+    json_fixture,
+    expected,
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
@@ -530,7 +558,9 @@ def test_home_status_set_room_thermpoint_error(
 
 
 def test_home_status_error_disconnected(
-    auth, requests_mock, home_id="91763b24c43d3e344f424e8b",
+    auth,
+    requests_mock,
+    home_id="91763b24c43d3e344f424e8b",
 ):
     with open("fixtures/home_status_error_disconnected.json") as json_file:
         json_fixture = json.load(json_file)

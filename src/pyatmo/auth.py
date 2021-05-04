@@ -108,7 +108,10 @@ class NetatmoOAuth2:
         return token
 
     def post_request(
-        self, url: str, params: Optional[Dict] = None, timeout: int = 5,
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        timeout: int = 5,
     ) -> Any:
         """Wrapper for post requests."""
         resp = None
@@ -157,7 +160,9 @@ class NetatmoOAuth2:
 
         if not resp.ok:
             LOG.debug(
-                "The Netatmo API returned %s (%s)", resp.content, resp.status_code,
+                "The Netatmo API returned %s (%s)",
+                resp.content,
+                resp.status_code,
             )
             try:
                 raise ApiError(
@@ -191,7 +196,9 @@ class NetatmoOAuth2:
         return self._oauth.authorization_url(AUTH_URL, state)
 
     def request_token(
-        self, authorization_response: Optional[str] = None, code: Optional[str] = None,
+        self,
+        authorization_response: Optional[str] = None,
+        code: Optional[str] = None,
     ) -> Dict[str, str]:
         """
         Generic method for fetching a Netatmo access token.
@@ -276,7 +283,10 @@ class AbstractAsyncAuth(ABC):
         """Return a valid access token."""
 
     async def async_post_request(
-        self, url: str, params: Optional[Dict] = None, timeout: int = 5,
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        timeout: int = 5,
     ) -> Any:
         """Wrapper for async post requests."""
         try:
@@ -292,7 +302,10 @@ class AbstractAsyncAuth(ABC):
             req_args.pop("data")
 
         async with self.websession.post(
-            url, **req_args, headers=headers, timeout=timeout,
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
         ) as resp:
             resp_status = resp.status
             if resp.headers.get("content-type") == "image/jpeg":
@@ -339,6 +352,7 @@ class AbstractAsyncAuth(ABC):
     async def async_dropwebhook(self) -> None:
         """Unregister webhook."""
         resp = await self.async_post_request(
-            WEBHOOK_URL_DROP, {"app_types": "app_security"},
+            WEBHOOK_URL_DROP,
+            {"app_types": "app_security"},
         )
         LOG.debug("dropwebhook: %s", resp)

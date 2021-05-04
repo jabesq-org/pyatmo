@@ -160,7 +160,8 @@ class AsyncHomeData(AbstractHomeData):
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = await self.auth.async_post_request(
-            url=_SWITCHHOMESCHEDULE_REQ, params=post_params,
+            url=_SWITCHHOMESCHEDULE_REQ,
+            params=post_params,
         )
         LOG.debug("Response: %s", resp)
 
@@ -271,7 +272,10 @@ class HomeStatus(AbstractHomeStatus):
         self.process()
 
     def set_thermmode(
-        self, mode: str, end_time: int = None, schedule_id: str = None,
+        self,
+        mode: str,
+        end_time: int = None,
+        schedule_id: str = None,
     ) -> Optional[str]:
         """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
@@ -284,7 +288,11 @@ class HomeStatus(AbstractHomeStatus):
         return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
 
     def set_room_thermpoint(
-        self, room_id: str, mode: str, temp: float = None, end_time: int = None,
+        self,
+        room_id: str,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
     ) -> Optional[str]:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
@@ -318,7 +326,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
         post_params = {"home_id": self.home_id}
 
         resp = await self.auth.async_post_request(
-            url=_GETHOMESTATUS_REQ, params=post_params,
+            url=_GETHOMESTATUS_REQ,
+            params=post_params,
         )
         if (
             "errors" in resp
@@ -334,7 +343,10 @@ class AsyncHomeStatus(AbstractHomeStatus):
         self.process()
 
     async def async_set_thermmode(
-        self, mode: str, end_time: int = None, schedule_id: str = None,
+        self,
+        mode: str,
+        end_time: int = None,
+        schedule_id: str = None,
     ) -> Optional[str]:
         """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
@@ -345,11 +357,16 @@ class AsyncHomeStatus(AbstractHomeStatus):
             post_params["schedule_id"] = schedule_id
 
         return await self.auth.async_post_request(
-            url=_SETTHERMMODE_REQ, params=post_params,
+            url=_SETTHERMMODE_REQ,
+            params=post_params,
         )
 
     async def async_set_room_thermpoint(
-        self, room_id: str, mode: str, temp: float = None, end_time: int = None,
+        self,
+        room_id: str,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
     ) -> Optional[str]:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
@@ -362,5 +379,6 @@ class AsyncHomeStatus(AbstractHomeStatus):
             post_params["endtime"] = str(end_time)
 
         return await self.auth.async_post_request(
-            url=_SETROOMTHERMPOINT_REQ, params=post_params,
+            url=_SETROOMTHERMPOINT_REQ,
+            params=post_params,
         )

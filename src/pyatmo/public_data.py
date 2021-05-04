@@ -235,7 +235,8 @@ class AsyncPublicData(AbstractPublicData):
             post_params["required_data"] = self.required_data_type
 
         resp = await self.auth.async_post_request(
-            url=_GETPUBLIC_DATA, params=post_params,
+            url=_GETPUBLIC_DATA,
+            params=post_params,
         )
         try:
             self.raw_data = resp["body"]

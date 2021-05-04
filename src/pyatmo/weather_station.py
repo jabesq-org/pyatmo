@@ -105,7 +105,7 @@ class AbstractWeatherStationData(ABC):
             if condition == "Wind":
                 # the Wind meter actually exposes the following conditions
                 conditions.extend(
-                    ["WindAngle", "WindStrength", "GustAngle", "GustStrength"]
+                    ["WindAngle", "WindStrength", "GustAngle", "GustStrength"],
                 )
 
             elif condition == "Rain":
@@ -225,7 +225,7 @@ class WeatherStationData(AbstractWeatherStationData):
         except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice(
-                "No weather station data returned by Netatmo server"
+                "No weather station data returned by Netatmo server",
             ) from exc
 
         if not self.raw_data:
@@ -268,7 +268,7 @@ class WeatherStationData(AbstractWeatherStationData):
         return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params)
 
     def get_min_max_t_h(
-        self, station_id: str, module_id: str = None, frame: str = "last24"
+        self, station_id: str, module_id: str = None, frame: str = "last24",
     ) -> Optional[Tuple[float, float, float, float]]:
         """Return minimum and maximum temperature and humidity over the given timeframe.
 
@@ -313,7 +313,7 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
     """Class of Netatmo weather station devices."""
 
     def __init__(
-        self, auth: AbstractAsyncAuth, url_req: str = _GETSTATIONDATA_REQ
+        self, auth: AbstractAsyncAuth, url_req: str = _GETSTATIONDATA_REQ,
     ) -> None:
         """Initialize the Netatmo weather station data.
 
@@ -336,7 +336,7 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
         except KeyError as exc:
             LOG.debug("No <body> in response %s", resp)
             raise NoDevice(
-                "No weather station data returned by Netatmo server"
+                "No weather station data returned by Netatmo server",
             ) from exc
 
         if not self.raw_data:

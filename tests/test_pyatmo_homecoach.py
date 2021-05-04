@@ -19,7 +19,7 @@ def test_home_coach_data(home_coach_data):
             "NoValidStation",
             None,
             marks=pytest.mark.xfail(
-                reason="Invalid station names are not handled yet."
+                reason="Invalid station names are not handled yet.",
             ),
         ),
     ],
@@ -39,14 +39,14 @@ def test_home_coach_data_get_module_names(home_coach_data, station_id, expected)
                     "station_name": "Bedroom",
                     "module_name": "Bedroom",
                     "id": "12:34:56:26:69:0c",
-                }
+                },
             },
         ),
         pytest.param(
             "NoValidStation",
             None,
             marks=pytest.mark.xfail(
-                reason="Invalid station names are not handled yet."
+                reason="Invalid station names are not handled yet.",
             ),
         ),
     ],

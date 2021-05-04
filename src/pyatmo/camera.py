@@ -156,7 +156,7 @@ class AbstractCameraData(ABC):
         return event_id
 
     def person_seen_by_camera(
-        self, name: str, camera_id: str, exclude: int = 0
+        self, name: str, camera_id: str, exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
         # Check in the last event is someone known has been seen
@@ -311,7 +311,7 @@ class AbstractCameraData(ABC):
         return self._object_detected("vehicle", camera_id, offset)
 
     def module_motion_detected(
-        self, module_id: str, camera_id: str, exclude: int = 0
+        self, module_id: str, camera_id: str, exclude: int = 0,
     ) -> bool:
         """Evaluate if movement has been detected."""
         if exclude:
@@ -461,7 +461,7 @@ class CameraData(AbstractCameraData):
             temp_local_url = check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = check_url(
-                    temp_local_url
+                    temp_local_url,
                 )
 
     def set_state(
@@ -485,9 +485,9 @@ class CameraData(AbstractCameraData):
         post_params = {
             "json": {
                 "home": self.build_state_params(
-                    camera_id, home_id, floodlight, monitoring
-                )
-            }
+                    camera_id, home_id, floodlight, monitoring,
+                ),
+            },
         }
 
         try:
@@ -514,7 +514,7 @@ class CameraData(AbstractCameraData):
         return self.auth.post_request(url=_SETPERSONSAWAY_REQ, params=post_params)
 
     def get_camera_picture(
-        self, image_id: str, key: str
+        self, image_id: str, key: str,
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {"image_id": image_id, "key": key}
@@ -533,7 +533,7 @@ class CameraData(AbstractCameraData):
         return None, None
 
     def update_events(
-        self, home_id: str, event_id: str = None, device_type: str = None
+        self, home_id: str, event_id: str = None, device_type: str = None,
     ) -> None:
         """Update the list of events."""
         if not (event_id or device_type):
@@ -579,7 +579,7 @@ class AsyncCameraData(AbstractCameraData):
     async def async_update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
         resp = await self.auth.async_post_request(
-            url=_GETHOMEDATA_REQ, params={"size": events}
+            url=_GETHOMEDATA_REQ, params={"size": events},
         )
         if resp is None or "body" not in resp:
             raise NoDevice("No device data returned by Netatmo server")
@@ -619,14 +619,14 @@ class AsyncCameraData(AbstractCameraData):
         post_params = {
             "json": {
                 "home": self.build_state_params(
-                    camera_id, home_id, floodlight, monitoring
-                )
-            }
+                    camera_id, home_id, floodlight, monitoring,
+                ),
+            },
         }
 
         try:
             resp = await self.auth.async_post_request(
-                url=_SETSTATE_REQ, params=post_params
+                url=_SETSTATE_REQ, params=post_params,
             )
         except ApiError as err_msg:
             LOG.error("%s", err_msg)
@@ -667,21 +667,21 @@ class AsyncCameraData(AbstractCameraData):
             temp_local_url = await async_check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = await async_check_url(
-                    temp_local_url
+                    temp_local_url,
                 )
 
     async def async_set_persons_home(self, person_ids: List[str], home_id: str):
         """Mark persons as home."""
         post_params = {"home_id": home_id, "person_ids[]": person_ids}
         return await self.auth.async_post_request(
-            url=_SETPERSONSHOME_REQ, params=post_params
+            url=_SETPERSONSHOME_REQ, params=post_params,
         )
 
     async def async_set_persons_away(self, person_id: str, home_id: str):
         """Mark a person as away or set the whole home to being empty."""
         post_params = {"home_id": home_id, "person_id": person_id}
         return await self.auth.async_post_request(
-            url=_SETPERSONSAWAY_REQ, params=post_params
+            url=_SETPERSONSAWAY_REQ, params=post_params,
         )
 
     async def async_get_live_snapshot(self, camera_id: str):
@@ -690,22 +690,22 @@ class AsyncCameraData(AbstractCameraData):
         if not local and not vpn:
             return None
         return await self.auth.async_post_request(
-            url=f"{(local or vpn)}/live/snapshot_720.jpg", timeout=10
+            url=f"{(local or vpn)}/live/snapshot_720.jpg", timeout=10,
         )
 
     async def async_get_camera_picture(
-        self, image_id: str, key: str
+        self, image_id: str, key: str,
     ) -> Tuple[bytes, Optional[str]]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {"image_id": image_id, "key": key}
         resp = await self.auth.async_post_request(
-            url=_GETCAMERAPICTURE_REQ, params=post_params
+            url=_GETCAMERAPICTURE_REQ, params=post_params,
         )
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
     async def async_get_profile_image(
-        self, name: str
+        self, name: str,
     ) -> Tuple[Optional[bytes], Optional[str]]:
         """Retrieve the face of a given person."""
         for person in self.persons:

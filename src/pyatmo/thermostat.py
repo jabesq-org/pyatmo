@@ -54,7 +54,7 @@ class AbstractHomeData(ABC):
             for room in item.get("rooms", []):
                 self.rooms[home_id][room["id"]] = room
 
-            for schedule in item.get("therm_schedules", []):
+            for schedule in item.get("schedules", []):
                 schedule_id = schedule["id"]
                 self.schedules[home_id][schedule_id] = schedule
 

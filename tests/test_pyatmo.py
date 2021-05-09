@@ -57,10 +57,7 @@ def test_post_request_binary(auth, requests_mock):
     assert resp == b"Success"
 
 
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [(200, None), (404, None), (401, None)],
-)
+@pytest.mark.parametrize("test_input,expected", [(200, None), (404, None), (401, None)])
 def test_post_request_fail(auth, requests_mock, test_input, expected):
     """Test failing requests against the Netatmo API."""
     requests_mock.post(pyatmo.helpers._BASE_URL, status_code=test_input)

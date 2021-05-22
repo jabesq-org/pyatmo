@@ -5,8 +5,8 @@ from collections import defaultdict
 from typing import Any, Dict, Optional
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .exceptions import InvalidRoom, NoDevice, NoSchedule
-from .helpers import _BASE_URL
+from .exceptions import InvalidRoom, NoSchedule
+from .helpers import _BASE_URL, extract_raw_data
 
 LOG = logging.getLogger(__name__)
 
@@ -111,14 +111,8 @@ class HomeData(AbstractHomeData):
     def update(self) -> None:
         """Fetch and process data from API."""
         resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
-        if resp is None or "body" not in resp.json():
-            raise NoDevice("No thermostat data returned by Netatmo server")
 
-        data = resp.json()
-        self.raw_data = data["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No thermostat data available")
-
+        self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
 
     def switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
@@ -145,15 +139,9 @@ class AsyncHomeData(AbstractHomeData):
     async def async_update(self):
         """Fetch and process data from API."""
         resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
+
         assert not isinstance(resp, bytes)
-        resp_data = await resp.json()
-        if resp_data is None or "body" not in resp_data:
-            raise NoDevice("No thermostat data returned by Netatmo server")
-
-        self.raw_data = resp_data["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No thermostat data available")
-
+        self.raw_data = extract_raw_data(await resp.json(), "homes")
         self.process()
 
     async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> None:
@@ -260,18 +248,9 @@ class HomeStatus(AbstractHomeStatus):
         """Fetch and process data from API."""
         post_params = {"home_id": self.home_id}
 
-        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=post_params).json()
-        if (
-            "errors" in resp
-            or "body" not in resp
-            or "home" not in resp["body"]
-            or ("errors" in resp["body"] and "modules" not in resp["body"]["home"])
-        ):
-            LOG.error("Errors in response: %s", resp)
-            raise NoDevice("No device found, errors in response")
+        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=post_params)
 
-        self.raw_data = resp["body"]["home"]
-
+        self.raw_data = extract_raw_data(resp.json(), "home")
         self.process()
 
     def set_thermmode(
@@ -335,22 +314,9 @@ class AsyncHomeStatus(AbstractHomeStatus):
             url=_GETHOMESTATUS_REQ,
             params=post_params,
         )
+
         assert not isinstance(resp, bytes)
-        resp_data = await resp.json()
-        if (
-            "errors" in resp_data
-            or "body" not in resp_data
-            or "home" not in resp_data["body"]
-            or (
-                "errors" in resp_data["body"]
-                and "modules" not in resp_data["body"]["home"]
-            )
-        ):
-            LOG.error("Errors in response: %s", resp_data)
-            raise NoDevice("No device found, errors in response")
-
-        self.raw_data = resp_data["body"]["home"]
-
+        self.raw_data = extract_raw_data(await resp.json(), "home")
         self.process()
 
     async def async_set_thermmode(

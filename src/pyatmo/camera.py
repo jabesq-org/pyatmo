@@ -12,7 +12,7 @@ from requests.exceptions import ReadTimeout
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import ApiError, NoDevice
-from .helpers import _BASE_URL, LOG
+from .helpers import _BASE_URL, LOG, extract_raw_data
 
 _GETHOMEDATA_REQ = _BASE_URL + "api/gethomedata"
 _GETCAMERAPICTURE_REQ = _BASE_URL + "api/getcamerapicture"
@@ -424,17 +424,9 @@ class CameraData(AbstractCameraData):
 
     def update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_request(
-            url=_GETHOMEDATA_REQ,
-            params={"size": events},
-        ).json()
-        if resp is None or "body" not in resp:
-            raise NoDevice("No device data returned by Netatmo server")
+        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params={"size": events})
 
-        self.raw_data = resp["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No device data available")
-
+        self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
         self._update_all_camera_urls()
         self._store_last_event()
@@ -616,15 +608,7 @@ class AsyncCameraData(AbstractCameraData):
         )
 
         assert not isinstance(resp, bytes)
-        resp_data = await resp.json()
-
-        if resp_data is None or "body" not in resp_data:
-            raise NoDevice("No device data returned by Netatmo server")
-
-        self.raw_data = resp_data["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No device data available")
-
+        self.raw_data = extract_raw_data(await resp.json(), "homes")
         self.process()
 
         try:

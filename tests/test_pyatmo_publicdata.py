@@ -6,10 +6,10 @@ import pytest
 
 import pyatmo
 
-LON_NE = 6.221652
-LAT_NE = 46.610870
-LON_SW = 6.217828
-LAT_SW = 46.596485
+LON_NE = "6.221652"
+LAT_NE = "46.610870"
+LON_SW = "6.217828"
+LAT_SW = "46.596485"
 
 
 def test_public_data(auth, requests_mock):

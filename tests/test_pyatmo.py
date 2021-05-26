@@ -42,7 +42,7 @@ def test_post_request_json(auth, requests_mock):
         json={"a": "b"},
         headers={"content-type": "application/json"},
     )
-    resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
+    resp = auth.post_request(pyatmo.helpers._BASE_URL, None).json()
     assert resp == {"a": "b"}
 
 
@@ -53,7 +53,7 @@ def test_post_request_binary(auth, requests_mock):
         text="Success",
         headers={"content-type": "application/text"},
     )
-    resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
+    resp = auth.post_request(pyatmo.helpers._BASE_URL, None).content
     assert resp == b"Success"
 
 
@@ -63,11 +63,11 @@ def test_post_request_fail(auth, requests_mock, test_input, expected):
     requests_mock.post(pyatmo.helpers._BASE_URL, status_code=test_input)
 
     if test_input == 200:
-        resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
+        resp = auth.post_request(pyatmo.helpers._BASE_URL, None).content
         assert resp is expected
     else:
         with pytest.raises(pyatmo.ApiError):
-            resp = auth.post_request(pyatmo.helpers._BASE_URL, None)
+            resp = auth.post_request(pyatmo.helpers._BASE_URL, None).content
 
 
 @pytest.mark.parametrize(

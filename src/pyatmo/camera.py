@@ -1,9 +1,11 @@
 """Support for Netatmo security devices (cameras, smoke detectors, sirens, window sensors, events and persons)."""
+from __future__ import annotations
+
 import imghdr
 import time
 from abc import ABC
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from requests.exceptions import ReadTimeout
 
@@ -22,17 +24,17 @@ _SETSTATE_REQ = _BASE_URL + "api/setstate"
 class AbstractCameraData(ABC):
     """Abstract class of Netatmo camera data."""
 
-    raw_data: Dict = defaultdict(dict)
-    homes: Dict = defaultdict(dict)
-    persons: Dict = {}
-    events: Dict = defaultdict(dict)
-    outdoor_events: Dict = defaultdict(dict)
-    cameras: Dict = defaultdict(dict)
-    smoke_detectors: Dict = defaultdict(dict)
-    modules: Dict = {}
-    last_event: Dict = {}
-    outdoor_last_event: Dict = {}
-    types: Dict = defaultdict(dict)
+    raw_data: dict = defaultdict(dict)
+    homes: dict = defaultdict(dict)
+    persons: dict = {}
+    events: dict = defaultdict(dict)
+    outdoor_events: dict = defaultdict(dict)
+    cameras: dict = defaultdict(dict)
+    smoke_detectors: dict = defaultdict(dict)
+    modules: dict = {}
+    last_event: dict = {}
+    outdoor_last_event: dict = {}
+    types: dict = defaultdict(dict)
 
     def process(self) -> None:
         """Process data from API."""
@@ -82,7 +84,7 @@ class AbstractCameraData(ABC):
                 sorted(self.outdoor_events[camera])[-1]
             ]
 
-    def get_camera(self, camera_id: str) -> Dict[str, str]:
+    def get_camera(self, camera_id: str) -> dict[str, str]:
         """Get camera data."""
         for home_id in self.cameras:
             if camera_id in self.cameras[home_id]:
@@ -90,11 +92,11 @@ class AbstractCameraData(ABC):
 
         return {}
 
-    def get_module(self, module_id: str) -> Optional[dict]:
+    def get_module(self, module_id: str) -> dict | None:
         """Get module data."""
         return None if module_id not in self.modules else self.modules[module_id]
 
-    def get_smokedetector(self, smoke_id: str) -> Optional[dict]:
+    def get_smokedetector(self, smoke_id: str) -> dict | None:
         """Get smoke detector."""
         for home_id in self.smoke_detectors:
             if smoke_id in self.smoke_detectors[home_id]:
@@ -102,7 +104,7 @@ class AbstractCameraData(ABC):
 
         return None
 
-    def camera_urls(self, camera_id: str) -> Tuple[Optional[str], Optional[str]]:
+    def camera_urls(self, camera_id: str) -> tuple[str | None, str | None]:
         """
         Return the vpn_url and the local_url (if available) of a given camera
         in order to access its live feed.
@@ -110,7 +112,7 @@ class AbstractCameraData(ABC):
         camera_data = self.get_camera(camera_id)
         return camera_data.get("vpn_url", None), camera_data.get("local_url", None)
 
-    def get_light_state(self, camera_id: str) -> Optional[str]:
+    def get_light_state(self, camera_id: str) -> str | None:
         """Return the current mode of the floodlight of a presence camera."""
         camera_data = self.get_camera(camera_id)
         if camera_data is None:
@@ -118,7 +120,7 @@ class AbstractCameraData(ABC):
 
         return camera_data.get("light_mode_status")
 
-    def persons_at_home(self, home_id: str = None) -> List:
+    def persons_at_home(self, home_id: str = None) -> list:
         """Return a list of known persons who are currently at home."""
         home_data = self.homes.get(home_id, {})
         return [
@@ -127,7 +129,7 @@ class AbstractCameraData(ABC):
             if "pseudo" in person and not person["out_of_sight"]
         ]
 
-    def get_person_id(self, name: str) -> Optional[str]:
+    def get_person_id(self, name: str) -> str | None:
         """Retrieve the ID of a person."""
         for pid, data in self.persons.items():
             if name == data.get("pseudo"):
@@ -135,10 +137,10 @@ class AbstractCameraData(ABC):
 
         return None
 
-    def build_event_id(self, event_id: Optional[str], device_type: Optional[str]):
+    def build_event_id(self, event_id: str | None, device_type: str | None):
         """Build event id."""
 
-        def get_event_id(data: Dict):
+        def get_event_id(data: dict):
             events = {e["time"]: e for e in data.values()}
             return min(events.items())[1].get("id")
 
@@ -191,15 +193,15 @@ class AbstractCameraData(ABC):
 
         return False
 
-    def _known_persons(self) -> Dict[str, Dict]:
+    def _known_persons(self) -> dict[str, dict]:
         """Return all known persons."""
         return {pid: p for pid, p in self.persons.items() if "pseudo" in p}
 
-    def known_persons(self) -> Dict[str, str]:
+    def known_persons(self) -> dict[str, str]:
         """Return a dictionary of known person names."""
         return {pid: p["pseudo"] for pid, p in self._known_persons().items()}
 
-    def known_persons_names(self) -> List[str]:
+    def known_persons_names(self) -> list[str]:
         """Return a list of known person names."""
         return [person["pseudo"] for person in self._known_persons().values()]
 
@@ -381,9 +383,9 @@ class AbstractCameraData(ABC):
     def build_state_params(
         self,
         camera_id: str,
-        home_id: Optional[str],
-        floodlight: Optional[str],
-        monitoring: Optional[str],
+        home_id: str | None,
+        floodlight: str | None,
+        monitoring: str | None,
     ):
         """."""
         if home_id is None:
@@ -421,7 +423,10 @@ class CameraData(AbstractCameraData):
 
     def update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_request(url=_GETHOMEDATA_REQ, params={"size": events})
+        resp = self.auth.post_request(
+            url=_GETHOMEDATA_REQ,
+            params={"size": events},
+        ).json()
         if resp is None or "body" not in resp:
             raise NoDevice("No device data returned by Netatmo server")
 
@@ -452,9 +457,9 @@ class CameraData(AbstractCameraData):
         vpn_url = camera_data.get("vpn_url")
         if vpn_url and camera_data.get("is_local"):
 
-            def check_url(url: str) -> Optional[str]:
+            def check_url(url: str) -> str | None:
                 try:
-                    resp = self.auth.post_request(url=f"{url}/command/ping")
+                    resp = self.auth.post_request(url=f"{url}/command/ping").json()
                 except ReadTimeout:
                     LOG.debug("Timeout validation of camera url %s", url)
                     return None
@@ -500,7 +505,7 @@ class CameraData(AbstractCameraData):
         }
 
         try:
-            resp = self.auth.post_request(url=_SETSTATE_REQ, params=post_params)
+            resp = self.auth.post_request(url=_SETSTATE_REQ, params=post_params).json()
         except ApiError as err_msg:
             LOG.error("%s", err_msg)
             return False
@@ -512,28 +517,37 @@ class CameraData(AbstractCameraData):
         LOG.debug("%s", resp)
         return True
 
-    def set_persons_home(self, person_ids: List[str], home_id: str):
+    def set_persons_home(self, person_ids: list[str], home_id: str):
         """Mark persons as home."""
         post_params = {"home_id": home_id, "person_ids[]": person_ids}
-        return self.auth.post_request(url=_SETPERSONSHOME_REQ, params=post_params)
+        return self.auth.post_request(
+            url=_SETPERSONSHOME_REQ,
+            params=post_params,
+        ).json()
 
     def set_persons_away(self, person_id: str, home_id: str):
         """Mark a person as away or set the whole home to being empty."""
         post_params = {"home_id": home_id, "person_id": person_id}
-        return self.auth.post_request(url=_SETPERSONSAWAY_REQ, params=post_params)
+        return self.auth.post_request(
+            url=_SETPERSONSAWAY_REQ,
+            params=post_params,
+        ).json()
 
     def get_camera_picture(
         self,
         image_id: str,
         key: str,
-    ) -> Tuple[bytes, Optional[str]]:
+    ) -> tuple[bytes, str | None]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {"image_id": image_id, "key": key}
-        resp = self.auth.post_request(url=_GETCAMERAPICTURE_REQ, params=post_params)
+        resp = self.auth.post_request(
+            url=_GETCAMERAPICTURE_REQ,
+            params=post_params,
+        ).content
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
-    def get_profile_image(self, name: str) -> Tuple[Optional[bytes], Optional[str]]:
+    def get_profile_image(self, name: str) -> tuple[bytes | None, str | None]:
         """Retrieve the face of a given person."""
         for person in self.persons:
             if name == self.persons[person].get("pseudo"):
@@ -558,10 +572,13 @@ class CameraData(AbstractCameraData):
             "event_id": self.build_event_id(event_id, device_type),
         }
 
-        event_list: List = []
-        resp: Optional[Dict[str, Any]] = None
+        event_list: list = []
+        resp: dict[str, Any] | None = None
         try:
-            resp = self.auth.post_request(url=_GETEVENTSUNTIL_REQ, params=post_params)
+            resp = self.auth.post_request(
+                url=_GETEVENTSUNTIL_REQ,
+                params=post_params,
+            ).json()
             if resp is not None:
                 event_list = resp["body"]["events_list"]
         except ApiError:
@@ -596,10 +613,14 @@ class AsyncCameraData(AbstractCameraData):
             url=_GETHOMEDATA_REQ,
             params={"size": events},
         )
-        if resp is None or "body" not in resp:
+
+        assert not isinstance(resp, bytes)
+        resp_data = await resp.json()
+
+        if resp_data is None or "body" not in resp_data:
             raise NoDevice("No device data returned by Netatmo server")
 
-        self.raw_data = resp["body"].get("homes")
+        self.raw_data = resp_data["body"].get("homes")
         if not self.raw_data:
             raise NoDevice("No device data available")
 
@@ -651,11 +672,14 @@ class AsyncCameraData(AbstractCameraData):
             LOG.error("%s", err_msg)
             return False
 
-        if "error" in resp:
-            LOG.debug("%s", resp)
+        assert not isinstance(resp, bytes)
+        resp_data = await resp.json()
+
+        if "error" in resp_data:
+            LOG.debug("%s", resp_data)
             return False
 
-        LOG.debug("%s", resp)
+        LOG.debug("%s", resp_data)
         return True
 
     async def async_update_camera_urls(self, camera_id: str) -> None:
@@ -671,7 +695,7 @@ class AsyncCameraData(AbstractCameraData):
         vpn_url = camera_data.get("vpn_url")
         if vpn_url and camera_data.get("is_local"):
 
-            async def async_check_url(url: str) -> Optional[str]:
+            async def async_check_url(url: str) -> str | None:
                 try:
                     resp = await self.auth.async_post_request(url=f"{url}/command/ping")
                 except ReadTimeout:
@@ -681,7 +705,9 @@ class AsyncCameraData(AbstractCameraData):
                     LOG.debug("Api error for camera url %s", url)
                     return None
 
-                return resp.get("local_url") if resp else None
+                assert not isinstance(resp, bytes)
+                resp_data = await resp.json()
+                return resp_data.get("local_url") if resp_data else None
 
             temp_local_url = await async_check_url(vpn_url)
             if temp_local_url:
@@ -689,7 +715,7 @@ class AsyncCameraData(AbstractCameraData):
                     temp_local_url,
                 )
 
-    async def async_set_persons_home(self, person_ids: List[str], home_id: str):
+    async def async_set_persons_home(self, person_ids: list[str], home_id: str):
         """Mark persons as home."""
         post_params = {"home_id": home_id, "person_ids[]": person_ids}
         return await self.auth.async_post_request(
@@ -705,34 +731,43 @@ class AsyncCameraData(AbstractCameraData):
             params=post_params,
         )
 
-    async def async_get_live_snapshot(self, camera_id: str):
+    async def async_get_live_snapshot(self, camera_id: str) -> bytes | None:
         """Retrieve live snapshot from camera."""
         local, vpn = self.camera_urls(camera_id)
         if not local and not vpn:
             return None
-        return await self.auth.async_post_request(
+        resp = await self.auth.async_post_request(
             url=f"{(local or vpn)}/live/snapshot_720.jpg",
             timeout=10,
         )
+
+        if not isinstance(resp, bytes):
+            return None
+
+        return resp
 
     async def async_get_camera_picture(
         self,
         image_id: str,
         key: str,
-    ) -> Tuple[bytes, Optional[str]]:
+    ) -> tuple[bytes, str | None]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {"image_id": image_id, "key": key}
         resp = await self.auth.async_post_request(
             url=_GETCAMERAPICTURE_REQ,
             params=post_params,
         )
+
+        if not isinstance(resp, bytes):
+            return b"", None
+
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
     async def async_get_profile_image(
         self,
         name: str,
-    ) -> Tuple[Optional[bytes], Optional[str]]:
+    ) -> tuple[bytes | None, str | None]:
         """Retrieve the face of a given person."""
         for person in self.persons:
             if name == self.persons[person].get("pseudo"):

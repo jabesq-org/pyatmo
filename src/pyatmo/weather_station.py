@@ -215,7 +215,7 @@ class WeatherStationData(AbstractWeatherStationData):
 
     def update(self):
         """Fetch data from API."""
-        resp = self.auth.post_request(url=self.url_req)
+        resp = self.auth.post_request(url=self.url_req).json()
 
         if resp is None or "body" not in resp:
             raise NoDevice("No weather station data returned by Netatmo server")
@@ -265,7 +265,7 @@ class WeatherStationData(AbstractWeatherStationData):
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
 
-        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params)
+        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params).json()
 
     def get_min_max_t_h(
         self,
@@ -332,14 +332,15 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
     async def async_update(self):
         """Fetch data from API."""
         resp = await self.auth.async_post_request(url=self.url_req)
+        resp_data = await resp.json()
 
-        if resp is None or "body" not in resp:
+        if resp is None or "body" not in resp_data:
             raise NoDevice("No weather station data returned by Netatmo server")
 
         try:
-            self.raw_data = fix_id(resp["body"].get("devices"))
+            self.raw_data = fix_id(resp_data["body"].get("devices"))
         except KeyError as exc:
-            LOG.debug("No <body> in response %s", resp)
+            LOG.debug("No <body> in response %s", resp_data)
             raise NoDevice(
                 "No weather station data returned by Netatmo server",
             ) from exc

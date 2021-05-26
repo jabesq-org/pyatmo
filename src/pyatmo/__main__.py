@@ -4,32 +4,33 @@ import sys
 from pyatmo.auth import ALL_SCOPES, ClientAuth
 from pyatmo.camera import CameraData
 from pyatmo.exceptions import NoDevice
+from pyatmo.home_coach import HomeCoachData
 from pyatmo.public_data import PublicData
 from pyatmo.thermostat import HomeData
 from pyatmo.weather_station import WeatherStationData
 
-LON_NE = 6.221652
-LAT_NE = 46.610870
-LON_SW = 6.217828
-LAT_SW = 46.596485
+LON_NE = "6.221652"
+LAT_NE = "46.610870"
+LON_SW = "6.217828"
+LAT_SW = "46.596485"
+
+
+def tty_print(message: str) -> None:
+    """Print to stdout if in a interactive terminal."""
+    if sys.stdout.isatty():
+        print(message)
 
 
 def main():
-    try:
-        if (
-            os.environ["CLIENT_ID"]
-            and os.environ["CLIENT_SECRET"]
-            and os.environ["USERNAME"]
-            and os.environ["PASSWORD"]
-        ):
-            client_id = os.environ["CLIENT_ID"]
-            client_secret = os.environ["CLIENT_SECRET"]
-            username = os.environ["USERNAME"]
-            password = os.environ["PASSWORD"]
-    except KeyError:
+    """Run basic health checks."""
+    client_id = os.getenv("CLIENT_ID", "")
+    client_secret = os.getenv("CLIENT_SECRET", "")
+    username = os.getenv("USERNAME", "")
+    password = os.getenv("PASSWORD", "")
+
+    if not (client_id and client_secret and username and password):
         sys.stderr.write(
-            "No credentials passed to pyatmo.py (client_id, client_secret, "
-            "username, password)\n",
+            "Missing credentials (client_id, client_secret, username, password)\n",
         )
         sys.exit(1)
 
@@ -42,30 +43,34 @@ def main():
     )
 
     try:
-        WeatherStationData(auth)
+        ws_data = WeatherStationData(auth)
+        ws_data.update()
     except NoDevice:
-        if sys.stdout.isatty():
-            print("pyatmo.py : warning, no weather station available for testing")
+        tty_print("pyatmo: no weather station available for testing")
 
     try:
-        CameraData(auth)
+        hc_data = HomeCoachData(auth)
+        hc_data.update()
     except NoDevice:
-        if sys.stdout.isatty():
-            print("pyatmo.py : warning, no camera available for testing")
+        tty_print("pyatmo: no home coach station available for testing")
 
     try:
-        HomeData(auth)
+        camera_data = CameraData(auth)
+        camera_data.update()
     except NoDevice:
-        if sys.stdout.isatty():
-            print("pyatmo.py : warning, no thermostat available for testing")
+        tty_print("pyatmo: no camera available for testing")
 
-    PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+    try:
+        home_data = HomeData(auth)
+        home_data.update()
+    except NoDevice:
+        tty_print("pyatmo: no thermostat available for testing")
+
+    public_data = PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
+    public_data.update()
 
     # If we reach this line, all is OK
-
-    # If launched interactively, display OK message
-    if sys.stdout.isatty():
-        print("pyatmo: OK")
+    tty_print("pyatmo: OK")
 
     sys.exit(0)
 

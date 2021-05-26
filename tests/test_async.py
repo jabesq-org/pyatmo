@@ -403,3 +403,18 @@ async def test_async_home_status_set_room_thermpoint(
             end_time=end_time,
         )
         assert result["status"] == expected
+
+
+@pytest.mark.asyncio
+async def test_async_camera_live_snapshot(async_camera_home_data):
+    _id = "12:34:56:00:f1:62"
+
+    assert async_camera_home_data.homes is not None
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=b"0000"),
+    ):
+        result = await async_camera_home_data.async_get_live_snapshot(camera_id=_id)
+
+    assert result == b"0000"

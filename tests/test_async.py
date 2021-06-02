@@ -436,15 +436,15 @@ async def test_async_camera_live_snapshot(async_camera_home_data):
 
 @pytest.mark.asyncio
 async def test_async_camera_data_get_camera_picture(async_camera_home_data):
-    image_id = "5c22739723720a6e278c43bf"
-    key = "276751836a6d1a71447f8d975494c87bc125766a970f7e022e79e001e021d756"
     with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
         expect = fixture_file.read()
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=expect),
-    ):
+            "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+            AsyncMock(return_value=expect),
+        ):
+        image_id = "5c22739723720a6e278c43bf"
+        key = "276751836a6d1a71447f8d975494c87bc125766a970f7e022e79e001e021d756"
         assert await async_camera_home_data.async_get_camera_picture(image_id, key) == (
             expect,
             "jpeg",

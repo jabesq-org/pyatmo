@@ -7,6 +7,7 @@ from abc import ABC
 from collections import defaultdict
 from typing import Any
 
+import aiohttp
 from requests.exceptions import ReadTimeout
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
@@ -625,7 +626,12 @@ class AsyncCameraData(AbstractCameraData):
             raise NoDevice("No device data available")
 
         self.process()
-        await self._async_update_all_camera_urls()
+
+        try:
+            await self._async_update_all_camera_urls()
+        except aiohttp.ContentTypeError as err:
+            LOG.debug("One or more camera could not be reached. (%s)", err)
+
         self._store_last_event()
 
     async def _async_update_all_camera_urls(self) -> None:

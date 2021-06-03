@@ -7,22 +7,24 @@ import pytest
 
 import pyatmo
 
-from tests.conftest import does_not_raise
+from tests.conftest import MockResponse, does_not_raise
 
-LON_NE = 6.221652
-LAT_NE = 46.610870
-LON_SW = 6.217828
-LAT_SW = 46.596485
+LON_NE = "6.221652"
+LAT_NE = "46.610870"
+LON_SW = "6.217828"
+LAT_SW = "46.596485"
 
 
 @pytest.mark.asyncio
-async def test_foo(async_auth):
+async def test_foo(async_auth, mocker):
     with open("fixtures/camera_home_data.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
         await camera_data.async_update()
@@ -80,9 +82,11 @@ async def test_async_public_data(async_auth):
     with open("fixtures/public_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         public_data = pyatmo.AsyncPublicData(async_auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
         await public_data.async_update()
@@ -107,9 +111,11 @@ async def test_async_public_data_error(async_auth):
     with open("fixtures/public_data_error_mongo.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ):
 
         public_data = pyatmo.AsyncPublicData(async_auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
@@ -169,9 +175,11 @@ async def test_async_home_data(async_home_data):
 
 @pytest.mark.asyncio
 async def test_async_home_data_no_data(async_auth):
+    mock_resp = MockResponse(None, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value="None"),
+        AsyncMock(return_value=mock_resp),
     ):
         with pytest.raises(pyatmo.NoDevice):
             home_data = pyatmo.AsyncHomeData(async_auth)
@@ -183,9 +191,11 @@ async def test_async_data_no_body(async_auth):
     with open("fixtures/home_data_empty.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ):
         home_data = pyatmo.AsyncHomeData(async_auth)
         with pytest.raises(pyatmo.NoDevice):
@@ -323,9 +333,11 @@ async def test_async_home_status_set_thermmode(
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ):
         res = await async_home_status.async_set_thermmode(
             mode=mode,
@@ -392,9 +404,11 @@ async def test_async_home_status_set_room_thermpoint(
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ):
         result = await async_home_status.async_set_room_thermpoint(
             room_id=room_id,
@@ -403,3 +417,54 @@ async def test_async_home_status_set_room_thermpoint(
             end_time=end_time,
         )
         assert result["status"] == expected
+
+
+@pytest.mark.asyncio
+async def test_async_camera_live_snapshot(async_camera_home_data):
+    _id = "12:34:56:00:f1:62"
+
+    assert async_camera_home_data.homes is not None
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=b"0000"),
+    ):
+        result = await async_camera_home_data.async_get_live_snapshot(camera_id=_id)
+
+    assert result == b"0000"
+
+
+@pytest.mark.asyncio
+async def test_async_camera_data_get_camera_picture(async_camera_home_data):
+    image_id = "5c22739723720a6e278c43bf"
+    key = "276751836a6d1a71447f8d975494c87bc125766a970f7e022e79e001e021d756"
+    with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
+        expect = fixture_file.read()
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=expect),
+    ):
+        assert await async_camera_home_data.async_get_camera_picture(image_id, key) == (
+            expect,
+            "jpeg",
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_camera_data_get_profile_image(async_camera_home_data):
+    with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
+        expect = fixture_file.read()
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=expect),
+    ):
+        assert await async_camera_home_data.async_get_profile_image("John Doe") == (
+            expect,
+            "jpeg",
+        )
+        assert await async_camera_home_data.async_get_profile_image("Jack Foe") == (
+            None,
+            None,
+        )

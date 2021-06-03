@@ -1,12 +1,14 @@
 """Support for Netatmo authentication."""
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
 from json import JSONDecodeError
 from time import sleep
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable
 
 import requests
-from aiohttp import ClientError, ClientSession
+from aiohttp import ClientError, ClientResponse, ClientSession
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
@@ -51,10 +53,10 @@ class NetatmoOAuth2:
         self,
         client_id: str = None,
         client_secret: str = None,
-        redirect_uri: Optional[str] = None,
-        token: Optional[Dict[str, str]] = None,
-        token_updater: Optional[Callable[[str], None]] = None,
-        scope: Optional[str] = "read_station",
+        redirect_uri: str | None = None,
+        token: dict[str, str] | None = None,
+        token_updater: Callable[[str], None] | None = None,
+        scope: str | None = "read_station",
     ) -> None:
         """Initialize self.
 
@@ -98,7 +100,7 @@ class NetatmoOAuth2:
             scope=self.scope,
         )
 
-    def refresh_tokens(self) -> Dict[str, Union[str, int]]:
+    def refresh_tokens(self) -> dict[str, str | int]:
         """Refresh and return new tokens."""
         token = self._oauth.refresh_token(AUTH_REQ, **self.extra)
 
@@ -110,9 +112,9 @@ class NetatmoOAuth2:
     def post_request(
         self,
         url: str,
-        params: Optional[Dict] = None,
+        params: dict | None = None,
         timeout: int = 5,
-    ) -> Any:
+    ) -> requests.Response:
         """Wrapper for post requests."""
         resp = None
         req_args = {"data": params if params is not None else {}}
@@ -133,10 +135,10 @@ class NetatmoOAuth2:
 
         else:
 
-            def query(url: str, params: Dict, timeout: int, retries: int) -> Any:
+            def query(url: str, params: dict, timeout: int, retries: int) -> Any:
                 if retries == 0:
                     LOG.error("Too many retries")
-                    return
+                    return requests.Response()
 
                 try:
                     return self._oauth.post(url=url, timeout=timeout, **params)
@@ -156,7 +158,7 @@ class NetatmoOAuth2:
 
         if resp is None:
             LOG.debug("Resp is None - %s", resp)
-            return None
+            return requests.Response()
 
         if not resp.ok:
             LOG.debug(
@@ -180,26 +182,26 @@ class NetatmoOAuth2:
                     f"when accessing '{url}'",
                 ) from exc
 
-        try:
-            if "application/json" in resp.headers.get("content-type", []):
-                return resp.json()
+        if (
+            "application/json"
+            in resp.headers.get(
+                "content-type",
+                [],
+            )
+            or resp.content not in [b"", b"None"]
+        ):
+            return resp
 
-            if resp.content not in [b"", b"None"]:
-                return resp.content
+        return requests.Response()
 
-        except (TypeError, AttributeError):
-            LOG.debug("Invalid response %s", resp)
-
-        return None
-
-    def get_authorization_url(self, state: Optional[str] = None) -> Tuple[str, str]:
+    def get_authorization_url(self, state: str | None = None) -> tuple:
         return self._oauth.authorization_url(AUTH_URL, state)
 
     def request_token(
         self,
-        authorization_response: Optional[str] = None,
-        code: Optional[str] = None,
-    ) -> Dict[str, str]:
+        authorization_response: str | None = None,
+        code: str | None = None,
+    ) -> dict[str, str]:
         """
         Generic method for fetching a Netatmo access token.
         :param authorization_response: Authorization response URL, the callback
@@ -285,9 +287,9 @@ class AbstractAsyncAuth(ABC):
     async def async_post_request(
         self,
         url: str,
-        params: Optional[Dict] = None,
+        params: dict | None = None,
         timeout: int = 5,
-    ) -> Any:
+    ) -> ClientResponse | bytes:
         """Wrapper for async post requests."""
         try:
             access_token = await self.async_get_access_token()
@@ -308,15 +310,15 @@ class AbstractAsyncAuth(ABC):
             timeout=timeout,
         ) as resp:
             resp_status = resp.status
-            if resp.headers.get("content-type") == "image/jpeg":
-                return await resp.read()
-
-            resp_json = await resp.json()
             resp_content = await resp.read()
+
+            if resp.headers.get("content-type") == "image/jpeg":
+                return resp_content
 
             if not resp.ok:
                 LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
                 try:
+                    resp_json = await resp.json()
                     raise ApiError(
                         f"{resp_status} - "
                         f"{ERRORS.get(resp_status, '')} - "
@@ -334,15 +336,15 @@ class AbstractAsyncAuth(ABC):
 
             try:
                 if "application/json" in resp.headers.get("content-type", []):
-                    return resp_json
+                    return resp
 
                 if resp_content not in [b"", b"None"]:
-                    return resp_content
+                    return resp
 
             except (TypeError, AttributeError):
                 LOG.debug("Invalid response %s", resp)
 
-        return None
+        return resp
 
     async def async_addwebhook(self, webhook_url: str) -> None:
         """Register webhook."""

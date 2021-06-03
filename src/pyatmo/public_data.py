@@ -185,7 +185,7 @@ class PublicData(AbstractPublicData):
         if self.required_data_type:
             post_params["required_data"] = self.required_data_type
 
-        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params)
+        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params).json()
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError) as exc:
@@ -238,12 +238,14 @@ class AsyncPublicData(AbstractPublicData):
             url=_GETPUBLIC_DATA,
             params=post_params,
         )
+        assert not isinstance(resp, bytes)
+        resp_data = await resp.json()
         try:
-            self.raw_data = resp["body"]
+            self.raw_data = resp_data["body"]
         except (KeyError, TypeError) as exc:
             raise NoDevice("No public weather data returned by Netatmo server") from exc
 
-        self.process(resp)
+        self.process(resp_data)
 
 
 def average(data: dict) -> float:

@@ -14,6 +14,24 @@ def does_not_raise():
     yield
 
 
+class MockResponse:
+    def __init__(self, text, status):
+        self._text = text
+        self.status = status
+
+    async def json(self):
+        return self._text
+
+    async def read(self):
+        return self._text
+
+    async def __aexit__(self, exc_type, exc, traceback):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+
 @pytest.fixture(scope="function")
 def auth(requests_mock):
     """Auth fixture."""
@@ -168,9 +186,11 @@ async def async_camera_home_data(async_auth):
     with open("fixtures/camera_home_data.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
         await camera_data.async_update()
@@ -185,9 +205,11 @@ async def async_home_coach_data(async_auth):
     with open("fixtures/home_coach_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         hcd = pyatmo.AsyncHomeCoachData(async_auth)
         await hcd.async_update()
@@ -202,9 +224,11 @@ async def async_home_data(async_auth):
     with open("fixtures/home_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         home_data = pyatmo.AsyncHomeData(async_auth)
         await home_data.async_update()
@@ -219,9 +243,11 @@ async def async_home_status(async_auth, home_id):
     with open("fixtures/home_status_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         home_status = pyatmo.AsyncHomeStatus(async_auth, home_id)
         await home_status.async_update()
@@ -236,9 +262,11 @@ async def async_weather_station_data(async_auth):
     with open("fixtures/weatherstation_data_simple.json") as json_file:
         json_fixture = json.load(json_file)
 
+    mock_resp = MockResponse(json_fixture, 200)
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         wsd = pyatmo.AsyncWeatherStationData(async_auth)
         await wsd.async_update()

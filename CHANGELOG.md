@@ -1,0 +1,99 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+-
+
+### Changed
+
+-
+
+### Deprecated
+
+-
+
+### Removed
+
+-
+
+### Fixed
+
+- Handle error when camera is not reachable more graceful
+- Update selfcheck to use the new update methods
+- Fix false positive errors when no climate devices are registered
+
+### Security
+
+-
+
+## [4.2.3] - 2021-05-17
+
+### Fixed
+
+- Extraction of climate schedules was looking for the wrong attribute (Backported from [5.0.1])
+
+## [5.0.1] - 2021-05-09
+
+### Fixed
+
+- Extraction of climate schedules was looking for the wrong attribute
+
+## [5.0.0] - 2021-04-26
+
+### Added
+
+- Async support
+
+### Changed
+
+- [BREAKING] Data retrival extracted into separate update method
+
+## [4.2.2] - 2021-01-20
+
+### Fixed
+
+- Fix error when camera does not return a local url
+
+## [4.2.1] - 2020-12-03
+
+### Changed
+
+- Improve CI & deployment
+
+## [4.2.0] - 2020-11-02
+
+### Changed
+
+- Improve CI & deployment
+
+### Fixed
+
+- Set station name if not contained in the backend data
+
+### Removed
+
+- Remove min and max from weather station
+
+## [4.1.0] - 2020-10-07
+
+### Fixed
+
+- Fix crash when station name is not contained in the backend data
+
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.0.1...HEAD
+[4.2.3]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v4.2.3
+[5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1
+[5.0.0]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0
+[4.2.2]: https://github.com/jabesq/pyatmo/compare/v4.2.1...v4.2.2
+[4.2.1]: https://github.com/jabesq/pyatmo/compare/v4.2.0...v4.2.1
+[4.2.0]: https://github.com/jabesq/pyatmo/compare/v4.1.0...v4.2.0
+[4.1.0]: https://github.com/jabesq/pyatmo/compare/v4.0.0...v4.1.0
+[4.0.0]: https://github.com/jabesq/pyatmo/compare/v3.3.1...v4.0.0
+[3.3.1]: https://github.com/jabesq/pyatmo/releases/tag/v3.3.1

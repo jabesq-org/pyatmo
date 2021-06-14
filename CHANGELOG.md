@@ -25,13 +25,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+-
+
+### Security
+
+-
+
+## [5.1.0] - 2021-06-14
+
+### Fixed
+
 - Handle error when camera is not reachable more graceful
 - Update selfcheck to use the new update methods
 - Fix false positive errors when no climate devices are registered
 
 ### Security
 
--
+- Upgrade aiohttp to 3.7.4 or later to fix vulnerability
 
 ## [4.2.3] - 2021-05-17
 
@@ -88,9 +98,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash when station name is not contained in the backend data
 
 [unreleased]: https://github.com/jabesq/pyatmo/compare/v5.0.1...HEAD
-[4.2.3]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v4.2.3
+[5.1.0]: https://github.com/jabesq/pyatmo/compare/v5.0.1...v5.1.0
 [5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1
-[5.0.0]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0
+[5.0.1]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0
+[4.2.3]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v4.2.3
 [4.2.2]: https://github.com/jabesq/pyatmo/compare/v4.2.1...v4.2.2
 [4.2.1]: https://github.com/jabesq/pyatmo/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/jabesq/pyatmo/compare/v4.1.0...v4.2.0

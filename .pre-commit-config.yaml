@@ -43,6 +43,8 @@ repos:
       - id: mypy
         name: mypy
         exclude: tests/
+        additional_dependencies:
+          - types-requests
 
   - repo: local
     hooks:

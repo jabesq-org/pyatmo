@@ -20,12 +20,11 @@ pytest-mock = "*"
 requests-mock = "*"
 tox = "*"
 twine = "*"
-aiohttp = "*"
 
 [packages]
 requests = "*"
 requests-oauthlib = "*"
-aiohttp = "*"
+aiohttp = ">=3.7.4"
 
 [requires]
 python_version = "3.8"

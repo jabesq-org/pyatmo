@@ -16,7 +16,11 @@ def test_weather_station_data(weather_station_data):
 
 
 def test_weather_station_data_no_response(auth, requests_mock):
-    requests_mock.post(pyatmo.weather_station._GETSTATIONDATA_REQ, text="None")
+    requests_mock.post(
+        pyatmo.weather_station._GETSTATIONDATA_REQ,
+        json={},
+        headers={"content-type": "application/json"},
+    )
     with pytest.raises(pyatmo.NoDevice):
         wsd = pyatmo.WeatherStationData(auth)
         wsd.update()

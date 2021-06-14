@@ -6,8 +6,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .exceptions import NoDevice
-from .helpers import _BASE_URL, fix_id, today_stamps
+from .helpers import _BASE_URL, extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
 
@@ -215,22 +214,9 @@ class WeatherStationData(AbstractWeatherStationData):
 
     def update(self):
         """Fetch data from API."""
-        resp = self.auth.post_request(url=self.url_req)
+        resp = self.auth.post_request(url=self.url_req).json()
 
-        if resp is None or "body" not in resp:
-            raise NoDevice("No weather station data returned by Netatmo server")
-
-        try:
-            self.raw_data = fix_id(resp["body"].get("devices"))
-        except KeyError as exc:
-            LOG.debug("No <body> in response %s", resp)
-            raise NoDevice(
-                "No weather station data returned by Netatmo server",
-            ) from exc
-
-        if not self.raw_data:
-            raise NoDevice("No weather station available")
-
+        self.raw_data = extract_raw_data(resp, "devices")
         self.process()
 
     def get_data(
@@ -265,7 +251,7 @@ class WeatherStationData(AbstractWeatherStationData):
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
 
-        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params)
+        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params).json()
 
     def get_min_max_t_h(
         self,
@@ -333,18 +319,6 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
         """Fetch data from API."""
         resp = await self.auth.async_post_request(url=self.url_req)
 
-        if resp is None or "body" not in resp:
-            raise NoDevice("No weather station data returned by Netatmo server")
-
-        try:
-            self.raw_data = fix_id(resp["body"].get("devices"))
-        except KeyError as exc:
-            LOG.debug("No <body> in response %s", resp)
-            raise NoDevice(
-                "No weather station data returned by Netatmo server",
-            ) from exc
-
-        if not self.raw_data:
-            raise NoDevice("No weather station available")
-
+        assert not isinstance(resp, bytes)
+        self.raw_data = extract_raw_data(await resp.json(), "devices")
         self.process()

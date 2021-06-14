@@ -5,8 +5,8 @@ from collections import defaultdict
 from typing import Any, Dict, Optional
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .exceptions import InvalidRoom, NoDevice, NoSchedule
-from .helpers import _BASE_URL
+from .exceptions import InvalidRoom, NoSchedule
+from .helpers import _BASE_URL, extract_raw_data
 
 LOG = logging.getLogger(__name__)
 
@@ -111,13 +111,8 @@ class HomeData(AbstractHomeData):
     def update(self) -> None:
         """Fetch and process data from API."""
         resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
-        if resp is None or "body" not in resp:
-            raise NoDevice("No thermostat data returned by Netatmo server")
 
-        self.raw_data = resp["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No thermostat data available")
-
+        self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
 
     def switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
@@ -144,16 +139,12 @@ class AsyncHomeData(AbstractHomeData):
     async def async_update(self):
         """Fetch and process data from API."""
         resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
-        if resp is None or "body" not in resp:
-            raise NoDevice("No thermostat data returned by Netatmo server")
 
-        self.raw_data = resp["body"].get("homes")
-        if not self.raw_data:
-            raise NoDevice("No thermostat data available")
-
+        assert not isinstance(resp, bytes)
+        self.raw_data = extract_raw_data(await resp.json(), "homes")
         self.process()
 
-    async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
+    async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> None:
         """Switch the schedule for a give home ID."""
         if not self.is_valid_schedule(home_id, schedule_id):
             raise NoSchedule("%s is not a valid schedule id" % schedule_id)
@@ -258,17 +249,8 @@ class HomeStatus(AbstractHomeStatus):
         post_params = {"home_id": self.home_id}
 
         resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=post_params)
-        if (
-            "errors" in resp
-            or "body" not in resp
-            or "home" not in resp["body"]
-            or ("errors" in resp["body"] and "modules" not in resp["body"]["home"])
-        ):
-            LOG.error("Errors in response: %s", resp)
-            raise NoDevice("No device found, errors in response")
 
-        self.raw_data = resp["body"]["home"]
-
+        self.raw_data = extract_raw_data(resp.json(), "home")
         self.process()
 
     def set_thermmode(
@@ -285,7 +267,7 @@ class HomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params)
+        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params).json()
 
     def set_room_thermpoint(
         self,
@@ -304,7 +286,10 @@ class HomeStatus(AbstractHomeStatus):
         if end_time is not None:
             post_params["endtime"] = str(end_time)
 
-        return self.auth.post_request(url=_SETROOMTHERMPOINT_REQ, params=post_params)
+        return self.auth.post_request(
+            url=_SETROOMTHERMPOINT_REQ,
+            params=post_params,
+        ).json()
 
 
 class AsyncHomeStatus(AbstractHomeStatus):
@@ -329,17 +314,9 @@ class AsyncHomeStatus(AbstractHomeStatus):
             url=_GETHOMESTATUS_REQ,
             params=post_params,
         )
-        if (
-            "errors" in resp
-            or "body" not in resp
-            or "home" not in resp["body"]
-            or ("errors" in resp["body"] and "modules" not in resp["body"]["home"])
-        ):
-            LOG.error("Errors in response: %s", resp)
-            raise NoDevice("No device found, errors in response")
 
-        self.raw_data = resp["body"]["home"]
-
+        assert not isinstance(resp, bytes)
+        self.raw_data = extract_raw_data(await resp.json(), "home")
         self.process()
 
     async def async_set_thermmode(
@@ -356,10 +333,12 @@ class AsyncHomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        return await self.auth.async_post_request(
+        resp = await self.auth.async_post_request(
             url=_SETTHERMMODE_REQ,
             params=post_params,
         )
+        assert not isinstance(resp, bytes)
+        return await resp.json()
 
     async def async_set_room_thermpoint(
         self,
@@ -378,7 +357,9 @@ class AsyncHomeStatus(AbstractHomeStatus):
         if end_time is not None:
             post_params["endtime"] = str(end_time)
 
-        return await self.auth.async_post_request(
+        resp = await self.auth.async_post_request(
             url=_SETROOMTHERMPOINT_REQ,
             params=post_params,
         )
+        assert not isinstance(resp, bytes)
+        return await resp.json()

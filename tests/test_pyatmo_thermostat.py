@@ -58,7 +58,11 @@ def test_home_data(home_data):
 
 
 def test_home_data_no_data(auth, requests_mock):
-    requests_mock.post(pyatmo.thermostat._GETHOMESDATA_REQ, text="None")
+    requests_mock.post(
+        pyatmo.thermostat._GETHOMESDATA_REQ,
+        json={},
+        headers={"content-type": "application/json"},
+    )
     home_data = pyatmo.HomeData(auth)
     with pytest.raises(pyatmo.NoDevice):
         home_data.update()

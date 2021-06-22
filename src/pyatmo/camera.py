@@ -220,16 +220,19 @@ class AbstractCameraData(ABC):
                     return False
 
                 curr_event = self.events[camera_id][time_ev]
-                if curr_event["type"] == "person":
-                    if curr_event["person_id"] in self._known_persons():
-                        return True
+                if (
+                    curr_event["type"] == "person"
+                    and curr_event["person_id"] in self._known_persons()
+                ):
+                    return True
 
-        # Check in the last event if someone known has been seen
         else:
             curr_event = self.last_event[camera_id]
-            if curr_event["type"] == "person":
-                if curr_event["person_id"] in self._known_persons():
-                    return True
+            if (
+                curr_event["type"] == "person"
+                and curr_event["person_id"] in self._known_persons()
+            ):
+                return True
 
         return False
 
@@ -247,16 +250,19 @@ class AbstractCameraData(ABC):
                     return False
 
                 curr_event = self.events[camera_id][time_ev]
-                if curr_event["type"] == "person":
-                    if curr_event["person_id"] not in self._known_persons():
-                        return True
+                if (
+                    curr_event["type"] == "person"
+                    and curr_event["person_id"] not in self._known_persons()
+                ):
+                    return True
 
-        # Check in the last event is noone known has been seen
         else:
             curr_event = self.last_event[camera_id]
-            if curr_event["type"] == "person":
-                if curr_event["person_id"] not in self._known_persons():
-                    return True
+            if (
+                curr_event["type"] == "person"
+                and curr_event["person_id"] not in self._known_persons()
+            ):
+                return True
 
         return False
 

@@ -221,7 +221,7 @@ class AbstractCameraData(ABC):
                 if time_ev < limit:
                     return False
                 seen = _someone_known_seen(self.events[camera_id][time_ev])
-            
+
             return seen
 
         return _someone_known_seen(self.last_event[camera_id])

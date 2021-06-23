@@ -221,7 +221,7 @@ class AbstractCameraData(ABC):
                 if time_ev < limit:
                     return False
                 seen = _someone_known_seen(self.events[camera_id][time_ev])
-
+            
             return seen
 
         return _someone_known_seen(self.last_event[camera_id])
@@ -500,15 +500,17 @@ class CameraData(AbstractCameraData):
         LOG.debug("%s", resp)
         return True
 
-    def set_persons_home(self, person_ids: list[str], home_id: str):
+    def set_persons_home(self, home_id: str, person_ids: list[str] = None):
         """Mark persons as home."""
-        post_params = {"home_id": home_id, "person_ids[]": person_ids}
+        post_params: dict[str, str | list] = {"home_id": home_id}
+        if person_ids:
+            post_params["person_ids[]"] = person_ids
         return self.auth.post_request(
             url=_SETPERSONSHOME_REQ,
             params=post_params,
         ).json()
 
-    def set_persons_away(self, person_id: str, home_id: str):
+    def set_persons_away(self, home_id: str, person_id: str = None):
         """Mark a person as away or set the whole home to being empty."""
         post_params = {"home_id": home_id, "person_id": person_id}
         return self.auth.post_request(
@@ -695,17 +697,25 @@ class AsyncCameraData(AbstractCameraData):
                     temp_local_url,
                 )
 
-    async def async_set_persons_home(self, person_ids: list[str], home_id: str):
+    async def async_set_persons_home(
+        self,
+        home_id: str,
+        person_ids: list[str] = None,
+    ):
         """Mark persons as home."""
-        post_params = {"home_id": home_id, "person_ids[]": person_ids}
+        post_params: dict[str, str | list] = {"home_id": home_id}
+        if person_ids:
+            post_params["person_ids[]"] = person_ids
         return await self.auth.async_post_request(
             url=_SETPERSONSHOME_REQ,
             params=post_params,
         )
 
-    async def async_set_persons_away(self, person_id: str, home_id: str):
+    async def async_set_persons_away(self, home_id: str, person_id: str = None):
         """Mark a person as away or set the whole home to being empty."""
-        post_params = {"home_id": home_id, "person_id": person_id}
+        post_params = {"home_id": home_id}
+        if person_id:
+            post_params["person_id"] = person_id
         return await self.auth.async_post_request(
             url=_SETPERSONSAWAY_REQ,
             params=post_params,

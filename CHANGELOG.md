@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [BREAKING] Fix parameter order of set person home/away methods
 - Refactor camera person detection checks
 
 ### Deprecated
@@ -25,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Apply latest sourcery refactoring
 
 ### Security
 

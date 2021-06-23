@@ -165,14 +165,13 @@ class AbstractCameraData(ABC):
         exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
-        # Check in the last event is someone known has been seen
-        def _person_in_event(curr_event, person_name):
-            if curr_event["type"] == "person":
-                person_id = curr_event["person_id"]
 
-                if self.persons[person_id].get("pseudo") == person_name:
-                    return True
-            return None
+        def _person_in_event(curr_event: dict, person_name: str) -> bool:
+            person_id = curr_event.get("person_id")
+            return (
+                curr_event["type"] == "person"
+                and self.persons[person_id].get("pseudo") == person_name
+            )
 
         if exclude:
             limit = time.time() - exclude
@@ -183,16 +182,13 @@ class AbstractCameraData(ABC):
                     return False
 
                 current_event = self.events[camera_id][time_ev]
-                if _person_in_event(current_event, name) is True:
+                if _person_in_event(current_event, name):
                     return True
 
             return False
 
         current_event = self.last_event[camera_id]
-        if _person_in_event(current_event, name) is True:
-            return True
-
-        return False
+        return _person_in_event(current_event, name)
 
     def _known_persons(self) -> dict[str, dict]:
         """Return all known persons."""
@@ -211,6 +207,12 @@ class AbstractCameraData(ABC):
         if camera_id not in self.events:
             raise NoDevice
 
+        def _someone_known_seen(event: dict) -> bool:
+            return (
+                event["type"] == "person"
+                and event["person_id"] in self._known_persons()
+            )
+
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
@@ -218,29 +220,23 @@ class AbstractCameraData(ABC):
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
+                seen = _someone_known_seen(self.events[camera_id][time_ev])
 
-                curr_event = self.events[camera_id][time_ev]
-                if (
-                    curr_event["type"] == "person"
-                    and curr_event["person_id"] in self._known_persons()
-                ):
-                    return True
+            return seen
 
-        else:
-            curr_event = self.last_event[camera_id]
-            if (
-                curr_event["type"] == "person"
-                and curr_event["person_id"] in self._known_persons()
-            ):
-                return True
-
-        return False
+        return _someone_known_seen(self.last_event[camera_id])
 
     def someone_unknown_seen(self, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if someone known has been seen."""
         if camera_id not in self.events:
             raise NoDevice
 
+        def _someone_unknown_seen(event: dict) -> bool:
+            return (
+                event["type"] == "person"
+                and event["person_id"] not in self._known_persons()
+            )
+
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
@@ -248,23 +244,11 @@ class AbstractCameraData(ABC):
             for time_ev in array_time_event:
                 if time_ev < limit:
                     return False
+                seen = _someone_unknown_seen(self.events[camera_id][time_ev])
 
-                curr_event = self.events[camera_id][time_ev]
-                if (
-                    curr_event["type"] == "person"
-                    and curr_event["person_id"] not in self._known_persons()
-                ):
-                    return True
+            return seen
 
-        else:
-            curr_event = self.last_event[camera_id]
-            if (
-                curr_event["type"] == "person"
-                and curr_event["person_id"] not in self._known_persons()
-            ):
-                return True
-
-        return False
+        return _someone_unknown_seen(self.last_event[camera_id])
 
     def motion_detected(self, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if movement has been detected."""
@@ -300,7 +284,7 @@ class AbstractCameraData(ABC):
         )
 
     def _object_detected(self, object_name: str, camera_id: str, offset: int) -> bool:
-        """Evaluate if a human has been detected."""
+        """Evaluate if an object has been detected."""
         if self.outdoor_last_event[camera_id]["video_status"] == "recording":
             for event in self.outdoor_last_event[camera_id]["event_list"]:
                 if event["type"] == object_name and (
@@ -394,7 +378,7 @@ class AbstractCameraData(ABC):
         floodlight: str | None,
         monitoring: str | None,
     ):
-        """."""
+        """Build camera state parameters."""
         if home_id is None:
             home_id = self.get_camera(camera_id)["home_id"]
 

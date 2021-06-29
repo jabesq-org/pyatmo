@@ -13,8 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [BREAKING] Fix parameter order of set person home/away methods
-- Refactor camera person detection checks
+-
 
 ### Deprecated
 
@@ -26,11 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Apply latest sourcery refactoring
+-
 
 ### Security
 
 -
+
+## [5.2.0] - 2021-06-30
+
+### Changed
+
+- [BREAKING] Fix parameter order of set person home/away methods
+- Refactor camera person detection checks
 
 ## [5.1.0] - 2021-06-14
 
@@ -98,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.0.1...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.2.0...HEAD
+[5.2.0]: https://github.com/jabesq/pyatmo/compare/v5.1.0...v5.2.0
 [5.1.0]: https://github.com/jabesq/pyatmo/compare/v5.0.1...v5.1.0
 [5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1
 [5.0.1]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0

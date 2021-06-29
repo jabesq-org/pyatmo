@@ -172,13 +172,13 @@ class AbstractHomeStatus(ABC):
             self.rooms[room["id"]] = room
 
         for module in self.raw_data.get("modules", []):
-            if module["type"] == "NATherm1":
+            if module["type"] in {"NATherm1", "OTM"}:
                 self.thermostats[module["id"]] = module
 
             elif module["type"] == "NRV":
                 self.valves[module["id"]] = module
 
-            elif module["type"] == "NAPlug":
+            elif module["type"] in {"OTH", "NAPlug"}:
                 self.relays[module["id"]] = module
 
     def get_room(self, room_id: str) -> Dict:

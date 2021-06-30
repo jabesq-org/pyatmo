@@ -194,6 +194,12 @@ def test_camera_data_get_person_id(camera_home_data, name, expected):
             "status_ok.json",
             "ok",
         ),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            "status_ok.json",
+            "ok",
+        ),
     ],
 )
 def test_camera_data_set_persons_away(
@@ -206,12 +212,19 @@ def test_camera_data_set_persons_away(
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
-    requests_mock.post(
+    mock_req = requests_mock.post(
         pyatmo.camera._SETPERSONSAWAY_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    assert camera_home_data.set_persons_away(person_id, home_id)["status"] == expected
+    assert camera_home_data.set_persons_away(home_id, person_id)["status"] == expected
+    if person_id is not None:
+        assert (
+            mock_req.request_history[0].text
+            == f"home_id={home_id}&person_id={person_id}"
+        )
+    else:
+        assert mock_req.request_history[0].text == f"home_id={home_id}"
 
 
 @pytest.mark.parametrize(
@@ -232,6 +245,12 @@ def test_camera_data_set_persons_away(
             "status_ok.json",
             "ok",
         ),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            "status_ok.json",
+            "ok",
+        ),
     ],
 )
 def test_camera_data_set_persons_home(
@@ -244,12 +263,25 @@ def test_camera_data_set_persons_home(
 ):
     with open("fixtures/%s" % json_fixture) as json_file:
         json_fixture = json.load(json_file)
-    requests_mock.post(
+    mock_req = requests_mock.post(
         pyatmo.camera._SETPERSONSHOME_REQ,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    assert camera_home_data.set_persons_home(person_ids, home_id)["status"] == expected
+    assert camera_home_data.set_persons_home(home_id, person_ids)["status"] == expected
+
+    if isinstance(person_ids, list):
+        assert (
+            mock_req.request_history[0].text
+            == f"home_id={home_id}&person_ids%5B%5D={'&person_ids%5B%5D='.join(person_ids)}"
+        )
+    elif person_ids:
+        assert (
+            mock_req.request_history[0].text
+            == f"home_id={home_id}&person_ids%5B%5D={person_ids}"
+        )
+    else:
+        assert mock_req.request_history[0].text == f"home_id={home_id}"
 
 
 @freeze_time("2019-06-16")

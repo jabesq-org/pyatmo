@@ -468,3 +468,123 @@ async def test_async_camera_data_get_profile_image(async_camera_home_data):
             None,
             None,
         )
+
+
+@pytest.mark.parametrize(
+    "home_id, person_id, json_fixture, expected",
+    [
+        (
+            "91763b24c43d3e344f424e8b",
+            "91827374-7e04-5298-83ad-a0cb8372dff1",
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "91827376-7e04-5298-83af-a0cb8372dff3",
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_async_camera_data_set_persons_away(
+    async_camera_home_data,
+    home_id,
+    person_id,
+    json_fixture,
+    expected,
+):
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_req:
+        result = await async_camera_home_data.async_set_persons_away(home_id, person_id)
+        assert result["status"] == expected
+
+    if person_id is not None:
+        mock_req.assert_called_once_with(
+            params={
+                "home_id": home_id,
+                "person_id": person_id,
+            },
+            url="https://api.netatmo.com/api/setpersonsaway",
+        )
+    else:
+        mock_req.assert_called_once_with(
+            params={
+                "home_id": home_id,
+            },
+            url="https://api.netatmo.com/api/setpersonsaway",
+        )
+
+
+@pytest.mark.parametrize(
+    "home_id, person_ids, json_fixture, expected",
+    [
+        (
+            "91763b24c43d3e344f424e8b",
+            [
+                "91827374-7e04-5298-83ad-a0cb8372dff1",
+                "91827376-7e04-5298-83af-a0cb8372dff3",
+            ],
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "91827376-7e04-5298-83af-a0cb8372dff3",
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_async_camera_data_set_persons_home(
+    async_camera_home_data,
+    home_id,
+    person_ids,
+    json_fixture,
+    expected,
+):
+    with open("fixtures/%s" % json_fixture) as json_file:
+        json_fixture = json.load(json_file)
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ) as mock_req:
+        result = await async_camera_home_data.async_set_persons_home(
+            home_id,
+            person_ids,
+        )
+        assert result["status"] == expected
+
+    if isinstance(person_ids, list) or person_ids:
+        mock_req.assert_called_once_with(
+            params={
+                "home_id": home_id,
+                "person_ids[]": person_ids,
+            },
+            url="https://api.netatmo.com/api/setpersonshome",
+        )
+    else:
+        mock_req.assert_called_once_with(
+            params={
+                "home_id": home_id,
+            },
+            url="https://api.netatmo.com/api/setpersonshome",
+        )

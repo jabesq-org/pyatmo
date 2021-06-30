@@ -261,7 +261,7 @@ class HomeStatus(AbstractHomeStatus):
     ) -> Optional[str]:
         """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
-        if end_time is not None and mode in ("hg", "away"):
+        if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
 
         if schedule_id is not None and mode == "schedule":
@@ -327,7 +327,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
     ) -> Optional[str]:
         """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
-        if end_time is not None and mode in ("hg", "away"):
+        if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
 
         if schedule_id is not None and mode == "schedule":

@@ -510,7 +510,7 @@ class CameraData(AbstractCameraData):
             params=post_params,
         ).json()
 
-    def set_persons_away(self, home_id: str, person_id: str = None):
+    def set_persons_away(self, home_id: str, person_id: str | None = None):
         """Mark a person as away or set the whole home to being empty."""
         post_params = {"home_id": home_id, "person_id": person_id}
         return self.auth.post_request(
@@ -711,7 +711,7 @@ class AsyncCameraData(AbstractCameraData):
             params=post_params,
         )
 
-    async def async_set_persons_away(self, home_id: str, person_id: str = None):
+    async def async_set_persons_away(self, home_id: str, person_id: str | None = None):
         """Mark a person as away or set the whole home to being empty."""
         post_params = {"home_id": home_id}
         if person_id:

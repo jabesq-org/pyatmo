@@ -1,8 +1,10 @@
 """Support for Netatmo public weather data."""
+from __future__ import annotations
+
 import dataclasses
 from abc import ABC
 from collections import defaultdict
-from typing import Any, Dict
+from typing import Any
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import NoDevice
@@ -52,52 +54,52 @@ class AbstractPublicData(ABC):
     def stations_in_area(self) -> int:
         return len(self.raw_data)
 
-    def get_latest_rain(self) -> Dict:
+    def get_latest_rain(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_LIVE_TYPE)
 
     def get_average_rain(self) -> float:
         return average(self.get_latest_rain())
 
-    def get_60_min_rain(self) -> Dict:
+    def get_60_min_rain(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_60MIN_TYPE)
 
     def get_average_60_min_rain(self) -> float:
         return average(self.get_60_min_rain())
 
-    def get_24_h_rain(self) -> Dict:
+    def get_24_h_rain(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_24H_TYPE)
 
     def get_average_24_h_rain(self) -> float:
         return average(self.get_24_h_rain())
 
-    def get_latest_pressures(self) -> Dict:
+    def get_latest_pressures(self) -> dict:
         return self.get_latest_station_measures(_STATION_PRESSURE_TYPE)
 
     def get_average_pressure(self) -> float:
         return average(self.get_latest_pressures())
 
-    def get_latest_temperatures(self) -> Dict:
+    def get_latest_temperatures(self) -> dict:
         return self.get_latest_station_measures(_STATION_TEMPERATURE_TYPE)
 
     def get_average_temperature(self) -> float:
         return average(self.get_latest_temperatures())
 
-    def get_latest_humidities(self) -> Dict:
+    def get_latest_humidities(self) -> dict:
         return self.get_latest_station_measures(_STATION_HUMIDITY_TYPE)
 
     def get_average_humidity(self) -> float:
         return average(self.get_latest_humidities())
 
-    def get_latest_wind_strengths(self) -> Dict:
+    def get_latest_wind_strengths(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_WIND_STRENGTH_TYPE)
 
     def get_average_wind_strength(self) -> float:
         return average(self.get_latest_wind_strengths())
 
-    def get_latest_wind_angles(self) -> Dict:
+    def get_latest_wind_angles(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_WIND_ANGLE_TYPE)
 
-    def get_latest_gust_strengths(self) -> Dict:
+    def get_latest_gust_strengths(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_GUST_STRENGTH_TYPE)
 
     def get_average_gust_strength(self) -> float:
@@ -106,19 +108,19 @@ class AbstractPublicData(ABC):
     def get_latest_gust_angles(self):
         return self.get_accessory_data(_ACCESSORY_GUST_ANGLE_TYPE)
 
-    def get_locations(self) -> Dict:
+    def get_locations(self) -> dict:
         return {
             station["_id"]: station["place"]["location"] for station in self.raw_data
         }
 
-    def get_time_for_rain_measures(self) -> Dict:
+    def get_time_for_rain_measures(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_RAIN_TIME_TYPE)
 
-    def get_time_for_wind_measures(self) -> Dict:
+    def get_time_for_wind_measures(self) -> dict:
         return self.get_accessory_data(_ACCESSORY_WIND_TIME_TYPE)
 
-    def get_latest_station_measures(self, data_type) -> Dict:
-        measures: Dict = {}
+    def get_latest_station_measures(self, data_type) -> dict:
+        measures: dict = {}
         for station in self.raw_data:
             for module in station["measures"].values():
                 if (
@@ -135,8 +137,8 @@ class AbstractPublicData(ABC):
 
         return measures
 
-    def get_accessory_data(self, data_type: str) -> Dict[str, Any]:
-        data: Dict = {}
+    def get_accessory_data(self, data_type: str) -> dict[str, Any]:
+        data: dict = {}
         for station in self.raw_data:
             for module in station["measures"].values():
                 if data_type in module:
@@ -177,7 +179,7 @@ class PublicData(AbstractPublicData):
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        post_params: Dict = {
+        post_params: dict = {
             **dataclasses.asdict(self.location),
             "filter": self.filtering,
         }
@@ -226,7 +228,7 @@ class AsyncPublicData(AbstractPublicData):
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
-        post_params: Dict = {
+        post_params: dict = {
             **dataclasses.asdict(self.location),
             "filter": self.filtering,
         }

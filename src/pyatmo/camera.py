@@ -126,7 +126,7 @@ class AbstractCameraData(ABC):
         home_data = self.homes.get(home_id, {})
         return [
             person["pseudo"]
-            for person in home_data.get("persons")
+            for person in home_data.get("persons", [])
             if "pseudo" in person and not person["out_of_sight"]
         ]
 
@@ -534,10 +534,10 @@ class CameraData(AbstractCameraData):
 
     def get_profile_image(self, name: str) -> tuple[bytes | None, str | None]:
         """Retrieve the face of a given person."""
-        for person in self.persons:
-            if name == self.persons[person].get("pseudo"):
-                image_id = self.persons[person]["face"]["id"]
-                key = self.persons[person]["face"]["key"]
+        for person in self.persons.values():
+            if name == person.get("pseudo"):
+                image_id = person["face"]["id"]
+                key = person["face"]["key"]
                 return self.get_camera_picture(image_id, key)
 
         return None, None
@@ -759,10 +759,10 @@ class AsyncCameraData(AbstractCameraData):
         name: str,
     ) -> tuple[bytes | None, str | None]:
         """Retrieve the face of a given person."""
-        for person in self.persons:
-            if name == self.persons[person].get("pseudo"):
-                image_id = self.persons[person]["face"]["id"]
-                key = self.persons[person]["face"]["key"]
+        for person in self.persons.values():
+            if name == person.get("pseudo"):
+                image_id = person["face"]["id"]
+                key = person["face"]["key"]
                 return await self.async_get_camera_picture(image_id, key)
 
         return None, None

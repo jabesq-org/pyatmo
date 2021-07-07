@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- Distribute type information
 
 ### Changed
 
--
+- Update type annotations
 
 ### Deprecated
 

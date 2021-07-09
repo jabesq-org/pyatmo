@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Distribute type information
+-
 
 ### Changed
 
-- Update type annotations
+-
 
 ### Deprecated
 
@@ -30,6 +30,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 -
+
+## [5.2.1] - 2021-07-10
+
+### Added
+
+- Distribute type information
+
+### Changed
+
+- Update type annotations
 
 ## [5.2.0] - 2021-06-30
 

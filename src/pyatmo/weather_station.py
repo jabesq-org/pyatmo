@@ -1,9 +1,10 @@
 """Support for Netatmo weather station devices (stations and modules)."""
+from __future__ import annotations
+
 import logging
 import time
 from abc import ABC
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .helpers import _BASE_URL, extract_raw_data, today_stamps
@@ -17,9 +18,9 @@ _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 class AbstractWeatherStationData(ABC):
     """Abstract class of Netatmo Weather Station devices."""
 
-    raw_data: Dict = defaultdict(dict)
-    stations: Dict = defaultdict(dict)
-    modules: Dict = defaultdict(dict)
+    raw_data: dict = defaultdict(dict)
+    stations: dict = defaultdict(dict)
+    modules: dict = defaultdict(dict)
 
     def process(self) -> None:
         """Process data from API."""
@@ -41,7 +42,7 @@ class AbstractWeatherStationData(ABC):
                 self.modules[module["_id"]] = module
                 self.modules[module["_id"]]["main_device"] = item["_id"]
 
-    def get_module_names(self, station_id: str) -> List:
+    def get_module_names(self, station_id: str) -> list:
         """Return a list of all module names for a given station."""
         res = set()
         station_data = self.get_station(station_id)
@@ -56,7 +57,7 @@ class AbstractWeatherStationData(ABC):
 
         return list(res)
 
-    def get_modules(self, station_id: str) -> Dict:
+    def get_modules(self, station_id: str) -> dict:
         """Return a dict of modules per given station."""
         station_data = self.get_station(station_id)
 
@@ -82,15 +83,15 @@ class AbstractWeatherStationData(ABC):
 
         return res
 
-    def get_station(self, station_id: str) -> Dict:
+    def get_station(self, station_id: str) -> dict:
         """Return station by id."""
         return self.stations.get(station_id, {})
 
-    def get_module(self, module_id: str) -> Dict:
+    def get_module(self, module_id: str) -> dict:
         """Return module by id."""
         return self.modules.get(module_id, {})
 
-    def get_monitored_conditions(self, module_id: str) -> List:
+    def get_monitored_conditions(self, module_id: str) -> list:
         """Return monitored conditions for given module."""
         module = self.get_module(module_id)
         if not module:
@@ -139,11 +140,11 @@ class AbstractWeatherStationData(ABC):
 
         return conditions
 
-    def get_last_data(self, station_id: str, exclude: int = 0) -> Dict:
+    def get_last_data(self, station_id: str, exclude: int = 0) -> dict:
         """Return data for a given station and time frame."""
         key = "_id"
 
-        last_data: Dict = {}
+        last_data: dict = {}
         station = self.get_station(station_id)
 
         if not station or "dashboard_data" not in station:
@@ -184,14 +185,14 @@ class AbstractWeatherStationData(ABC):
 
         return last_data
 
-    def check_not_updated(self, station_id: str, delay: int = 3600) -> List:
+    def check_not_updated(self, station_id: str, delay: int = 3600) -> list:
         """Check if a given station has not been updated."""
         res = self.get_last_data(station_id)
         return [
             key for key, value in res.items() if time.time() - value["When"] > delay
         ]
 
-    def check_updated(self, station_id: str, delay: int = 3600) -> List:
+    def check_updated(self, station_id: str, delay: int = 3600) -> list:
         """Check if a given station has been updated."""
         res = self.get_last_data(station_id)
         return [
@@ -230,7 +231,7 @@ class WeatherStationData(AbstractWeatherStationData):
         limit: int = None,
         optimize: bool = False,
         real_time: bool = False,
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Retrieve data from a device or module."""
         post_params = {"device_id": device_id}
         if module_id:
@@ -258,7 +259,7 @@ class WeatherStationData(AbstractWeatherStationData):
         station_id: str,
         module_id: str = None,
         frame: str = "last24",
-    ) -> Optional[Tuple[float, float, float, float]]:
+    ) -> tuple[float, float, float, float] | None:
         """Return minimum and maximum temperature and humidity over the given timeframe.
 
         Arguments:

@@ -276,7 +276,7 @@ class ClientAuth(NetatmoOAuth2):
 class AbstractAsyncAuth(ABC):
     """Abstract class to make authenticated requests."""
 
-    def __init__(self, websession: ClientSession):
+    def __init__(self, websession: ClientSession) -> None:
         """Initialize the auth."""
         self.websession = websession
 

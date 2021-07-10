@@ -1,8 +1,11 @@
+"""Collection of helper functions."""
+from __future__ import annotations
+
 import logging
 import time
 from calendar import timegm
 from datetime import datetime
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from .exceptions import NoDevice
 
@@ -10,7 +13,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 _BASE_URL: str = "https://api.netatmo.com/"
 
-ERRORS: Dict[int, str] = {
+ERRORS: dict[int, str] = {
     400: "Bad request",
     401: "Unauthorized",
     403: "Forbidden",
@@ -30,12 +33,12 @@ def to_epoch(value: str) -> int:
     return timegm(time.strptime(value + "GMT", "%Y-%m-%d_%H:%M:%S%Z"))
 
 
-def today_stamps() -> Tuple[int, int]:
+def today_stamps() -> tuple[int, int]:
     today: int = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
 
 
-def fix_id(raw_data: Dict) -> Dict:
+def fix_id(raw_data: dict) -> dict:
     """Fix known errors in station ids like superfluous spaces."""
     if not raw_data:
         return raw_data

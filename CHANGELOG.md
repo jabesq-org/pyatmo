@@ -31,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
-## [5.2.2] - 2021-07-14
-
-### Fixed
-
-- Ignore unimportant missing attributes in server response for public weather data
-
 ## [5.2.1] - 2021-07-10
 
 ### Added
@@ -120,9 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.2.2...HEAD
-[5.2.1]: https://github.com/jabesq/pyatmo/compare/v5.2.2...v5.2.2
-[5.2.1]: https://github.com/jabesq/pyatmo/compare/v5.2.0...v5.2.1
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.2.0...HEAD
 [5.2.0]: https://github.com/jabesq/pyatmo/compare/v5.1.0...v5.2.0
 [5.1.0]: https://github.com/jabesq/pyatmo/compare/v5.0.1...v5.1.0
 [5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1

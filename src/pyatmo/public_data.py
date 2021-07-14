@@ -47,9 +47,9 @@ class AbstractPublicData(ABC):
 
     def process(self, resp: dict) -> None:
         """Process data from API."""
-        self.status = resp["status"]
-        self.time_exec = to_time_string(resp["time_exec"])
-        self.time_server = to_time_string(resp["time_server"])
+        self.status = resp.get("status", "")
+        self.time_exec = to_time_string(resp.get("time_exec", ""))
+        self.time_server = to_time_string(resp.get("time_server", ""))
 
     def stations_in_area(self) -> int:
         return len(self.raw_data)

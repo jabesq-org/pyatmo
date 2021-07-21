@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 -
+## [5.2.2] - 2021-07-21
+
+### Fixed
+
+- Ignore if API omits unimportant attributes in response
 
 ## [5.2.1] - 2021-07-10
 
@@ -114,7 +119,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.2.0...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.2.2...HEAD
+[5.2.2]: https://github.com/jabesq/pyatmo/compare/v5.1.2...v5.2.2
+[5.2.1]: https://github.com/jabesq/pyatmo/compare/v5.2.0...v5.2.1
 [5.2.0]: https://github.com/jabesq/pyatmo/compare/v5.1.0...v5.2.0
 [5.1.0]: https://github.com/jabesq/pyatmo/compare/v5.0.1...v5.1.0
 [5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1

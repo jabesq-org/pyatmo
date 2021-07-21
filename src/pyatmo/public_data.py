@@ -8,7 +8,7 @@ from typing import Any
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import NoDevice
-from .helpers import _BASE_URL, to_time_string
+from .helpers import _BASE_URL
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
 
@@ -42,14 +42,10 @@ class AbstractPublicData(ABC):
 
     raw_data: dict = defaultdict(dict)
     status: str = ""
-    time_exec: str = ""
-    time_server: str = ""
 
     def process(self, resp: dict) -> None:
         """Process data from API."""
         self.status = resp.get("status", "")
-        self.time_exec = to_time_string(resp.get("time_exec", ""))
-        self.time_server = to_time_string(resp.get("time_server", ""))
 
     def stations_in_area(self) -> int:
         return len(self.raw_data)

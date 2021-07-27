@@ -47,37 +47,48 @@ class AbstractCameraData(ABC):
             if not item.get("name"):
                 self.homes[home_id]["name"] = "Unknown"
 
-            for person in item.get("persons", []):
-                self.persons[person["id"]] = person
+            self._store_persons(item.get("persons", []))
+            self._store_events(events=item.get("events", []))
+            self._store_cameras(cameras=item.get("cameras", []), home_id=home_id)
+            self._store_smoke_detectors(
+                smoke_detectors=item.get("smokedetectors", []),
+                home_id=home_id,
+            )
 
-            for event in item.get("events", []):
-                self._store_events(event)
+    def _store_persons(self, persons: list) -> None:
+        for person in persons:
+            self.persons[person["id"]] = person
 
-            for camera in item.get("cameras", []):
-                self.cameras[home_id][camera["id"]] = camera
-                self.types[home_id][camera["type"]] = camera
+    def _store_smoke_detectors(self, smoke_detectors: list, home_id: str) -> None:
+        for smoke_detector in smoke_detectors:
+            self.smoke_detectors[home_id][smoke_detector["id"]] = smoke_detector
+            self.types[home_id][smoke_detector["type"]] = smoke_detector
 
-                self.cameras[home_id][camera["id"]]["home_id"] = home_id
-                if camera["type"] == "NACamera":
-                    for module in camera.get("modules", []):
-                        self.modules[module["id"]] = module
-                        self.modules[module["id"]]["cam_id"] = camera["id"]
+    def _store_cameras(self, cameras: list, home_id: str) -> None:
+        for camera in cameras:
+            self.cameras[home_id][camera["id"]] = camera
+            self.types[home_id][camera["type"]] = camera
 
-                if camera.get("name") is None:
-                    self.cameras[home_id][camera["id"]]["name"] = camera["type"]
+            if camera.get("name") is None:
+                self.cameras[home_id][camera["id"]]["name"] = camera["type"]
 
-            for smoke in item.get("smokedetectors", []):
-                self.smoke_detectors[home_id][smoke["id"]] = smoke
-                self.types[home_id][smoke["type"]] = smoke
+            self.cameras[home_id][camera["id"]]["home_id"] = home_id
+            if camera["type"] == "NACamera":
+                for module in camera.get("modules", []):
+                    self.modules[module["id"]] = module
+                    self.modules[module["id"]]["cam_id"] = camera["id"]
 
-    def _store_events(self, event):
-        if event["type"] == "outdoor":
-            self.outdoor_events[event["camera_id"]][event["time"]] = event
+    def _store_events(self, events: list) -> None:
+        """Store all events."""
+        for event in events:
+            if event["type"] == "outdoor":
+                self.outdoor_events[event["camera_id"]][event["time"]] = event
 
-        else:
-            self.events[event["camera_id"]][event["time"]] = event
+            else:
+                self.events[event["camera_id"]][event["time"]] = event
 
-    def _store_last_event(self):
+    def _store_last_event(self) -> None:
+        """Store last event for fast access."""
         for camera in self.events:
             self.last_event[camera] = self.events[camera][
                 sorted(self.events[camera])[-1]
@@ -442,24 +453,23 @@ class CameraData(AbstractCameraData):
 
         vpn_url = camera_data.get("vpn_url")
         if vpn_url and camera_data.get("is_local"):
-
-            def check_url(url: str) -> str | None:
-                try:
-                    resp = self.auth.post_request(url=f"{url}/command/ping").json()
-                except ReadTimeout:
-                    LOG.debug("Timeout validation of camera url %s", url)
-                    return None
-                except ApiError:
-                    LOG.debug("Api error for camera url %s", url)
-                    return None
-
-                return resp.get("local_url") if resp else None
-
-            temp_local_url = check_url(vpn_url)
+            temp_local_url = self._check_url(vpn_url)
             if temp_local_url:
-                self.cameras[home_id][camera_id]["local_url"] = check_url(
+                self.cameras[home_id][camera_id]["local_url"] = self._check_url(
                     temp_local_url,
                 )
+
+    def _check_url(self, url: str) -> str | None:
+        try:
+            resp = self.auth.post_request(url=f"{url}/command/ping").json()
+        except ReadTimeout:
+            LOG.debug("Timeout validation of camera url %s", url)
+            return None
+        except ApiError:
+            LOG.debug("Api error for camera url %s", url)
+            return None
+
+        return resp.get("local_url") if resp else None
 
     def set_state(
         self,
@@ -578,9 +588,7 @@ class CameraData(AbstractCameraData):
             else:
                 LOG.debug("No resp received")
 
-        for event in event_list:
-            self._store_events(event)
-
+        self._store_events(event_list)
         self._store_last_event()
 
 
@@ -679,26 +687,28 @@ class AsyncCameraData(AbstractCameraData):
 
         vpn_url = camera_data.get("vpn_url")
         if vpn_url and camera_data.get("is_local"):
-
-            async def async_check_url(url: str) -> str | None:
-                try:
-                    resp = await self.auth.async_post_request(url=f"{url}/command/ping")
-                except ReadTimeout:
-                    LOG.debug("Timeout validation of camera url %s", url)
-                    return None
-                except ApiError:
-                    LOG.debug("Api error for camera url %s", url)
-                    return None
-
-                assert not isinstance(resp, bytes)
-                resp_data = await resp.json()
-                return resp_data.get("local_url") if resp_data else None
-
-            temp_local_url = await async_check_url(vpn_url)
+            temp_local_url = await self._async_check_url(vpn_url)
             if temp_local_url:
-                self.cameras[home_id][camera_id]["local_url"] = await async_check_url(
+                self.cameras[home_id][camera_id][
+                    "local_url"
+                ] = await self._async_check_url(
                     temp_local_url,
                 )
+
+    async def _async_check_url(self, url: str) -> str | None:
+        """."""
+        try:
+            resp = await self.auth.async_post_request(url=f"{url}/command/ping")
+        except ReadTimeout:
+            LOG.debug("Timeout validation of camera url %s", url)
+            return None
+        except ApiError:
+            LOG.debug("Api error for camera url %s", url)
+            return None
+
+        assert not isinstance(resp, bytes)
+        resp_data = await resp.json()
+        return resp_data.get("local_url") if resp_data else None
 
     async def async_set_persons_home(
         self,

@@ -63,6 +63,9 @@ class AbstractCameraData(ABC):
                         self.modules[module["id"]] = module
                         self.modules[module["id"]]["cam_id"] = camera["id"]
 
+                if camera.get("name") is None:
+                    self.cameras[home_id][camera["id"]]["name"] = camera["type"]
+
             for smoke in item.get("smokedetectors", []):
                 self.smoke_detectors[home_id][smoke["id"]] = smoke
                 self.types[home_id][smoke["type"]] = smoke

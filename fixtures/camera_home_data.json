@@ -286,6 +286,17 @@
                         "name": "Street",
                         "last_setup": 1563737561,
                         "light_mode_status": "auto"
+                    },
+                    {
+                        "id": "12:34:56:00:a5:a6",
+                        "type": "NOC",
+                        "status": "on",
+                        "vpn_url": "https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/6d278460699e56180d47ab47169efb31/MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTTz,,",
+                        "is_local": true,
+                        "sd_status": "on",
+                        "alim_status": "on",
+                        "last_setup": 1563737561,
+                        "light_mode_status": "auto"
                     }
                 ],
                 "smokedetectors": []

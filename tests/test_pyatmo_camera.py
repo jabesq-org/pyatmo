@@ -45,6 +45,7 @@ def test_home_data_no_homes(auth, requests_mock):
     [
         ("12:34:56:00:f1:62", "Hall"),
         ("12:34:56:00:a5:a4", "Garden"),
+        ("12:34:56:00:a5:a6", "NOC"),
         ("None", None),
         (None, None),
     ],

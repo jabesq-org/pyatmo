@@ -230,10 +230,11 @@ class AbstractCameraData(ABC):
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
+            seen = False
 
             for time_ev in array_time_event:
                 if time_ev < limit:
-                    return False
+                    break
                 seen = _someone_known_seen(self.events[camera_id][time_ev])
 
             return seen
@@ -254,10 +255,11 @@ class AbstractCameraData(ABC):
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
+            seen = False
 
             for time_ev in array_time_event:
                 if time_ev < limit:
-                    return False
+                    break
                 seen = _someone_unknown_seen(self.events[camera_id][time_ev])
 
             return seen

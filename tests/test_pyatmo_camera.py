@@ -289,6 +289,7 @@ def test_camera_data_set_persons_home(
     "camera_id, exclude, expected, expectation",
     [
         ("12:34:56:00:f1:62", None, True, does_not_raise()),
+        ("12:34:56:00:f1:62", 40000, False, does_not_raise()),
         ("12:34:56:00:f1:62", 5, False, does_not_raise()),
         (None, None, None, pytest.raises(pyatmo.NoDevice)),
     ],
@@ -309,6 +310,7 @@ def test_camera_data_someone_known_seen(
     "camera_id, exclude, expected, expectation",
     [
         ("12:34:56:00:f1:62", None, False, does_not_raise()),
+        ("12:34:56:00:f1:62", 40000, True, does_not_raise()),
         ("12:34:56:00:f1:62", 100, False, does_not_raise()),
         (None, None, None, pytest.raises(pyatmo.NoDevice)),
     ],

@@ -18,7 +18,8 @@ pytest = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 requests-mock = "*"
-tox = "*"
+pytest-asyncio = "*"
+tox = "~=3.24.0"
 twine = "*"
 
 [packages]

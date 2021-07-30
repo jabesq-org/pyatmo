@@ -2,6 +2,8 @@ import setuptools
 
 setuptools.setup(
     use_scm_version={
+        "version_scheme": "python-simplified-semver",
+        "local_scheme": "no-local-version",
         "tag_regex": r"^(?P<prefix>v)?(?P<version>[^\+]+)(?P<suffix>.*)?$",
         "write_to": "src/pyatmo/__version__.py",
         "write_to_template": '''"""

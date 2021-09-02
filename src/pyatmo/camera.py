@@ -252,7 +252,8 @@ class AbstractCameraData(ABC):
                 if time_ev < limit:
                     continue
                 if seen := _someone_known_seen(
-                    self.events[camera_id][time_ev], home_id
+                    self.events[camera_id][time_ev],
+                    home_id,
                 ):
                     break
 
@@ -284,7 +285,8 @@ class AbstractCameraData(ABC):
                     continue
 
                 if seen := _someone_unknown_seen(
-                    self.events[camera_id][time_ev], home_id
+                    self.events[camera_id][time_ev],
+                    home_id,
                 ):
                     break
 

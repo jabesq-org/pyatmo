@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Ensure camera name is not None
+- Split persons by home
+- Require home_id for person related methods
 
 ### Deprecated
 

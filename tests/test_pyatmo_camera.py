@@ -148,19 +148,19 @@ def test_camera_data_person_seen_by_camera(
 
 
 def test_camera_data__known_persons(camera_home_data):
-    known_persons = camera_home_data._known_persons()
+    known_persons = camera_home_data._known_persons("91763b24c43d3e344f424e8b")
     assert len(known_persons) == 3
     assert known_persons["91827374-7e04-5298-83ad-a0cb8372dff1"]["pseudo"] == "John Doe"
 
 
 def test_camera_data_known_persons(camera_home_data):
-    known_persons = camera_home_data.known_persons()
+    known_persons = camera_home_data.known_persons("91763b24c43d3e344f424e8b")
     assert len(known_persons) == 3
     assert known_persons["91827374-7e04-5298-83ad-a0cb8372dff1"] == "John Doe"
 
 
 def test_camera_data_known_persons_names(camera_home_data):
-    assert sorted(camera_home_data.known_persons_names()) == [
+    assert sorted(camera_home_data.known_persons_names("91763b24c43d3e344f424e8b")) == [
         "Jane Doe",
         "John Doe",
         "Richard Doe",
@@ -169,15 +169,23 @@ def test_camera_data_known_persons_names(camera_home_data):
 
 @freeze_time("2019-06-16")
 @pytest.mark.parametrize(
-    "name, expected",
+    "name, home_id, expected",
     [
-        ("John Doe", "91827374-7e04-5298-83ad-a0cb8372dff1"),
-        ("Richard Doe", "91827376-7e04-5298-83af-a0cb8372dff3"),
-        ("Dexter Foe", None),
+        (
+            "John Doe",
+            "91763b24c43d3e344f424e8b",
+            "91827374-7e04-5298-83ad-a0cb8372dff1",
+        ),
+        (
+            "Richard Doe",
+            "91763b24c43d3e344f424e8b",
+            "91827376-7e04-5298-83af-a0cb8372dff3",
+        ),
+        ("Dexter Foe", "91763b24c43d3e344f424e8b", None),
     ],
 )
-def test_camera_data_get_person_id(camera_home_data, name, expected):
-    assert camera_home_data.get_person_id(name) == expected
+def test_camera_data_get_person_id(camera_home_data, name, home_id, expected):
+    assert camera_home_data.get_person_id(name, home_id) == expected
 
 
 @pytest.mark.parametrize(
@@ -461,8 +469,20 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
         expect = fixture_file.read()
 
     requests_mock.post(pyatmo.camera._GETCAMERAPICTURE_REQ, content=expect)
-    assert camera_home_data.get_profile_image("John Doe") == (expect, "jpeg")
-    assert camera_home_data.get_profile_image("Jack Foe") == (None, None)
+    assert (
+        camera_home_data.get_profile_image(
+            "John Doe",
+            "91763b24c43d3e344f424e8b",
+        )
+        == (expect, "jpeg")
+    )
+    assert (
+        camera_home_data.get_profile_image(
+            "Jack Foe",
+            "91763b24c43d3e344f424e8b",
+        )
+        == (None, None)
+    )
 
 
 @pytest.mark.parametrize(

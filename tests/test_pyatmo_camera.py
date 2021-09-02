@@ -15,7 +15,7 @@ def test_camera_data(camera_home_data):
 
 
 def test_home_data_no_body(auth, requests_mock):
-    with open("fixtures/camera_data_empty.json") as fixture_file:
+    with open("fixtures/camera_data_empty.json", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._GETHOMEDATA_REQ,
@@ -28,7 +28,10 @@ def test_home_data_no_body(auth, requests_mock):
 
 
 def test_home_data_no_homes(auth, requests_mock):
-    with open("fixtures/camera_home_data_no_homes.json") as fixture_file:
+    with open(
+        "fixtures/camera_home_data_no_homes.json",
+        encoding="utf-8",
+    ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._GETHOMEDATA_REQ,
@@ -67,14 +70,14 @@ def test_camera_data_camera_urls(camera_home_data, requests_mock):
         "MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTTg,,"
     )
     local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-    with open("fixtures/camera_ping.json") as json_file:
+    with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         vpn_url + "/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
-    with open("fixtures/camera_ping.json") as json_file:
+    with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         local_url + "/command/ping",
@@ -99,7 +102,10 @@ def test_camera_data_update_camera_urls_empty(camera_home_data):
 
 
 def test_camera_data_camera_urls_disconnected(auth, camera_ping, requests_mock):
-    with open("fixtures/camera_home_data_disconnected.json") as fixture_file:
+    with open(
+        "fixtures/camera_home_data_disconnected.json",
+        encoding="utf-8",
+    ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._GETHOMEDATA_REQ,
@@ -219,7 +225,7 @@ def test_camera_data_set_persons_away(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as json_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
         pyatmo.camera._SETPERSONSAWAY_REQ,
@@ -270,7 +276,7 @@ def test_camera_data_set_persons_home(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as json_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
         pyatmo.camera._SETPERSONSHOME_REQ,
@@ -429,7 +435,7 @@ def test_camera_data_set_state(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as fixture_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._SETSTATE_REQ,
@@ -456,7 +462,11 @@ def test_camera_data_get_light_state(camera_home_data):
 def test_camera_data_get_camera_picture(camera_home_data, requests_mock):
     image_id = "5c22739723720a6e278c43bf"
     key = "276751836a6d1a71447f8d975494c87bc125766a970f7e022e79e001e021d756"
-    with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
+    with open(
+        "fixtures/camera_image_sample.jpg",
+        "rb",
+        encoding="utf-8",
+    ) as fixture_file:
         expect = fixture_file.read()
 
     requests_mock.post(pyatmo.camera._GETCAMERAPICTURE_REQ, content=expect)
@@ -465,7 +475,11 @@ def test_camera_data_get_camera_picture(camera_home_data, requests_mock):
 
 
 def test_camera_data_get_profile_image(camera_home_data, requests_mock):
-    with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
+    with open(
+        "fixtures/camera_image_sample.jpg",
+        "rb",
+        encoding="utf-8",
+    ) as fixture_file:
         expect = fixture_file.read()
 
     requests_mock.post(pyatmo.camera._GETCAMERAPICTURE_REQ, content=expect)
@@ -508,7 +522,10 @@ def test_camera_data_update_events(
     device_type,
     exception,
 ):
-    with open("fixtures/camera_data_events_until.json") as fixture_file:
+    with open(
+        "fixtures/camera_data_events_until.json",
+        encoding="utf-8",
+    ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._GETEVENTSUNTIL_REQ,

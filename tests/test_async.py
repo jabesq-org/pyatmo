@@ -17,7 +17,7 @@ LAT_SW = "46.596485"
 
 @pytest.mark.asyncio
 async def test_foo(async_auth, mocker):
-    with open("fixtures/camera_home_data.json") as json_file:
+    with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -40,7 +40,7 @@ async def test_async_camera_data(async_camera_home_data):
 
 @pytest.mark.asyncio
 async def test_async_home_data_no_body(async_auth):
-    with open("fixtures/camera_data_empty.json") as fixture_file:
+    with open("fixtures/camera_data_empty.json", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
 
     with patch(
@@ -56,7 +56,10 @@ async def test_async_home_data_no_body(async_auth):
 
 @pytest.mark.asyncio
 async def test_async_home_data_no_homes(async_auth):
-    with open("fixtures/camera_home_data_no_homes.json") as fixture_file:
+    with open(
+        "fixtures/camera_home_data_no_homes.json",
+        encoding="utf-8",
+    ) as fixture_file:
         json_fixture = json.load(fixture_file)
 
     with patch(
@@ -79,7 +82,7 @@ async def test_async_home_coach_data(async_home_coach_data):
 
 @pytest.mark.asyncio
 async def test_async_public_data(async_auth):
-    with open("fixtures/public_data_simple.json") as json_file:
+    with open("fixtures/public_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -108,7 +111,7 @@ async def test_async_public_data(async_auth):
 
 @pytest.mark.asyncio
 async def test_async_public_data_error(async_auth):
-    with open("fixtures/public_data_error_mongo.json") as json_file:
+    with open("fixtures/public_data_error_mongo.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -188,7 +191,7 @@ async def test_async_home_data_no_data(async_auth):
 
 @pytest.mark.asyncio
 async def test_async_data_no_body(async_auth):
-    with open("fixtures/home_data_empty.json") as json_file:
+    with open("fixtures/home_data_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -220,7 +223,7 @@ async def test_async_home_data_switch_home_schedule(
     t_sched_id,
     expected,
 ):
-    with open("fixtures/status_ok.json") as json_file:
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     with patch(
@@ -330,7 +333,7 @@ async def test_async_home_status_set_thermmode(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as json_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -401,7 +404,7 @@ async def test_async_home_status_set_room_thermpoint(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as json_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -438,7 +441,11 @@ async def test_async_camera_live_snapshot(async_camera_home_data):
 async def test_async_camera_data_get_camera_picture(async_camera_home_data):
     image_id = "5c22739723720a6e278c43bf"
     key = "276751836a6d1a71447f8d975494c87bc125766a970f7e022e79e001e021d756"
-    with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
+    with open(
+        "fixtures/camera_image_sample.jpg",
+        "rb",
+        encoding="utf-8",
+    ) as fixture_file:
         expect = fixture_file.read()
 
     with patch(
@@ -453,18 +460,28 @@ async def test_async_camera_data_get_camera_picture(async_camera_home_data):
 
 @pytest.mark.asyncio
 async def test_async_camera_data_get_profile_image(async_camera_home_data):
-    with open("fixtures/camera_image_sample.jpg", "rb") as fixture_file:
+    with open(
+        "fixtures/camera_image_sample.jpg",
+        "rb",
+        encoding="utf-8",
+    ) as fixture_file:
         expect = fixture_file.read()
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=expect),
     ):
-        assert await async_camera_home_data.async_get_profile_image("John Doe") == (
+        assert await async_camera_home_data.async_get_profile_image(
+            "John Doe",
+            "91763b24c43d3e344f424e8b",
+        ) == (
             expect,
             "jpeg",
         )
-        assert await async_camera_home_data.async_get_profile_image("Jack Foe") == (
+        assert await async_camera_home_data.async_get_profile_image(
+            "Jack Foe",
+            "91763b24c43d3e344f424e8b",
+        ) == (
             None,
             None,
         )
@@ -501,7 +518,7 @@ async def test_async_camera_data_set_persons_away(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as json_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
@@ -561,7 +578,7 @@ async def test_async_camera_data_set_persons_home(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture) as json_file:
+    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",

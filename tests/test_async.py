@@ -444,7 +444,6 @@ async def test_async_camera_data_get_camera_picture(async_camera_home_data):
     with open(
         "fixtures/camera_image_sample.jpg",
         "rb",
-        encoding="utf-8",
     ) as fixture_file:
         expect = fixture_file.read()
 
@@ -463,7 +462,6 @@ async def test_async_camera_data_get_profile_image(async_camera_home_data):
     with open(
         "fixtures/camera_image_sample.jpg",
         "rb",
-        encoding="utf-8",
     ) as fixture_file:
         expect = fixture_file.read()
 

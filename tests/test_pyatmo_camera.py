@@ -465,7 +465,6 @@ def test_camera_data_get_camera_picture(camera_home_data, requests_mock):
     with open(
         "fixtures/camera_image_sample.jpg",
         "rb",
-        encoding="utf-8",
     ) as fixture_file:
         expect = fixture_file.read()
 
@@ -478,7 +477,6 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
     with open(
         "fixtures/camera_image_sample.jpg",
         "rb",
-        encoding="utf-8",
     ) as fixture_file:
         expect = fixture_file.read()
 

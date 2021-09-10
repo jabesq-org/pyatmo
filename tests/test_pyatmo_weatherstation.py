@@ -27,7 +27,7 @@ def test_weather_station_data_no_response(auth, requests_mock):
 
 
 def test_weather_station_data_no_body(auth, requests_mock):
-    with open("fixtures/status_ok.json") as json_file:
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
@@ -40,7 +40,7 @@ def test_weather_station_data_no_body(auth, requests_mock):
 
 
 def test_weather_station_data_no_data(auth, requests_mock):
-    with open("fixtures/home_data_empty.json") as json_file:
+    with open("fixtures/home_data_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETSTATIONDATA_REQ,
@@ -437,7 +437,7 @@ def test_weather_station_get_data(
     module_type,
     expected,
 ):
-    with open("fixtures/weatherstation_measure.json") as json_file:
+    with open("fixtures/weatherstation_measure.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.weather_station._GETMEASURE_REQ,

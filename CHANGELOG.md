@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [6.0.0] - 2021-09-10
+
+### Changed
+
+- Ensure camera name is not None
+- Split persons by home
+- BREAKING: Require home_id for person related methods
+- version is now managed by setuptools scm
+
 ## [5.2.3] - 2021-07-22
 
 ### Fixed
@@ -126,7 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v5.2.3...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.0.0...HEAD
+[6.0.0]: https://github.com/jabesq/pyatmo/compare/v5.2.3...v6.0.0
 [5.2.3]: https://github.com/jabesq/pyatmo/compare/v5.2.2...v5.2.3
 [5.2.2]: https://github.com/jabesq/pyatmo/compare/v5.2.1...v5.2.2
 [5.2.1]: https://github.com/jabesq/pyatmo/compare/v5.2.0...v5.2.1

@@ -27,7 +27,7 @@ class AbstractCameraData(ABC):
 
     raw_data: dict = defaultdict(dict)
     homes: dict = defaultdict(dict)
-    persons: dict = {}
+    persons: dict = defaultdict(dict)
     events: dict = defaultdict(dict)
     outdoor_events: dict = defaultdict(dict)
     cameras: dict = defaultdict(dict)
@@ -47,34 +47,49 @@ class AbstractCameraData(ABC):
             if not item.get("name"):
                 self.homes[home_id]["name"] = "Unknown"
 
+            self._store_events(events=item.get("events", []))
+            self._store_cameras(cameras=item.get("cameras", []), home_id=home_id)
+            self._store_smoke_detectors(
+                smoke_detectors=item.get("smokedetectors", []),
+                home_id=home_id,
+            )
             for person in item.get("persons", []):
-                self.persons[person["id"]] = person
+                self.persons[home_id][person["id"]] = person
 
-            for event in item.get("events", []):
-                self._store_events(event)
+    def _store_persons(self, persons: list) -> None:
+        for person in persons:
+            self.persons[person["id"]] = person
 
-            for camera in item.get("cameras", []):
-                self.cameras[home_id][camera["id"]] = camera
-                self.types[home_id][camera["type"]] = camera
+    def _store_smoke_detectors(self, smoke_detectors: list, home_id: str) -> None:
+        for smoke_detector in smoke_detectors:
+            self.smoke_detectors[home_id][smoke_detector["id"]] = smoke_detector
+            self.types[home_id][smoke_detector["type"]] = smoke_detector
 
-                self.cameras[home_id][camera["id"]]["home_id"] = home_id
-                if camera["type"] == "NACamera":
-                    for module in camera.get("modules", []):
-                        self.modules[module["id"]] = module
-                        self.modules[module["id"]]["cam_id"] = camera["id"]
+    def _store_cameras(self, cameras: list, home_id: str) -> None:
+        for camera in cameras:
+            self.cameras[home_id][camera["id"]] = camera
+            self.types[home_id][camera["type"]] = camera
 
-            for smoke in item.get("smokedetectors", []):
-                self.smoke_detectors[home_id][smoke["id"]] = smoke
-                self.types[home_id][smoke["type"]] = smoke
+            if camera.get("name") is None:
+                self.cameras[home_id][camera["id"]]["name"] = camera["type"]
 
-    def _store_events(self, event):
-        if event["type"] == "outdoor":
-            self.outdoor_events[event["camera_id"]][event["time"]] = event
+            self.cameras[home_id][camera["id"]]["home_id"] = home_id
+            if camera["type"] == "NACamera":
+                for module in camera.get("modules", []):
+                    self.modules[module["id"]] = module
+                    self.modules[module["id"]]["cam_id"] = camera["id"]
 
-        else:
-            self.events[event["camera_id"]][event["time"]] = event
+    def _store_events(self, events: list) -> None:
+        """Store all events."""
+        for event in events:
+            if event["type"] == "outdoor":
+                self.outdoor_events[event["camera_id"]][event["time"]] = event
 
-    def _store_last_event(self):
+            else:
+                self.events[event["camera_id"]][event["time"]] = event
+
+    def _store_last_event(self) -> None:
+        """Store last event for fast access."""
         for camera in self.events:
             self.last_event[camera] = self.events[camera][
                 sorted(self.events[camera])[-1]
@@ -92,6 +107,14 @@ class AbstractCameraData(ABC):
                 return self.cameras[home_id][camera_id]
 
         return {}
+
+    def get_camera_home_id(self, camera_id: str) -> str | None:
+        """Get camera data."""
+        for home_id in self.cameras:
+            if camera_id in self.cameras[home_id]:
+                return home_id
+
+        return None
 
     def get_module(self, module_id: str) -> dict | None:
         """Get module data."""
@@ -130,9 +153,9 @@ class AbstractCameraData(ABC):
             if "pseudo" in person and not person["out_of_sight"]
         ]
 
-    def get_person_id(self, name: str) -> str | None:
+    def get_person_id(self, name: str, home_id: str) -> str | None:
         """Retrieve the ID of a person."""
-        for pid, data in self.persons.items():
+        for pid, data in self.persons[home_id].items():
             if name == data.get("pseudo"):
                 return pid
 
@@ -165,12 +188,16 @@ class AbstractCameraData(ABC):
         exclude: int = 0,
     ) -> bool:
         """Evaluate if a specific person has been seen."""
+        home_id = self.get_camera_home_id(camera_id)
 
-        def _person_in_event(curr_event: dict, person_name: str) -> bool:
+        if home_id is None:
+            raise NoDevice
+
+        def _person_in_event(home_id: str, curr_event: dict, person_name: str) -> bool:
             person_id = curr_event.get("person_id")
             return (
                 curr_event["type"] == "person"
-                and self.persons[person_id].get("pseudo") == person_name
+                and self.persons[home_id][person_id].get("pseudo") == person_name
             )
 
         if exclude:
@@ -182,73 +209,90 @@ class AbstractCameraData(ABC):
                     return False
 
                 current_event = self.events[camera_id][time_ev]
-                if _person_in_event(current_event, name):
+                if _person_in_event(home_id, current_event, name):
                     return True
 
             return False
 
         current_event = self.last_event[camera_id]
-        return _person_in_event(current_event, name)
+        return _person_in_event(home_id, current_event, name)
 
-    def _known_persons(self) -> dict[str, dict]:
+    def _known_persons(self, home_id: str) -> dict[str, dict]:
         """Return all known persons."""
-        return {pid: p for pid, p in self.persons.items() if "pseudo" in p}
+        return {pid: p for pid, p in self.persons[home_id].items() if "pseudo" in p}
 
-    def known_persons(self) -> dict[str, str]:
+    def known_persons(self, home_id: str) -> dict[str, str]:
         """Return a dictionary of known person names."""
-        return {pid: p["pseudo"] for pid, p in self._known_persons().items()}
+        return {pid: p["pseudo"] for pid, p in self._known_persons(home_id).items()}
 
-    def known_persons_names(self) -> list[str]:
+    def known_persons_names(self, home_id: str) -> list[str]:
         """Return a list of known person names."""
-        return [person["pseudo"] for person in self._known_persons().values()]
+        return [person["pseudo"] for person in self._known_persons(home_id).values()]
 
     def someone_known_seen(self, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if someone known has been seen."""
         if camera_id not in self.events:
             raise NoDevice
 
-        def _someone_known_seen(event: dict) -> bool:
-            return (
-                event["type"] == "person"
-                and event["person_id"] in self._known_persons()
-            )
+        home_id = self.get_camera_home_id(camera_id)
+        if home_id is None:
+            raise NoDevice
+
+        def _someone_known_seen(event: dict, home_id: str) -> bool:
+            return event["type"] == "person" and event[
+                "person_id"
+            ] in self._known_persons(home_id)
 
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
+            seen = False
 
             for time_ev in array_time_event:
                 if time_ev < limit:
-                    return False
-                seen = _someone_known_seen(self.events[camera_id][time_ev])
+                    continue
+                if seen := _someone_known_seen(
+                    self.events[camera_id][time_ev],
+                    home_id,
+                ):
+                    break
 
             return seen
 
-        return _someone_known_seen(self.last_event[camera_id])
+        return _someone_known_seen(self.last_event[camera_id], home_id)
 
     def someone_unknown_seen(self, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if someone known has been seen."""
         if camera_id not in self.events:
             raise NoDevice
 
-        def _someone_unknown_seen(event: dict) -> bool:
-            return (
-                event["type"] == "person"
-                and event["person_id"] not in self._known_persons()
-            )
+        home_id = self.get_camera_home_id(camera_id)
+        if home_id is None:
+            raise NoDevice
+
+        def _someone_unknown_seen(event: dict, home_id: str) -> bool:
+            return event["type"] == "person" and event[
+                "person_id"
+            ] not in self._known_persons(home_id)
 
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events[camera_id], reverse=True)
+            seen = False
 
             for time_ev in array_time_event:
                 if time_ev < limit:
-                    return False
-                seen = _someone_unknown_seen(self.events[camera_id][time_ev])
+                    continue
+
+                if seen := _someone_unknown_seen(
+                    self.events[camera_id][time_ev],
+                    home_id,
+                ):
+                    break
 
             return seen
 
-        return _someone_unknown_seen(self.last_event[camera_id])
+        return _someone_unknown_seen(self.last_event[camera_id], home_id)
 
     def motion_detected(self, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if movement has been detected."""
@@ -439,24 +483,23 @@ class CameraData(AbstractCameraData):
 
         vpn_url = camera_data.get("vpn_url")
         if vpn_url and camera_data.get("is_local"):
-
-            def check_url(url: str) -> str | None:
-                try:
-                    resp = self.auth.post_request(url=f"{url}/command/ping").json()
-                except ReadTimeout:
-                    LOG.debug("Timeout validation of camera url %s", url)
-                    return None
-                except ApiError:
-                    LOG.debug("Api error for camera url %s", url)
-                    return None
-
-                return resp.get("local_url") if resp else None
-
-            temp_local_url = check_url(vpn_url)
+            temp_local_url = self._check_url(vpn_url)
             if temp_local_url:
-                self.cameras[home_id][camera_id]["local_url"] = check_url(
+                self.cameras[home_id][camera_id]["local_url"] = self._check_url(
                     temp_local_url,
                 )
+
+    def _check_url(self, url: str) -> str | None:
+        try:
+            resp = self.auth.post_request(url=f"{url}/command/ping").json()
+        except ReadTimeout:
+            LOG.debug("Timeout validation of camera url %s", url)
+            return None
+        except ApiError:
+            LOG.debug("Api error for camera url %s", url)
+            return None
+
+        return resp.get("local_url") if resp else None
 
     def set_state(
         self,
@@ -532,9 +575,13 @@ class CameraData(AbstractCameraData):
         image_type = imghdr.what("NONE.FILE", resp)
         return resp, image_type
 
-    def get_profile_image(self, name: str) -> tuple[bytes | None, str | None]:
+    def get_profile_image(
+        self,
+        name: str,
+        home_id: str,
+    ) -> tuple[bytes | None, str | None]:
         """Retrieve the face of a given person."""
-        for person in self.persons.values():
+        for person in self.persons[home_id].values():
             if name == person.get("pseudo"):
                 image_id = person["face"]["id"]
                 key = person["face"]["key"]
@@ -575,9 +622,7 @@ class CameraData(AbstractCameraData):
             else:
                 LOG.debug("No resp received")
 
-        for event in event_list:
-            self._store_events(event)
-
+        self._store_events(event_list)
         self._store_last_event()
 
 
@@ -676,26 +721,28 @@ class AsyncCameraData(AbstractCameraData):
 
         vpn_url = camera_data.get("vpn_url")
         if vpn_url and camera_data.get("is_local"):
-
-            async def async_check_url(url: str) -> str | None:
-                try:
-                    resp = await self.auth.async_post_request(url=f"{url}/command/ping")
-                except ReadTimeout:
-                    LOG.debug("Timeout validation of camera url %s", url)
-                    return None
-                except ApiError:
-                    LOG.debug("Api error for camera url %s", url)
-                    return None
-
-                assert not isinstance(resp, bytes)
-                resp_data = await resp.json()
-                return resp_data.get("local_url") if resp_data else None
-
-            temp_local_url = await async_check_url(vpn_url)
+            temp_local_url = await self._async_check_url(vpn_url)
             if temp_local_url:
-                self.cameras[home_id][camera_id]["local_url"] = await async_check_url(
+                self.cameras[home_id][camera_id][
+                    "local_url"
+                ] = await self._async_check_url(
                     temp_local_url,
                 )
+
+    async def _async_check_url(self, url: str) -> str | None:
+        """."""
+        try:
+            resp = await self.auth.async_post_request(url=f"{url}/command/ping")
+        except ReadTimeout:
+            LOG.debug("Timeout validation of camera url %s", url)
+            return None
+        except ApiError:
+            LOG.debug("Api error for camera url %s", url)
+            return None
+
+        assert not isinstance(resp, bytes)
+        resp_data = await resp.json()
+        return resp_data.get("local_url") if resp_data else None
 
     async def async_set_persons_home(
         self,
@@ -757,9 +804,10 @@ class AsyncCameraData(AbstractCameraData):
     async def async_get_profile_image(
         self,
         name: str,
+        home_id: str,
     ) -> tuple[bytes | None, str | None]:
         """Retrieve the face of a given person."""
-        for person in self.persons.values():
+        for person in self.persons[home_id].values():
             if name == person.get("pseudo"):
                 image_id = person["face"]["id"]
                 key = person["face"]["key"]

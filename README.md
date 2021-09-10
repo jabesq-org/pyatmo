@@ -4,7 +4,7 @@ pyatmo
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![GitHub Actions](https://github.com/jabesq/pyatmo/workflows/Python%20package/badge.svg)](https://github.com/jabesq/pyatmo/actions?workflow=Python+package)
 [![PyPi](https://img.shields.io/pypi/v/pyatmo.svg)](https://pypi.python.org/pypi/pyatmo)
-[![PyPi](https://img.shields.io/pypi/l/pyatmo.svg)](https://github.com/jabesq/pyatmo/blob/master/LICENSE.txt)
+[![license](https://img.shields.io/pypi/l/pyatmo.svg)](https://github.com/jabesq/pyatmo/blob/master/LICENSE.txt)
 
 Simple API to access Netatmo devices and data like weather station or camera data from Python 3.
 For more detailed information see [dev.netatmo.com](http://dev.netatmo.com)

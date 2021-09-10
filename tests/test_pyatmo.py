@@ -19,7 +19,7 @@ def test_client_auth(auth):
 
 
 def test_client_auth_invalid(requests_mock):
-    with open("fixtures/invalid_grant.json") as json_file:
+    with open("fixtures/invalid_grant.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.auth.AUTH_REQ,

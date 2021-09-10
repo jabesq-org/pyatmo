@@ -56,7 +56,7 @@ def test_home_coach_data_get_modules(home_coach_data, station_id, expected):
 
 
 def test_home_coach_data_no_devices(auth, requests_mock):
-    with open("fixtures/home_coach_no_devices.json") as json_file:
+    with open("fixtures/home_coach_no_devices.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.home_coach._GETHOMECOACHDATA_REQ,

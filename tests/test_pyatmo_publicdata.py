@@ -13,7 +13,7 @@ LAT_SW = "46.596485"
 
 
 def test_public_data(auth, requests_mock):
-    with open("fixtures/public_data_simple.json") as json_file:
+    with open("fixtures/public_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.public_data._GETPUBLIC_DATA,
@@ -45,7 +45,7 @@ def test_public_data_unavailable(auth, requests_mock):
 
 
 def test_public_data_error(auth, requests_mock):
-    with open("fixtures/public_data_error_mongo.json") as json_file:
+    with open("fixtures/public_data_error_mongo.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.public_data._GETPUBLIC_DATA,

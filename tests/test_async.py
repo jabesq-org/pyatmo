@@ -429,7 +429,7 @@ async def test_async_camera_live_snapshot(async_camera_home_data):
     assert async_camera_home_data.homes is not None
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_get_image",
         AsyncMock(return_value=b"0000"),
     ):
         result = await async_camera_home_data.async_get_live_snapshot(camera_id=_id)
@@ -448,7 +448,7 @@ async def test_async_camera_data_get_camera_picture(async_camera_home_data):
         expect = fixture_file.read()
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_get_image",
         AsyncMock(return_value=expect),
     ):
         assert await async_camera_home_data.async_get_camera_picture(image_id, key) == (
@@ -466,7 +466,7 @@ async def test_async_camera_data_get_profile_image(async_camera_home_data):
         expect = fixture_file.read()
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_get_image",
         AsyncMock(return_value=expect),
     ):
         assert await async_camera_home_data.async_get_profile_image(

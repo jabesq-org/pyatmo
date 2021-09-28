@@ -284,6 +284,39 @@ class AbstractAsyncAuth(ABC):
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
 
+    async def async_get_image(
+        self,
+        url: str,
+        params: dict | None = None,
+        timeout: int = 5,
+    ) -> bytes:
+        """Wrapper for async get requests."""
+        try:
+            access_token = await self.async_get_access_token()
+        except ClientError as err:
+            raise ApiError(f"Access token failure: {err}") from err
+        headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+
+        req_args = {"data": params if params is not None else {}}
+
+        async with self.websession.get(
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
+        ) as resp:
+            resp_status = resp.status
+            resp_content = await resp.read()
+
+            if resp.headers.get("content-type") == "image/jpeg":
+                return resp_content
+
+        raise ApiError(
+            f"{resp_status} - "
+            f"invalid content-type in response"
+            f"when accessing '{url}'",
+        )
+
     async def async_post_request(
         self,
         url: str,

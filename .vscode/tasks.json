@@ -3,6 +3,7 @@
     "tasks": [
         {
             "label": "Pytest",
+            "detail": "Run test suite with pytest",
             "type": "shell",
             "command": "pytest tests",
             "dependsOn": [
@@ -20,6 +21,7 @@
         },
         {
             "label": "Flake8",
+            "detail": "Run flake8 style checker",
             "type": "shell",
             "command": "pre-commit run flake8 --all-files",
             "group": {
@@ -34,6 +36,7 @@
         },
         {
             "label": "Pylint",
+            "detail": "Run pylint code analysis",
             "type": "shell",
             "command": "pylint pyatmo",
             "dependsOn": [
@@ -51,7 +54,7 @@
         },
         {
             "label": "Code Coverage",
-            "detail": "Generate code coverage report.",
+            "detail": "Generate code coverage report",
             "type": "shell",
             "command": "pytest ./tests --cov=pyatmo --cov-report term-missing",
             "group": {
@@ -63,6 +66,26 @@
                 "panel": "new"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Build wheel artifacts",
+            "command": "rm -r dist && python setup.py sdist bdist_wheel && rm -r build",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceRoot}/"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "never"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
         }
     ]
 }

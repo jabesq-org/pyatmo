@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-3.9
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+WORKDIR /workspaces
+
+COPY requirements.txt requirements_dev.txt setup.cfg setup.py ./
+
+# Install Python dependencies from requirements
+RUN pip3 install -r requirements.txt \
+    && pip3 install -r requirements_dev.txt \
+    && rm -rf requirements.txt requirements_dev.txt pyatmo/
+
+# Set the default shell to bash instead of sh
+ENV SHELL /bin/bash

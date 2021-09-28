@@ -1,0 +1,68 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Pytest",
+            "type": "shell",
+            "command": "pytest tests",
+            "dependsOn": [
+                "Install all Test Requirements"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flake8",
+            "type": "shell",
+            "command": "pre-commit run flake8 --all-files",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Pylint",
+            "type": "shell",
+            "command": "pylint pyatmo",
+            "dependsOn": [
+                "Install all Requirements"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Code Coverage",
+            "detail": "Generate code coverage report.",
+            "type": "shell",
+            "command": "pytest ./tests --cov=pyatmo --cov-report term-missing",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -322,7 +322,7 @@ class AbstractAsyncAuth(ABC):
         url: str,
         params: dict | None = None,
         timeout: int = 5,
-    ) -> ClientResponse | bytes:
+    ) -> ClientResponse:
         """Wrapper for async post requests."""
         try:
             access_token = await self.async_get_access_token()
@@ -344,9 +344,6 @@ class AbstractAsyncAuth(ABC):
         ) as resp:
             resp_status = resp.status
             resp_content = await resp.read()
-
-            if resp.headers.get("content-type") == "image/jpeg":
-                return resp_content
 
             if not resp.ok:
                 LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)

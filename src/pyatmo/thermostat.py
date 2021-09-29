@@ -120,7 +120,7 @@ class HomeData(AbstractHomeData):
     def switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
         """Switch the schedule for a give home ID."""
         if not self.is_valid_schedule(home_id, schedule_id):
-            raise NoSchedule("%s is not a valid schedule id" % schedule_id)
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
@@ -149,7 +149,7 @@ class AsyncHomeData(AbstractHomeData):
     async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> None:
         """Switch the schedule for a give home ID."""
         if not self.is_valid_schedule(home_id, schedule_id):
-            raise NoSchedule("%s is not a valid schedule id" % schedule_id)
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = await self.auth.async_post_request(
@@ -189,7 +189,7 @@ class AbstractHomeStatus(ABC):
             if value["id"] == room_id:
                 return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def get_thermostat(self, room_id: str) -> dict:
         """Return thermostat data for a given room id."""
@@ -197,7 +197,7 @@ class AbstractHomeStatus(ABC):
             if value["id"] == room_id:
                 return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def get_relay(self, room_id: str) -> dict:
         """Return relay data for a given room id."""
@@ -205,7 +205,7 @@ class AbstractHomeStatus(ABC):
             if value["id"] == room_id:
                 return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def get_valve(self, room_id: str) -> dict:
         """Return valve data for a given room id."""
@@ -213,7 +213,7 @@ class AbstractHomeStatus(ABC):
             if value["id"] == room_id:
                 return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def set_point(self, room_id: str) -> float | None:
         """Return the setpoint of a given room."""

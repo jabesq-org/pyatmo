@@ -333,7 +333,7 @@ async def test_async_home_status_set_thermmode(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -404,7 +404,7 @@ async def test_async_home_status_set_room_thermpoint(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 
     mock_resp = MockResponse(json_fixture, 200)
@@ -516,7 +516,7 @@ async def test_async_camera_data_set_persons_away(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
@@ -576,7 +576,7 @@ async def test_async_camera_data_set_persons_home(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",

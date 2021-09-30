@@ -120,7 +120,7 @@ class HomeData(AbstractHomeData):
     def switch_home_schedule(self, home_id: str, schedule_id: str) -> Any:
         """Switch the schedule for a give home ID."""
         if not self.is_valid_schedule(home_id, schedule_id):
-            raise NoSchedule("%s is not a valid schedule id" % schedule_id)
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
@@ -149,7 +149,7 @@ class AsyncHomeData(AbstractHomeData):
     async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> None:
         """Switch the schedule for a give home ID."""
         if not self.is_valid_schedule(home_id, schedule_id):
-            raise NoSchedule("%s is not a valid schedule id" % schedule_id)
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = await self.auth.async_post_request(
@@ -185,35 +185,35 @@ class AbstractHomeStatus(ABC):
 
     def get_room(self, room_id: str) -> dict:
         """Return room data for a given room id."""
-        for key, value in self.rooms.items():
+        for value in self.rooms.values():
             if value["id"] == room_id:
-                return self.rooms[key]
+                return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def get_thermostat(self, room_id: str) -> dict:
         """Return thermostat data for a given room id."""
-        for key, value in self.thermostats.items():
+        for value in self.thermostats.values():
             if value["id"] == room_id:
-                return self.thermostats[key]
+                return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def get_relay(self, room_id: str) -> dict:
         """Return relay data for a given room id."""
-        for key, value in self.relays.items():
+        for value in self.relays.values():
             if value["id"] == room_id:
-                return self.relays[key]
+                return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def get_valve(self, room_id: str) -> dict:
         """Return valve data for a given room id."""
-        for key, value in self.valves.items():
+        for value in self.valves.values():
             if value["id"] == room_id:
-                return self.valves[key]
+                return value
 
-        raise InvalidRoom("No room with ID %s" % room_id)
+        raise InvalidRoom(f"No room with ID {room_id}")
 
     def set_point(self, room_id: str) -> float | None:
         """Return the setpoint of a given room."""

@@ -773,7 +773,7 @@ class AsyncCameraData(AbstractCameraData):
         local, vpn = self.camera_urls(camera_id)
         if not local and not vpn:
             return None
-        resp = await self.auth.async_post_request(
+        resp = await self.auth.async_get_image(
             url=f"{(local or vpn)}/live/snapshot_720.jpg",
             timeout=10,
         )
@@ -790,7 +790,7 @@ class AsyncCameraData(AbstractCameraData):
     ) -> tuple[bytes, str | None]:
         """Download a specific image (of an event or user face) from the camera."""
         post_params = {"image_id": image_id, "key": key}
-        resp = await self.auth.async_post_request(
+        resp = await self.auth.async_get_image(
             url=_GETCAMERAPICTURE_REQ,
             params=post_params,
         )

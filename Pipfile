@@ -15,10 +15,10 @@ pre-commit = "*"
 pylint = "*"
 pylint-pytest = "*"
 pytest = "*"
+pytest-asyncio = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 requests-mock = "*"
-pytest-asyncio = "*"
 tox = "~=3.24"
 twine = "*"
 
@@ -32,7 +32,3 @@ python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true
-
-[packages.pyatmo]
-editable = true
-path = "."

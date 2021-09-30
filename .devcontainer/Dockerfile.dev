@@ -1,0 +1,28 @@
+ARG VARIANT="3.8"
+
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT} as builder
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+WORKDIR /workspaces
+
+COPY Pipfile Pipfile.lock ./
+
+# Create Python requirements files from pipenv (lockfile)
+RUN pip3 install -U pip \
+    && pip3 install pipenv \
+    && pipenv lock --requirements > /tmp/requirements.txt \
+    && pipenv lock --dev --requirements > /tmp/requirements_dev.txt
+
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
+
+COPY --from=builder /tmp/requirements.txt /tmp/
+COPY --from=builder /tmp/requirements_dev.txt /tmp/
+
+# Install Python dependencies from requirements
+RUN pip3 install -r /tmp/requirements.txt \
+    && pip3 install -r /tmp/requirements_dev.txt \
+    && rm -rf /tmp/requirements.txt /tmp/requirements_dev.txt pyatmo/
+
+# Set the default shell to bash instead of sh
+ENV SHELL /bin/bash

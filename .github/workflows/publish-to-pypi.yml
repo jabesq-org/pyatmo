@@ -2,8 +2,6 @@ name: Publish 📦 to PyPI
 
 on:
   push:
-    branches:
-      - master
     tags:
       - 'v*'
 

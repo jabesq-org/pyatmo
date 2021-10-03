@@ -1,0 +1,91 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Pytest",
+            "detail": "Run test suite with pytest",
+            "type": "shell",
+            "command": "pytest tests",
+            "dependsOn": [
+                "Install all Test Requirements"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flake8",
+            "detail": "Run flake8 style checker",
+            "type": "shell",
+            "command": "pre-commit run flake8 --all-files",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Pylint",
+            "detail": "Run pylint code analysis",
+            "type": "shell",
+            "command": "pylint pyatmo",
+            "dependsOn": [
+                "Install all Requirements"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Code Coverage",
+            "detail": "Generate code coverage report",
+            "type": "shell",
+            "command": "pytest ./tests --cov=pyatmo --cov-report term-missing",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build wheel artifacts",
+            "command": "rm -r dist && python setup.py sdist bdist_wheel && rm -r build",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceRoot}/"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "never"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}

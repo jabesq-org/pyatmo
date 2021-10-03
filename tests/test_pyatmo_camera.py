@@ -225,7 +225,7 @@ def test_camera_data_set_persons_away(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
         pyatmo.camera._SETPERSONSAWAY_REQ,
@@ -276,7 +276,7 @@ def test_camera_data_set_persons_home(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
         pyatmo.camera._SETPERSONSHOME_REQ,
@@ -435,7 +435,7 @@ def test_camera_data_set_state(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as fixture_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
         pyatmo.camera._SETSTATE_REQ,

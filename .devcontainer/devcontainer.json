@@ -1,0 +1,38 @@
+{
+    "name": "pyatmo Dev",
+    "context": "..",
+    "dockerFile": "./Dockerfile.dev",
+    "containerEnv": {
+        "DEVCONTAINER": "1"
+    },
+    "postCreateCommand": "pip3 install -e . && pre-commit run flake8",
+    "runArgs": [
+        "-e",
+        "GIT_EDITOR=code --wait"
+    ],
+    "extensions": [
+        "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+    ],
+    "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.linting.pylintEnabled": true,
+        "python.linting.enabled": true,
+        "python.formatting.provider": "black",
+        "python.testing.pytestArgs": [
+            "--no-cov"
+        ],
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestEnabled": true,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.profiles.linux": {
+            "zsh": {
+                "path": "/usr/bin/zsh"
+            }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+    }
+}

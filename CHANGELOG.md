@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [6.1.0] - 2021-10-03
+
+### Added
+
+- Provide a VS Code devcontainer
+
+### Changed
+
+- Provide separate method for image retrival
+- Minor f-string conversions
+
 ## [6.0.0] - 2021-09-10
 
 ### Changed

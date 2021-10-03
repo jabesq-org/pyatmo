@@ -416,7 +416,7 @@ def test_home_status_set_thermmode(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SETTHERMMODE_REQ,
@@ -485,7 +485,7 @@ def test_home_status_set_room_thermpoint(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
@@ -549,7 +549,7 @@ def test_home_status_set_room_thermpoint_error(
     json_fixture,
     expected,
 ):
-    with open("fixtures/%s" % json_fixture, encoding="utf-8") as json_file:
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
         pyatmo.thermostat._SETROOMTHERMPOINT_REQ,

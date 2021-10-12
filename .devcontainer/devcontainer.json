@@ -16,6 +16,7 @@
     ],
     "settings": {
         "python.pythonPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/user/local/bin/python",
         "python.linting.pylintEnabled": true,
         "python.linting.enabled": true,
         "python.formatting.provider": "black",

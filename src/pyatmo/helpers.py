@@ -66,8 +66,7 @@ def extract_raw_data(resp: Any, tag: str) -> dict:
         LOG.debug("Server response: %s", resp)
         raise NoDevice("No device found, errors in response")
 
-    raw_data = fix_id(resp["body"].get(tag))
-    if not raw_data:
+    if not (raw_data := fix_id(resp["body"].get(tag))):
         LOG.debug("Server response: %s", resp)
         raise NoDevice("No device data available")
 

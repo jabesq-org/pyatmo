@@ -45,9 +45,8 @@ class AbstractWeatherStationData(ABC):
     def get_module_names(self, station_id: str) -> list:
         """Return a list of all module names for a given station."""
         res = set()
-        station_data = self.get_station(station_id)
 
-        if not station_data:
+        if not (station_data := self.get_station(station_id)):
             return []
 
         res.add(station_data.get("module_name", station_data.get("type")))
@@ -59,9 +58,7 @@ class AbstractWeatherStationData(ABC):
 
     def get_modules(self, station_id: str) -> dict:
         """Return a dict of modules per given station."""
-        station_data = self.get_station(station_id)
-
-        if not station_data:
+        if not (station_data := self.get_station(station_id)):
             return {}
 
         res = {}
@@ -93,11 +90,7 @@ class AbstractWeatherStationData(ABC):
 
     def get_monitored_conditions(self, module_id: str) -> list:
         """Return monitored conditions for given module."""
-        module = self.get_module(module_id)
-        if not module:
-            module = self.get_station(module_id)
-
-        if not module:
+        if not (module := (self.get_module(module_id) or self.get_station(module_id))):
             return []
 
         conditions = []
@@ -145,9 +138,11 @@ class AbstractWeatherStationData(ABC):
         key = "_id"
 
         last_data: dict = {}
-        station = self.get_station(station_id)
 
-        if not station or "dashboard_data" not in station:
+        if (
+            not (station := self.get_station(station_id))
+            or "dashboard_data" not in station
+        ):
             LOG.debug("No dashboard data for station %s", station_id)
             return last_data
 
@@ -215,9 +210,10 @@ class WeatherStationData(AbstractWeatherStationData):
 
     def update(self):
         """Fetch data from API."""
-        resp = self.auth.post_request(url=self.url_req).json()
-
-        self.raw_data = extract_raw_data(resp, "devices")
+        self.raw_data = extract_raw_data(
+            self.auth.post_request(url=self.url_req).json(),
+            "devices",
+        )
         self.process()
 
     def get_data(

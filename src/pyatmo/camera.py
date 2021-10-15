@@ -234,8 +234,7 @@ class AbstractCameraData(ABC):
         if camera_id not in self.events:
             raise NoDevice
 
-        home_id = self.get_camera_home_id(camera_id)
-        if home_id is None:
+        if (home_id := self.get_camera_home_id(camera_id)) is None:
             raise NoDevice
 
         def _someone_known_seen(event: dict, home_id: str) -> bool:
@@ -266,8 +265,7 @@ class AbstractCameraData(ABC):
         if camera_id not in self.events:
             raise NoDevice
 
-        home_id = self.get_camera_home_id(camera_id)
-        if home_id is None:
+        if (home_id := self.get_camera_home_id(camera_id)) is None:
             raise NoDevice
 
         def _someone_unknown_seen(event: dict, home_id: str) -> bool:
@@ -481,8 +479,7 @@ class CameraData(AbstractCameraData):
             self.cameras[home_id][camera_id]["vpn_url"] = None
             return
 
-        vpn_url = camera_data.get("vpn_url")
-        if vpn_url and camera_data.get("is_local"):
+        if (vpn_url := camera_data.get("vpn_url")) and camera_data.get("is_local"):
             temp_local_url = self._check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id]["local_url"] = self._check_url(
@@ -719,8 +716,7 @@ class AsyncCameraData(AbstractCameraData):
             self.cameras[home_id][camera_id]["vpn_url"] = None
             return
 
-        vpn_url = camera_data.get("vpn_url")
-        if vpn_url and camera_data.get("is_local"):
+        if (vpn_url := camera_data.get("vpn_url")) and camera_data.get("is_local"):
             temp_local_url = await self._async_check_url(vpn_url)
             if temp_local_url:
                 self.cameras[home_id][camera_id][
@@ -730,7 +726,7 @@ class AsyncCameraData(AbstractCameraData):
                 )
 
     async def _async_check_url(self, url: str) -> str | None:
-        """."""
+        """Validate camera url."""
         try:
             resp = await self.auth.async_post_request(url=f"{url}/command/ping")
         except ReadTimeout:
@@ -798,8 +794,7 @@ class AsyncCameraData(AbstractCameraData):
         if not isinstance(resp, bytes):
             return b"", None
 
-        image_type = imghdr.what("NONE.FILE", resp)
-        return resp, image_type
+        return resp, imghdr.what("NONE.FILE", resp)
 
     async def async_get_profile_image(
         self,

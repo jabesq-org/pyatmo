@@ -162,7 +162,7 @@ def camera_ping(requests_mock):
 
 
 @pytest.fixture(scope="function")
-def camera_home_data(auth, camera_ping, requests_mock):
+def camera_home_data(auth, camera_ping, requests_mock):  # pylint: disable=W0613
     """CameraHomeData fixture."""
     with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
@@ -279,3 +279,23 @@ async def async_weather_station_data(async_auth):
 
         mock_request.assert_called()
         return wsd
+
+
+@pytest.fixture(scope="function")
+async def async_climate(async_auth):
+    """AsyncClimate fixture."""
+    with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
+        json_fixture = json.load(json_file)
+
+    mock_resp = MockResponse(json_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=mock_resp),
+    ) as mock_request:
+        climate = pyatmo.AsyncClimate(async_auth)
+        await climate.async_update_topology()
+        await climate.async_update()
+
+        mock_request.assert_called()
+        yield climate

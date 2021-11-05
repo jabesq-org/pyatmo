@@ -9,7 +9,7 @@ from enum import Enum
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .helpers import extract_raw_data
-from .thermostat import _GETHOMESDATA_REQ
+from .thermostat import _GETHOMESDATA_REQ, _GETHOMESTATUS_REQ
 
 LOG = logging.getLogger(__name__)
 
@@ -59,6 +59,38 @@ class NetatmoHome:
     modules: dict[str, NetatmoModule]
     schedules: dict[str, NetatmoSchedule]
 
+    def __init__(self, raw_data: dict) -> None:
+        self.entity_id = raw_data["id"]
+        self.name = raw_data.get("name", "Unknown")
+        self.modules = {
+            module["id"]: NetatmoModule(home=self, module=module)
+            for module in raw_data.get("modules", [])
+        }
+        self.rooms = {
+            room["id"]: NetatmoRoom(
+                home=self,
+                room=room,
+                all_modules=self.modules,
+            )
+            for room in raw_data.get("rooms", [])
+        }
+        self.schedules = {
+            s["id"]: NetatmoSchedule(home_id=self.entity_id, raw_data=s)
+            for s in raw_data.get("schedules", [])
+        }
+
+    def update(self, raw_data: dict) -> None:
+        for module in raw_data["errors"]:
+            self.modules[module["id"]].update({})
+
+        data = raw_data["home"]
+
+        for module in data.get("modules", []):
+            self.modules[module["id"]].update(module)
+
+        for room in data.get("rooms", []):
+            self.rooms[room["id"]].update(room)
+
     def get_selected_schedule(self) -> NetatmoSchedule | None:
         """Return selected schedule for given home."""
         for schedule in self.schedules.values():
@@ -102,14 +134,35 @@ class NetatmoRoom:
 
     entity_id: str
     name: str
-    home_id: str
+    home: NetatmoHome
     modules: dict[str, NetatmoModule]
 
-    reachable: bool
-    therm_setpoint_temperature: float | None
-    therm_setpoint_mode: str | None
-    therm_measured_temperature: float | None
-    boiler_status: bool | None
+    reachable: bool = False
+    therm_setpoint_temperature: float | None = None
+    therm_setpoint_mode: str | None = None
+    therm_measured_temperature: float | None = None
+    heating_power_request: int | None = None
+
+    def __init__(
+        self,
+        home: NetatmoHome,
+        room: dict,
+        all_modules: dict[str, NetatmoModule],
+    ) -> None:
+        self.entity_id = room["id"]
+        self.name = room["name"]
+        self.home = home
+        self.modules = {
+            m_id: m
+            for m_id, m in all_modules.items()
+            if m_id in room.get("module_ids", [])
+        }
+
+    def update(self, raw_data: dict) -> None:
+        self.reachable = raw_data.get("reachable", False)
+        self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
+        self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
+        self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
 
     async def async_set_room_thermpoint(
         self,
@@ -132,6 +185,14 @@ class NetatmoSchedule:
     away_temp: float | None
     hg_temp: float | None
 
+    def __init__(self, home_id: str, raw_data) -> None:
+        self.entity_id = raw_data["id"]
+        self.name = raw_data["name"]
+        self.home_id = home_id
+        self.selected = raw_data.get("selected", False)
+        self.hg_temp = raw_data.get("hg_temp")
+        self.away_temp = raw_data.get("away_temp")
+
 
 @dataclass
 class NetatmoModule:
@@ -140,12 +201,40 @@ class NetatmoModule:
     entity_id: str
     name: str
     device_type: Enum
-    home_id: str
-    room_id: str
+    home: NetatmoHome
+    room_id: str | None
 
     reachable: bool
     bridge: NetatmoModule | None
-    modules: list[NetatmoModule]
+    modules: list[str]
+
+    battery_state: str | None = None
+    battery_level: int | None = None
+    boiler_status: bool | None = None
+
+    def __init__(self, home: NetatmoHome, module: dict) -> None:
+        self.entity_id = module["id"]
+        self.name = module["name"]
+        self.device_type = module["type"]
+        self.home = home
+        self.room_id = module.get("room_id")
+        self.reachable = False
+        self.bridge = module.get("bridge")
+        self.modules = module.get("modules_bridged", [])
+
+    def update(self, raw_data: dict) -> None:
+        self.reachable = raw_data.get("reachable", False)
+        self.boiler_status = raw_data.get("boiler_status")
+        self.battery_level = raw_data.get("battery_level")
+        self.battery_state = raw_data.get("battery_state")
+
+        if not self.reachable:
+            # Update bridged modules and associated rooms
+            for module_id in self.modules:
+                module = self.home.modules[module_id]
+                module.update(raw_data)
+                if module.room_id:
+                    self.home.rooms[module.room_id].update(raw_data)
 
 
 class AbstractClimate(ABC):
@@ -167,76 +256,13 @@ class AbstractClimate(ABC):
 
     def process(self, raw_data: dict) -> None:
         """Process raw data from the energy endpoint."""
-        for item in raw_data:
-            modules = {
-                m["id"]: NetatmoModule(
-                    entity_id=m["id"],
-                    name=m["name"],
-                    device_type=m["type"],
-                    home_id=item["id"],
-                    room_id=m.get("room_id"),
-                    reachable=False,
-                    bridge=m.get("bridge"),
-                    modules=m.get("modules"),
-                )
-                for m in item.get("modules", [])
-            }
-            rooms = {
-                r["id"]: NetatmoRoom(
-                    entity_id=r["id"],
-                    name=r["name"],
-                    home_id=item["id"],
-                    modules=modules,
-                    reachable=r.get("reachable", False),
-                    therm_measured_temperature=r.get("therm_measured_temperature"),
-                    therm_setpoint_mode=r.get(""),
-                    therm_setpoint_temperature=r.get(""),
-                    boiler_status=r.get(""),
-                )
-                for r in item.get("rooms", [])
-            }
-            schedules = {
-                s["id"]: NetatmoSchedule(
-                    entity_id=s["id"],
-                    name=s["name"],
-                    home_id=item["id"],
-                    selected=s.get("selected", False),
-                    hg_temp=s.get("hg_temp"),
-                    away_temp=s.get("away_temp"),
-                )
-                for s in item.get("schedules", [])
-            }
-            self.homes[item["id"]] = NetatmoHome(
-                entity_id=item["id"],
-                name=item.get("name", "Unknown"),
-                rooms=rooms,
-                modules=modules,
-                schedules=schedules,
-            )
+        if "home" in raw_data:
+            # Process status information from /homestatus
+            self.homes[raw_data["home"]["id"]].update(raw_data)
 
-
-class Climate(AbstractClimate):
-    """Class of Netatmo energy devices."""
-
-    def __init__(self, auth: NetatmoOAuth2) -> None:
-        """Initialize the Netatmo home data.
-
-        Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
-        """
-        self.auth = auth
-
-    def update(self):
-        """Fetch and process data from API."""
-        if not self.homes:
-            self.update_topology()
-
-    def update_topology(self) -> None:
-        """Retrieve status updates from /homesdata."""
-        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
-
-        raw_data = extract_raw_data(resp.json(), "homes")
-        self.process(raw_data)
+        elif "homes" in raw_data:
+            # Process topology information from /homedata
+            self.homes = {item["id"]: NetatmoHome(item) for item in raw_data["homes"]}
 
 
 class AsyncClimate(AbstractClimate):
@@ -255,8 +281,41 @@ class AsyncClimate(AbstractClimate):
         if not self.homes:
             await self.async_update_topology()
 
+        resp = await self.auth.async_post_request(url=_GETHOMESTATUS_REQ)
+        raw_data = extract_raw_data(await resp.json(), "home")
+        self.process(raw_data)
+
     async def async_update_topology(self) -> None:
         """Retrieve status updates from /homesdata."""
         resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
         raw_data = extract_raw_data(await resp.json(), "homes")
+        self.process(raw_data)
+
+
+class Climate(AbstractClimate):
+    """Class of Netatmo energy devices."""
+
+    def __init__(self, auth: NetatmoOAuth2) -> None:
+        """Initialize the Netatmo home data.
+
+        Arguments:
+            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+        """
+        self.auth = auth
+
+    def update(self):
+        """Fetch and process data from API."""
+        if not self.homes:
+            self.update_topology()
+
+        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ)
+
+        raw_data = extract_raw_data(resp.json(), "home")
+        self.process(raw_data)
+
+    def update_topology(self) -> None:
+        """Retrieve status updates from /homesdata."""
+        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
+
+        raw_data = extract_raw_data(resp.json(), "homes")
         self.process(raw_data)

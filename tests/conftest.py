@@ -284,17 +284,26 @@ async def async_weather_station_data(async_auth):
 @pytest.fixture(scope="function")
 async def async_climate(async_auth):
     """AsyncClimate fixture."""
-    with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
-        json_fixture = json.load(json_file)
+    climate = pyatmo.AsyncClimate(async_auth)
 
-    mock_resp = MockResponse(json_fixture, 200)
+    with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
+        home_data_fixture = json.load(json_file)
+    mock_home_data_resp = MockResponse(home_data_fixture, 200)
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=mock_resp),
+        AsyncMock(return_value=mock_home_data_resp),
     ) as mock_request:
-        climate = pyatmo.AsyncClimate(async_auth)
         await climate.async_update_topology()
+
+    with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
+        home_status_fixture = json.load(json_file)
+    mock_home_status_resp = MockResponse(home_status_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=mock_home_status_resp),
+    ) as mock_request:
         await climate.async_update()
 
         mock_request.assert_called()

@@ -4,7 +4,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from .conftest import MockResponse
+import pyatmo
+
+from tests.conftest import MockResponse, does_not_raise
 
 # pylint: disable=F6401
 
@@ -117,3 +119,153 @@ async def test_async_climate_update(async_climate):
 
     assert room.reachable is True
     assert module.reachable is True
+
+
+@pytest.mark.parametrize(
+    "t_home_id, t_sched_id, expected",
+    [
+        ("91763b24c43d3e344f424e8b", "591b54a2764ff4d50d8b5795", does_not_raise()),
+        (
+            "91763b24c43d3e344f424e8b",
+            "123456789abcdefg12345678",
+            pytest.raises(pyatmo.NoSchedule),
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_async_climate_switch_home_schedule(
+    async_climate,
+    t_home_id,
+    t_sched_id,
+    expected,
+):
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
+        json_fixture = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=json_fixture),
+    ):
+        with expected:
+            await async_climate.async_switch_home_schedule(
+                home_id=t_home_id,
+                schedule_id=t_sched_id,
+            )
+
+
+@pytest.mark.parametrize(
+    "home_id, mode, end_time, schedule_id, json_fixture, expected, exception",
+    [
+        (
+            None,
+            None,
+            None,
+            None,
+            "home_status_error_mode_is_missing.json",
+            "mode is missing",
+            pytest.raises(pyatmo.InvalidHome),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            None,
+            None,
+            None,
+            "home_status_error_mode_is_missing.json",
+            "mode is missing",
+            pytest.raises(pyatmo.NoSchedule),
+        ),
+        (
+            "invalidID",
+            "away",
+            None,
+            None,
+            "home_status_error_invalid_id.json",
+            "Invalid id",
+            pytest.raises(pyatmo.InvalidHome),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "away",
+            None,
+            None,
+            "status_ok.json",
+            "ok",
+            does_not_raise(),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "away",
+            1559162650,
+            None,
+            "status_ok.json",
+            "ok",
+            does_not_raise(),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "away",
+            1559162650,
+            0000000,
+            "status_ok.json",
+            "ok",
+            pytest.raises(pyatmo.NoSchedule),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "schedule",
+            None,
+            "591b54a2764ff4d50d8b5795",
+            "status_ok.json",
+            "ok",
+            does_not_raise(),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "schedule",
+            1559162650,
+            "591b54a2764ff4d50d8b5795",
+            "status_ok.json",
+            "ok",
+            does_not_raise(),
+        ),
+        (
+            "91763b24c43d3e344f424e8b",
+            "schedule",
+            None,
+            "blahblahblah",
+            "home_status_error_invalid_schedule_id.json",
+            "schedule <blahblahblah> is not therm schedule",
+            pytest.raises(pyatmo.NoSchedule),
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_async_climate_set_thermmode(
+    async_climate,
+    home_id,
+    mode,
+    end_time,
+    schedule_id,
+    json_fixture,
+    expected,
+    exception,
+):
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
+        json_fixture = json.load(json_file)
+
+    mock_resp = MockResponse(json_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=mock_resp),
+    ), exception:
+        res = await async_climate.async_set_thermmode(
+            home_id=home_id,
+            mode=mode,
+            end_time=end_time,
+            schedule_id=schedule_id,
+        )
+        if "error" in res:
+            assert expected in res["error"]["message"]
+        else:
+            assert expected in res["status"]

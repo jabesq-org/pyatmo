@@ -8,8 +8,14 @@ from dataclasses import dataclass
 from enum import Enum
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .helpers import extract_raw_data
-from .thermostat import _GETHOMESDATA_REQ, _GETHOMESTATUS_REQ
+from .exceptions import InvalidHome, NoSchedule
+from .helpers import extract_raw_data_new
+from .thermostat import (
+    _GETHOMESDATA_REQ,
+    _GETHOMESTATUS_REQ,
+    _SETTHERMMODE_REQ,
+    _SWITCHHOMESCHEDULE_REQ,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -113,19 +119,6 @@ class NetatmoHome:
         if (schedule := self.get_selected_schedule()) is None:
             return None
         return schedule.away_temp
-
-    async def async_set_thermmode(
-        self,
-        mode: str,
-        end_time: int = None,
-        schedule_id: str = None,
-    ) -> str | None:
-        """Set thermotat mode."""
-        ...
-
-    async def async_switch_home_schedule(self, schedule_id: str) -> None:
-        """Switch the schedule for a give home ID."""
-        ...
 
 
 @dataclass
@@ -262,7 +255,9 @@ class AbstractClimate(ABC):
 
         elif "homes" in raw_data:
             # Process topology information from /homedata
-            self.homes = {item["id"]: NetatmoHome(item) for item in raw_data["homes"]}
+            self.homes = {
+                item["id"]: NetatmoHome(raw_data=item) for item in raw_data["homes"]
+            }
 
 
 class AsyncClimate(AbstractClimate):
@@ -282,14 +277,58 @@ class AsyncClimate(AbstractClimate):
             await self.async_update_topology()
 
         resp = await self.auth.async_post_request(url=_GETHOMESTATUS_REQ)
-        raw_data = extract_raw_data(await resp.json(), "home")
+        raw_data = extract_raw_data_new(await resp.json(), "home")
         self.process(raw_data)
 
     async def async_update_topology(self) -> None:
         """Retrieve status updates from /homesdata."""
         resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
-        raw_data = extract_raw_data(await resp.json(), "homes")
+        raw_data = extract_raw_data_new(await resp.json(), "homes")
         self.process(raw_data)
+
+    async def async_set_thermmode(
+        self,
+        home_id: str,
+        mode: str,
+        end_time: int = None,
+        schedule_id: str = None,
+    ) -> str | None:
+        """Set thermotat mode."""
+        if home_id not in self.homes:
+            raise InvalidHome(f"{home_id} is not a valid home id.")
+
+        if schedule_id is not None and not self.homes[home_id].is_valid_schedule(
+            schedule_id,
+        ):
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id.")
+
+        if mode is None:
+            raise NoSchedule(f"{mode} is not a valid mode.")
+
+        post_params = {"home_id": home_id, "mode": mode}
+        if end_time is not None and mode in {"hg", "away"}:
+            post_params["endtime"] = str(end_time)
+
+        if schedule_id is not None and mode == "schedule":
+            post_params["schedule_id"] = schedule_id
+
+        resp = await self.auth.async_post_request(
+            url=_SETTHERMMODE_REQ,
+            params=post_params,
+        )
+        assert not isinstance(resp, bytes)
+        return await resp.json()
+
+    async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> None:
+        """Switch the schedule for a give home ID."""
+        if not self.homes[home_id].is_valid_schedule(schedule_id):
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
+
+        resp = await self.auth.async_post_request(
+            url=_SWITCHHOMESCHEDULE_REQ,
+            params={"home_id": home_id, "schedule_id": schedule_id},
+        )
+        LOG.debug("Response: %s", resp)
 
 
 class Climate(AbstractClimate):
@@ -310,12 +349,12 @@ class Climate(AbstractClimate):
 
         resp = self.auth.post_request(url=_GETHOMESTATUS_REQ)
 
-        raw_data = extract_raw_data(resp.json(), "home")
+        raw_data = extract_raw_data_new(resp.json(), "home")
         self.process(raw_data)
 
     def update_topology(self) -> None:
         """Retrieve status updates from /homesdata."""
         resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
 
-        raw_data = extract_raw_data(resp.json(), "homes")
+        raw_data = extract_raw_data_new(resp.json(), "homes")
         self.process(raw_data)

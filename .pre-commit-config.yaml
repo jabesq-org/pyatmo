@@ -46,13 +46,6 @@ repos:
         additional_dependencies:
           - types-requests
 
-  - repo: https://github.com/pycqa/pylint
-    rev: v2.11.1
-    hooks:
-      - id: pylint
-        name: pylint
-        additional_dependencies: ["pylint_pytest", "requests", "aiohttp"]
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1 # Use the ref you want to point at
     hooks:
@@ -80,3 +73,12 @@ repos:
     rev: v1.19.0
     hooks:
       - id: setup-cfg-fmt
+
+  - repo: local
+    hooks:
+    -   id: pylint
+        name: pylint
+        entry: pylint src tests
+        language: system
+        types: [python]
+        require_serial: true

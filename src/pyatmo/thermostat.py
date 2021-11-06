@@ -302,7 +302,6 @@ class AsyncHomeStatus(AbstractHomeStatus):
             home_id {str} -- ID for targeted home
         """
         self.auth = auth
-
         self.home_id = home_id
 
     async def async_update(self) -> None:

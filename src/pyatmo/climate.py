@@ -194,7 +194,7 @@ class NetatmoModule:
 
     entity_id: str
     name: str
-    device_type: Enum
+    device_type: NetatmoDeviceType
     home: NetatmoHome
     room_id: str | None
 
@@ -209,7 +209,7 @@ class NetatmoModule:
     def __init__(self, home: NetatmoHome, module: dict) -> None:
         self.entity_id = module["id"]
         self.name = module["name"]
-        self.device_type = module["type"]
+        self.device_type = NetatmoDeviceType(module["type"])
         self.home = home
         self.room_id = module.get("room_id")
         self.reachable = False

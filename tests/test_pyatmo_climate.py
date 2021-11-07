@@ -12,11 +12,10 @@ from tests.conftest import MockResponse, does_not_raise
 
 
 @pytest.mark.asyncio
-async def test_async_climate(async_climate):
+async def test_async_climate(async_auth, async_climate):
     """Test basic climate setup."""
     home_id = "91763b24c43d3e344f424e8b"
     assert home_id in async_climate.homes
-    assert len(async_climate.homes) == 2
 
     home = async_climate.homes[home_id]
 
@@ -59,18 +58,6 @@ async def test_async_climate(async_climate):
     relay = home.modules[relay_id]
     assert relay.device_type == "NAPlug"
     assert len(relay.modules) == 3
-
-
-@pytest.mark.asyncio
-async def test_async_climate_empty_home(async_climate):
-    """Test empty home."""
-    home_id = "91763b24c43d3e344f424e8c"
-
-    assert home_id in async_climate.homes
-
-    home = async_climate.homes[home_id]
-    assert home.rooms == {}
-    assert home.name == "Unknown"
 
 
 @pytest.mark.asyncio
@@ -122,11 +109,10 @@ async def test_async_climate_update(async_climate):
 
 
 @pytest.mark.parametrize(
-    "t_home_id, t_sched_id, expected",
+    "t_sched_id, expected",
     [
-        ("91763b24c43d3e344f424e8b", "591b54a2764ff4d50d8b5795", does_not_raise()),
+        ("591b54a2764ff4d50d8b5795", does_not_raise()),
         (
-            "91763b24c43d3e344f424e8b",
             "123456789abcdefg12345678",
             pytest.raises(pyatmo.NoSchedule),
         ),
@@ -135,7 +121,6 @@ async def test_async_climate_update(async_climate):
 @pytest.mark.asyncio
 async def test_async_climate_switch_home_schedule(
     async_climate,
-    t_home_id,
     t_sched_id,
     expected,
 ):
@@ -148,25 +133,14 @@ async def test_async_climate_switch_home_schedule(
     ):
         with expected:
             await async_climate.async_switch_home_schedule(
-                home_id=t_home_id,
                 schedule_id=t_sched_id,
             )
 
 
 @pytest.mark.parametrize(
-    "home_id, mode, end_time, schedule_id, json_fixture, expected, exception",
+    "mode, end_time, schedule_id, json_fixture, expected, exception",
     [
         (
-            None,
-            None,
-            None,
-            None,
-            "home_status_error_mode_is_missing.json",
-            "mode is missing",
-            pytest.raises(pyatmo.InvalidHome),
-        ),
-        (
-            "91763b24c43d3e344f424e8b",
             None,
             None,
             None,
@@ -175,16 +149,14 @@ async def test_async_climate_switch_home_schedule(
             pytest.raises(pyatmo.NoSchedule),
         ),
         (
-            "invalidID",
-            "away",
             None,
             None,
-            "home_status_error_invalid_id.json",
-            "Invalid id",
-            pytest.raises(pyatmo.InvalidHome),
+            None,
+            "home_status_error_mode_is_missing.json",
+            "mode is missing",
+            pytest.raises(pyatmo.NoSchedule),
         ),
         (
-            "91763b24c43d3e344f424e8b",
             "away",
             None,
             None,
@@ -193,7 +165,6 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
-            "91763b24c43d3e344f424e8b",
             "away",
             1559162650,
             None,
@@ -202,7 +173,6 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
-            "91763b24c43d3e344f424e8b",
             "away",
             1559162650,
             0000000,
@@ -211,7 +181,6 @@ async def test_async_climate_switch_home_schedule(
             pytest.raises(pyatmo.NoSchedule),
         ),
         (
-            "91763b24c43d3e344f424e8b",
             "schedule",
             None,
             "591b54a2764ff4d50d8b5795",
@@ -220,7 +189,6 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
-            "91763b24c43d3e344f424e8b",
             "schedule",
             1559162650,
             "591b54a2764ff4d50d8b5795",
@@ -229,7 +197,6 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
-            "91763b24c43d3e344f424e8b",
             "schedule",
             None,
             "blahblahblah",
@@ -242,7 +209,6 @@ async def test_async_climate_switch_home_schedule(
 @pytest.mark.asyncio
 async def test_async_climate_set_thermmode(
     async_climate,
-    home_id,
     mode,
     end_time,
     schedule_id,
@@ -260,7 +226,6 @@ async def test_async_climate_set_thermmode(
         AsyncMock(return_value=mock_resp),
     ), exception:
         res = await async_climate.async_set_thermmode(
-            home_id=home_id,
             mode=mode,
             end_time=end_time,
             schedule_id=schedule_id,

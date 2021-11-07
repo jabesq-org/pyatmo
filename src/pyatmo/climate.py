@@ -6,6 +6,7 @@ from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import InvalidHome, NoSchedule
@@ -233,7 +234,7 @@ class NetatmoModule:
 class AbstractClimate(ABC):
     """Abstract class of Netatmo energy devices."""
 
-    raw_data: dict = defaultdict(dict)
+    home_id: str
     homes: dict = defaultdict(dict)
     modules: dict = defaultdict(dict)
     rooms: dict = defaultdict(dict)
@@ -245,59 +246,51 @@ class AbstractClimate(ABC):
     zones: dict = defaultdict(dict)
     setpoint_duration: dict = defaultdict(dict)
 
-    topology_timestamp: int | None
-
     def process(self, raw_data: dict) -> None:
-        """Process raw data from the energy endpoint."""
-        if "home" in raw_data:
-            # Process status information from /homestatus
-            self.homes[raw_data["home"]["id"]].update(raw_data)
+        """Process raw status data from the energy endpoint."""
+        if self.home_id != raw_data["home"]["id"]:
+            raise InvalidHome(f"Home id \"{raw_data['home']['id']}\" does not match.")
 
-        elif "homes" in raw_data:
-            # Process topology information from /homedata
-            self.homes = {
-                item["id"]: NetatmoHome(raw_data=item) for item in raw_data["homes"]
-            }
+        self.homes[self.home_id].update(raw_data)
+
+    def process_topology(self, raw_data: dict) -> None:
+        """Process topology information from /homedata."""
+        self.homes[self.home_id] = NetatmoHome(raw_data=raw_data)
 
 
 class AsyncClimate(AbstractClimate):
     """Class of Netatmo energy devices."""
 
-    def __init__(self, auth: AbstractAsyncAuth) -> None:
+    def __init__(self, auth: AbstractAsyncAuth, home_id: str) -> None:
         """Initialize the Netatmo home data.
 
         Arguments:
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
         """
         self.auth = auth
+        self.home_id = home_id
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         """Fetch and process data from API."""
         if not self.homes:
-            await self.async_update_topology()
+            LOG.debug('Topology for home "{self.home_id}" has not been initialized.')
+            return
 
-        resp = await self.auth.async_post_request(url=_GETHOMESTATUS_REQ)
+        resp = await self.auth.async_post_request(
+            url=_GETHOMESTATUS_REQ,
+            params={"home_id": self.home_id},
+        )
         raw_data = extract_raw_data_new(await resp.json(), "home")
-        self.process(raw_data)
-
-    async def async_update_topology(self) -> None:
-        """Retrieve status updates from /homesdata."""
-        resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
-        raw_data = extract_raw_data_new(await resp.json(), "homes")
         self.process(raw_data)
 
     async def async_set_thermmode(
         self,
-        home_id: str,
         mode: str,
         end_time: int = None,
         schedule_id: str = None,
     ) -> str | None:
         """Set thermotat mode."""
-        if home_id not in self.homes:
-            raise InvalidHome(f"{home_id} is not a valid home id.")
-
-        if schedule_id is not None and not self.homes[home_id].is_valid_schedule(
+        if schedule_id is not None and not self.homes[self.home_id].is_valid_schedule(
             schedule_id,
         ):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id.")
@@ -305,7 +298,7 @@ class AsyncClimate(AbstractClimate):
         if mode is None:
             raise NoSchedule(f"{mode} is not a valid mode.")
 
-        post_params = {"home_id": home_id, "mode": mode}
+        post_params = {"home_id": self.home_id, "mode": mode}
         if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
 
@@ -319,14 +312,14 @@ class AsyncClimate(AbstractClimate):
         assert not isinstance(resp, bytes)
         return await resp.json()
 
-    async def async_switch_home_schedule(self, home_id: str, schedule_id: str) -> None:
+    async def async_switch_home_schedule(self, schedule_id: str) -> None:
         """Switch the schedule for a give home ID."""
-        if not self.homes[home_id].is_valid_schedule(schedule_id):
+        if not self.homes[self.home_id].is_valid_schedule(schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         resp = await self.auth.async_post_request(
             url=_SWITCHHOMESCHEDULE_REQ,
-            params={"home_id": home_id, "schedule_id": schedule_id},
+            params={"home_id": self.home_id, "schedule_id": schedule_id},
         )
         LOG.debug("Response: %s", resp)
 
@@ -342,19 +335,53 @@ class Climate(AbstractClimate):
         """
         self.auth = auth
 
-    def update(self):
+    def update(self) -> None:
         """Fetch and process data from API."""
         if not self.homes:
-            self.update_topology()
+            LOG.debug('Topology for home "{self.home_id}" has not been initialized.')
+            return
 
         resp = self.auth.post_request(url=_GETHOMESTATUS_REQ)
 
         raw_data = extract_raw_data_new(resp.json(), "home")
         self.process(raw_data)
 
-    def update_topology(self) -> None:
-        """Retrieve status updates from /homesdata."""
-        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
 
-        raw_data = extract_raw_data_new(resp.json(), "homes")
-        self.process(raw_data)
+class AbstractClimateTopology(ABC):
+    """Abstract class of Netatmo energy device topology."""
+
+    subscriptions: dict[str, Callable] = {}
+    raw_data: dict = {}
+
+    def register_handler(self, home_id: str, handler: Callable) -> None:
+        """Register update handler."""
+        self.subscriptions[home_id] = handler
+        self.publish()
+
+    def unregister_handler(self, home_id: str) -> None:
+        """Unregister update handler."""
+        self.subscriptions.pop(home_id)
+
+    def publish(self) -> None:
+        """Publish latest data to subscribers."""
+        for home in self.raw_data.get("homes", []):
+            if (home_id := home["id"]) in self.subscriptions:
+                self.subscriptions[home_id](home)
+
+
+class AsyncClimateTopology(AbstractClimateTopology):
+    """Async class of Netatmo energy device topology."""
+
+    def __init__(self, auth: AbstractAsyncAuth) -> None:
+        """Initialize the Netatmo home data.
+
+        Arguments:
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+        """
+        self.auth = auth
+
+    async def async_update(self) -> None:
+        """Retrieve status updates from /homesdata."""
+        resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
+        self.raw_data = extract_raw_data_new(await resp.json(), "homes")
+        self.publish()

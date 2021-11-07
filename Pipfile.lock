@@ -1026,11 +1026,11 @@
         },
         "twine": {
             "hashes": [
-                "sha256:087328e9bb405e7ce18527a2dca4042a84c7918658f951110b38bc135acab218",
-                "sha256:4caec0f1ed78dc4c9b83ad537e453d03ce485725f2aea57f1bb3fdde78dae936"
+                "sha256:218c42324121d4417cbcbbda59c623b8acc4becfce3daa545e6b6dd48bd21385",
+                "sha256:3725b79a6f1cfe84a134544ae1894706e60719ab28547cb6c6de781b9f72706d"
             ],
             "index": "pypi",
-            "version": "==3.4.2"
+            "version": "==3.5.0"
         },
         "typing-extensions": {
             "hashes": [

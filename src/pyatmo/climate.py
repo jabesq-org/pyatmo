@@ -331,7 +331,7 @@ class AsyncClimate(AbstractClimate):
     async def async_update(self) -> None:
         """Fetch and process data from API."""
         if not self.homes:
-            LOG.debug('Topology for home "{self.home_id}" has not been initialized.')
+            LOG.debug("Topology for home %s has not been initialized.", self.home_id)
             return
 
         resp = await self.auth.async_post_request(

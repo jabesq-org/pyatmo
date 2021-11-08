@@ -61,7 +61,7 @@ def extract_raw_data(resp: Any, tag: str) -> dict:
         resp is None
         or "body" not in resp
         or tag not in resp["body"]
-        # or ("errors" in resp["body"] and "modules" not in resp["body"][tag])
+        or ("errors" in resp["body"] and "modules" not in resp["body"][tag])
     ):
         LOG.debug("Server response: %s", resp)
         raise NoDevice("No device found, errors in response")

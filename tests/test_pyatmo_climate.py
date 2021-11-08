@@ -234,3 +234,68 @@ async def test_async_climate_set_thermmode(
             assert expected in res["error"]["message"]
         else:
             assert expected in res["status"]
+
+
+@pytest.mark.parametrize(
+    "room_id, mode, temp, end_time, json_fixture, expected",
+    [
+        (
+            "2746182631",
+            "home",
+            14,
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "2746182631",
+            "home",
+            14,
+            1559162650,
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "2746182631",
+            "home",
+            None,
+            None,
+            "status_ok.json",
+            "ok",
+        ),
+        (
+            "2746182631",
+            "home",
+            None,
+            1559162650,
+            "status_ok.json",
+            "ok",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_async_climate_set_room_thermpoint(
+    async_climate,
+    room_id,
+    mode,
+    temp,
+    end_time,
+    json_fixture,
+    expected,
+):
+    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
+        json_fixture = json.load(json_file)
+
+    mock_resp = MockResponse(json_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=mock_resp),
+    ):
+        result = await async_climate.async_set_room_thermpoint(
+            room_id=room_id,
+            mode=mode,
+            temp=temp,
+            end_time=end_time,
+        )
+        assert result["status"] == expected

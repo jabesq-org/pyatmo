@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 from abc import ABC
-from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
@@ -14,6 +13,7 @@ from .helpers import extract_raw_data_new
 from .thermostat import (
     _GETHOMESDATA_REQ,
     _GETHOMESTATUS_REQ,
+    _SETROOMTHERMPOINT_REQ,
     _SETTHERMMODE_REQ,
     _SWITCHHOMESCHEDULE_REQ,
 )
@@ -86,6 +86,40 @@ class NetatmoHome:
             for s in raw_data.get("schedules", [])
         }
 
+    def update_topology(self, raw_data: dict) -> None:
+        self.name = raw_data.get("name", "Unknown")
+
+        raw_modules = raw_data.get("modules", [])
+        for module in raw_modules:
+            if (module_id := module["id"]) not in self.modules:
+                self.modules[module_id] = NetatmoModule(home=self, module=module)
+            else:
+                self.modules[module_id].update_topology(module)
+
+        # Drop module if has been removed
+        for module in self.modules.keys() - {m["id"] for m in raw_modules}:
+            self.modules.pop(module)
+
+        raw_rooms = raw_data.get("rooms", [])
+        for room in raw_rooms:
+            if (room_id := room["id"]) not in self.rooms:
+                self.rooms[room_id] = NetatmoRoom(
+                    home=self,
+                    room=room,
+                    all_modules=self.modules,
+                )
+            else:
+                self.rooms[room_id].update_topology(room)
+
+        # Drop room if has been removed(?)
+        for room in self.rooms.keys() - {m["id"] for m in raw_rooms}:
+            self.rooms.pop(room)
+
+        self.schedules = {
+            s["id"]: NetatmoSchedule(home_id=self.entity_id, raw_data=s)
+            for s in raw_data.get("schedules", [])
+        }
+
     def update(self, raw_data: dict) -> None:
         for module in raw_data["errors"]:
             self.modules[module["id"]].update({})
@@ -130,6 +164,7 @@ class NetatmoRoom:
     name: str
     home: NetatmoHome
     modules: dict[str, NetatmoModule]
+    device_type: NetatmoDeviceType | None = None
 
     reachable: bool = False
     therm_setpoint_temperature: float | None = None
@@ -151,21 +186,30 @@ class NetatmoRoom:
             for m_id, m in all_modules.items()
             if m_id in room.get("module_ids", [])
         }
+        self.evaluate_device_type()
+
+    def update_topology(self, raw_data: dict) -> None:
+        self.name = raw_data["name"]
+        self.modules = {
+            m_id: m
+            for m_id, m in self.home.modules.items()
+            if m_id in raw_data.get("module_ids", [])
+        }
+        self.evaluate_device_type()
+
+    def evaluate_device_type(self) -> None:
+        for module in self.modules.values():
+            if module.device_type is NetatmoDeviceType.NATherm1:
+                self.device_type = NetatmoDeviceType.NATherm1
+                break
+            if module.device_type is NetatmoDeviceType.NRV:
+                self.device_type = NetatmoDeviceType.NRV
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable", False)
         self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
-
-    async def async_set_room_thermpoint(
-        self,
-        mode: str,
-        temp: float = None,
-        end_time: int = None,
-    ) -> str | None:
-        """Set room themperature set point."""
-        ...
 
 
 @dataclass
@@ -208,13 +252,20 @@ class NetatmoModule:
 
     def __init__(self, home: NetatmoHome, module: dict) -> None:
         self.entity_id = module["id"]
-        self.name = module["name"]
+        self.name = module.get("name", "Unkown")
         self.device_type = NetatmoDeviceType(module["type"])
         self.home = home
         self.room_id = module.get("room_id")
         self.reachable = False
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged", [])
+
+    def update_topology(self, raw_data: dict) -> None:
+        self.name = raw_data.get("name", "Unkown")
+        self.device_type = NetatmoDeviceType(raw_data["type"])
+        self.room_id = raw_data.get("room_id")
+        self.bridge = raw_data.get("bridge")
+        self.modules = raw_data.get("modules_bridged", [])
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable", False)
@@ -235,27 +286,34 @@ class AbstractClimate(ABC):
     """Abstract class of Netatmo energy devices."""
 
     home_id: str
-    homes: dict = defaultdict(dict)
-    modules: dict = defaultdict(dict)
-    rooms: dict = defaultdict(dict)
-    thermostats: dict = defaultdict(dict)
-    valves: dict = defaultdict(dict)
-    relays: dict = defaultdict(dict)
-    errors: dict = defaultdict(dict)
-    schedules: dict = defaultdict(dict)
-    zones: dict = defaultdict(dict)
-    setpoint_duration: dict = defaultdict(dict)
+    homes: dict = {}
+    modules: dict = {}
+    rooms: dict = {}
+    schedules: dict = {}
+
+    raw_data: dict | None = None
 
     def process(self, raw_data: dict) -> None:
         """Process raw status data from the energy endpoint."""
         if self.home_id != raw_data["home"]["id"]:
             raise InvalidHome(f"Home id \"{raw_data['home']['id']}\" does not match.")
 
+        if self.home_id not in self.homes:
+            self.raw_data = raw_data
+            return
+
         self.homes[self.home_id].update(raw_data)
+        self.raw_data = None
 
     def process_topology(self, raw_data: dict) -> None:
         """Process topology information from /homedata."""
-        self.homes[self.home_id] = NetatmoHome(raw_data=raw_data)
+        if self.home_id not in self.homes:
+            self.homes[self.home_id] = NetatmoHome(raw_data=raw_data)
+        else:
+            self.homes[self.home_id].update_topology(raw_data)
+
+        if self.raw_data:
+            self.process(self.raw_data)
 
 
 class AsyncClimate(AbstractClimate):
@@ -282,6 +340,34 @@ class AsyncClimate(AbstractClimate):
         )
         raw_data = extract_raw_data_new(await resp.json(), "home")
         self.process(raw_data)
+
+    async def async_set_room_thermpoint(
+        self,
+        room_id: str,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
+    ) -> str | None:
+        """Set room themperature set point."""
+        post_params = {
+            "home_id": self.home_id,
+            "room_id": room_id,
+            "mode": mode,
+        }
+        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # handle that even when mode == 'home' and these settings don't make sense
+        if temp is not None:
+            post_params["temp"] = str(temp)
+
+        if end_time is not None:
+            post_params["endtime"] = str(end_time)
+
+        resp = await self.auth.async_post_request(
+            url=_SETROOMTHERMPOINT_REQ,
+            params=post_params,
+        )
+        assert not isinstance(resp, bytes)
+        return await resp.json()
 
     async def async_set_thermmode(
         self,
@@ -350,11 +436,18 @@ class Climate(AbstractClimate):
 class AbstractClimateTopology(ABC):
     """Abstract class of Netatmo energy device topology."""
 
+    home_ids: list[str] = []
     subscriptions: dict[str, Callable] = {}
     raw_data: dict = {}
 
     def register_handler(self, home_id: str, handler: Callable) -> None:
         """Register update handler."""
+        if self.subscriptions.get(home_id) == handler:
+            return
+
+        if home_id in self.subscriptions and self.subscriptions[home_id] != handler:
+            self.unregister_handler(home_id)
+
         self.subscriptions[home_id] = handler
         self.publish()
 
@@ -384,4 +477,8 @@ class AsyncClimateTopology(AbstractClimateTopology):
         """Retrieve status updates from /homesdata."""
         resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
         self.raw_data = extract_raw_data_new(await resp.json(), "homes")
+
+        for home in self.raw_data["homes"]:
+            self.home_ids.append(home["id"])
+
         self.publish()

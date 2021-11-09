@@ -111,7 +111,7 @@ class NetatmoHome:
             else:
                 self.rooms[room_id].update_topology(room)
 
-        # Drop room if has been removed(?)
+        # Drop room if has been removed
         for room in self.rooms.keys() - {m["id"] for m in raw_rooms}:
             self.rooms.pop(room)
 
@@ -293,10 +293,15 @@ class AbstractClimate(ABC):
 
     raw_data: dict | None = None
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(home_id={self.home_id})"
+
     def process(self, raw_data: dict) -> None:
         """Process raw status data from the energy endpoint."""
         if self.home_id != raw_data["home"]["id"]:
-            raise InvalidHome(f"Home id \"{raw_data['home']['id']}\" does not match.")
+            raise InvalidHome(
+                f"Home id '{raw_data['home']['id']}' does not match. '{self.home_id}'",
+            )
 
         if self.home_id not in self.homes:
             self.raw_data = raw_data
@@ -330,10 +335,6 @@ class AsyncClimate(AbstractClimate):
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
-        if not self.homes:
-            LOG.debug("Topology for home %s has not been initialized.", self.home_id)
-            return
-
         resp = await self.auth.async_post_request(
             url=_GETHOMESTATUS_REQ,
             params={"home_id": self.home_id},
@@ -440,6 +441,9 @@ class AbstractClimateTopology(ABC):
     subscriptions: dict[str, Callable] = {}
     raw_data: dict = {}
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(home_ids={self.home_ids}, subscriptions={self.subscriptions})"
+
     def register_handler(self, home_id: str, handler: Callable) -> None:
         """Register update handler."""
         if self.subscriptions.get(home_id) == handler:
@@ -449,6 +453,7 @@ class AbstractClimateTopology(ABC):
             self.unregister_handler(home_id)
 
         self.subscriptions[home_id] = handler
+
         self.publish()
 
     def unregister_handler(self, home_id: str) -> None:

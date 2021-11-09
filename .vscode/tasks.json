@@ -69,7 +69,7 @@
         },
         {
             "label": "Build wheel artifacts",
-            "command": "rm -r dist && python setup.py sdist bdist_wheel && rm -r build",
+            "command": "rm -r dist && python -m build",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceRoot}/"
@@ -77,9 +77,6 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
-            "presentation": {
-                "reveal": "never"
             },
             "problemMatcher": [],
             "presentation": {

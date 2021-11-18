@@ -19,8 +19,8 @@ class NetatmoDeviceType(Enum):
     NRV = "NRV"  # Smart valve
     NATherm1 = "NATherm1"  # Smart thermostat
     OTM = "OTM"  # OpenTherm modulating thermostat
-    NAPlug = "NAPlug"  # Relay
-    OTH = "OTH"  # OpenTherm relay
+    NAPlug = "NAPlug"  # Smart thermostat gateway
+    OTH = "OTH"  # OpenTherm gateway
 
     # Cameras/Security
     NOC = "NOC"  # Smart Outdoor Camera (with Siren)
@@ -28,6 +28,8 @@ class NetatmoDeviceType(Enum):
     NSD = "NSD"  # Smart Smoke Detector
     NIS = "NIS"  # Smart Indoor Siren
     NACamDoorTag = "NACamDoorTag"  # Smart Door and Window Sensors
+    NDB = "NDB"  # Smart Video Doorbell
+    NCO = "NCO"  # Smark Carbon Monoxide Alarm
 
     # Weather
     NAMain = "NAMain"  # Smart Home Weather Station
@@ -38,5 +40,10 @@ class NetatmoDeviceType(Enum):
 
     # Home Coach
     NHC = "NHC"  # Smart Indoor Air Quality Monitor
+
+    # 3rd Party
+    BNCX = "BNCX"  # BTicino Classe 300 EOS
+    NLG = "NLG"  # Legrand Wiring devices and electrical panel products
+    BNS = "BNS"  # Bubbendorf shutters
 
     # pylint: enable=I0011,C0103

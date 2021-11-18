@@ -12,36 +12,18 @@ from aiohttp import ClientError, ClientResponse, ClientSession
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
-from pyatmo.exceptions import ApiError
-from pyatmo.helpers import _BASE_URL, ERRORS
+from .const import (
+    ALL_SCOPES,
+    AUTH_REQ,
+    AUTH_URL,
+    AUTHORIZATION_HEADER,
+    ERRORS,
+    WEBHOOK_URL_ADD,
+    WEBHOOK_URL_DROP,
+)
+from .exceptions import ApiError
 
 LOG = logging.getLogger(__name__)
-
-# Common definitions
-AUTH_REQ_ENDPOINT = "oauth2/token"
-AUTH_REQ = _BASE_URL + AUTH_REQ_ENDPOINT
-AUTH_URL_ENDPOINT = "oauth2/authorize"
-AUTH_URL = _BASE_URL + AUTH_URL_ENDPOINT
-WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
-WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
-
-AUTHORIZATION_HEADER = "Authorization"
-
-
-# Possible scops
-ALL_SCOPES = [
-    "read_station",
-    "read_camera",
-    "access_camera",
-    "write_camera",
-    "read_presence",
-    "access_presence",
-    "write_presence",
-    "read_homecoach",
-    "read_smokedetector",
-    "read_thermostat",
-    "write_thermostat",
-]
 
 
 class NetatmoOAuth2:

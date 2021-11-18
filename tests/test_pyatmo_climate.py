@@ -35,14 +35,14 @@ async def test_async_climate(async_auth, async_climate):
 
     module = home.modules[module_id]
     assert module.name == "Livingroom"
-    assert module.device_type == pyatmo.climate.NetatmoDeviceType.NATherm1
+    assert module.device_type == pyatmo.NetatmoDeviceType.NATherm1
     assert module.reachable is True
 
     module_id = "12:34:56:03:a5:54"
     module = home.modules[module_id]
     assert module.name == "Valve1"
     assert home.rooms[module.room_id].name == "Entrada"
-    assert module.device_type == pyatmo.climate.NetatmoDeviceType.NRV
+    assert module.device_type == pyatmo.NetatmoDeviceType.NRV
     assert module.reachable is True
 
     schedule_id = "591b54a2764ff4d50d8b5795"
@@ -56,7 +56,7 @@ async def test_async_climate(async_auth, async_climate):
     relay_id = "12:34:56:00:fa:d0"
     assert relay_id in home.modules
     relay = home.modules[relay_id]
-    assert relay.device_type == pyatmo.climate.NetatmoDeviceType.NAPlug
+    assert relay.device_type == pyatmo.NetatmoDeviceType.NAPlug
     assert len(relay.modules) == 3
 
 
@@ -73,7 +73,7 @@ async def test_async_climate_update(async_climate):
     module = home.modules[module_id]
     assert room.reachable is True
     assert module.name == "Livingroom"
-    assert module.device_type == pyatmo.climate.NetatmoDeviceType.NATherm1
+    assert module.device_type == pyatmo.NetatmoDeviceType.NATherm1
     assert module.reachable is True
 
     with open(

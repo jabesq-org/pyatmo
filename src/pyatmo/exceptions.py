@@ -1,3 +1,6 @@
+"""Exceptions."""
+
+
 class NoSchedule(Exception):
     pass
 

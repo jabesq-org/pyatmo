@@ -7,17 +7,17 @@ from collections import defaultdict
 from typing import Any
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
+from .const import (
+    _GETHOMESDATA_REQ,
+    _GETHOMESTATUS_REQ,
+    _SETROOMTHERMPOINT_REQ,
+    _SETTHERMMODE_REQ,
+    _SWITCHHOMESCHEDULE_REQ,
+)
 from .exceptions import InvalidRoom, NoSchedule
-from .helpers import _BASE_URL, extract_raw_data
+from .helpers import extract_raw_data
 
 LOG = logging.getLogger(__name__)
-
-_GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
-_GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
-_SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
-_SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
-_GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
-_SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 
 class AbstractHomeData(ABC):

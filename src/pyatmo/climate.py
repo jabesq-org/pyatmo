@@ -1,22 +1,21 @@
 """Support for Netatmo energy devices (relays, thermostats and valves)."""
 from __future__ import annotations
+from dataclasses import dataclass
+from enum import Enum
 
 import logging
 from abc import ABC
-from dataclasses import dataclass
-from enum import Enum
-from typing import Callable
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .exceptions import NoSchedule
-from .helpers import extract_raw_data_new
-from .thermostat import (
-    _GETHOMESDATA_ENDPOINT,
+from .const import (
     _GETHOMESTATUS_ENDPOINT,
     _SETROOMTHERMPOINT_ENDPOINT,
     _SETTHERMMODE_ENDPOINT,
     _SWITCHHOMESCHEDULE_ENDPOINT,
 )
+from .exceptions import NoSchedule
+from .helpers import extract_raw_data_new
+from .home import NetatmoHome
 
 LOG = logging.getLogger(__name__)
 
@@ -441,58 +440,3 @@ class Climate(AbstractClimate):
 
         raw_data = extract_raw_data_new(resp.json(), "home")
         self.process(raw_data)
-
-
-class AbstractClimateTopology(ABC):
-    """Abstract class of Netatmo energy device topology."""
-
-    home_ids: list[str] = []
-    subscriptions: dict[str, Callable] = {}
-    raw_data: dict = {}
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(home_ids={self.home_ids}, subscriptions={self.subscriptions})"
-
-    def register_handler(self, home_id: str, handler: Callable) -> None:
-        """Register update handler."""
-        if self.subscriptions.get(home_id) == handler:
-            return
-
-        if home_id in self.subscriptions and self.subscriptions[home_id] != handler:
-            self.unregister_handler(home_id)
-
-        self.subscriptions[home_id] = handler
-
-        self.publish()
-
-    def unregister_handler(self, home_id: str) -> None:
-        """Unregister update handler."""
-        self.subscriptions.pop(home_id)
-
-    def publish(self) -> None:
-        """Publish latest data to subscribers."""
-        for home in self.raw_data.get("homes", []):
-            if (home_id := home["id"]) in self.subscriptions:
-                self.subscriptions[home_id](home)
-
-
-class AsyncClimateTopology(AbstractClimateTopology):
-    """Async class of Netatmo energy device topology."""
-
-    def __init__(self, auth: AbstractAsyncAuth) -> None:
-        """Initialize the Netatmo home data.
-
-        Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
-        """
-        self.auth = auth
-
-    async def async_update(self) -> None:
-        """Retrieve status updates from /homesdata."""
-        resp = await self.auth.async_post_api_request(endpoint=_GETHOMESDATA_ENDPOINT)
-        self.raw_data = extract_raw_data_new(await resp.json(), "homes")
-
-        for home in self.raw_data["homes"]:
-            self.home_ids.append(home["id"])
-
-        self.publish()

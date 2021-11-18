@@ -1,7 +1,6 @@
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
+from .const import _GETHOMECOACHDATA_ENDPOINT
 from .weather_station import AsyncWeatherStationData, WeatherStationData
-
-_GETHOMECOACHDATA_ENDPOINT = "api/gethomecoachsdata"
 
 
 class HomeCoachData(WeatherStationData):

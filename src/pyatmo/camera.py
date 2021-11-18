@@ -11,15 +11,16 @@ import aiohttp
 from requests.exceptions import ReadTimeout
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
+from .const import (
+    _GETCAMERAPICTURE_ENDPOINT,
+    _GETEVENTSUNTIL_ENDPOINT,
+    _GETHOMEDATA_ENDPOINT,
+    _SETPERSONSAWAY_ENDPOINT,
+    _SETPERSONSHOME_ENDPOINT,
+    _SETSTATE_ENDPOINT,
+)
 from .exceptions import ApiError, NoDevice
 from .helpers import LOG, extract_raw_data
-
-_GETHOMEDATA_ENDPOINT = "api/gethomedata"
-_GETCAMERAPICTURE_ENDPOINT = "api/getcamerapicture"
-_GETEVENTSUNTIL_ENDPOINT = "api/geteventsuntil"
-_SETPERSONSAWAY_ENDPOINT = "api/setpersonsaway"
-_SETPERSONSHOME_ENDPOINT = "api/setpersonshome"
-_SETSTATE_ENDPOINT = "api/setstate"
 
 
 class AbstractCameraData(ABC):

@@ -52,8 +52,13 @@ ALL_SCOPES = [
     "read_presence",
     "access_presence",
     "write_presence",
-    "read_homecoach",
-    "read_smokedetector",
+    "read_homecoach",  # Smart Indoor Air Quality Monitor
+    "read_smokedetector",  # Smart Smoke Alarm informations and events
     "read_thermostat",
     "write_thermostat",
+    "read_magellan",  # Legrand Wiring device or Electrical panel products
+    "read_bubendorff",  # Bubbendorf shutters
+    "read_smarther",  # Smarther with Netatmo thermostat
+    "read_doorbell",  # Smart Video Doorbell
+    "read_mx",  # BTicino Classe 300 EOS
 ]

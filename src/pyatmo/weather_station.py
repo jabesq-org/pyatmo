@@ -7,12 +7,10 @@ from abc import ABC
 from collections import defaultdict
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .helpers import _BASE_URL, extract_raw_data, today_stamps
+from .const import _GETMEASURE_REQ, _GETSTATIONDATA_REQ
+from .helpers import extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
-
-_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
-_GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
 class AbstractWeatherStationData(ABC):

@@ -13,7 +13,7 @@ class NetatmoDeviceType(Enum):
     """Class to represent Netatmo device types."""
 
     # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=I0011,C0103
+    # pylint: disable=C0103
 
     # Climate/Energy
     NRV = "NRV"  # Smart valve
@@ -46,4 +46,4 @@ class NetatmoDeviceType(Enum):
     NLG = "NLG"  # Legrand Wiring devices and electrical panel products
     BNS = "BNS"  # Bubbendorf shutters
 
-    # pylint: enable=I0011,C0103
+    # pylint: enable=C0103

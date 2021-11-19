@@ -1,4 +1,4 @@
-"""Define tests for untility methods."""
+"""Define tests for async methods."""
 # pylint: disable=protected-access
 import json
 from unittest.mock import AsyncMock, patch
@@ -16,7 +16,7 @@ LAT_SW = "46.596485"
 
 
 @pytest.mark.asyncio
-async def test_foo(async_auth, mocker):
+async def test_async_auth(async_auth, mocker):
     with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
 

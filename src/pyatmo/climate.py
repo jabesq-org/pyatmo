@@ -20,14 +20,11 @@ from .thermostat import (
 
 LOG = logging.getLogger(__name__)
 
-# pylint: disable=W0613,R0201
-
 
 class NetatmoDeviceType(Enum):
     """Class to represent Netatmo device types."""
 
-    # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=I0011,C0103
+    # temporarily disable locally-disabled and locally-enabled@
 
     # Climate/Energy
     NRV = "NRV"  # Smart valve

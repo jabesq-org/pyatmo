@@ -1,3 +1,7 @@
+[BASIC]
+good-names-rgxs=
+  NA.*
+
 [MESSAGES CONTROL]
 # Reasons disabled:
 # duplicate-code - unavoidable

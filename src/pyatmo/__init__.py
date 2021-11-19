@@ -1,6 +1,7 @@
 """Expose submodules."""
 from .auth import AbstractAsyncAuth, ClientAuth, NetatmoOAuth2
 from .camera import AsyncCameraData, CameraData
+from .climate import AsyncClimate, AsyncClimateTopology
 from .exceptions import ApiError, InvalidHome, InvalidRoom, NoDevice, NoSchedule
 from .home_coach import AsyncHomeCoachData, HomeCoachData
 from .public_data import AsyncPublicData, PublicData
@@ -28,4 +29,6 @@ __all__ = [
     "PublicData",
     "AsyncWeatherStationData",
     "WeatherStationData",
+    "AsyncClimate",
+    "AsyncClimateTopology",
 ]

@@ -37,9 +37,8 @@ class AbstractHomeData(ABC):
 
         for item in self.raw_data:
             home_id = item.get("id")
-            home_name = item.get("name")
 
-            if not home_name:
+            if not (home_name := item.get("name")):
                 home_name = "Unknown"
                 self.homes[home_id]["name"] = home_name
 
@@ -92,11 +91,10 @@ class AbstractHomeData(ABC):
 
     def is_valid_schedule(self, home_id: str, schedule_id: str):
         """Check if valid schedule."""
-        schedules = {
-            self.schedules[home_id][s]["name"]: self.schedules[home_id][s]["id"]
-            for s in self.schedules.get(home_id, {})
-        }
-        return schedule_id in list(schedules.values())
+        schedules = (
+            self.schedules[home_id][s]["id"] for s in self.schedules.get(home_id, {})
+        )
+        return schedule_id in schedules
 
 
 class HomeData(AbstractHomeData):
@@ -151,10 +149,9 @@ class AsyncHomeData(AbstractHomeData):
         if not self.is_valid_schedule(home_id, schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
-        post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = await self.auth.async_post_request(
             url=_SWITCHHOMESCHEDULE_REQ,
-            params=post_params,
+            params={"home_id": home_id, "schedule_id": schedule_id},
         )
         LOG.debug("Response: %s", resp)
 
@@ -243,14 +240,14 @@ class HomeStatus(AbstractHomeStatus):
             home_id {str} -- ID for targeted home
         """
         self.auth = auth
-
         self.home_id = home_id
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        post_params = {"home_id": self.home_id}
-
-        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ, params=post_params)
+        resp = self.auth.post_request(
+            url=_GETHOMESTATUS_REQ,
+            params={"home_id": self.home_id},
+        )
 
         self.raw_data = extract_raw_data(resp.json(), "home")
         self.process()
@@ -305,16 +302,13 @@ class AsyncHomeStatus(AbstractHomeStatus):
             home_id {str} -- ID for targeted home
         """
         self.auth = auth
-
         self.home_id = home_id
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
-        post_params = {"home_id": self.home_id}
-
         resp = await self.auth.async_post_request(
             url=_GETHOMESTATUS_REQ,
-            params=post_params,
+            params={"home_id": self.home_id},
         )
 
         assert not isinstance(resp, bytes)

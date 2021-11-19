@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [6.2.0]
+
+### Added
+
+- Add support for python3.20
+- Introduce climate module #156
+
+### Changed
+
+- Use assignment expressions
+
 ## [6.1.0] - 2021-10-03
 
 ### Added
@@ -146,7 +157,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.0.0...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.0...HEAD
+[6.2.0]: https://github.com/jabesq/pyatmo/compare/v6.1.0...v6.2.0
+[6.1.0]: https://github.com/jabesq/pyatmo/compare/v6.0.0...v6.1.0
 [6.0.0]: https://github.com/jabesq/pyatmo/compare/v5.2.3...v6.0.0
 [5.2.3]: https://github.com/jabesq/pyatmo/compare/v5.2.2...v5.2.3
 [5.2.2]: https://github.com/jabesq/pyatmo/compare/v5.2.1...v5.2.2

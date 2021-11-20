@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .base_class import NetatmoBase
 from .device_types import NetatmoDeviceType
 
 if TYPE_CHECKING:
@@ -15,11 +16,9 @@ LOG = logging.getLogger(__name__)
 
 
 @dataclass
-class NetatmoRoom:
+class NetatmoRoom(NetatmoBase):
     """Class to represent a Netatmo room."""
 
-    entity_id: str
-    name: str
     home: NetatmoHome
     modules: dict[str, NetatmoModule]
     device_type: NetatmoDeviceType | None = None
@@ -36,8 +35,7 @@ class NetatmoRoom:
         room: dict,
         all_modules: dict[str, NetatmoModule],
     ) -> None:
-        self.entity_id = room["id"]
-        self.name = room["name"]
+        super().__init__(room)
         self.home = home
         self.modules = {
             m_id: m
@@ -57,11 +55,12 @@ class NetatmoRoom:
 
     def evaluate_device_type(self) -> None:
         for module in self.modules.values():
-            if module.device_type is NetatmoDeviceType.NATherm1:
-                self.device_type = NetatmoDeviceType.NATherm1
+            if module.device_type in [
+                NetatmoDeviceType.NATherm1,
+                NetatmoDeviceType.NRV,
+            ]:
+                self.device_type = module.device_type
                 break
-            if module.device_type is NetatmoDeviceType.NRV:
-                self.device_type = NetatmoDeviceType.NRV
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable", False)

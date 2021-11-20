@@ -7,7 +7,7 @@ _GETHOMECOACHDATA_REQ = _BASE_URL + "api/gethomecoachsdata"
 
 class HomeCoachData(WeatherStationData):
     """
-    Class of Netatmo Home Couch devices (stations and modules)
+    Class of Netatmo Home Coach devices (stations and modules)
     """
 
     def __init__(self, auth: NetatmoOAuth2) -> None:
@@ -21,7 +21,7 @@ class HomeCoachData(WeatherStationData):
 
 class AsyncHomeCoachData(AsyncWeatherStationData):
     """
-    Class of Netatmo Home Couch devices (stations and modules)
+    Class of Netatmo Home Coach devices (stations and modules)
     """
 
     def __init__(self, auth: AbstractAsyncAuth) -> None:

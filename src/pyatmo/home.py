@@ -39,7 +39,7 @@ class NetatmoHome:
             for room in raw_data.get("rooms", [])
         }
         self.schedules = {
-            s["id"]: NetatmoSchedule(home_id=self.entity_id, raw_data=s)
+            s["id"]: NetatmoSchedule(home=self, raw_data=s)
             for s in raw_data.get("schedules", [])
         }
 
@@ -73,7 +73,7 @@ class NetatmoHome:
             self.rooms.pop(room)
 
         self.schedules = {
-            s["id"]: NetatmoSchedule(home_id=self.entity_id, raw_data=s)
+            s["id"]: NetatmoSchedule(home=self, raw_data=s)
             for s in raw_data.get("schedules", [])
         }
 

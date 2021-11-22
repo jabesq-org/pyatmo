@@ -24,9 +24,6 @@ def default(key, val):
 class NetatmoBase(ABC):
     """Base class for Netatmo entities."""
 
-    entity_id: str
-    name: str
-
     def __init__(self, raw_data: dict) -> None:
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")

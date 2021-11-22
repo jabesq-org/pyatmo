@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .base_class import NetatmoBase
+from pyatmo.modules.base_class import NetatmoBase
 
 if TYPE_CHECKING:
     from .home import NetatmoHome

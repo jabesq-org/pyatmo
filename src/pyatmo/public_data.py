@@ -6,9 +6,9 @@ from abc import ABC
 from collections import defaultdict
 from typing import Any
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .const import _GETPUBLIC_DATA_ENDPOINT
-from .exceptions import NoDevice
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import _GETPUBLIC_DATA_ENDPOINT
+from pyatmo.exceptions import NoDevice
 
 STATION_TEMPERATURE_TYPE = "temperature"
 STATION_PRESSURE_TYPE = "pressure"

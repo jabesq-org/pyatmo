@@ -5,12 +5,12 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 
-from . import module as netatmo_modules
-from .auth import AbstractAsyncAuth
-from .const import _GETHOMESDATA_REQ
-from .helpers import extract_raw_data_new
-from .room import NetatmoRoom
-from .schedule import NetatmoSchedule
+from pyatmo.auth import AbstractAsyncAuth
+from pyatmo.const import _GETHOMESDATA_REQ
+from pyatmo.helpers import extract_raw_data_new
+from pyatmo.modules import netatmo as netatmo_modules
+from pyatmo.room import NetatmoRoom
+from pyatmo.schedule import NetatmoSchedule
 
 
 @dataclass

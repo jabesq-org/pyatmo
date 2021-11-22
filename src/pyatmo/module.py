@@ -14,18 +14,17 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-class MixinBase:
-    def update_topology(self, raw_data: dict) -> None:
-        pass
-
-
 class BoilerMixin:
-    boiler_status: bool | None = None
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.boiler_status: bool | None = None
 
 
 class BatteryMixin:
-    battery_state: str | None = None
-    battery_level: int | None = None
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.battery_state: str | None = None
+        self.battery_level: int | None = None
 
 
 @dataclass
@@ -61,5 +60,17 @@ class NetatmoModule(NetatmoBase):
                     self.home.rooms[module.room_id].update(raw_data)
 
 
-class NVAModule(BatteryMixin, BoilerMixin, NetatmoModule):
+class NRV(BatteryMixin, NetatmoModule):
+    pass
+
+
+class NATherm1(BatteryMixin, BoilerMixin, NetatmoModule):
+    pass
+
+
+class NAPlug(NetatmoModule):
+    pass
+
+
+class NACamera(NetatmoModule):
     pass

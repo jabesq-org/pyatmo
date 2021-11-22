@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from abc import ABC
 
-from .device_types import NetatmoDeviceType
+from pyatmo.modules.device_types import NetatmoDeviceType
 
 LOG = logging.getLogger(__name__)
 

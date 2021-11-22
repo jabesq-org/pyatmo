@@ -7,7 +7,7 @@ from calendar import timegm
 from datetime import datetime
 from typing import Any
 
-from .exceptions import NoDevice
+from pyatmo.exceptions import NoDevice
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

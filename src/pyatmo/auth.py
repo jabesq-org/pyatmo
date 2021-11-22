@@ -12,7 +12,7 @@ from aiohttp import ClientError, ClientResponse, ClientSession
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
-from .const import (
+from pyatmo.const import (
     _DEFAULT_BASE_URL,
     ALL_SCOPES,
     AUTH_REQ_ENDPOINT,
@@ -22,7 +22,7 @@ from .const import (
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
-from .exceptions import ApiError
+from pyatmo.exceptions import ApiError
 
 LOG = logging.getLogger(__name__)
 

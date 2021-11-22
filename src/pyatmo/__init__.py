@@ -1,14 +1,14 @@
 """Expose submodules."""
-from .auth import AbstractAsyncAuth, ClientAuth, NetatmoOAuth2
-from .camera import AsyncCameraData, CameraData
-from .climate import AsyncClimate
-from .exceptions import ApiError, InvalidHome, InvalidRoom, NoDevice, NoSchedule
-from .home import AsyncClimateTopology
-from .home_coach import AsyncHomeCoachData, HomeCoachData
-from .modules.device_types import NetatmoDeviceType
-from .public_data import AsyncPublicData, PublicData
-from .thermostat import AsyncHomeData, AsyncHomeStatus, HomeData, HomeStatus
-from .weather_station import AsyncWeatherStationData, WeatherStationData
+from pyatmo.auth import AbstractAsyncAuth, ClientAuth, NetatmoOAuth2
+from pyatmo.camera import AsyncCameraData, CameraData
+from pyatmo.climate import AsyncClimate
+from pyatmo.exceptions import ApiError, InvalidHome, InvalidRoom, NoDevice, NoSchedule
+from pyatmo.home import AsyncClimateTopology
+from pyatmo.home_coach import AsyncHomeCoachData, HomeCoachData
+from pyatmo.modules.device_types import NetatmoDeviceType
+from pyatmo.public_data import AsyncPublicData, PublicData
+from pyatmo.thermostat import AsyncHomeData, AsyncHomeStatus, HomeData, HomeStatus
+from pyatmo.weather_station import AsyncWeatherStationData, WeatherStationData
 
 __all__ = [
     "AbstractAsyncAuth",

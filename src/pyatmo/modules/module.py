@@ -5,11 +5,11 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .base_class import NetatmoBase
-from .device_types import NetatmoDeviceType
+from pyatmo.modules.base_class import NetatmoBase
+from pyatmo.modules.device_types import NetatmoDeviceType
 
 if TYPE_CHECKING:
-    from .home import NetatmoHome
+    from pyatmo.home import NetatmoHome
 
 LOG = logging.getLogger(__name__)
 

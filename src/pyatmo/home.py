@@ -5,10 +5,10 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 
+from . import module as netatmo_modules
 from .auth import AbstractAsyncAuth
 from .const import _GETHOMESDATA_REQ
 from .helpers import extract_raw_data_new
-from .module import NetatmoModule
 from .room import NetatmoRoom
 from .schedule import NetatmoSchedule
 
@@ -20,14 +20,17 @@ class NetatmoHome:
     entity_id: str
     name: str
     rooms: dict[str, NetatmoRoom]
-    modules: dict[str, NetatmoModule]
+    modules: dict[str, netatmo_modules.NetatmoModule]
     schedules: dict[str, NetatmoSchedule]
 
     def __init__(self, raw_data: dict) -> None:
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
         self.modules = {
-            module["id"]: NetatmoModule(home=self, module=module)
+            module["id"]: getattr(netatmo_modules, module["type"])(
+                home=self,
+                module=module,
+            )
             for module in raw_data.get("modules", [])
         }
         self.rooms = {
@@ -49,7 +52,10 @@ class NetatmoHome:
         raw_modules = raw_data.get("modules", [])
         for module in raw_modules:
             if (module_id := module["id"]) not in self.modules:
-                self.modules[module_id] = NetatmoModule(home=self, module=module)
+                self.modules[module_id] = getattr(netatmo_modules, module["type"])(
+                    home=self,
+                    module=module,
+                )
             else:
                 self.modules[module_id].update_topology(module)
 

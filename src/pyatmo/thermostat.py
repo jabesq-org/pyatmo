@@ -6,16 +6,16 @@ from abc import ABC
 from collections import defaultdict
 from typing import Any
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .const import (
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import (
     _GETHOMESDATA_REQ,
     _GETHOMESTATUS_REQ,
     _SETROOMTHERMPOINT_REQ,
     _SETTHERMMODE_REQ,
     _SWITCHHOMESCHEDULE_REQ,
 )
-from .exceptions import InvalidRoom, NoSchedule
-from .helpers import extract_raw_data
+from pyatmo.exceptions import InvalidRoom, NoSchedule
+from pyatmo.helpers import extract_raw_data
 
 LOG = logging.getLogger(__name__)
 

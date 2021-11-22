@@ -10,8 +10,8 @@ from typing import Any
 import aiohttp
 from requests.exceptions import ReadTimeout
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .const import (
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import (
     _GETCAMERAPICTURE_REQ,
     _GETEVENTSUNTIL_REQ,
     _GETHOMEDATA_REQ,
@@ -19,8 +19,8 @@ from .const import (
     _SETPERSONSHOME_REQ,
     _SETSTATE_REQ,
 )
-from .exceptions import ApiError, NoDevice
-from .helpers import LOG, extract_raw_data
+from pyatmo.exceptions import ApiError, NoDevice
+from pyatmo.helpers import LOG, extract_raw_data
 
 
 class AbstractCameraData(ABC):

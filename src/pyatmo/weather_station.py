@@ -6,9 +6,9 @@ import time
 from abc import ABC
 from collections import defaultdict
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .const import _GETMEASURE_REQ, _GETSTATIONDATA_REQ
-from .helpers import extract_raw_data, today_stamps
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import _GETMEASURE_REQ, _GETSTATIONDATA_REQ
+from pyatmo.helpers import extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
 

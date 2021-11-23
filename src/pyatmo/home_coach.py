@@ -1,6 +1,7 @@
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .const import _GETHOMECOACHDATA_REQ
-from .weather_station import AsyncWeatherStationData, WeatherStationData
+"""Support for Netatmo air care devices."""
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import _GETHOMECOACHDATA_REQ
+from pyatmo.weather_station import AsyncWeatherStationData, WeatherStationData
 
 
 class HomeCoachData(WeatherStationData):

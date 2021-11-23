@@ -9,8 +9,8 @@ from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import NetatmoDeviceType
 
 if TYPE_CHECKING:
-    from .home import NetatmoHome
-    from .modules.module import NetatmoModule
+    from pyatmo.home import NetatmoHome
+    from pyatmo.modules.module import NetatmoModule
 
 LOG = logging.getLogger(__name__)
 

@@ -1,21 +1,19 @@
 """Support for Netatmo energy devices (relays, thermostats and valves)."""
 from __future__ import annotations
-from dataclasses import dataclass
-from enum import Enum
 
 import logging
 from abc import ABC
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .const import (
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import (
     _GETHOMESTATUS_ENDPOINT,
     _SETROOMTHERMPOINT_ENDPOINT,
     _SETTHERMMODE_ENDPOINT,
     _SWITCHHOMESCHEDULE_ENDPOINT,
 )
-from .exceptions import NoSchedule
-from .helpers import extract_raw_data_new
-from .home import NetatmoHome
+from pyatmo.exceptions import NoSchedule
+from pyatmo.helpers import extract_raw_data_new
+from pyatmo.home import NetatmoHome
 
 LOG = logging.getLogger(__name__)
 

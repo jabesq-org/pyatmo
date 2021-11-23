@@ -42,8 +42,37 @@ class NetatmoDeviceType(Enum):
     NHC = "NHC"  # Smart Indoor Air Quality Monitor
 
     # 3rd Party
-    BNCX = "BNCX"  # BTicino Classe 300 EOS
-    NLG = "NLG"  # Legrand Wiring devices and electrical panel products
-    BNS = "BNS"  # Bubbendorf shutters
+    BNS = "BNS"  # Smarther with Netatmo
+    # Legrand Wiring devices and electrical panel products
+    NLG = "NLG"  # Gateway
+    NLGS = "NLGS"  # Gateway standalone
+    NLP = "NLP"  # Plug
+    NLPM = "NLPM"  # mobile plug
+    NLPBS = "NLPBS"  # British standard plugs
+    NLF = "NLF"  # 2 wire light switch
+    NLFN = "NLFN"  # light switch with neutral
+    NLM = "NLM"  # light micro module
+    NLL = "NLL"  # Italian light switch with neutral
+    NLV = "NLV"  # Legrand / BTicino shutters
+    NLLV = "NLLV"  # Legrand / BTicino shutters
+    NLLM = "NLLM"  # Legrand / BTicino shutters
+    NLPO = "NLPO"  # Connected contactor
+    NLPT = "NLPT"  # Connected latching relay / Telerupt
+    NLPC = "NLPC"  # Connected energy meter
+    NLE = "NLE"  # C onnected Ecometer
+    NLPS = "NLPS"  # Smart Load Shedder
+    NLC = "NLC"  # Cable outlet
+
+    # BTicino Classe 300 EOS
+    BNCX = "BNCX"  # internal panel = gateway
+    BNEU = "BNEU"  # external unit
+    BNDL = "BNDL"  # door lock
+    BNSL = "BNSL"  # staircase light
+
+    # Bubbendorf shutters
+    NBG = "NBG"  # gateway
+    NBR = "NBR"  # roller shutter
+    NBO = "NBO"  # orientable shutter
+    NBS = "NBS"  # swing shutter
 
     # pylint: enable=C0103

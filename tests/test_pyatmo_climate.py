@@ -20,14 +20,14 @@ async def test_async_climate(async_auth, async_climate):
 
     room_id = "2746182631"
     assert room_id in home.rooms
-    assert len(home.rooms) == 4
+    assert len(home.rooms) == 5
 
     room = home.rooms[room_id]
     assert room.reachable is True
 
     module_id = "12:34:56:00:01:ae"
     assert module_id in home.modules
-    assert len(home.modules) == 5
+    assert len(home.modules) == 9
     assert module_id in room.modules
     assert home.modules != room.modules
     assert len(room.modules) == 1
@@ -57,6 +57,16 @@ async def test_async_climate(async_auth, async_climate):
     relay = home.modules[relay_id]
     assert relay.device_type == pyatmo.NetatmoDeviceType.NAPlug
     assert len(relay.modules) == 3
+
+    module_id = "12:34:56:10:f1:66"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == pyatmo.NetatmoDeviceType.NDB
+
+    module_id = "12:34:56:10:b9:0e"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == pyatmo.NetatmoDeviceType.NOC
 
 
 @pytest.mark.asyncio

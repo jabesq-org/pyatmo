@@ -35,28 +35,6 @@ class AbstractAccount(ABC):
             f"(user={self.user}, home_ids={self.home_ids}, subscriptions={self.subscriptions})"
         )
 
-    # def register_handler(self, home_id: str, handler: Callable) -> None:
-    #     """Register update handler."""
-    #     if self.subscriptions.get(home_id) == handler:
-    #         return
-
-    #     if home_id in self.subscriptions and self.subscriptions[home_id] != handler:
-    #         self.unregister_handler(home_id)
-
-    #     self.subscriptions[home_id] = handler
-
-    #     self.publish()
-
-    # def unregister_handler(self, home_id: str) -> None:
-    #     """Unregister update handler."""
-    #     self.subscriptions.pop(home_id)
-
-    # def publish(self) -> None:
-    #     """Publish latest topology data to subscribers."""
-    #     for home in self.raw_data.get("homes", []):
-    #         if (home_id := home["id"]) in self.subscriptions:
-    #             self.subscriptions[home_id](home)
-
     def process_topology(self) -> None:
         """Process topology information from /homedata."""
         for home in self.raw_data["homes"]:

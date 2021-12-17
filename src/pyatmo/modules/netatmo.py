@@ -20,5 +20,21 @@ class NAPlug(NetatmoModule):
     pass
 
 
+class OTH(NetatmoModule):
+    pass
+
+
+class OTM(BatteryMixin, BoilerMixin, NetatmoModule):
+    pass
+
+
 class NACamera(NetatmoModule):
+    pass
+
+
+class NOC(NetatmoModule):
+    pass
+
+
+class NDB(NetatmoModule):
     pass

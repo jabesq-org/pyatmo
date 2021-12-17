@@ -58,19 +58,3 @@ class NetatmoModule(NetatmoBase):
                 module.update(raw_data)
                 if module.room_id:
                     self.home.rooms[module.room_id].update(raw_data)
-
-
-class NRV(BatteryMixin, NetatmoModule):
-    pass
-
-
-class NATherm1(BatteryMixin, BoilerMixin, NetatmoModule):
-    pass
-
-
-class NAPlug(NetatmoModule):
-    pass
-
-
-class NACamera(NetatmoModule):
-    pass

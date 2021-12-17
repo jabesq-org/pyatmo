@@ -282,28 +282,27 @@ async def async_weather_station_data(async_auth):
 
 
 @pytest.fixture(scope="function")
-async def async_climate_topology(async_auth):
-    """AsyncClimateTopology fixture."""
-    climate_topology = pyatmo.AsyncClimateTopology(async_auth)
+async def async_account(async_auth):
+    """AsyncAccount fixture."""
+    account = pyatmo.AsyncAccount(async_auth)
 
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         home_data_fixture = json.load(json_file)
+
     mock_home_data_resp = MockResponse(home_data_fixture, 200)
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=mock_home_data_resp),
     ):
-        await climate_topology.async_update()
-        yield climate_topology
+        await account.async_update_topology()
+        yield account
 
 
 @pytest.fixture(scope="function")
-async def async_climate(async_auth, async_climate_topology):
+async def async_climate(async_auth, async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"
-    climate = pyatmo.AsyncClimate(async_auth, home_id=home_id)
-    async_climate_topology.register_handler(home_id, climate.process_topology)
 
     with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
         home_status_fixture = json.load(json_file)
@@ -313,5 +312,5 @@ async def async_climate(async_auth, async_climate_topology):
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=mock_home_status_resp),
     ):
-        await climate.async_update()
-        yield climate
+        await async_account.async_update_status(home_id)
+        yield async_account

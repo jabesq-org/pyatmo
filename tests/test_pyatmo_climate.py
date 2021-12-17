@@ -16,7 +16,6 @@ async def test_async_climate(async_auth, async_climate):
     """Test basic climate setup."""
     home_id = "91763b24c43d3e344f424e8b"
     assert home_id in async_climate.homes
-
     home = async_climate.homes[home_id]
 
     room_id = "2746182631"
@@ -88,7 +87,7 @@ async def test_async_climate_update(async_climate):
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=mock_home_status_resp),
     ) as mock_request:
-        await async_climate.async_update()
+        await async_climate.async_update_status(home_id)
         mock_request.assert_called()
 
     assert room.reachable is False
@@ -102,7 +101,7 @@ async def test_async_climate_update(async_climate):
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=mock_home_status_resp),
     ) as mock_request:
-        await async_climate.async_update()
+        await async_climate.async_update_status(home_id)
         mock_request.assert_called()
 
     assert room.reachable is True
@@ -112,10 +111,11 @@ async def test_async_climate_update(async_climate):
 
 
 @pytest.mark.parametrize(
-    "t_sched_id, expected",
+    "home_id, t_sched_id, expected",
     [
-        ("591b54a2764ff4d50d8b5795", does_not_raise()),
+        ("91763b24c43d3e344f424e8b", "591b54a2764ff4d50d8b5795", does_not_raise()),
         (
+            "91763b24c43d3e344f424e8b",
             "123456789abcdefg12345678",
             pytest.raises(pyatmo.NoSchedule),
         ),
@@ -124,6 +124,7 @@ async def test_async_climate_update(async_climate):
 @pytest.mark.asyncio
 async def test_async_climate_switch_home_schedule(
     async_climate,
+    home_id,
     t_sched_id,
     expected,
 ):
@@ -136,14 +137,16 @@ async def test_async_climate_switch_home_schedule(
     ):
         with expected:
             await async_climate.async_switch_home_schedule(
+                home_id=home_id,
                 schedule_id=t_sched_id,
             )
 
 
 @pytest.mark.parametrize(
-    "mode, end_time, schedule_id, json_fixture, expected, exception",
+    "home_id,mode, end_time, schedule_id, json_fixture, expected, exception",
     [
         (
+            "91763b24c43d3e344f424e8b",
             None,
             None,
             None,
@@ -152,6 +155,7 @@ async def test_async_climate_switch_home_schedule(
             pytest.raises(pyatmo.NoSchedule),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             None,
             None,
             None,
@@ -160,6 +164,7 @@ async def test_async_climate_switch_home_schedule(
             pytest.raises(pyatmo.NoSchedule),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "away",
             None,
             None,
@@ -168,6 +173,7 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "away",
             1559162650,
             None,
@@ -176,6 +182,7 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "away",
             1559162650,
             0000000,
@@ -184,6 +191,7 @@ async def test_async_climate_switch_home_schedule(
             pytest.raises(pyatmo.NoSchedule),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "schedule",
             None,
             "591b54a2764ff4d50d8b5795",
@@ -192,6 +200,7 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "schedule",
             1559162650,
             "591b54a2764ff4d50d8b5795",
@@ -200,6 +209,7 @@ async def test_async_climate_switch_home_schedule(
             does_not_raise(),
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "schedule",
             None,
             "blahblahblah",
@@ -212,6 +222,7 @@ async def test_async_climate_switch_home_schedule(
 @pytest.mark.asyncio
 async def test_async_climate_set_thermmode(
     async_climate,
+    home_id,
     mode,
     end_time,
     schedule_id,
@@ -229,6 +240,7 @@ async def test_async_climate_set_thermmode(
         AsyncMock(return_value=mock_resp),
     ), exception:
         res = await async_climate.async_set_thermmode(
+            home_id=home_id,
             mode=mode,
             end_time=end_time,
             schedule_id=schedule_id,
@@ -240,9 +252,10 @@ async def test_async_climate_set_thermmode(
 
 
 @pytest.mark.parametrize(
-    "room_id, mode, temp, end_time, json_fixture, expected",
+    "home_id, room_id, mode, temp, end_time, json_fixture, expected",
     [
         (
+            "91763b24c43d3e344f424e8b",
             "2746182631",
             "home",
             14,
@@ -251,6 +264,7 @@ async def test_async_climate_set_thermmode(
             "ok",
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "2746182631",
             "home",
             14,
@@ -259,6 +273,7 @@ async def test_async_climate_set_thermmode(
             "ok",
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "2746182631",
             "home",
             None,
@@ -267,6 +282,7 @@ async def test_async_climate_set_thermmode(
             "ok",
         ),
         (
+            "91763b24c43d3e344f424e8b",
             "2746182631",
             "home",
             None,
@@ -279,6 +295,7 @@ async def test_async_climate_set_thermmode(
 @pytest.mark.asyncio
 async def test_async_climate_set_room_thermpoint(
     async_climate,
+    home_id,
     room_id,
     mode,
     temp,
@@ -296,6 +313,7 @@ async def test_async_climate_set_room_thermpoint(
         AsyncMock(return_value=mock_resp),
     ):
         result = await async_climate.async_set_room_thermpoint(
+            home_id=home_id,
             room_id=room_id,
             mode=mode,
             temp=temp,
@@ -304,27 +322,58 @@ async def test_async_climate_set_room_thermpoint(
         assert result["status"] == expected
 
 
-@pytest.mark.asyncio
-async def test_async_climate_empty_home(async_auth, async_climate_topology):
-    """Test climate setup with empty home."""
-    home_id = "91763b24c43d3e344f424e8c"
-    climate = pyatmo.AsyncClimate(async_auth, home_id=home_id)
-    async_climate_topology.register_handler(home_id, climate.process_topology)
+# @pytest.mark.asyncio
+# async def test_async_climate_empty_home(async_account):
+#     """Test climate setup with empty home."""
+#     home_id = "91763b24c43d3e344f424e8c"
 
-    with open(
-        "fixtures/homestatus_91763b24c43d3e344f424e8c.json",
-        encoding="utf-8",
-    ) as json_file:
-        home_status_fixture = json.load(json_file)
-    mock_home_status_resp = MockResponse(home_status_fixture, 200)
+#     with patch(
+#         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+#         fake_post,
+#     ):
+#         await async_account.async_update_status(home_id)
+
+#     assert home_id in async_account.homes
+
+#     home = async_account.homes[home_id]
+#     assert len(home.rooms) == 0
+
+# @pytest.mark.asyncio
+# async def test_async_climate_empty_home(async_auth, async_climate_topology):
+#     """Test climate setup with empty home."""
+#     home_id = "91763b24c43d3e344f424e8c"
+#     climate = pyatmo.AsyncClimate(async_auth, home_id=home_id)
+#     async_climate_topology.register_handler(home_id, climate.process_topology)
+
+#     with open(
+#         "fixtures/homestatus_91763b24c43d3e344f424e8c.json",
+#         encoding="utf-8",
+#     ) as json_file:
+#         home_status_fixture = json.load(json_file)
+#     mock_home_status_resp = MockResponse(home_status_fixture, 200)
+
+#     with patch(
+#         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+#         AsyncMock(return_value=mock_home_status_resp),
+#     ):
+#         await climate.async_update()
+
+#     assert home_id in climate.homes
+
+#     home = climate.homes[home_id]
+#     assert len(home.rooms) == 0
+
+
+async def test_async_home_data_no_body(async_auth):
+    with open("fixtures/homesdata_emtpy_home.json", encoding="utf-8") as fixture_file:
+        json_fixture = json.load(fixture_file)
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        AsyncMock(return_value=mock_home_status_resp),
-    ):
-        await climate.async_update()
+        AsyncMock(return_value=json_fixture),
+    ) as mock_request:
+        climate = pyatmo.AsyncAccount(async_auth)
 
-    assert home_id in climate.homes
-
-    home = climate.homes[home_id]
-    assert len(home.rooms) == 0
+    with pytest.raises(pyatmo.NoDevice):
+        await climate.async_update_topology()
+        mock_request.assert_called()

@@ -8,28 +8,12 @@ import pytest
 
 import pyatmo
 
+from .common import MockResponse, fake_post
+
 
 @contextmanager
 def does_not_raise():
     yield
-
-
-class MockResponse:
-    def __init__(self, text, status):
-        self._text = text
-        self.status = status
-
-    async def json(self):
-        return self._text
-
-    async def read(self):
-        return self._text
-
-    async def __aexit__(self, exc_type, exc, traceback):
-        pass
-
-    async def __aenter__(self):
-        return self
 
 
 @pytest.fixture(scope="function")
@@ -288,14 +272,9 @@ async def async_account(async_auth):
     """AsyncAccount fixture."""
     account = pyatmo.AsyncAccount(async_auth)
 
-    with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
-        home_data_fixture = json.load(json_file)
-
-    mock_home_data_resp = MockResponse(home_data_fixture, 200)
-
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=mock_home_data_resp),
+        fake_post,
     ):
         await account.async_update_topology()
         yield account
@@ -306,13 +285,9 @@ async def async_climate(async_auth, async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"
 
-    with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
-        home_status_fixture = json.load(json_file)
-    mock_home_status_resp = MockResponse(home_status_fixture, 200)
-
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=mock_home_status_resp),
+        fake_post,
     ):
         await async_account.async_update_status(home_id)
         yield async_account

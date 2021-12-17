@@ -75,7 +75,6 @@ def extract_raw_data(resp: Any, tag: str) -> dict:
 
 def extract_raw_data_new(resp: Any, tag: str) -> dict:
     """Extract raw data from server response."""
-    errors = resp["body"].get("errors", [])
     if resp is None or "body" not in resp or tag not in resp["body"]:
         LOG.debug("Server response: %s", resp)
         raise NoDevice("No device found, errors in response")
@@ -84,4 +83,4 @@ def extract_raw_data_new(resp: Any, tag: str) -> dict:
         LOG.debug("Server response: %s", resp)
         raise NoDevice("No device data available")
 
-    return {tag: raw_data, "errors": errors}
+    return {tag: raw_data, "errors": resp["body"].get("errors", [])}

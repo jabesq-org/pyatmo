@@ -212,7 +212,7 @@ class NetatmoRoom:
 
 @dataclass
 class NetatmoSchedule:
-    """Class to represent a Netatmo room."""
+    """Class to represent a Netatmo schedule."""
 
     entity_id: str
     name: str

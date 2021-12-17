@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [6.2.1]
+
+### Fixed
+
+- Catch when no body is contained in the response
+
 ## [6.2.0]
 
 ### Added
@@ -158,6 +164,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash when station name is not contained in the backend data
 
 [unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.0...HEAD
+[6.2.1]: https://github.com/jabesq/pyatmo/compare/v6.2.0...v6.2.1
 [6.2.0]: https://github.com/jabesq/pyatmo/compare/v6.1.0...v6.2.0
 [6.1.0]: https://github.com/jabesq/pyatmo/compare/v6.0.0...v6.1.0
 [6.0.0]: https://github.com/jabesq/pyatmo/compare/v5.2.3...v6.0.0

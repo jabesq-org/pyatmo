@@ -38,3 +38,23 @@ class NOC(NetatmoModule):
 
 class NDB(NetatmoModule):
     pass
+
+
+class NAMain(NetatmoModule):
+    pass
+
+
+class NAModule1(NetatmoModule):
+    pass
+
+
+class NAModule2(NetatmoModule):
+    pass
+
+
+class NAModule3(NetatmoModule):
+    pass
+
+
+class NAModule4(NetatmoModule):
+    pass

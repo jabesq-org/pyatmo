@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pyatmo.modules import netatmo as netatmo_modules
+from pyatmo import modules
 from pyatmo.room import NetatmoRoom
 from pyatmo.schedule import NetatmoSchedule
 
@@ -15,14 +15,14 @@ class NetatmoHome:
     entity_id: str
     name: str
     rooms: dict[str, NetatmoRoom]
-    modules: dict[str, netatmo_modules.NetatmoModule]
+    modules: dict[str, modules.NetatmoModule]
     schedules: dict[str, NetatmoSchedule]
 
     def __init__(self, raw_data: dict) -> None:
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
         self.modules = {
-            module["id"]: getattr(netatmo_modules, module["type"])(
+            module["id"]: getattr(modules, module["type"])(
                 home=self,
                 module=module,
             )
@@ -47,7 +47,7 @@ class NetatmoHome:
         raw_modules = raw_data.get("modules", [])
         for module in raw_modules:
             if (module_id := module["id"]) not in self.modules:
-                self.modules[module_id] = getattr(netatmo_modules, module["type"])(
+                self.modules[module_id] = getattr(modules, module["type"])(
                     home=self,
                     module=module,
                 )

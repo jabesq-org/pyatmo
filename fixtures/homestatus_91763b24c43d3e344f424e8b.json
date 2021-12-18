@@ -119,6 +119,25 @@
                     "type": "OTM",
                     "bridge": "12:34:56:20:f5:44",
                     "battery_state": "full"
+                },
+                {
+                    "id": "12:34:56:30:d5:d4",
+                    "type": "NBG",
+                    "firmware_revision": 39,
+                    "wifi_strength": 65,
+                    "reachable": true
+                },
+                {
+                    "id": "0009999992",
+                    "type": "NBR",
+                    "current_position": 0,
+                    "target_position": 0,
+                    "target_position_step": 100,
+                    "firmware_revision": 16,
+                    "rf_strength": 0,
+                    "last_seen": 1638353156,
+                    "reachable": true,
+                    "bridge": "70:ee:50:3e:d5:d4"
                 }
             ],
             "rooms": [

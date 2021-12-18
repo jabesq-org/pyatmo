@@ -170,6 +170,118 @@
                         "setup_date": 1578551339,
                         "room_id": "3688132631",
                         "bridge": "12:34:56:30:d5:d4"
+                    },
+                    {
+                        "id": "12:34:56:80:bb:26",
+                        "type": "NAMain",
+                        "name": "Na dole",
+                        "setup_date": 1419453350,
+                        "room_id": "4122897288",
+                        "reachable": true,
+                        "modules_bridged": [
+                            "12:34:56:80:44:92",
+                            "12:34:56:80:7e:18",
+                            "12:34:56:80:1c:42",
+                            "12:34:56:80:c1:ea"
+                        ],
+                        "customer_id": "C00016",
+                        "hardware_version": 251,
+                        "public_ext_data": false,
+                        "public_ext_counter": 0,
+                        "alarm_config": {
+                            "default_alarm": [
+                                {
+                                    "db_alarm_number": 0
+                                },
+                                {
+                                    "db_alarm_number": 1
+                                },
+                                {
+                                    "db_alarm_number": 2
+                                },
+                                {
+                                    "db_alarm_number": 6
+                                },
+                                {
+                                    "db_alarm_number": 4
+                                },
+                                {
+                                    "db_alarm_number": 5
+                                },
+                                {
+                                    "db_alarm_number": 7
+                                },
+                                {
+                                    "db_alarm_number": 22
+                                }
+                            ],
+                            "personnalized": [
+                                {
+                                    "threshold": 20,
+                                    "data_type": 1,
+                                    "direction": 0,
+                                    "db_alarm_number": 8
+                                },
+                                {
+                                    "threshold": 17,
+                                    "data_type": 1,
+                                    "direction": 1,
+                                    "db_alarm_number": 9
+                                },
+                                {
+                                    "threshold": 65,
+                                    "data_type": 4,
+                                    "direction": 0,
+                                    "db_alarm_number": 16
+                                },
+                                {
+                                    "threshold": 19,
+                                    "data_type": 8,
+                                    "direction": 0,
+                                    "db_alarm_number": 22
+                                }
+                            ]
+                        },
+                        "module_offset": {
+                            "12:34:56:80:bb:26": {
+                                "a": 0.1
+                            },
+                            "03:00:00:03:1b:0e": {
+                                "a": 0
+                            }
+                        }
+                    },
+                    {
+                        "id": "12:34:56:80:44:92",
+                        "type": "NAModule4",
+                        "name": "Bedroom",
+                        "setup_date": 1484997703,
+                        "room_id": "3878513931",
+                        "bridge": "12:34:56:80:bb:26"
+                    },
+                    {
+                        "id": "12:34:56:80:7e:18",
+                        "type": "NAModule4",
+                        "name": "Bathroom",
+                        "setup_date": 1543579864,
+                        "room_id": "2945394159",
+                        "bridge": "12:34:56:80:bb:26"
+                    },
+                    {
+                        "id": "12:34:56:80:1c:42",
+                        "type": "NAModule1",
+                        "name": "Outdoor",
+                        "setup_date": 1448565785,
+                        "room_id": "1576454269",
+                        "bridge": "12:34:56:80:bb:26"
+                    },
+                    {
+                        "id": "12:34:56:80:c1:ea",
+                        "type": "NAModule3",
+                        "name": "Rain",
+                        "setup_date": 1591770206,
+                        "room_id": "1576454269",
+                        "bridge": "12:34:56:80:bb:26"
                     }
                 ],
                 "therm_schedules": [

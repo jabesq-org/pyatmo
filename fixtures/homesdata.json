@@ -152,6 +152,24 @@
                         "setup_date": 1607443939,
                         "room_id": "222452125",
                         "bridge": "12:34:56:20:f5:44"
+                    },
+                    {
+                        "id": "12:34:56:30:d5:d4",
+                        "type": "NBG",
+                        "name": "module iDiamant",
+                        "setup_date": 1562262465,
+                        "room_id": "222452125",
+                        "modules_bridged": [
+                            "0009999992"
+                        ]
+                    },
+                    {
+                        "id": "0009999992",
+                        "type": "NBR",
+                        "name": "Volet Entree",
+                        "setup_date": 1578551339,
+                        "room_id": "3688132631",
+                        "bridge": "12:34:56:30:d5:d4"
                     }
                 ],
                 "therm_schedules": [

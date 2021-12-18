@@ -27,7 +27,7 @@ async def test_async_climate(async_auth, async_climate):
 
     module_id = "12:34:56:00:01:ae"
     assert module_id in home.modules
-    assert len(home.modules) == 9
+    assert len(home.modules) == 11
     assert module_id in room.modules
     assert home.modules != room.modules
     assert len(room.modules) == 1

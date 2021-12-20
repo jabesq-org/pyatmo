@@ -84,7 +84,7 @@ async def test_async_climate_update(async_climate):
     assert module.name == "Livingroom"
     assert module.device_type == pyatmo.NetatmoDeviceType.NATherm1
     assert module.reachable is True
-    assert isinstance(module, pyatmo.modules.netatmo.NATherm1)
+    assert isinstance(module, pyatmo.modules.NATherm1)
 
     with open(
         "fixtures/home_status_error_disconnected.json",

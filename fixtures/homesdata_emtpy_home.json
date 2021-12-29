@@ -1,0 +1,246 @@
+{
+    "body": {
+        "homes": [
+            {
+                "id": "111111111111111111111401",
+                "name": "Home with no modules",
+                "altitude": 9,
+                "coordinates": [
+                    1.23456789,
+                    50.0987654
+                ],
+                "country": "BE",
+                "timezone": "Europe/Brussels",
+                "rooms": [
+                    {
+                        "id": "1111111401",
+                        "name": "Livingroom",
+                        "type": "livingroom"
+                    }
+                ],
+                "temperature_control_mode": "heating",
+                "therm_mode": "away",
+                "therm_setpoint_default_duration": 120,
+                "cooling_mode": "schedule",
+                "schedules": [
+                    {
+                        "away_temp": 14,
+                        "hg_temp": 7,
+                        "name": "Week",
+                        "timetable": [
+                            {
+                                "zone_id": 1,
+                                "m_offset": 0
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 420
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 450
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 720
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 780
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 960
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 1320
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 1860
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 1890
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 2160
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 2220
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 2400
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 2760
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 3300
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 3330
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 3600
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 3660
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 3840
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 4200
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 4740
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 4770
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 5040
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 5100
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 5280
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 5640
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 6180
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 6210
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 6480
+                            },
+                            {
+                                "zone_id": 4,
+                                "m_offset": 6540
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 6720
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 7080
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 7620
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 7800
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 8100
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 8550
+                            },
+                            {
+                                "zone_id": 6,
+                                "m_offset": 9060
+                            },
+                            {
+                                "zone_id": 5,
+                                "m_offset": 9240
+                            },
+                            {
+                                "zone_id": 0,
+                                "m_offset": 9540
+                            },
+                            {
+                                "zone_id": 1,
+                                "m_offset": 9990
+                            }
+                        ],
+                        "zones": [
+                            {
+                                "type": 0,
+                                "name": "Comfort",
+                                "rooms_temp": [],
+                                "id": 0,
+                                "rooms": []
+                            },
+                            {
+                                "type": 1,
+                                "name": "Nacht",
+                                "rooms_temp": [],
+                                "id": 1,
+                                "rooms": []
+                            },
+                            {
+                                "type": 5,
+                                "name": "Eco",
+                                "rooms_temp": [],
+                                "id": 4,
+                                "rooms": []
+                            },
+                            {
+                                "type": 4,
+                                "name": "Tussenin",
+                                "rooms_temp": [],
+                                "id": 5,
+                                "rooms": []
+                            },
+                            {
+                                "type": 4,
+                                "name": "Ochtend",
+                                "rooms_temp": [],
+                                "id": 6,
+                                "rooms": []
+                            }
+                        ],
+                        "id": "700000000000000000000401",
+                        "selected": true,
+                        "type": "therm"
+                    }
+                ]
+            }
+        ],
+        "user": {
+            "email": "john@doe.com",
+            "language": "de-DE",
+            "locale": "de-DE",
+            "feel_like_algorithm": 0,
+            "unit_pressure": 0,
+            "unit_system": 0,
+            "unit_wind": 0,
+            "id": "91763b24c43d3e344f424e8b"
+        }
+    },
+    "status": "ok",
+    "time_exec": 0.056135892868042,
+    "time_server": 1559171003
+}

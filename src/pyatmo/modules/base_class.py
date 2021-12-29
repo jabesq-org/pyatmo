@@ -26,7 +26,7 @@ class NetatmoBase(ABC):
 
     def __init__(self, raw_data: dict) -> None:
         self.entity_id = raw_data["id"]
-        self.name = raw_data.get("name", "Unknown")
+        self.name = raw_data.get("name", f"Unknown {self.entity_id}")
 
     def update_topology(self, raw_data: dict) -> None:
         self.__dict__ = {

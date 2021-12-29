@@ -25,11 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Use ID if schedule name is missing
+-
 
 ### Security
 
 -
+
+## [6.2.2]
+
+### Fixed
+
+- Use ID if schedule name is missing
 
 ## [6.2.1]
 
@@ -163,7 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.0...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.2...HEAD
+[6.2.2]: https://github.com/jabesq/pyatmo/compare/v6.2.1...v6.2.2
 [6.2.1]: https://github.com/jabesq/pyatmo/compare/v6.2.0...v6.2.1
 [6.2.0]: https://github.com/jabesq/pyatmo/compare/v6.1.0...v6.2.0
 [6.1.0]: https://github.com/jabesq/pyatmo/compare/v6.0.0...v6.1.0

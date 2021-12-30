@@ -223,7 +223,7 @@ class NetatmoSchedule:
 
     def __init__(self, home_id: str, raw_data) -> None:
         self.entity_id = raw_data["id"]
-        self.name = raw_data["name"]
+        self.name = raw_data.get("name", f"Schedule {self.entity_id}")
         self.home_id = home_id
         self.selected = raw_data.get("selected", False)
         self.hg_temp = raw_data.get("hg_temp")

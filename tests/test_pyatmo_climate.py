@@ -18,6 +18,13 @@ async def test_async_climate(async_auth, async_climate):
     assert home_id in async_climate.homes
     home = async_climate.homes[home_id]
 
+    room_id = "3688132631"
+    room = home.rooms[room_id]
+    assert room.device_types == {
+        pyatmo.NetatmoDeviceType.NDB,
+        pyatmo.NetatmoDeviceType.NACamera,
+    }
+
     room_id = "2746182631"
     assert room_id in home.rooms
     assert len(home.rooms) == 5
@@ -101,7 +108,7 @@ async def test_async_climate_update(async_climate):
         await async_climate.async_update_status(home_id)
         mock_request.assert_called()
 
-    assert room.reachable is False
+    assert room.reachable is None
     assert module.reachable is False
 
     with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:

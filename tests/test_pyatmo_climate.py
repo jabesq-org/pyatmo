@@ -24,6 +24,7 @@ async def test_async_climate(async_auth, async_climate):
 
     room = home.rooms[room_id]
     assert room.reachable is True
+    assert room.device_types == {pyatmo.NetatmoDeviceType.NATherm1}
 
     module_id = "12:34:56:00:01:ae"
     assert module_id in home.modules

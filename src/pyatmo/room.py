@@ -23,7 +23,7 @@ class NetatmoRoom(NetatmoBase):
     modules: dict[str, NetatmoModule]
     device_types: set[NetatmoDeviceType]
 
-    reachable: bool = False
+    reachable: bool | None = None
     therm_setpoint_temperature: float | None = None
     therm_setpoint_mode: str | None = None
     therm_measured_temperature: float | None = None
@@ -59,7 +59,7 @@ class NetatmoRoom(NetatmoBase):
             self.device_types.add(module.device_type)
 
     def update(self, raw_data: dict) -> None:
-        self.reachable = raw_data.get("reachable", False)
+        self.reachable = raw_data.get("reachable")
         self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")

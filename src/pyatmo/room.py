@@ -21,7 +21,7 @@ class NetatmoRoom(NetatmoBase):
 
     home: NetatmoHome
     modules: dict[str, NetatmoModule]
-    device_type: NetatmoDeviceType | None = None
+    device_types: set[NetatmoDeviceType]
 
     reachable: bool = False
     therm_setpoint_temperature: float | None = None
@@ -42,6 +42,7 @@ class NetatmoRoom(NetatmoBase):
             for m_id, m in all_modules.items()
             if m_id in room.get("module_ids", [])
         }
+        self.device_types = set()
         self.evaluate_device_type()
 
     def update_topology(self, raw_data: dict) -> None:
@@ -55,12 +56,7 @@ class NetatmoRoom(NetatmoBase):
 
     def evaluate_device_type(self) -> None:
         for module in self.modules.values():
-            if module.device_type in [
-                NetatmoDeviceType.NATherm1,
-                NetatmoDeviceType.NRV,
-            ]:
-                self.device_type = module.device_type
-                break
+            self.device_types.add(module.device_type)
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable", False)

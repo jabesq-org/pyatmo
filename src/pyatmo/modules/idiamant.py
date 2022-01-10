@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import NetatmoModule
+from pyatmo.modules.module import NetatmoModule, RfMixin, ShutterMixin, WifiMixin
 
 LOG = logging.getLogger(__name__)
 
 
-class NBG(NetatmoModule):
-    pass
+class NBG(WifiMixin, NetatmoModule):
+    ...
 
 
-class NBR(NetatmoModule):
-    pass
+class NBR(RfMixin, ShutterMixin, NetatmoModule):
+    ...

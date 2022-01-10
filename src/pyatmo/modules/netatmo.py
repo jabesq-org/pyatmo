@@ -3,58 +3,64 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import BatteryMixin, BoilerMixin, NetatmoModule
+from pyatmo.modules.module import (
+    BatteryMixin,
+    BoilerMixin,
+    NetatmoModule,
+    RfMixin,
+    WifiMixin,
+)
 
 LOG = logging.getLogger(__name__)
 
 
-class NRV(BatteryMixin, NetatmoModule):
-    pass
+class NRV(RfMixin, BatteryMixin, NetatmoModule):
+    ...
 
 
-class NATherm1(BatteryMixin, BoilerMixin, NetatmoModule):
-    pass
+class NATherm1(RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
+    ...
 
 
-class NAPlug(NetatmoModule):
-    pass
+class NAPlug(WifiMixin, NetatmoModule):
+    ...
 
 
-class OTH(NetatmoModule):
-    pass
+class OTH(WifiMixin, NetatmoModule):
+    ...
 
 
-class OTM(BatteryMixin, BoilerMixin, NetatmoModule):
-    pass
+class OTM(RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
+    ...
 
 
 class NACamera(NetatmoModule):
-    pass
+    ...
 
 
 class NOC(NetatmoModule):
-    pass
+    ...
 
 
 class NDB(NetatmoModule):
-    pass
+    ...
 
 
 class NAMain(NetatmoModule):
-    pass
+    ...
 
 
 class NAModule1(NetatmoModule):
-    pass
+    ...
 
 
 class NAModule2(NetatmoModule):
-    pass
+    ...
 
 
 class NAModule3(NetatmoModule):
-    pass
+    ...
 
 
 class NAModule4(NetatmoModule):
-    pass
+    ...

@@ -14,6 +14,18 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
+class WifiMixin:
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.wifi_strength: int | None = None
+
+
+class RfMixin:
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.rf_strength: int | None = None
+
+
 class BoilerMixin:
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -25,6 +37,13 @@ class BatteryMixin:
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.battery_state: str | None = None
         self.battery_level: int | None = None
+
+
+class ShutterMixin:
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.current_position: str | None = None
+        self.target_position: str | None = None
 
 
 @dataclass

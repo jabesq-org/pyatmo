@@ -10,6 +10,7 @@ from pyatmo.const import (
     _GETHOMESDATA_REQ,
     _GETHOMESTATUS_REQ,
     _SETROOMTHERMPOINT_REQ,
+    _SETSTATE_REQ,
     _SETTHERMMODE_REQ,
     _SWITCHHOMESCHEDULE_REQ,
 )
@@ -149,4 +150,19 @@ class AsyncAccount(AbstractAccount):
             url=_SWITCHHOMESCHEDULE_REQ,
             params={"home_id": home_id, "schedule_id": schedule_id},
         )
+        LOG.debug("Response: %s", resp)
+
+    async def async_set_state(self, home_id: str, data: dict) -> None:
+        """Modify device state by passing JSON specific to the device."""
+        LOG.debug("Setting state: %s", data)
+
+        post_params = {
+            "json": {
+                "home": {
+                    "id": home_id,
+                    **data,
+                },
+            },
+        }
+        resp = await self.auth.async_post_request(url=_SETSTATE_REQ, params=post_params)
         LOG.debug("Response: %s", resp)

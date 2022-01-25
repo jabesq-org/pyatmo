@@ -1,24 +1,35 @@
 """Module to represent a Netatmo home."""
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from pyatmo import modules
+from pyatmo.const import _SETTHERMMODE_REQ, _SWITCHHOMESCHEDULE_REQ
+from pyatmo.exceptions import NoSchedule
 from pyatmo.room import NetatmoRoom
 from pyatmo.schedule import NetatmoSchedule
+
+if TYPE_CHECKING:
+    from pyatmo.auth import AbstractAsyncAuth
+
+LOG = logging.getLogger(__name__)
 
 
 @dataclass
 class NetatmoHome:
     """Class to represent a Netatmo home."""
 
+    auth: AbstractAsyncAuth
     entity_id: str
     name: str
     rooms: dict[str, NetatmoRoom]
     modules: dict[str, modules.NetatmoModule]
     schedules: dict[str, NetatmoSchedule]
 
-    def __init__(self, raw_data: dict) -> None:
+    def __init__(self, auth: AbstractAsyncAuth, raw_data: dict) -> None:
+        self.auth = auth
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
         self.modules = {
@@ -112,3 +123,51 @@ class NetatmoHome:
         if (schedule := self.get_selected_schedule()) is None:
             return None
         return schedule.away_temp
+
+    async def async_set_thermmode(
+        self,
+        mode: str,
+        end_time: int = None,
+        schedule_id: str = None,
+    ) -> dict:
+        """Set thermotat mode."""
+        if schedule_id is not None and not self.is_valid_schedule(
+            schedule_id,
+        ):
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id.")
+
+        if mode is None:
+            raise NoSchedule(f"{mode} is not a valid mode.")
+
+        post_params = {"home_id": self.entity_id, "mode": mode}
+        if end_time is not None and mode in {"hg", "away"}:
+            post_params["endtime"] = str(end_time)
+
+        if schedule_id is not None and mode == "schedule":
+            post_params["schedule_id"] = schedule_id
+
+        LOG.debug(
+            "Setting home (%s) mode to %s (%s)",
+            self.entity_id,
+            mode,
+            schedule_id,
+        )
+
+        resp = await self.auth.async_post_request(
+            url=_SETTHERMMODE_REQ,
+            params=post_params,
+        )
+        assert not isinstance(resp, bytes)
+        return await resp.json()
+
+    async def async_switch_home_schedule(self, schedule_id: str) -> None:
+        """Switch the schedule for a give home ID."""
+        if not self.is_valid_schedule(schedule_id):
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
+
+        LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
+        resp = await self.auth.async_post_request(
+            url=_SWITCHHOMESCHEDULE_REQ,
+            params={"home_id": self.entity_id, "schedule_id": schedule_id},
+        )
+        LOG.debug("Response: %s", resp)

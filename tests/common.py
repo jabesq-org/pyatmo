@@ -1,5 +1,7 @@
 """Define shared fixtures."""
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
+from __future__ import annotations
+
 import json
 import pathlib
 
@@ -11,7 +13,7 @@ def get_fixture_path(filename: str) -> pathlib.Path:
 
 def load_fixture(filename):
     """Load a fixture."""
-    return get_fixture_path(filename).read_text()
+    return get_fixture_path(filename).read_text(encoding="utf-8")
 
 
 class MockResponse:
@@ -60,8 +62,3 @@ async def fake_post_request(*args, **kwargs):
         payload = json.loads(load_fixture(f"{endpoint}.json"))
 
     return MockResponse(payload, 200)
-
-
-async def fake_post(*args, **kwargs):
-    """Fake error during requesting backend data."""
-    return await fake_post_request(*args, **kwargs)

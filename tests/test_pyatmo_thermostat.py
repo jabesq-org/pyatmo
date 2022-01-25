@@ -275,9 +275,9 @@ def test_home_status_get_thermostat(home_status):
         "type": "NATherm1",
         "firmware_revision": 65,
         "rf_strength": 58,
-        "battery_level": 3793,
+        "battery_level": 3780,
         "boiler_valve_comfort_boost": False,
-        "boiler_status": False,
+        "boiler_status": True,
         "anticipating": False,
         "bridge": "12:34:56:00:fa:d0",
         "battery_state": "high",
@@ -341,7 +341,7 @@ def test_home_status_measured_temperature(home_status):
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
 def test_home_status_boiler_status(home_status):
-    assert home_status.boiler_status("12:34:56:00:01:ae") is False
+    assert home_status.boiler_status("12:34:56:00:01:ae") is True
 
 
 @pytest.mark.parametrize(

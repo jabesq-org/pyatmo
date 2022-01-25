@@ -84,7 +84,7 @@ async def test_async_climate_update(async_climate):
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_home_status_resp),
     ) as mock_request:
         await async_climate.async_update()
@@ -98,7 +98,7 @@ async def test_async_climate_update(async_climate):
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_home_status_resp),
     ) as mock_request:
         await async_climate.async_update()
@@ -128,7 +128,7 @@ async def test_async_climate_switch_home_schedule(
         json_fixture = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ):
         with expected:
@@ -222,7 +222,7 @@ async def test_async_climate_set_thermmode(
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ), exception:
         res = await async_climate.async_set_thermmode(
@@ -289,7 +289,7 @@ async def test_async_climate_set_room_thermpoint(
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
         result = await async_climate.async_set_room_thermpoint(
@@ -316,7 +316,7 @@ async def test_async_climate_empty_home(async_auth, async_climate_topology):
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_home_status_resp),
     ):
         await climate.async_update()

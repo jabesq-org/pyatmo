@@ -8,16 +8,16 @@ from typing import Any
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import InvalidRoom, NoSchedule
-from .helpers import _BASE_URL, extract_raw_data
+from .helpers import extract_raw_data
 
 LOG = logging.getLogger(__name__)
 
-_GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
-_GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
-_SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
-_SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
-_GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
-_SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
+_GETHOMESDATA_ENDPOINT = "api/homesdata"
+_GETHOMESTATUS_ENDPOINT = "api/homestatus"
+_SETTHERMMODE_ENDPOINT = "api/setthermmode"
+_SETROOMTHERMPOINT_ENDPOINT = "api/setroomthermpoint"
+_GETROOMMEASURE_ENDPOINT = "api/getroommeasure"
+_SWITCHHOMESCHEDULE_ENDPOINT = "api/switchhomeschedule"
 
 
 class AbstractHomeData(ABC):
@@ -110,7 +110,7 @@ class HomeData(AbstractHomeData):
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
+        resp = self.auth.post_api_request(endpoint=_GETHOMESDATA_ENDPOINT)
 
         self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
@@ -121,7 +121,7 @@ class HomeData(AbstractHomeData):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
-        resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
+        resp = self.auth.post_api_request(endpoint=_SWITCHHOMESCHEDULE_ENDPOINT, params=post_params)
         LOG.debug("Response: %s", resp)
 
 
@@ -138,7 +138,7 @@ class AsyncHomeData(AbstractHomeData):
 
     async def async_update(self):
         """Fetch and process data from API."""
-        resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
+        resp = await self.auth.async_post_api_request(endpoint=_GETHOMESDATA_ENDPOINT)
 
         assert not isinstance(resp, bytes)
         self.raw_data = extract_raw_data(await resp.json(), "homes")
@@ -149,8 +149,8 @@ class AsyncHomeData(AbstractHomeData):
         if not self.is_valid_schedule(home_id, schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
-        resp = await self.auth.async_post_request(
-            url=_SWITCHHOMESCHEDULE_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": home_id, "schedule_id": schedule_id},
         )
         LOG.debug("Response: %s", resp)
@@ -244,8 +244,8 @@ class HomeStatus(AbstractHomeStatus):
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_request(
-            url=_GETHOMESTATUS_REQ,
+        resp = self.auth.post_api_request(
+            endpoint=_GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
 
@@ -266,7 +266,7 @@ class HomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params).json()
+        return self.auth.post_api_request(endpoint=_SETTHERMMODE_ENDPOINT, params=post_params).json()
 
     def set_room_thermpoint(
         self,
@@ -285,8 +285,8 @@ class HomeStatus(AbstractHomeStatus):
         if end_time is not None:
             post_params["endtime"] = str(end_time)
 
-        return self.auth.post_request(
-            url=_SETROOMTHERMPOINT_REQ,
+        return self.auth.post_api_request(
+            endpoint=_SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         ).json()
 
@@ -306,8 +306,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
-        resp = await self.auth.async_post_request(
-            url=_GETHOMESTATUS_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
 
@@ -329,8 +329,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        resp = await self.auth.async_post_request(
-            url=_SETTHERMMODE_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)
@@ -353,8 +353,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
         if end_time is not None:
             post_params["endtime"] = str(end_time)
 
-        resp = await self.auth.async_post_request(
-            url=_SETROOMTHERMPOINT_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)

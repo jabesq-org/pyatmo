@@ -103,11 +103,9 @@ The results are Python data structures, mostly dictionaries as they mirror easil
 
 #### 4-1 Global variables
 
-```python
-_BASE_URL and _*_REQ : Various URL to access Netatmo web services. They are
-documented in http://dev.netatmo.com/doc/ They should not be changed unless
-Netatmo API changes.
-```
+`_DEFAULT_BASE_URL` and `_*_REQ`: Various URL to access Netatmo web services. 
+They are documented in https://dev.netatmo.com/doc/.
+They should not be changed unless Netatmo API changes.
 
 #### 4-2 ClientAuth class
 
@@ -120,6 +118,8 @@ authorization = pyatmo.ClientAuth(
     username=USERNAME,
     password=PASSWORD,
     scope="read_station",
+    base_url="https://example.com/api",  #optional
+    user_prefix="xmpl",                  #optional
 )
 ```
 
@@ -132,6 +132,8 @@ Properties, all properties are read-only unless specified :
 - **accessToken** : Retrieve a valid access token (renewed if necessary)
 - **refreshToken** : The token used to renew the access token (normally should not be used)
 - **expiration** : The expiration time (epoch) of the current token
+- **base_url** : If targeting a third-party Netatmo-compatible API, the custom base URL to reach it
+- **user_prefix** : If targeting a third-part Netatmo-compatible API, the custom user prefix for this API
 - **scope** : The scope of the required access token (what will it be used for) default to read_station to provide backward compatibility.
 
 Possible values for scope are :

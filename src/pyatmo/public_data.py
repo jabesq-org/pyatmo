@@ -8,9 +8,8 @@ from typing import Any
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import NoDevice
-from .helpers import _BASE_URL
 
-_GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"
+_GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
 
 _STATION_TEMPERATURE_TYPE = "temperature"
 _STATION_PRESSURE_TYPE = "pressure"
@@ -183,7 +182,7 @@ class PublicData(AbstractPublicData):
         if self.required_data_type:
             post_params["required_data"] = self.required_data_type
 
-        resp = self.auth.post_request(url=_GETPUBLIC_DATA, params=post_params).json()
+        resp = self.auth.post_api_request(endpoint=_GETPUBLIC_DATA_ENDPOINT, params=post_params).json()
         try:
             self.raw_data = resp["body"]
         except (KeyError, TypeError) as exc:
@@ -232,8 +231,8 @@ class AsyncPublicData(AbstractPublicData):
         if self.required_data_type:
             post_params["required_data"] = self.required_data_type
 
-        resp = await self.auth.async_post_request(
-            url=_GETPUBLIC_DATA,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_GETPUBLIC_DATA_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)

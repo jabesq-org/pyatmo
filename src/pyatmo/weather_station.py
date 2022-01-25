@@ -7,12 +7,12 @@ from abc import ABC
 from collections import defaultdict
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .helpers import _BASE_URL, extract_raw_data, today_stamps
+from .helpers import _DEFAULT_BASE_URL, extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
 
-_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
-_GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
+_GETMEASURE_ENDPOINT = "api/getmeasure"
+_GETSTATIONDATA_ENDPOINT = "api/getstationsdata"
 
 
 class AbstractWeatherStationData(ABC):
@@ -201,7 +201,7 @@ class WeatherStationData(AbstractWeatherStationData):
     def __init__(
         self,
         auth: NetatmoOAuth2,
-        url_req: str = _GETSTATIONDATA_REQ,
+        endpoint: str = _GETSTATIONDATA_ENDPOINT,
         favorites: bool = True,
     ) -> None:
         """Initialize the Netatmo weather station data.
@@ -211,13 +211,13 @@ class WeatherStationData(AbstractWeatherStationData):
             url_req {str} -- Optional request endpoint
         """
         self.auth = auth
-        self.url_req = url_req
+        self.endpoint = endpoint
         self.params = {"get_favorites": ("true" if favorites else "false")}
 
     def update(self):
         """Fetch data from API."""
         self.raw_data = extract_raw_data(
-            self.auth.post_request(url=self.url_req, params=self.params).json(),
+            self.auth.post_api_request(endpoint=self.endpoint, params=self.params).json(),
             "devices",
         )
         self.process()
@@ -254,7 +254,7 @@ class WeatherStationData(AbstractWeatherStationData):
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
 
-        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params).json()
+        return self.auth.post_api_request(endpoint=_GETMEASURE_ENDPOINT, params=post_params).json()
 
     def get_min_max_t_h(
         self,
@@ -307,7 +307,7 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
     def __init__(
         self,
         auth: AbstractAsyncAuth,
-        url_req: str = _GETSTATIONDATA_REQ,
+        endpoint: str = _GETSTATIONDATA_ENDPOINT,
         favorites: bool = True,
     ) -> None:
         """Initialize the Netatmo weather station data.
@@ -317,12 +317,12 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
             url_req {str} -- Optional request endpoint
         """
         self.auth = auth
-        self.url_req = url_req
+        self.endpoint = endpoint
         self.params = {"get_favorites": ("true" if favorites else "false")}
 
     async def async_update(self):
         """Fetch data from API."""
-        resp = await self.auth.async_post_request(url=self.url_req, params=self.params)
+        resp = await self.auth.async_post_api_request(endpoint=self.endpoint, params=self.params)
 
         assert not isinstance(resp, bytes)
         self.raw_data = extract_raw_data(await resp.json(), "devices")

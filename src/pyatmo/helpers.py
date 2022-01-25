@@ -11,7 +11,7 @@ from .exceptions import NoDevice
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-_BASE_URL: str = "https://api.netatmo.com/"
+_DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
 
 ERRORS: dict[int, str] = {
     400: "Bad request",

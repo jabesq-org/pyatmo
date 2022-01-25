@@ -11,11 +11,11 @@ from .auth import AbstractAsyncAuth, NetatmoOAuth2
 from .exceptions import NoSchedule
 from .helpers import extract_raw_data_new
 from .thermostat import (
-    _GETHOMESDATA_REQ,
-    _GETHOMESTATUS_REQ,
-    _SETROOMTHERMPOINT_REQ,
-    _SETTHERMMODE_REQ,
-    _SWITCHHOMESCHEDULE_REQ,
+    _GETHOMESDATA_ENDPOINT,
+    _GETHOMESTATUS_ENDPOINT,
+    _SETROOMTHERMPOINT_ENDPOINT,
+    _SETTHERMMODE_ENDPOINT,
+    _SWITCHHOMESCHEDULE_ENDPOINT,
 )
 
 LOG = logging.getLogger(__name__)
@@ -336,8 +336,8 @@ class AsyncClimate(AbstractClimate):
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
-        resp = await self.auth.async_post_request(
-            url=_GETHOMESTATUS_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
         raw_data = extract_raw_data_new(await resp.json(), "home")
@@ -370,8 +370,8 @@ class AsyncClimate(AbstractClimate):
             temp,
             end_time,
         )
-        resp = await self.auth.async_post_request(
-            url=_SETROOMTHERMPOINT_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)
@@ -400,8 +400,8 @@ class AsyncClimate(AbstractClimate):
             post_params["schedule_id"] = schedule_id
 
         LOG.debug("Setting home (%s) mode to %s (%s)", self.home_id, mode, schedule_id)
-        resp = await self.auth.async_post_request(
-            url=_SETTHERMMODE_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)
@@ -413,8 +413,8 @@ class AsyncClimate(AbstractClimate):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         LOG.debug("Setting home (%s) schedule to %s", self.home_id, schedule_id)
-        resp = await self.auth.async_post_request(
-            url=_SWITCHHOMESCHEDULE_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": self.home_id, "schedule_id": schedule_id},
         )
         LOG.debug("Response: %s", resp)
@@ -437,7 +437,7 @@ class Climate(AbstractClimate):
             LOG.debug('Topology for home "{self.home_id}" has not been initialized.')
             return
 
-        resp = self.auth.post_request(url=_GETHOMESTATUS_REQ)
+        resp = self.auth.post_api_request(endpoint=_GETHOMESTATUS_ENDPOINT)
 
         raw_data = extract_raw_data_new(resp.json(), "home")
         self.process(raw_data)
@@ -489,7 +489,7 @@ class AsyncClimateTopology(AbstractClimateTopology):
 
     async def async_update(self) -> None:
         """Retrieve status updates from /homesdata."""
-        resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
+        resp = await self.auth.async_post_api_request(endpoint=_GETHOMESDATA_ENDPOINT)
         self.raw_data = extract_raw_data_new(await resp.json(), "homes")
 
         for home in self.raw_data["homes"]:

@@ -59,7 +59,7 @@ def test_home_data(home_data):
 
 def test_home_data_no_data(auth, requests_mock):
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json={},
         headers={"content-type": "application/json"},
     )
@@ -72,7 +72,7 @@ def test_home_data_no_body(auth, requests_mock):
     with open("fixtures/home_data_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -85,7 +85,7 @@ def test_home_data_no_homes(auth, requests_mock):
     with open("fixtures/home_data_no_homes.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -98,7 +98,7 @@ def test_home_data_no_home_name(auth, requests_mock):
     with open("fixtures/home_data_nohomename.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -145,7 +145,7 @@ def test_home_data_switch_home_schedule(
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SWITCHHOMESCHEDULE_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._SWITCHHOMESCHEDULE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -211,7 +211,7 @@ def test_home_status_error_and_data(auth, requests_mock):
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -235,14 +235,14 @@ def test_home_status_error(auth, requests_mock):
     with open("fixtures/home_status_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -419,7 +419,7 @@ def test_home_status_set_thermmode(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SETTHERMMODE_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._SETTHERMMODE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -488,7 +488,7 @@ def test_home_status_set_room_thermpoint(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._SETROOMTHERMPOINT_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -552,7 +552,7 @@ def test_home_status_set_room_thermpoint_error(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._SETROOMTHERMPOINT_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -575,14 +575,14 @@ def test_home_status_error_disconnected(
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

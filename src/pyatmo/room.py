@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from pyatmo.const import _SETROOMTHERMPOINT_REQ
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import NetatmoDeviceType
 
@@ -64,3 +65,36 @@ class NetatmoRoom(NetatmoBase):
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
         self.heating_power_request = raw_data.get("heating_power_request")
+
+    async def async_set_thermpoint(
+        self,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
+    ) -> dict:
+        """Set room temperature set point."""
+        post_params = {
+            "home_id": self.home.entity_id,
+            "room_id": self.entity_id,
+            "mode": mode,
+        }
+        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # handle that even when mode == 'home' and these settings don't make sense
+        if temp is not None:
+            post_params["temp"] = str(temp)
+
+        if end_time is not None:
+            post_params["endtime"] = str(end_time)
+
+        LOG.debug(
+            "Setting room (%s) temperature set point to %s until %s",
+            self.entity_id,
+            temp,
+            end_time,
+        )
+        resp = await self.home.auth.async_post_request(
+            url=_SETROOMTHERMPOINT_REQ,
+            params=post_params,
+        )
+        assert not isinstance(resp, bytes)
+        return await resp.json()

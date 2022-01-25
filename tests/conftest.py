@@ -8,7 +8,7 @@ import pytest
 
 import pyatmo
 
-from .common import MockResponse, fake_post
+from .common import MockResponse, fake_post_request
 
 
 @contextmanager
@@ -22,7 +22,7 @@ def auth(requests_mock):
     with open("fixtures/oauth2_token.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.auth.AUTH_REQ_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.auth.AUTH_REQ_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -31,7 +31,7 @@ def auth(requests_mock):
         client_secret="CLIENT_SECRET",
         username="USERNAME",
         password="PASSWORD",
-        scope=" ".join(pyatmo.auth.ALL_SCOPES),
+        scope=" ".join(pyatmo.const.ALL_SCOPES),
     )
 
 
@@ -41,7 +41,7 @@ def home_data(auth, requests_mock):
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -56,7 +56,7 @@ def home_status(auth, home_id, requests_mock):
     with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESTATUS_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -71,7 +71,7 @@ def public_data(auth, requests_mock):
     with open("fixtures/public_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -95,7 +95,7 @@ def weather_station_data(auth, requests_mock):
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL
+        pyatmo.const._DEFAULT_BASE_URL
         + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
@@ -111,7 +111,7 @@ def home_coach_data(auth, requests_mock):
     with open("fixtures/home_coach_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.home_coach._GETHOMECOACHDATA_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.home_coach._GETHOMECOACHDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -153,7 +153,7 @@ def camera_home_data(auth, camera_ping, requests_mock):  # pylint: disable=W0613
     with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -274,20 +274,16 @@ async def async_account(async_auth):
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        fake_post,
+        fake_post_request,
     ):
         await account.async_update_topology()
         yield account
 
 
 @pytest.fixture(scope="function")
-async def async_climate(async_auth, async_account):
+async def async_home(async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"
-
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        fake_post,
-    ):
-        await async_account.async_update_status(home_id)
-        yield async_account
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+    yield home

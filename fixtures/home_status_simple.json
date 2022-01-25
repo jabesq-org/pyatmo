@@ -27,9 +27,9 @@
                     "type": "NATherm1",
                     "firmware_revision": 65,
                     "rf_strength": 58,
-                    "battery_level": 3793,
+                    "battery_level": 3780,
                     "boiler_valve_comfort_boost": false,
-                    "boiler_status": false,
+                    "boiler_status": true,
                     "anticipating": false,
                     "bridge": "12:34:56:00:fa:d0",
                     "battery_state": "high"

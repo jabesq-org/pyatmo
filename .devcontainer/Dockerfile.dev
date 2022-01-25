@@ -21,6 +21,7 @@ COPY --from=builder /tmp/requirements_dev.txt /tmp/
 
 # Install Python dependencies from requirements
 RUN pip3 install -r /tmp/requirements.txt \
+    && pip3 install pdbpp \
     && pip3 install -r /tmp/requirements_dev.txt \
     && rm -rf /tmp/requirements.txt /tmp/requirements_dev.txt pyatmo/
 

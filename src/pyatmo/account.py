@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import logging
 from abc import ABC
+from typing import TYPE_CHECKING
 
-from pyatmo.auth import AbstractAsyncAuth
 from pyatmo.const import _GETHOMESDATA_REQ, _GETHOMESTATUS_REQ, _SETSTATE_REQ
 from pyatmo.helpers import extract_raw_data_new
 from pyatmo.home import NetatmoHome
+
+if TYPE_CHECKING:
+    from pyatmo.auth import AbstractAsyncAuth
 
 LOG = logging.getLogger(__name__)
 

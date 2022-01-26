@@ -171,11 +171,11 @@ async def test_async_climate_switch_home_schedule(
     expected,
 ):
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        json_fixture = json.load(json_file)
+        response = json.load(json_file)
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=json_fixture),
+        AsyncMock(return_value=MockResponse(response, 200)),
     ):
         with expected:
             await async_home.async_switch_home_schedule(
@@ -271,7 +271,7 @@ async def test_async_climate_room_set_thermpoint(
             None,
             None,
             "status_ok.json",
-            "ok",
+            True,
             does_not_raise(),
         ),
         (
@@ -279,7 +279,7 @@ async def test_async_climate_room_set_thermpoint(
             1559162650,
             None,
             "status_ok.json",
-            "ok",
+            True,
             does_not_raise(),
         ),
         (
@@ -287,7 +287,7 @@ async def test_async_climate_room_set_thermpoint(
             None,
             "591b54a2764ff4d50d8b5795",
             "status_ok.json",
-            "ok",
+            True,
             does_not_raise(),
         ),
         (
@@ -295,7 +295,7 @@ async def test_async_climate_room_set_thermpoint(
             1559162650,
             "591b54a2764ff4d50d8b5795",
             "status_ok.json",
-            "ok",
+            True,
             does_not_raise(),
         ),
         (
@@ -303,7 +303,7 @@ async def test_async_climate_room_set_thermpoint(
             None,
             None,
             "home_status_error_mode_is_missing.json",
-            "mode is missing",
+            False,
             pytest.raises(NoSchedule),
         ),
         (
@@ -311,7 +311,7 @@ async def test_async_climate_room_set_thermpoint(
             None,
             None,
             "home_status_error_mode_is_missing.json",
-            "mode is missing",
+            False,
             pytest.raises(NoSchedule),
         ),
         (
@@ -319,7 +319,7 @@ async def test_async_climate_room_set_thermpoint(
             1559162650,
             0000000,
             "status_ok.json",
-            "ok",
+            True,
             pytest.raises(NoSchedule),
         ),
         (
@@ -327,7 +327,7 @@ async def test_async_climate_room_set_thermpoint(
             None,
             "blahblahblah",
             "home_status_error_invalid_schedule_id.json",
-            "schedule <blahblahblah> is not therm schedule",
+            False,
             pytest.raises(NoSchedule),
         ),
     ],
@@ -349,15 +349,12 @@ async def test_async_climate_set_thermmode(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ), exception:
-        res = await async_home.async_set_thermmode(
+        resp = await async_home.async_set_thermmode(
             mode=mode,
             end_time=end_time,
             schedule_id=schedule_id,
         )
-        if "error" in res:
-            assert expected in res["error"]["message"]
-        else:
-            assert expected in res["status"]
+        assert expected is resp
 
 
 @pytest.mark.asyncio
@@ -384,4 +381,31 @@ async def test_async_shutters(async_home):
     assert room_id in async_home.rooms
 
     module_id = "0009999992"
-    assert async_home.modules[module_id].device_type == NetatmoDeviceType.NBR
+    module = async_home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NBR
+
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
+        response = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        assert await module.async_open()
+        mock_resp.assert_awaited_with(
+            params={
+                "json": {
+                    "home": {
+                        "id": "91763b24c43d3e344f424e8b",
+                        "modules": [
+                            {
+                                "bridge": "70:ee:50:3e:d5:d4",
+                                "id": module_id,
+                                "target_position": 100,
+                            },
+                        ],
+                    },
+                },
+            },
+            url="https://api.netatmo.com/api/setstate",
+        )

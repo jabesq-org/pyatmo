@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 
 from pyatmo.const import _SETROOMTHERMPOINT_REQ
 from pyatmo.modules.base_class import NetatmoBase
-from pyatmo.modules.device_types import NetatmoDeviceType
 
 if TYPE_CHECKING:
     from pyatmo.home import NetatmoHome
+    from pyatmo.modules.device_types import NetatmoDeviceType
     from pyatmo.modules.module import NetatmoModule
 
 LOG = logging.getLogger(__name__)
@@ -20,7 +20,6 @@ LOG = logging.getLogger(__name__)
 class NetatmoRoom(NetatmoBase):
     """Class to represent a Netatmo room."""
 
-    home: NetatmoHome
     modules: dict[str, NetatmoModule]
     device_types: set[NetatmoDeviceType]
 

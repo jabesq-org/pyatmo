@@ -45,18 +45,26 @@ class ShutterMixin(EntityBase):
         self.current_position: str | None = None
         self.target_position: str | None = None
 
-    async def async_open(self) -> bool:
-        """Open shutter."""
-        json_open_roller_shutter = {
+    async def async_set_target_position(self, target_position: int) -> bool:
+        """Set shutter to target position."""
+        json_roller_shutter = {
             "modules": [
                 {
                     "id": self.entity_id,
-                    "target_position": 100,
+                    "target_position": max(min(100, target_position), 0),
                     "bridge": self.bridge,
                 },
             ],
         }
-        return await self.home.async_set_state(json_open_roller_shutter)
+        return await self.home.async_set_state(json_roller_shutter)
+
+    async def async_open(self) -> bool:
+        """Open shutter."""
+        return await self.async_set_target_position(100)
+
+    async def async_close(self) -> bool:
+        """Close shutter."""
+        return await self.async_set_target_position(0)
 
 
 @dataclass

@@ -387,25 +387,52 @@ async def test_async_shutters(async_home):
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         response = json.load(json_file)
 
+    def gen_json_data(position):
+        return {
+            "json": {
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "bridge": "70:ee:50:3e:d5:d4",
+                            "id": module_id,
+                            "target_position": position,
+                        },
+                    ],
+                },
+            },
+        }
+
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_resp:
         assert await module.async_open()
         mock_resp.assert_awaited_with(
-            params={
-                "json": {
-                    "home": {
-                        "id": "91763b24c43d3e344f424e8b",
-                        "modules": [
-                            {
-                                "bridge": "70:ee:50:3e:d5:d4",
-                                "id": module_id,
-                                "target_position": 100,
-                            },
-                        ],
-                    },
-                },
-            },
+            params=gen_json_data(100),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
+        assert await module.async_close()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(0),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
+        assert await module.async_set_target_position(47)
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(47),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
+        assert await module.async_set_target_position(-10)
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(0),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
+        assert await module.async_set_target_position(101)
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(100),
             url="https://api.netatmo.com/api/setstate",
         )

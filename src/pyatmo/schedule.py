@@ -17,7 +17,6 @@ LOG = logging.getLogger(__name__)
 class NetatmoSchedule(NetatmoBase):
     """Class to represent a Netatmo schedule."""
 
-    home: NetatmoHome
     selected: bool
     away_temp: float | None
     hg_temp: float | None

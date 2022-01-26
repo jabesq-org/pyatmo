@@ -19,3 +19,7 @@ class NoDevice(Exception):
 
 class ApiError(Exception):
     pass
+
+
+class InvalidState(Exception):
+    pass

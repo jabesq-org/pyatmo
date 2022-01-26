@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import logging
 from abc import ABC
+from typing import TYPE_CHECKING
 
 from pyatmo.modules.device_types import NetatmoDeviceType
+
+if TYPE_CHECKING:
+    from pyatmo.home import NetatmoHome
 
 LOG = logging.getLogger(__name__)
 
@@ -21,7 +25,13 @@ def default(key, val):
     return lambda x, _: x.get(key, val)
 
 
-class NetatmoBase(ABC):
+class EntityBase:
+    entity_id: str
+    home: NetatmoHome
+    bridge: str | None
+
+
+class NetatmoBase(EntityBase, ABC):
     """Base class for Netatmo entities."""
 
     def __init__(self, raw_data: dict) -> None:

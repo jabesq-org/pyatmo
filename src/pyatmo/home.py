@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pyatmo import modules
-from pyatmo.const import _SETTHERMMODE_REQ, _SWITCHHOMESCHEDULE_REQ
-from pyatmo.exceptions import NoSchedule
+from pyatmo.const import _SETSTATE_REQ, _SETTHERMMODE_REQ, _SWITCHHOMESCHEDULE_REQ
+from pyatmo.exceptions import InvalidState, NoSchedule
 from pyatmo.room import NetatmoRoom
 from pyatmo.schedule import NetatmoSchedule
 
@@ -129,7 +129,7 @@ class NetatmoHome:
         mode: str,
         end_time: int = None,
         schedule_id: str = None,
-    ) -> dict:
+    ) -> bool:
         """Set thermotat mode."""
         if schedule_id is not None and not self.is_valid_schedule(
             schedule_id,
@@ -157,10 +157,13 @@ class NetatmoHome:
             url=_SETTHERMMODE_REQ,
             params=post_params,
         )
-        assert not isinstance(resp, bytes)
-        return await resp.json()
 
-    async def async_switch_home_schedule(self, schedule_id: str) -> None:
+        if (await resp.json()).get("status") == "ok":
+            return True
+
+        return False
+
+    async def async_switch_home_schedule(self, schedule_id: str) -> bool:
         """Switch the schedule for a give home ID."""
         if not self.is_valid_schedule(schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
@@ -170,4 +173,30 @@ class NetatmoHome:
             url=_SWITCHHOMESCHEDULE_REQ,
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
-        LOG.debug("Response: %s", resp)
+
+        if (await resp.json()).get("status") == "ok":
+            return True
+
+        return False
+
+    async def async_set_state(self, data: dict) -> bool:
+        """Set state using given data."""
+        if not is_valid_state(data):
+            raise InvalidState("Data for '/set_state' contains errors.")
+
+        LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
+
+        resp = await self.auth.async_post_request(
+            url=_SETSTATE_REQ,
+            params={"json": {"home": {"id": self.entity_id, **data}}},
+        )
+
+        if (await resp.json()).get("status") == "ok":
+            return True
+
+        return False
+
+
+def is_valid_state(data: dict) -> bool:
+    """Check set state data."""
+    return data is not None

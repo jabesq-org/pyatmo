@@ -6,6 +6,8 @@ import logging
 from pyatmo.modules.module import (
     BatteryMixin,
     BoilerMixin,
+    CameraMixin,
+    FirmwareMixin,
     NetatmoModule,
     RfMixin,
     WifiMixin,
@@ -13,54 +15,56 @@ from pyatmo.modules.module import (
 
 LOG = logging.getLogger(__name__)
 
+# pylint: disable=R0901
 
-class NRV(RfMixin, BatteryMixin, NetatmoModule):
+
+class NRV(FirmwareMixin, RfMixin, BatteryMixin, NetatmoModule):
     ...
 
 
-class NATherm1(RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
+class NATherm1(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
     ...
 
 
-class NAPlug(WifiMixin, NetatmoModule):
+class NAPlug(FirmwareMixin, RfMixin, WifiMixin, NetatmoModule):
     ...
 
 
-class OTH(WifiMixin, NetatmoModule):
+class OTH(FirmwareMixin, WifiMixin, NetatmoModule):
     ...
 
 
-class OTM(RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
+class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
     ...
 
 
-class NACamera(NetatmoModule):
+class NACamera(FirmwareMixin, CameraMixin, WifiMixin, NetatmoModule):
     ...
 
 
-class NOC(NetatmoModule):
+class NOC(FirmwareMixin, CameraMixin, WifiMixin, NetatmoModule):
     ...
 
 
-class NDB(NetatmoModule):
+class NDB(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAMain(NetatmoModule):
+class NAMain(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule1(NetatmoModule):
+class NAModule1(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule2(NetatmoModule):
+class NAModule2(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule3(NetatmoModule):
+class NAModule3(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule4(NetatmoModule):
+class NAModule4(FirmwareMixin, NetatmoModule):
     ...

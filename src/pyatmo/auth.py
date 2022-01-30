@@ -182,14 +182,10 @@ class NetatmoOAuth2:
                     f"when accessing '{url}'",
                 ) from exc
 
-        if (
-            "application/json"
-            in resp.headers.get(
-                "content-type",
-                [],
-            )
-            or resp.content not in [b"", b"None"]
-        ):
+        if "application/json" in resp.headers.get(
+            "content-type",
+            [],
+        ) or resp.content not in [b"", b"None"]:
             return resp
 
         return requests.Response()

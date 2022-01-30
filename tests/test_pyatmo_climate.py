@@ -63,6 +63,10 @@ async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-na
     assert module.device_type == NetatmoDeviceType.NATherm1
     assert module.reachable is True
     assert module.boiler_status is False
+    assert module.firmware_revision == 65
+    assert module.battery_level == 3793
+    assert module.battery_state == "high"
+    assert module.rf_strength == 58
 
 
 @pytest.mark.asyncio
@@ -74,6 +78,10 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     assert async_home.rooms[module.room_id].name == "Entrada"
     assert module.device_type == NetatmoDeviceType.NRV
     assert module.reachable is True
+    assert module.rf_strength == 51
+    assert module.battery_level == 3025
+    assert module.battery_state == "full"
+    assert module.firmware_revision == 79
 
 
 @pytest.mark.asyncio
@@ -81,9 +89,12 @@ async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     """Test NAPlug climate device."""
     relay_id = "12:34:56:00:fa:d0"
     assert relay_id in async_home.modules
-    relay = async_home.modules[relay_id]
-    assert relay.device_type == NetatmoDeviceType.NAPlug
-    assert len(relay.modules) == 3
+    module = async_home.modules[relay_id]
+    assert module.device_type == NetatmoDeviceType.NAPlug
+    assert len(module.modules) == 3
+    assert module.rf_strength == 107
+    assert module.wifi_strength == 42
+    assert module.firmware_revision == 174
 
 
 @pytest.mark.asyncio

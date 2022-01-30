@@ -372,8 +372,7 @@ def test_camera_data_motion_detected(
     ],
 )
 def test_camera_data_get_smokedetector(camera_home_data, sid, expected):
-    smokedetector = camera_home_data.get_smokedetector(sid)
-    if smokedetector:
+    if smokedetector := camera_home_data.get_smokedetector(sid):
         assert smokedetector["name"] == expected
     else:
         assert smokedetector is expected

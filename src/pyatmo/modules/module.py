@@ -14,6 +14,13 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
+class FirmwareMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.firmware_revision: int | None = None
+        self.firmware_name: str | None = None
+
+
 class WifiMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -67,6 +74,16 @@ class ShutterMixin(EntityBase):
         return await self.async_set_target_position(0)
 
 
+class CameraMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.sd_status: int | None = None
+        self.vpn_url: str | None = None
+        self.is_local: bool | None = None
+        self.monitoring: str | None = None
+        self.alim_status: int | None = None
+
+
 @dataclass
 class NetatmoModule(NetatmoBase):
     """Class to represent a Netatmo module."""
@@ -75,14 +92,14 @@ class NetatmoModule(NetatmoBase):
     room_id: str | None
 
     modules: list[str] | None
-    reachable: bool = False
+    reachable: bool | None
 
     def __init__(self, home: NetatmoHome, module: dict) -> None:
         super().__init__(module)
         self.device_type = NetatmoDeviceType(module["type"])
         self.home = home
         self.room_id = module.get("room_id")
-        self.reachable = False
+        self.reachable = module.get("reachable")
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged")
 

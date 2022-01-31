@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
-## [6.2.3] - 2022-01-31
+## [6.2.4] - 2022-01-31
 
 ### Fixed
 
@@ -175,8 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.3...HEAD
-[6.2.3]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.3
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.4...HEAD
+[6.2.4]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.4
 [6.2.2]: https://github.com/jabesq/pyatmo/compare/v6.2.1...v6.2.2
 [6.2.1]: https://github.com/jabesq/pyatmo/compare/v6.2.0...v6.2.1
 [6.2.0]: https://github.com/jabesq/pyatmo/compare/v6.1.0...v6.2.0

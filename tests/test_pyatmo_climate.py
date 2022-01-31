@@ -299,3 +299,29 @@ async def test_async_climate_set_room_thermpoint(
             end_time=end_time,
         )
         assert result["status"] == expected
+
+
+@pytest.mark.asyncio
+async def test_async_climate_empty_home(async_auth, async_climate_topology):
+    """Test climate setup with empty home."""
+    home_id = "91763b24c43d3e344f424e8c"
+    climate = pyatmo.AsyncClimate(async_auth, home_id=home_id)
+    async_climate_topology.register_handler(home_id, climate.process_topology)
+
+    with open(
+        "fixtures/homestatus_91763b24c43d3e344f424e8c.json",
+        encoding="utf-8",
+    ) as json_file:
+        home_status_fixture = json.load(json_file)
+    mock_home_status_resp = MockResponse(home_status_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=mock_home_status_resp),
+    ):
+        await climate.async_update()
+
+    assert home_id in climate.homes
+
+    home = climate.homes[home_id]
+    assert len(home.rooms) == 0

@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Callable
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .exceptions import InvalidHome, NoSchedule
+from .exceptions import NoSchedule
 from .helpers import extract_raw_data_new
 from .thermostat import (
     _GETHOMESDATA_REQ,
@@ -296,10 +296,13 @@ class AbstractClimate(ABC):
 
     def process(self, raw_data: dict) -> None:
         """Process raw status data from the energy endpoint."""
-        if self.home_id != raw_data["home"]["id"]:
-            raise InvalidHome(
-                f"Home id '{raw_data['home']['id']}' does not match. '{self.home_id}'",
+        if self.home_id != raw_data["home"].get("id"):
+            LOG.debug(
+                "Home id '%s' does not match. '%s'",
+                raw_data["home"].get("id"),
+                {self.home_id},
             )
+            return
 
         if self.home_id not in self.homes:
             self.raw_data = raw_data

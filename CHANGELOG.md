@@ -25,19 +25,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Use ID if schedule name is missing
+-
 
 ### Security
 
 -
 
-## [6.2.1]
+## [6.2.4] - 2022-01-31
+
+### Fixed
+
+- Crash when home does not contain valid devices
+
+## [6.2.2] - 2021-12-29
+
+### Fixed
+
+- Use ID if schedule name is missing
+
+## [6.2.1] - 2021-12-18
 
 ### Fixed
 
 - Catch when no body is contained in the response
 
-## [6.2.0]
+## [6.2.0] - 2021-11-19
 
 ### Added
 
@@ -163,7 +175,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.0...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.4...HEAD
+[6.2.4]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.4
+[6.2.2]: https://github.com/jabesq/pyatmo/compare/v6.2.1...v6.2.2
 [6.2.1]: https://github.com/jabesq/pyatmo/compare/v6.2.0...v6.2.1
 [6.2.0]: https://github.com/jabesq/pyatmo/compare/v6.1.0...v6.2.0
 [6.1.0]: https://github.com/jabesq/pyatmo/compare/v6.0.0...v6.1.0

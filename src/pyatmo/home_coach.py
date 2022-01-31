@@ -16,7 +16,7 @@ class HomeCoachData(WeatherStationData):
         Arguments:
             auth {NetatmoOAuth2} -- Authentication information with a valid access token
         """
-        super().__init__(auth, url_req=_GETHOMECOACHDATA_REQ)
+        super().__init__(auth, url_req=_GETHOMECOACHDATA_REQ, favorites=False)
 
 
 class AsyncHomeCoachData(AsyncWeatherStationData):
@@ -30,4 +30,4 @@ class AsyncHomeCoachData(AsyncWeatherStationData):
         Arguments:
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
         """
-        super().__init__(auth, url_req=_GETHOMECOACHDATA_REQ)
+        super().__init__(auth, url_req=_GETHOMECOACHDATA_REQ, favorites=False)

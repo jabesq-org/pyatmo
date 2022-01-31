@@ -481,20 +481,14 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
         expect = fixture_file.read()
 
     requests_mock.post(pyatmo.camera._GETCAMERAPICTURE_REQ, content=expect)
-    assert (
-        camera_home_data.get_profile_image(
-            "John Doe",
-            "91763b24c43d3e344f424e8b",
-        )
-        == (expect, "jpeg")
-    )
-    assert (
-        camera_home_data.get_profile_image(
-            "Jack Foe",
-            "91763b24c43d3e344f424e8b",
-        )
-        == (None, None)
-    )
+    assert camera_home_data.get_profile_image(
+        "John Doe",
+        "91763b24c43d3e344f424e8b",
+    ) == (expect, "jpeg")
+    assert camera_home_data.get_profile_image(
+        "Jack Foe",
+        "91763b24c43d3e344f424e8b",
+    ) == (None, None)
 
 
 @pytest.mark.parametrize(

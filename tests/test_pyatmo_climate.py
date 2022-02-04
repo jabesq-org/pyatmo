@@ -98,6 +98,33 @@ async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
 
 
 @pytest.mark.asyncio
+async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
+    """Test OTM climate device."""
+    module_id = "12:34:56:20:f5:8c"
+    module = async_home.modules[module_id]
+    assert module.name == "Bureau Modulate"
+    assert module.device_type == NetatmoDeviceType.OTM
+    assert module.reachable is True
+    assert module.boiler_status is False
+    assert module.firmware_revision == 6
+    assert module.battery_level == 4176
+    assert module.battery_state == "full"
+    assert module.rf_strength == 64
+
+
+@pytest.mark.asyncio
+async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
+    """Test OTH climate device."""
+    relay_id = "12:34:56:20:f5:44"
+    assert relay_id in async_home.modules
+    module = async_home.modules[relay_id]
+    assert module.device_type == NetatmoDeviceType.OTH
+    assert len(module.modules) == 1
+    assert module.wifi_strength == 57
+    assert module.firmware_revision == 22
+
+
+@pytest.mark.asyncio
 async def test_async_home_set_schedule(async_home):
     """Test basic home setup."""
     schedule_id = "591b54a2764ff4d50d8b5795"

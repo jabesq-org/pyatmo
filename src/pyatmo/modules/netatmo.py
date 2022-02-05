@@ -8,6 +8,7 @@ from pyatmo.modules.module import (
     BoilerMixin,
     CameraMixin,
     FirmwareMixin,
+    FloodlightMixin,
     NetatmoModule,
     RfMixin,
     WifiMixin,
@@ -42,7 +43,7 @@ class NACamera(FirmwareMixin, CameraMixin, WifiMixin, NetatmoModule):
     ...
 
 
-class NOC(FirmwareMixin, CameraMixin, WifiMixin, NetatmoModule):
+class NOC(FloodlightMixin, FirmwareMixin, CameraMixin, WifiMixin, NetatmoModule):
     ...
 
 

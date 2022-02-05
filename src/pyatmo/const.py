@@ -1,4 +1,5 @@
 """Common constants."""
+
 from __future__ import annotations
 
 ERRORS: dict[int, str] = {
@@ -38,7 +39,7 @@ _SETSTATE_REQ = _BASE_URL + "api/setstate"
 
 _GETHOMECOACHDATA_REQ = _BASE_URL + "api/gethomecoachsdata"
 
-_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
+_GETMEASURE_REQ = f'{_BASE_URL}api/getmeasure'
 _GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 _GETPUBLIC_DATA = _BASE_URL + "api/getpublicdata"

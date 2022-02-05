@@ -84,6 +84,36 @@ class CameraMixin(EntityBase):
         self.alim_status: int | None = None
 
 
+class FloodlightMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.floodlight: int | None = None
+
+    async def async_set_floodlight_state(self, state: str) -> bool:
+        """Set floodlight state."""
+        json_floodlight_state = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    "floodlight": state,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_floodlight_state)
+
+    async def async_floodlight_on(self) -> bool:
+        """Turn on floodlight."""
+        return await self.async_set_floodlight_state("on")
+
+    async def async_floodlight_off(self) -> bool:
+        """Turn off floodlight."""
+        return await self.async_set_floodlight_state("off")
+
+    async def async_floodlight_auto(self) -> bool:
+        """Set floodlight to auto mode."""
+        return await self.async_set_floodlight_state("auto")
+
+
 @dataclass
 class NetatmoModule(NetatmoBase):
     """Class to represent a Netatmo module."""

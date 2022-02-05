@@ -474,3 +474,52 @@ async def test_async_shutters(async_home):
             params=gen_json_data(100),
             url="https://api.netatmo.com/api/setstate",
         )
+
+
+@pytest.mark.asyncio
+async def test_async_NOC(async_home):  # pylint: disable=invalid-name
+    """Test basic outdoor camera functionality."""
+    module_id = "12:34:56:10:b9:0e"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NOC
+
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
+        response = json.load(json_file)
+
+    def gen_json_data(state):
+        return {
+            "json": {
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "id": module_id,
+                            "floodlight": state,
+                        },
+                    ],
+                },
+            },
+        }
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        assert await module.async_floodlight_on()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data("on"),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
+        assert await module.async_floodlight_off()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data("off"),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
+        assert await module.async_floodlight_auto()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data("auto"),
+            url="https://api.netatmo.com/api/setstate",
+        )

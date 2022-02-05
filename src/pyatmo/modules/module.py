@@ -80,7 +80,6 @@ class CameraMixin(EntityBase):
         self.sd_status: int | None = None
         self.vpn_url: str | None = None
         self.is_local: bool | None = None
-        self.monitoring: str | None = None
         self.alim_status: int | None = None
 
 
@@ -112,6 +111,32 @@ class FloodlightMixin(EntityBase):
     async def async_floodlight_auto(self) -> bool:
         """Set floodlight to auto mode."""
         return await self.async_set_floodlight_state("auto")
+
+
+class MonitoringMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.monitoring: int | None = None
+
+    async def async_set_monitoring_state(self, state: str) -> bool:
+        """Set monitoring state."""
+        json_monitoring_state = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    "monitoring": state,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_monitoring_state)
+
+    async def async_monitoring_on(self) -> bool:
+        """Turn on monitoring."""
+        return await self.async_set_monitoring_state("on")
+
+    async def async_monitoring_off(self) -> bool:
+        """Turn off monitoring."""
+        return await self.async_set_monitoring_state("off")
 
 
 @dataclass

@@ -164,15 +164,15 @@ class AbstractWeatherStationData(ABC):
 
                 # For potential use, add battery and radio coverage information
                 # to module data if present
-                for i in (
+                for val in (
                     "rf_status",
                     "battery_vp",
                     "battery_percent",
                     "reachable",
                     "wifi_status",
                 ):
-                    if i in module:
-                        last_data[module[key]][i] = module[i]
+                    if val in module:
+                        last_data[module[key]][val] = module[val]
 
         return last_data
 

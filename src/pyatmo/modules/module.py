@@ -46,11 +46,56 @@ class BatteryMixin(EntityBase):
         self.battery_level: int | None = None
 
 
+class DimmableMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.brightness: int | None = None
+
+
+class ApplianceTypeMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.appliance_type: str | None = None
+
+
+class PowerMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.power: int | None = None
+
+
+class SwitchMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.on: bool | None = None
+
+    async def async_set_switch(self, target_position: int) -> bool:
+        """Set switch to target position."""
+        json_switch = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    "on": target_position,
+                    "bridge": self.bridge,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_switch)
+
+    async def async_on(self) -> bool:
+        """Switch on."""
+        return await self.async_set_switch(True)
+
+    async def async_off(self) -> bool:
+        """Switch off."""
+        return await self.async_set_switch(False)
+
+
 class ShutterMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.current_position: str | None = None
-        self.target_position: str | None = None
+        self.current_position: int | None = None
+        self.target_position: int | None = None
 
     async def async_set_target_position(self, target_position: int) -> bool:
         """Set shutter to target position."""

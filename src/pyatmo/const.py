@@ -62,3 +62,7 @@ ALL_SCOPES = [
     "read_doorbell",  # Smart Video Doorbell
     "read_mx",  # BTicino Classe 300 EOS
 ]
+
+MANUAL = "manual"
+HOME = "home"
+FROSTGUARD = "hg"

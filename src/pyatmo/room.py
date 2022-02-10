@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pyatmo.const import _SETROOMTHERMPOINT_REQ
+from pyatmo.const import _SETROOMTHERMPOINT_REQ, FROSTGUARD, HOME, MANUAL
 from pyatmo.modules.base_class import NetatmoBase
 
 if TYPE_CHECKING:
@@ -65,13 +65,62 @@ class NetatmoRoom(NetatmoBase):
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
         self.heating_power_request = raw_data.get("heating_power_request")
 
+    async def async_therm_manual(
+        self,
+        temp: float = None,
+        end_time: int = None,
+    ) -> None:
+        await self.async_therm_set(MANUAL, temp, end_time)
+
+    async def async_therm_home(self, end_time: int = None) -> None:
+        await self.async_therm_set(HOME, end_time=end_time)
+
+    async def async_therm_frostguard(self, end_time: int = None) -> None:
+        await self.async_therm_set(FROSTGUARD, end_time=end_time)
+
+    async def async_therm_set(
+        self,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
+    ) -> None:
+        """Set room temperature set point."""
+        if "OTH" in self.device_types:
+            await self._async_therm_set(mode, temp, end_time)
+
+        if "NRV" in self.device_types or "NATherm1" in self.device_types:
+            await self.async_set_thermpoint(mode, temp, end_time)
+
+    async def _async_therm_set(
+        self,
+        mode: str,
+        temp: float = None,
+        end_time: int = None,
+    ) -> bool:
+        json_therm_set = {
+            "rooms": [
+                {
+                    "id": self.entity_id,
+                    "therm_setpoint_mode": mode,
+                },
+            ],
+        }
+
+        if temp:
+            json_therm_set["room"][0]["therm_setpoint_temperature"] = str(temp)
+
+        if end_time:
+            json_therm_set["room"][0]["therm_setpoint_end_time"] = str(end_time)
+
+        return await self.home.async_set_state(json_therm_set)
+
     async def async_set_thermpoint(
         self,
         mode: str,
         temp: float = None,
         end_time: int = None,
-    ) -> dict:
-        """Set room temperature set point."""
+    ) -> None:
+        """Set room temperature set point (NRV, NATherm1)."""
         post_params = {
             "home_id": self.home.entity_id,
             "room_id": self.entity_id,
@@ -91,9 +140,7 @@ class NetatmoRoom(NetatmoBase):
             temp,
             end_time,
         )
-        resp = await self.home.auth.async_post_request(
+        await self.home.auth.async_post_request(
             url=_SETROOMTHERMPOINT_REQ,
             params=post_params,
         )
-        assert not isinstance(resp, bytes)
-        return await resp.json()

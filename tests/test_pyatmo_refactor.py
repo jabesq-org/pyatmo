@@ -238,67 +238,63 @@ async def test_async_home_data_no_body(async_auth):
 
 
 @pytest.mark.parametrize(
-    "room_id, mode, temp, end_time, json_fixture, expected",
+    "temp, end_time",
     [
         (
-            "2746182631",
-            "home",
             14,
             None,
-            "status_ok.json",
-            "ok",
         ),
         (
-            "2746182631",
-            "home",
             14,
             1559162650,
-            "status_ok.json",
-            "ok",
         ),
         (
-            "2746182631",
-            "home",
             None,
             None,
-            "status_ok.json",
-            "ok",
         ),
         (
-            "2746182631",
-            "home",
             None,
             1559162650,
-            "status_ok.json",
-            "ok",
         ),
     ],
 )
 @pytest.mark.asyncio
 async def test_async_climate_room_set_thermpoint(
     async_home,
-    room_id,
-    mode,
     temp,
     end_time,
-    json_fixture,
-    expected,
 ):
-    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
+    room_id = "2746182631"
+    mode = "home"
+
+    expected_params = {
+        "home_id": "91763b24c43d3e344f424e8b",
+        "room_id": room_id,
+        "mode": mode,
+    }
+    if temp:
+        expected_params["temp"] = str(temp)
+    if end_time:
+        expected_params["endtime"] = str(end_time)
+
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         response = json.load(json_file)
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=MockResponse(response, 200)),
-    ):
+    ) as mock_post:
         room = async_home.rooms[room_id]
 
-        result = await room.async_set_thermpoint(
+        await room.async_set_thermpoint(
             mode=mode,
             temp=temp,
             end_time=end_time,
         )
-        assert result["status"] == expected
+        mock_post.assert_awaited_once_with(
+            url="https://api.netatmo.com/api/setroomthermpoint",
+            params=expected_params,
+        )
 
 
 @pytest.mark.parametrize(

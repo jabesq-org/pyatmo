@@ -58,10 +58,16 @@ class ApplianceTypeMixin(EntityBase):
         self.appliance_type: str | None = None
 
 
-class PowerMixin(EntityBase):
+class EnergyMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.power: int | None = None
+
+
+class PowerMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.sum_energy_elec: int | None = None
 
 
 class SwitchMixin(EntityBase):

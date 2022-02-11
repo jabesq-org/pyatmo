@@ -5,6 +5,7 @@ import logging
 
 from pyatmo.modules.module import (
     EnergyMixin,
+    FirmwareMixin,
     NetatmoModule,
     RfMixin,
     ShutterMixin,
@@ -15,7 +16,19 @@ from pyatmo.modules.module import (
 LOG = logging.getLogger(__name__)
 
 
-class NLP(EnergyMixin, SwitchMixin, NetatmoModule):
+class NLG(FirmwareMixin, NetatmoModule):
+    """Legrand gateway."""
+
+    ...
+
+
+class NLT(FirmwareMixin, NetatmoModule):
+    """Legrand ?."""
+
+    ...
+
+
+class NLP(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     """Legrand plug."""
 
     ...

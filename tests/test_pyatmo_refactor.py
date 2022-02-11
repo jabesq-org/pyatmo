@@ -23,9 +23,10 @@ async def test_async_home(async_home):
         NetatmoDeviceType.NDB,
         NetatmoDeviceType.NACamera,
         NetatmoDeviceType.NBR,
+        NetatmoDeviceType.NIS,
     }
     assert len(async_home.rooms) == 5
-    assert len(async_home.modules) == 16
+    assert len(async_home.modules) == 21
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -122,6 +123,28 @@ async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     assert len(module.modules) == 1
     assert module.wifi_strength == 57
     assert module.firmware_revision == 22
+
+
+@pytest.mark.asyncio
+async def test_async_climate_NLP(async_home):  # pylint: disable=invalid-name
+    """Test NLP Legrand plug."""
+    relay_id = "12:34:56:80:00:12:ac:f2"
+    assert relay_id in async_home.modules
+    module = async_home.modules[relay_id]
+    assert module.device_type == NetatmoDeviceType.NLP
+    assert module.firmware_revision == 62
+    assert module.on
+
+
+@pytest.mark.asyncio
+async def test_async_climate_NBR(async_home):  # pylint: disable=invalid-name
+    """Test NLP Bubendorf iDiamant roller shutter."""
+    relay_id = "0009999992"
+    assert relay_id in async_home.modules
+    module = async_home.modules[relay_id]
+    assert module.device_type == NetatmoDeviceType.NBR
+    assert module.firmware_revision == 16
+    assert module.current_position == 0
 
 
 @pytest.mark.asyncio

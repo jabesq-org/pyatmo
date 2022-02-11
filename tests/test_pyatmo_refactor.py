@@ -149,7 +149,7 @@ async def test_async_climate_NBR(async_home):  # pylint: disable=invalid-name
 
 @pytest.mark.asyncio
 async def test_async_home_set_schedule(async_home):
-    """Test basic home setup."""
+    """Test home schedule."""
     schedule_id = "591b54a2764ff4d50d8b5795"
     selected_schedule = async_home.get_selected_schedule()
     assert selected_schedule.entity_id == schedule_id

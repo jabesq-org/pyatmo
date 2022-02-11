@@ -17,7 +17,7 @@ def to_time_string(value: str) -> str:
 
 
 def to_epoch(value: str) -> int:
-    return timegm(time.strptime(f'{value}GMT', "%Y-%m-%d_%H:%M:%S%Z"))
+    return timegm(time.strptime(f"{value}GMT", "%Y-%m-%d_%H:%M:%S%Z"))
 
 
 def today_stamps() -> tuple[int, int]:

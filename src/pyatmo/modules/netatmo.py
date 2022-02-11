@@ -7,13 +7,20 @@ from pyatmo.modules.module import (
     BatteryMixin,
     BoilerMixin,
     CameraMixin,
+    CO2Mixin,
     FirmwareMixin,
     FloodlightMixin,
+    HumidityMixin,
     MonitoringMixin,
     NetatmoModule,
+    NoiseMixin,
+    PressureMixin,
+    RainMixin,
     RfMixin,
     StatusMixin,
+    TemperatureMixin,
     WifiMixin,
+    WindMixin,
 )
 
 LOG = logging.getLogger(__name__)
@@ -60,23 +67,45 @@ class NDB(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAMain(FirmwareMixin, NetatmoModule):
+class NAMain(
+    TemperatureMixin,
+    HumidityMixin,
+    CO2Mixin,
+    NoiseMixin,
+    PressureMixin,
+    WifiMixin,
+    FirmwareMixin,
+    NetatmoModule,
+):
     ...
 
 
-class NAModule1(FirmwareMixin, NetatmoModule):
+class NAModule1(TemperatureMixin, HumidityMixin, RfMixin, FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule2(FirmwareMixin, NetatmoModule):
+class NAModule2(WindMixin, RfMixin, FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule3(FirmwareMixin, NetatmoModule):
+class NAModule3(RainMixin, RfMixin, FirmwareMixin, NetatmoModule):
     ...
 
 
-class NAModule4(FirmwareMixin, NetatmoModule):
+class NAModule4(TemperatureMixin, RfMixin, FirmwareMixin, NetatmoModule):
+    ...
+
+
+class NHC(
+    TemperatureMixin,
+    HumidityMixin,
+    CO2Mixin,
+    PressureMixin,
+    NoiseMixin,
+    WifiMixin,
+    FirmwareMixin,
+    NetatmoModule,
+):
     ...
 
 

@@ -5,7 +5,13 @@ import logging
 from abc import ABC
 from typing import TYPE_CHECKING
 
-from pyatmo.const import _GETHOMESDATA_REQ, _GETHOMESTATUS_REQ, _SETSTATE_REQ
+from pyatmo.const import (
+    _GETHOMECOACHDATA_REQ,
+    _GETHOMESDATA_REQ,
+    _GETHOMESTATUS_REQ,
+    _GETSTATIONDATA_REQ,
+    _SETSTATE_REQ,
+)
 from pyatmo.helpers import extract_raw_data_new
 from pyatmo.home import NetatmoHome
 
@@ -59,13 +65,29 @@ class AsyncAccount(AbstractAccount):
         self.process_topology()
 
     async def async_update_status(self, home_id: str) -> None:
-        """Retrieve topology data from /homestatus."""
+        """Retrieve status data from /homestatus."""
         resp = await self.auth.async_post_request(
             url=_GETHOMESTATUS_REQ,
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data_new(await resp.json(), "home")
         self.homes[home_id].update(raw_data)
+
+    async def async_update_weather_stations(self) -> None:
+        """Retrieve status data from /getstationsdata."""
+        resp = await self.auth.async_post_request(
+            url=_GETSTATIONDATA_REQ,
+        )
+        raw_data = extract_raw_data_new(await resp.json(), "devices")
+        self.update_devices(raw_data)
+
+    async def async_update_air_care(self) -> None:
+        """Retrieve status data from /gethomecoachsdata."""
+        resp = await self.auth.async_post_request(
+            url=_GETHOMECOACHDATA_REQ,
+        )
+        raw_data = extract_raw_data_new(await resp.json(), "devices")
+        self.update_devices(raw_data)
 
     async def async_set_state(self, home_id: str, data: dict) -> None:
         """Modify device state by passing JSON specific to the device."""
@@ -81,3 +103,54 @@ class AsyncAccount(AbstractAccount):
         }
         resp = await self.auth.async_post_request(url=_SETSTATE_REQ, params=post_params)
         LOG.debug("Response: %s", resp)
+
+    def update_devices(self, raw_data) -> None:
+        """Update device states."""
+        for device_data in raw_data["devices"]:
+            if home_id := device_data.get(
+                "home_id",
+                self.find_home_of_device(device_data),
+            ):
+                if home_id not in self.homes:
+                    continue
+                self.homes[home_id].update(
+                    {"home": {"modules": [fix_weather_attributes(device_data)]}},
+                )
+            for module_data in device_data.get("modules", []):
+                self.update_devices({"devices": [module_data]})
+
+    def find_home_of_device(self, device_data) -> str | None:
+        """Find home_id of device."""
+        for home_id, home in self.homes.items():
+            if device_data["_id"] in home.modules:
+                return home_id
+        return None
+
+
+ATTRIBS_TO_FIX = {
+    "_id": "id",
+    "firmware": "firmware_revision",
+    "wifi_status": "wifi_strength",
+    "rf_status": "rf_strength",
+    "Temperature": "temperature",
+    "Humidity": "humidity",
+    "Pressure": "pressure",
+    "CO2": "co2",
+    "AbsolutePressure": "absolute_pressure",
+    "Noise": "noise",
+    "Rain": "rain",
+    "WindStrength": "wind_strength",
+    "WindAngle": "wind_angle",
+    "GustStrength": "gust_strength",
+    "GustAngle": "gust_angle",
+}
+
+
+def fix_weather_attributes(raw_data) -> dict:
+    result: dict = {}
+    for attribute, value in raw_data.items():
+        if attribute == "dashboard_data":
+            result.update(**fix_weather_attributes(value))
+        else:
+            result[ATTRIBS_TO_FIX.get(attribute, attribute)] = value
+    return result

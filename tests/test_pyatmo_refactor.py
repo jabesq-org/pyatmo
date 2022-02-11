@@ -88,14 +88,26 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
 @pytest.mark.asyncio
 async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     """Test NAPlug climate device."""
-    relay_id = "12:34:56:00:fa:d0"
-    assert relay_id in async_home.modules
-    module = async_home.modules[relay_id]
+    module_id = "12:34:56:00:fa:d0"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NAPlug
     assert len(module.modules) == 3
     assert module.rf_strength == 107
     assert module.wifi_strength == 42
     assert module.firmware_revision == 174
+
+
+@pytest.mark.asyncio
+async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
+    """Test Netatmo siren."""
+    module_id = "12:34:56:00:e3:9b"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NIS
+    assert module.firmware_revision == 209
+    assert module.status == "no_sound"
+    assert module.monitoring is False
 
 
 @pytest.mark.asyncio
@@ -116,9 +128,9 @@ async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
 @pytest.mark.asyncio
 async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     """Test OTH climate device."""
-    relay_id = "12:34:56:20:f5:44"
-    assert relay_id in async_home.modules
-    module = async_home.modules[relay_id]
+    module_id = "12:34:56:20:f5:44"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.OTH
     assert len(module.modules) == 1
     assert module.wifi_strength == 57
@@ -502,6 +514,10 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NOC
+    assert module.firmware_revision == 3002000
+    assert module.firmware_name == "3.2.0"
+    assert module.monitoring is True
+    assert module.floodlight == "auto"
 
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         response = json.load(json_file)

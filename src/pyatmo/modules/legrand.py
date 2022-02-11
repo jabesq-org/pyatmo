@@ -15,6 +15,8 @@ from pyatmo.modules.module import (
 
 LOG = logging.getLogger(__name__)
 
+# pylint: disable=R0901
+
 
 class NLG(FirmwareMixin, NetatmoModule):
     """Legrand gateway."""
@@ -34,79 +36,79 @@ class NLP(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     ...
 
 
-class NLPM(EnergyMixin, SwitchMixin, NetatmoModule):
+class NLPM(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     """Legrand mobile plug."""
 
     ...
 
 
-class NLPBS(EnergyMixin, SwitchMixin, NetatmoModule):
+class NLPBS(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     """Legrand british standard plug."""
 
     ...
 
 
-class NLF(EnergyMixin, SwitchMixin, NetatmoModule):
+class NLF(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     """Legrand 2 wire light switch."""
 
     ...
 
 
-class NLFN(EnergyMixin, SwitchMixin, NetatmoModule):
+class NLFN(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     """Legrand light switch with neutral."""
 
     ...
 
 
-class NLM(EnergyMixin, SwitchMixin, NetatmoModule):
+class NLM(FirmwareMixin, EnergyMixin, SwitchMixin, NetatmoModule):
     """Legrand light micro module."""
 
     ...
 
 
-class NLL(EnergyMixin, WifiMixin, SwitchMixin, NetatmoModule):
+class NLL(FirmwareMixin, EnergyMixin, WifiMixin, SwitchMixin, NetatmoModule):
     """Legrand / BTicino italian light switch with neutral."""
 
     ...
 
 
-class NLV(RfMixin, ShutterMixin, NetatmoModule):
+class NLV(FirmwareMixin, RfMixin, ShutterMixin, NetatmoModule):
     """Legrand / BTicino shutters."""
 
     ...
 
 
-class NLLV(RfMixin, ShutterMixin, NetatmoModule):
+class NLLV(FirmwareMixin, RfMixin, ShutterMixin, NetatmoModule):
     """Legrand / BTicino shutters."""
 
     ...
 
 
-class NLLM(RfMixin, ShutterMixin, NetatmoModule):
+class NLLM(FirmwareMixin, RfMixin, ShutterMixin, NetatmoModule):
     """Legrand / BTicino shutters."""
 
     ...
 
 
-class NLPC(EnergyMixin, NetatmoModule):
+class NLPC(FirmwareMixin, EnergyMixin, NetatmoModule):
     """Legrand / BTicino connected energy meter."""
 
     ...
 
 
-class NLE(EnergyMixin, NetatmoModule):
+class NLE(FirmwareMixin, EnergyMixin, NetatmoModule):
     """Legrand / BTicino connected ecometer."""
 
     ...
 
 
-class NLPS(EnergyMixin, NetatmoModule):
+class NLPS(FirmwareMixin, EnergyMixin, NetatmoModule):
     """Legrand / BTicino smart load shedder."""
 
     ...
 
 
-class NLC(SwitchMixin, NetatmoModule):
+class NLC(FirmwareMixin, SwitchMixin, NetatmoModule):
     """Legrand / BTicino cable outlet."""
 
     ...

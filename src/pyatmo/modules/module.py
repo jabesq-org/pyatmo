@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 class FirmwareMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.firmware_revision: int | str | None = None
+        self.firmware_revision: int | None = None
         self.firmware_name: str | None = None
 
 
@@ -31,6 +31,62 @@ class RfMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.rf_strength: int | None = None
+
+
+class RainMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.rain: float | None = None
+        self.sum_rain_1: float | None = None
+        self.sum_rain_24: float | None = None
+
+
+class WindMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.wind_strength: int | None = None
+        self.wind_angle: int | None = None
+        self.gust_strength: int | None = None
+        self.gust_angle: int | None = None
+
+
+class TemperatureMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.temperature: float | None = None
+        self.temp_min: float | None = None
+        self.temp_max: float | None = None
+        self.temp_trend: str | None = None
+        self.min_temp: float | None = None
+        self.max_temp: float | None = None
+        self.date_min_temp: int | None = None
+        self.date_max_temp: int | None = None
+
+
+class HumidityMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.humidity: int | None = None
+
+
+class CO2Mixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.co2: int | None = None
+
+
+class NoiseMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.noise: int | None = None
+
+
+class PressureMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.pressure: float | None = None
+        self.absolute_pressure: float | None = None
+        self.pressure_trend: str | None = None
 
 
 class BoilerMixin(EntityBase):

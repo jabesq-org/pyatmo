@@ -115,11 +115,7 @@ class AbstractCameraData(ABC):
     def get_camera_home_id(self, camera_id: str) -> str | None:
         """Get camera data."""
         return next(
-            (
-                home_id
-                for home_id in self.cameras
-                if camera_id in self.cameras[home_id]
-            ),
+            (home_id for home_id in self.cameras if camera_id in self.cameras[home_id]),
             None,
         )
 

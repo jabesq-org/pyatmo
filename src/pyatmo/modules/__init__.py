@@ -3,6 +3,7 @@ from .idiamant import NBG, NBR
 from .legrand import NLG, NLP, NLT
 from .netatmo import (
     NDB,
+    NHC,
     NIS,
     NOC,
     NRV,
@@ -42,4 +43,5 @@ __all__ = [
     "NAModule2",
     "NAModule3",
     "NAModule4",
+    "NHC",
 ]

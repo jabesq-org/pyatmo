@@ -258,6 +258,22 @@
                         }
                     },
                     {
+                        "id": "12:34:56:80:1c:42",
+                        "type": "NAModule1",
+                        "name": "Outdoor",
+                        "setup_date": 1448565785,
+                        "room_id": "1576454269",
+                        "bridge": "12:34:56:80:bb:26"
+                    },
+                    {
+                        "id": "12:34:56:80:c1:ea",
+                        "type": "NAModule3",
+                        "name": "Rain",
+                        "setup_date": 1591770206,
+                        "room_id": "1576454269",
+                        "bridge": "12:34:56:80:bb:26"
+                    },
+                    {
                         "id": "12:34:56:80:44:92",
                         "type": "NAModule4",
                         "name": "Bedroom",
@@ -274,20 +290,19 @@
                         "bridge": "12:34:56:80:bb:26"
                     },
                     {
-                        "id": "12:34:56:80:1c:42",
-                        "type": "NAModule1",
-                        "name": "Outdoor",
-                        "setup_date": 1448565785,
-                        "room_id": "1576454269",
+                        "id": "12:34:56:03:1b:e4",
+                        "type": "NAModule2",
+                        "name": "Garden",
+                        "setup_date": 1543579864,
+                        "room_id": "2945394159",
                         "bridge": "12:34:56:80:bb:26"
                     },
                     {
-                        "id": "12:34:56:80:c1:ea",
-                        "type": "NAModule3",
-                        "name": "Rain",
-                        "setup_date": 1591770206,
-                        "room_id": "1576454269",
-                        "bridge": "12:34:56:80:bb:26"
+                        "id": "12:34:56:26:68:92",
+                        "type": "NHC",
+                        "name": "Indoor",
+                        "setup_date": 1571342643,
+                        "room_id": "1576454269"
                     },
                     {
                         "id": "12:34:56:80:60:40",

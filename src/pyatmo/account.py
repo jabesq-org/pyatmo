@@ -75,16 +75,16 @@ class AsyncAccount(AbstractAccount):
 
     async def async_update_weather_stations(self) -> None:
         """Retrieve status data from /getstationsdata."""
-        resp = await self.auth.async_post_request(
-            url=_GETSTATIONDATA_REQ,
-        )
-        raw_data = extract_raw_data_new(await resp.json(), "devices")
-        self.update_devices(raw_data)
+        await self._async_update_data(_GETSTATIONDATA_REQ)
 
     async def async_update_air_care(self) -> None:
         """Retrieve status data from /gethomecoachsdata."""
+        await self._async_update_data(_GETHOMECOACHDATA_REQ)
+
+    async def _async_update_data(self, endpoint: str) -> None:
+        """Retrieve status data from <endpoint>."""
         resp = await self.auth.async_post_request(
-            url=_GETHOMECOACHDATA_REQ,
+            url=endpoint,
         )
         raw_data = extract_raw_data_new(await resp.json(), "devices")
         self.update_devices(raw_data)

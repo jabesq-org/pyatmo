@@ -46,7 +46,7 @@ class AbstractAccount(ABC):
 class AsyncAccount(AbstractAccount):
     """Async class of a Netatmo account."""
 
-    def __init__(self, auth: AbstractAsyncAuth) -> None:
+    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
         """Initialize the Netatmo account.
 
         Arguments:
@@ -54,6 +54,7 @@ class AsyncAccount(AbstractAccount):
         """
         self.auth = auth
         self.homes = {}
+        self.favorite_stations = favorite_stations
 
     async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""
@@ -75,17 +76,16 @@ class AsyncAccount(AbstractAccount):
 
     async def async_update_weather_stations(self) -> None:
         """Retrieve status data from /getstationsdata."""
-        await self._async_update_data(_GETSTATIONDATA_REQ)
+        params = {"get_favorites": ("true" if self.favorite_stations else "false")}
+        await self._async_update_data(_GETSTATIONDATA_REQ, params=params)
 
     async def async_update_air_care(self) -> None:
         """Retrieve status data from /gethomecoachsdata."""
         await self._async_update_data(_GETHOMECOACHDATA_REQ)
 
-    async def _async_update_data(self, endpoint: str) -> None:
+    async def _async_update_data(self, endpoint: str, params: dict = None) -> None:
         """Retrieve status data from <endpoint>."""
-        resp = await self.auth.async_post_request(
-            url=endpoint,
-        )
+        resp = await self.auth.async_post_request(url=endpoint, params=params)
         raw_data = extract_raw_data_new(await resp.json(), "devices")
         self.update_devices(raw_data)
 

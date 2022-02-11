@@ -1,11 +1,14 @@
 """Expose submodules."""
 from .idiamant import NBG, NBR
+from .legrand import NLG, NLP, NLT
 from .netatmo import (
     NDB,
+    NIS,
     NOC,
     NRV,
     OTH,
     OTM,
+    NACamDoorTag,
     NACamera,
     NAMain,
     NAModule1,
@@ -19,11 +22,16 @@ from .netatmo import (
 
 __all__ = [
     "NetatmoModule",
+    "NACamera",
+    "NOC",
+    "NACamDoorTag",
+    "NIS",
+    "NLG",
+    "NLP",
+    "NLT",
     "NBG",
     "NBR",
     "NDB",
-    "NACamera",
-    "NOC",
     "NRV",
     "NAPlug",
     "NATherm1",

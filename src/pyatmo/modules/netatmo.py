@@ -12,6 +12,7 @@ from pyatmo.modules.module import (
     MonitoringMixin,
     NetatmoModule,
     RfMixin,
+    StatusMixin,
     WifiMixin,
 )
 
@@ -79,9 +80,16 @@ class NAModule4(FirmwareMixin, NetatmoModule):
     ...
 
 
-class NACamDoorTag(FirmwareMixin, NetatmoModule):
+class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, NetatmoModule):
     ...
 
 
-class NIS(FirmwareMixin, NetatmoModule):
+class NIS(
+    StatusMixin,
+    MonitoringMixin,
+    FirmwareMixin,
+    BatteryMixin,
+    RfMixin,
+    NetatmoModule,
+):
     ...

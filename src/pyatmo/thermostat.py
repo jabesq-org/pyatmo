@@ -67,11 +67,14 @@ class AbstractHomeData(ABC):
 
     def _get_selected_schedule(self, home_id: str) -> dict:
         """Get the selected schedule for a given home ID."""
-        for value in self.schedules.get(home_id, {}).values():
-            if "selected" in value.keys():
-                return value
-
-        return {}
+        return next(
+            (
+                value
+                for value in self.schedules.get(home_id, {}).values()
+                if "selected" in value.keys()
+            ),
+            {},
+        )
 
     def get_hg_temp(self, home_id: str) -> float | None:
         """Return frost guard temperature value."""
@@ -83,11 +86,14 @@ class AbstractHomeData(ABC):
 
     def get_thermostat_type(self, home_id: str, room_id: str) -> str | None:
         """Return the thermostat type of the room."""
-        for module in self.modules.get(home_id, {}).values():
-            if module.get("room_id") == room_id:
-                return module.get("type")
-
-        return None
+        return next(
+            (
+                module.get("type")
+                for module in self.modules.get(home_id, {}).values()
+                if module.get("room_id") == room_id
+            ),
+            None,
+        )
 
     def is_valid_schedule(self, home_id: str, schedule_id: str):
         """Check if valid schedule."""

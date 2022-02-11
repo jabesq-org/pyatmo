@@ -62,6 +62,7 @@ class NetatmoDeviceType(Enum):
     NLE = "NLE"  # Connected Ecometer
     NLPS = "NLPS"  # Smart Load Shedder
     NLC = "NLC"  # Cable outlet
+    NLT = "NLT"  # ?
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway

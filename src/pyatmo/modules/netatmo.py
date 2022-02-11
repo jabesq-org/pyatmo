@@ -77,3 +77,11 @@ class NAModule3(FirmwareMixin, NetatmoModule):
 
 class NAModule4(FirmwareMixin, NetatmoModule):
     ...
+
+
+class NACamDoorTag(FirmwareMixin, NetatmoModule):
+    ...
+
+
+class NIS(FirmwareMixin, NetatmoModule):
+    ...

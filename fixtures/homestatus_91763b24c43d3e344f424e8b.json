@@ -138,6 +138,64 @@
                     "last_seen": 1638353156,
                     "reachable": true,
                     "bridge": "70:ee:50:3e:d5:d4"
+                },
+                {
+                    "id": "12:34:56:00:86:99",
+                    "type": "NACamDoorTag",
+                    "battery_state": "high",
+                    "battery_level": 5240,
+                    "firmware_revision": 58,
+                    "rf_state": "full",
+                    "rf_strength": 58,
+                    "last_seen": 1642698124,
+                    "last_activity": 1627757310,
+                    "reachable": false,
+                    "bridge": "12:34:56:00:f1:62",
+                    "status": "no_news"
+                },
+                {
+                    "id": "12:34:56:00:e3:9b",
+                    "type": "NIS",
+                    "battery_state": "low",
+                    "battery_level": 5438,
+                    "firmware_revision": 209,
+                    "rf_state": "medium",
+                    "rf_strength": 62,
+                    "last_seen": 1644569790,
+                    "reachable": true,
+                    "bridge": "12:34:56:00:f1:62",
+                    "status": "no_sound",
+                    "monitoring": "off"
+                },
+                {
+                    "id": "12:34:56:80:60:40",
+                    "type": "NLG",
+                    "offload": false,
+                    "firmware_revision": 211,
+                    "last_seen": 1644567372,
+                    "wifi_strength": 51,
+                    "reachable": true
+                },
+                {
+                    "id": "12:34:56:80:00:12:ac:f2",
+                    "type": "NLP",
+                    "on": true,
+                    "offload": false,
+                    "firmware_revision": 62,
+                    "last_seen": 1644569425,
+                    "power": 0,
+                    "reachable": true,
+                    "bridge": "12:34:56:80:60:40"
+                },
+                {
+                    "id": "12:34:56:80:00:c3:69:3c",
+                    "type": "NLT",
+                    "battery_state": "full",
+                    "battery_level": 3300,
+                    "firmware_revision": 42,
+                    "last_seen": 0,
+                    "reachable": false,
+                    "bridge": "12:34:56:80:60:40"
                 }
             ],
             "rooms": [

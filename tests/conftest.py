@@ -131,15 +131,16 @@ def camera_ping(requests_mock):
         with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
             json_fixture = json.load(json_file)
         requests_mock.post(
-            vpn_url + "/command/ping",
+            f'{vpn_url}/command/ping',
             json=json_fixture,
             headers={"content-type": "application/json"},
         )
+
     local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
     with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        local_url + "/command/ping",
+        f'{local_url}/command/ping',
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -283,5 +284,4 @@ async def async_home(async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"
     await async_account.async_update_status(home_id)
-    home = async_account.homes[home_id]
-    yield home
+    yield async_account.homes[home_id]

@@ -26,7 +26,7 @@ async def test_async_home(async_home):
         NetatmoDeviceType.NIS,
     }
     assert len(async_home.rooms) == 5
-    assert len(async_home.modules) == 21
+    assert len(async_home.modules) == 23
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -140,9 +140,9 @@ async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
 @pytest.mark.asyncio
 async def test_async_climate_NLP(async_home):  # pylint: disable=invalid-name
     """Test NLP Legrand plug."""
-    relay_id = "12:34:56:80:00:12:ac:f2"
-    assert relay_id in async_home.modules
-    module = async_home.modules[relay_id]
+    module_id = "12:34:56:80:00:12:ac:f2"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NLP
     assert module.firmware_revision == 62
     assert module.on
@@ -151,12 +151,21 @@ async def test_async_climate_NLP(async_home):  # pylint: disable=invalid-name
 @pytest.mark.asyncio
 async def test_async_climate_NBR(async_home):  # pylint: disable=invalid-name
     """Test NLP Bubendorf iDiamant roller shutter."""
-    relay_id = "0009999992"
-    assert relay_id in async_home.modules
-    module = async_home.modules[relay_id]
+    module_id = "0009999992"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NBR
     assert module.firmware_revision == 16
     assert module.current_position == 0
+
+
+@pytest.mark.asyncio
+async def test_async_climate_NAMain(async_home):  # pylint: disable=invalid-name
+    """Test Netatmo weather station main module."""
+    module_id = "12:34:56:80:bb:26"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NAMain
 
 
 @pytest.mark.asyncio
@@ -601,3 +610,92 @@ async def test_async_camera_monitoring(async_home):
             params=gen_json_data("off"),
             url="https://api.netatmo.com/api/setstate",
         )
+
+
+@pytest.mark.asyncio
+async def test_async_weather_update(async_account):
+    """Test basic weather station update."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_weather_stations()
+    home = async_account.homes[home_id]
+
+    module_id = "12:34:56:80:bb:26"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NAMain
+    assert module.modules == [
+        "12:34:56:80:44:92",
+        "12:34:56:80:7e:18",
+        "12:34:56:80:1c:42",
+        "12:34:56:80:c1:ea",
+    ]
+    assert module.firmware_revision == 181
+    assert module.wifi_strength == 57
+    assert module.temperature == 21.1
+    assert module.humidity == 45
+    assert module.co2 == 1339
+    assert module.pressure == 1026.8
+    assert module.noise == 35
+    assert module.absolute_pressure == 974.5
+
+    module_id = "12:34:56:80:44:92"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NAModule4
+    assert module.modules is None
+    assert module.firmware_revision == 51
+    assert module.rf_strength == 67
+    assert module.temperature == 19.3
+
+    module_id = "12:34:56:80:c1:ea"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NAModule3
+    assert module.modules is None
+    assert module.firmware_revision == 12
+    assert module.rf_strength == 79
+    assert module.rain == 3.7
+
+    module_id = "12:34:56:80:1c:42"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NAModule1
+    assert module.modules is None
+    assert module.firmware_revision == 50
+    assert module.rf_strength == 68
+    assert module.temperature == 9.4
+    assert module.humidity == 57
+
+    module_id = "12:34:56:03:1b:e4"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NAModule2
+    assert module.modules is None
+    assert module.firmware_revision == 19
+    assert module.rf_strength == 59
+    assert module.wind_strength == 4
+    assert module.wind_angle == 217
+    assert module.gust_strength == 9
+    assert module.gust_angle == 206
+
+
+@pytest.mark.asyncio
+async def test_async_air_care_update(async_account):
+    """Test basic air care update."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_air_care()
+    home = async_account.homes[home_id]
+
+    module_id = "12:34:56:26:68:92"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NHC
+    assert module.modules is None
+    assert module.firmware_revision == 45
+    assert module.wifi_strength == 68
+    assert module.temperature == 21.6
+    assert module.humidity == 66
+    assert module.co2 == 1053
+    assert module.pressure == 1021.4
+    assert module.noise == 45
+    assert module.absolute_pressure == 1011

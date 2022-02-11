@@ -90,7 +90,7 @@ class NetatmoHome:
         }
 
     def update(self, raw_data: dict) -> None:
-        for module in raw_data["errors"]:
+        for module in raw_data.get("errors", []):
             self.modules[module["id"]].update({})
 
         data = raw_data["home"]

@@ -18,6 +18,7 @@ NETATMO_ATTRIBUTES_MAP = {
     "modules": lambda x, y: x.get("modules_bridged", y),
     "device_type": lambda x, y: NetatmoDeviceType(x.get("type", y)),
     "reachable": lambda x, _: x.get("reachable", False),
+    "monitoring": lambda x, _: x.get("monitoring", False) == "on",
 }
 
 

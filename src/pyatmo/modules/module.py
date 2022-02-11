@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 class FirmwareMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.firmware_revision: int | None = None
+        self.firmware_revision: int | str | None = None
         self.firmware_name: str | None = None
 
 
@@ -164,10 +164,16 @@ class FloodlightMixin(EntityBase):
         return await self.async_set_floodlight_state("auto")
 
 
+class StatusMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.status: str | None = None
+
+
 class MonitoringMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.monitoring: int | None = None
+        self.monitoring: bool | None = None
 
     async def async_set_monitoring_state(self, state: str) -> bool:
         """Set monitoring state."""

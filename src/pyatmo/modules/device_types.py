@@ -16,11 +16,11 @@ class NetatmoDeviceType(Enum):
     # pylint: disable=C0103
 
     # Climate/Energy
-    NRV = "NRV"  # Smart valve
-    NATherm1 = "NATherm1"  # Smart thermostat
-    OTM = "OTM"  # OpenTherm modulating thermostat
     NAPlug = "NAPlug"  # Smart thermostat gateway
+    NATherm1 = "NATherm1"  # Smart thermostat
+    NRV = "NRV"  # Smart valve
     OTH = "OTH"  # OpenTherm gateway
+    OTM = "OTM"  # OpenTherm modulating thermostat
 
     # Cameras/Security
     NOC = "NOC"  # Smart Outdoor Camera (with Siren)

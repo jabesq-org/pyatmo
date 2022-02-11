@@ -127,7 +127,7 @@ class AsyncAccount(AbstractAccount):
         return None
 
 
-ATTRIBS_TO_FIX = {
+ATTRIBUTES_TO_FIX = {
     "_id": "id",
     "firmware": "firmware_revision",
     "wifi_status": "wifi_strength",
@@ -152,5 +152,5 @@ def fix_weather_attributes(raw_data) -> dict:
         if attribute == "dashboard_data":
             result.update(**fix_weather_attributes(value))
         else:
-            result[ATTRIBS_TO_FIX.get(attribute, attribute)] = value
+            result[ATTRIBUTES_TO_FIX.get(attribute, attribute)] = value
     return result

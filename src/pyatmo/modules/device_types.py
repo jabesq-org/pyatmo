@@ -59,7 +59,7 @@ class NetatmoDeviceType(Enum):
     NLPO = "NLPO"  # Connected contactor
     NLPT = "NLPT"  # Connected latching relay / Telerupt
     NLPC = "NLPC"  # Connected energy meter
-    NLE = "NLE"  # C onnected Ecometer
+    NLE = "NLE"  # Connected Ecometer
     NLPS = "NLPS"  # Smart Load Shedder
     NLC = "NLC"  # Cable outlet
 

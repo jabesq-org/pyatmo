@@ -23,7 +23,7 @@ class NLG(FirmwareMixin, NetatmoModule):
 
 
 class NLT(FirmwareMixin, NetatmoModule):
-    """Legrand ?."""
+    """Legrand global remote control."""
 
     ...
 

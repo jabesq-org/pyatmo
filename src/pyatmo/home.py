@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from pyatmo import modules
 from pyatmo.const import _SETSTATE_REQ, _SETTHERMMODE_REQ, _SWITCHHOMESCHEDULE_REQ
 from pyatmo.exceptions import InvalidState, NoSchedule
+from pyatmo.person import NetatmoPerson
 from pyatmo.room import NetatmoRoom
 from pyatmo.schedule import NetatmoSchedule
 
@@ -50,6 +51,10 @@ class NetatmoHome:
         self.schedules = {
             s["id"]: NetatmoSchedule(home=self, raw_data=s)
             for s in raw_data.get("schedules", [])
+        }
+        self.persons = {
+            s["id"]: NetatmoPerson(home=self, raw_data=s)
+            for s in raw_data.get("persons", [])
         }
 
     def update_topology(self, raw_data: dict) -> None:

@@ -169,6 +169,18 @@ async def test_async_climate_NAMain(async_home):  # pylint: disable=invalid-name
 
 
 @pytest.mark.asyncio
+async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-name
+    """Test Netatmo indoor camera module."""
+    module_id = "12:34:56:00:f1:62"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == NetatmoDeviceType.NACamera
+    person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
+    assert person_id in module.home.persons
+    assert module.home.persons[person_id].pseudo == "John Doe"
+
+
+@pytest.mark.asyncio
 async def test_async_home_set_schedule(async_home):
     """Test home schedule."""
     schedule_id = "591b54a2764ff4d50d8b5795"

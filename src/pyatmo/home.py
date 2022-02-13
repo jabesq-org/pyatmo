@@ -6,7 +6,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pyatmo import modules
-from pyatmo.const import _SETSTATE_REQ, _SETTHERMMODE_REQ, _SWITCHHOMESCHEDULE_REQ
+from pyatmo.const import (
+    _SETPERSONSAWAY_REQ,
+    _SETPERSONSHOME_REQ,
+    _SETSTATE_REQ,
+    _SETTHERMMODE_REQ,
+    _SWITCHHOMESCHEDULE_REQ,
+)
 from pyatmo.exceptions import InvalidState, NoSchedule
 from pyatmo.person import NetatmoPerson
 from pyatmo.room import NetatmoRoom
@@ -28,6 +34,7 @@ class NetatmoHome:
     rooms: dict[str, NetatmoRoom]
     modules: dict[str, modules.NetatmoModule]
     schedules: dict[str, NetatmoSchedule]
+    persons: dict[str, NetatmoPerson]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: dict) -> None:
         self.auth = auth
@@ -200,6 +207,29 @@ class NetatmoHome:
             return True
 
         return False
+
+    async def async_set_persons_home(
+        self,
+        person_ids: list[str] = None,
+    ):
+        """Mark persons as home."""
+        post_params: dict[str, str | list] = {"home_id": self.entity_id}
+        if person_ids:
+            post_params["person_ids[]"] = person_ids
+        return await self.auth.async_post_request(
+            url=_SETPERSONSHOME_REQ,
+            params=post_params,
+        )
+
+    async def async_set_persons_away(self, person_id: str | None = None):
+        """Mark a person as away or set the whole home to being empty."""
+        post_params = {"home_id": self.entity_id}
+        if person_id:
+            post_params["person_id"] = person_id
+        return await self.auth.async_post_request(
+            url=_SETPERSONSAWAY_REQ,
+            params=post_params,
+        )
 
 
 def is_valid_state(data: dict) -> bool:

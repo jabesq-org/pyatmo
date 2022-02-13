@@ -711,3 +711,58 @@ async def test_async_air_care_update(async_account):
     assert module.pressure == 1021.4
     assert module.noise == 45
     assert module.absolute_pressure == 1011
+
+
+@pytest.mark.asyncio
+async def test_async_set_persons_home(async_account):
+    """Test marking a person being at home."""
+    home_id = "91763b24c43d3e344f424e8b"
+    home = async_account.homes[home_id]
+
+    person_ids = [
+        "91827374-7e04-5298-83ad-a0cb8372dff1",
+        "91827375-7e04-5298-83ae-a0cb8372dff2",
+    ]
+
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
+        response = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        await home.async_set_persons_home(person_ids)
+
+        mock_resp.assert_awaited_with(
+            params={"home_id": home_id, "person_ids[]": person_ids},
+            url="https://api.netatmo.com/api/setpersonshome",
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_set_persons_away(async_account):
+    """Test marking a set of persons being away."""
+    home_id = "91763b24c43d3e344f424e8b"
+    home = async_account.homes[home_id]
+
+    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
+        response = json.load(json_file)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
+        await home.async_set_persons_away(person_id)
+
+        mock_resp.assert_awaited_with(
+            params={"home_id": home_id, "person_id": person_id},
+            url="https://api.netatmo.com/api/setpersonsaway",
+        )
+
+        await home.async_set_persons_away()
+
+        mock_resp.assert_awaited_with(
+            params={"home_id": home_id},
+            url="https://api.netatmo.com/api/setpersonsaway",
+        )

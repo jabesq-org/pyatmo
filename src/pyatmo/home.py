@@ -175,8 +175,8 @@ class NetatmoHome:
 
         return False
 
-    async def async_switch_home_schedule(self, schedule_id: str) -> bool:
-        """Switch the schedule for a give home ID."""
+    async def async_switch_schedule(self, schedule_id: str) -> bool:
+        """Switch the schedule."""
         if not self.is_valid_schedule(schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 

@@ -259,7 +259,7 @@ async def test_async_climate_update(async_account):
     ],
 )
 @pytest.mark.asyncio
-async def test_async_climate_switch_home_schedule(
+async def test_async_climate_switch_schedule(
     async_home,
     t_sched_id,
     expected,
@@ -272,7 +272,7 @@ async def test_async_climate_switch_home_schedule(
         AsyncMock(return_value=MockResponse(response, 200)),
     ):
         with expected:
-            await async_home.async_switch_home_schedule(
+            await async_home.async_switch_schedule(
                 schedule_id=t_sched_id,
             )
 

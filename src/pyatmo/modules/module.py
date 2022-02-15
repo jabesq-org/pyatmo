@@ -5,8 +5,13 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase
-from pyatmo.modules.device_types import NetatmoDeviceType
+from pyatmo.modules.device_types import (
+    DEVICE_CATEGORY_MAP,
+    NetatmoDeviceCategory,
+    NetatmoDeviceType,
+)
 
 if TYPE_CHECKING:
     from pyatmo.home import NetatmoHome
@@ -186,14 +191,53 @@ class CameraMixin(EntityBase):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.sd_status: int | None = None
         self.vpn_url: str | None = None
+        self.local_url: str | None = None
         self.is_local: bool | None = None
         self.alim_status: int | None = None
+
+    async def async_get_live_snapshot(self) -> bytes | None:
+        """Fetch live camera image."""
+        if not self.local_url and not self.vpn_url:
+            return None
+        resp = await self.home.auth.async_get_image(
+            url=f"{(self.local_url or self.vpn_url)}/live/snapshot_720.jpg",
+            timeout=10,
+        )
+
+        if not isinstance(resp, bytes):
+            return None
+
+        return resp
+
+    async def async_update_camera_urls(self) -> None:
+        """Update and validate the camera urls."""
+        if self.vpn_url and self.is_local:
+            temp_local_url = await self._async_check_url(self.vpn_url)
+            if temp_local_url:
+                self.local_url = await self._async_check_url(
+                    temp_local_url,
+                )
+
+    async def _async_check_url(self, url: str) -> str | None:
+        """Validate camera url."""
+        try:
+            resp = await self.home.auth.async_post_request(url=f"{url}/command/ping")
+        # except ReadTimeout:
+        #     LOG.debug("Timeout validation of camera url %s", url)
+        #     return None
+        except ApiError:
+            LOG.debug("Api error for camera url %s", url)
+            return None
+
+        assert not isinstance(resp, bytes)
+        resp_data = await resp.json()
+        return resp_data.get("local_url") if resp_data else None
 
 
 class FloodlightMixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.floodlight: int | None = None
+        self.floodlight: str | None = None
 
     async def async_set_floodlight_state(self, state: str) -> bool:
         """Set floodlight state."""
@@ -257,6 +301,7 @@ class NetatmoModule(NetatmoBase):
     """Class to represent a Netatmo module."""
 
     device_type: NetatmoDeviceType
+    device_category: NetatmoDeviceCategory | None
     room_id: str | None
 
     modules: list[str] | None
@@ -270,6 +315,7 @@ class NetatmoModule(NetatmoBase):
         self.reachable = module.get("reachable")
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged")
+        self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
 
     def update(self, raw_data: dict) -> None:
         self.update_topology(raw_data)

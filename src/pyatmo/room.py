@@ -7,13 +7,16 @@ from typing import TYPE_CHECKING
 
 from pyatmo.const import _SETROOMTHERMPOINT_REQ, FROSTGUARD, HOME, MANUAL
 from pyatmo.modules.base_class import NetatmoBase
+from pyatmo.modules.device_types import NetatmoDeviceType
 
 if TYPE_CHECKING:
     from pyatmo.home import NetatmoHome
-    from pyatmo.modules.device_types import NetatmoDeviceType
+    from pyatmo.modules.device_types import NetatmoDeviceCategory
     from pyatmo.modules.module import NetatmoModule
 
 LOG = logging.getLogger(__name__)
+
+MODE_MAP = {"schedule": "home"}
 
 
 @dataclass
@@ -22,6 +25,9 @@ class NetatmoRoom(NetatmoBase):
 
     modules: dict[str, NetatmoModule]
     device_types: set[NetatmoDeviceType]
+    features: set[NetatmoDeviceCategory]
+
+    climate_type: NetatmoDeviceType | None = None
 
     reachable: bool | None = None
     therm_setpoint_temperature: float | None = None
@@ -43,6 +49,7 @@ class NetatmoRoom(NetatmoBase):
             if m_id in room.get("module_ids", [])
         }
         self.device_types = set()
+        self.features = set()
         self.evaluate_device_type()
 
     def update_topology(self, raw_data: dict) -> None:
@@ -57,6 +64,15 @@ class NetatmoRoom(NetatmoBase):
     def evaluate_device_type(self) -> None:
         for module in self.modules.values():
             self.device_types.add(module.device_type)
+            if module.device_category is not None:
+                self.features.add(module.device_category)
+
+        if "NRV" in self.device_types:
+            self.climate_type = NetatmoDeviceType.NRV
+        elif "NATherm1" in self.device_types:
+            self.climate_type = NetatmoDeviceType.NATherm1
+        elif "OTM" in self.device_types:
+            self.climate_type = NetatmoDeviceType.OTM
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable")
@@ -85,10 +101,12 @@ class NetatmoRoom(NetatmoBase):
         end_time: int = None,
     ) -> None:
         """Set room temperature set point."""
-        if "OTH" in self.device_types:
+        mode = MODE_MAP.get(mode, mode)
+
+        if "OTM" in self.device_types:
             await self._async_therm_set(mode, temp, end_time)
 
-        if "NRV" in self.device_types or "NATherm1" in self.device_types:
+        elif "NRV" in self.device_types or "NATherm1" in self.device_types:
             await self.async_set_thermpoint(mode, temp, end_time)
 
     async def _async_therm_set(
@@ -97,7 +115,7 @@ class NetatmoRoom(NetatmoBase):
         temp: float = None,
         end_time: int = None,
     ) -> bool:
-        json_therm_set = {
+        json_therm_set: dict[str, list[dict[str, str | int | float]]] = {
             "rooms": [
                 {
                     "id": self.entity_id,
@@ -107,10 +125,10 @@ class NetatmoRoom(NetatmoBase):
         }
 
         if temp:
-            json_therm_set["room"][0]["therm_setpoint_temperature"] = str(temp)
+            json_therm_set["rooms"][0]["therm_setpoint_temperature"] = temp
 
         if end_time:
-            json_therm_set["room"][0]["therm_setpoint_end_time"] = str(end_time)
+            json_therm_set["rooms"][0]["therm_setpoint_end_time"] = end_time
 
         return await self.home.async_set_state(json_therm_set)
 

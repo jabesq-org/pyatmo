@@ -97,9 +97,10 @@ class AsyncAccount(AbstractAccount):
         lon_sw: str,
         required_data_type: str = None,
         filtering: bool = False,
+        *,
+        area_id: str = str(uuid4()),
     ) -> str:
         """Register public weather area to monitor."""
-        area_id = str(uuid4())
         self.public_weather_areas[area_id] = PublicWeatherArea(
             lat_ne,
             lon_ne,

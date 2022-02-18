@@ -9,6 +9,7 @@ from .netatmo import (
     NRV,
     OTH,
     OTM,
+    Location,
     NACamDoorTag,
     NACamera,
     NAMain,
@@ -19,6 +20,7 @@ from .netatmo import (
     NAPlug,
     NATherm1,
     NetatmoModule,
+    PublicWeatherArea,
 )
 
 __all__ = [
@@ -45,4 +47,6 @@ __all__ = [
     "NAModule3",
     "NAModule4",
     "NHC",
+    "PublicWeatherArea",
+    "Location",
 ]

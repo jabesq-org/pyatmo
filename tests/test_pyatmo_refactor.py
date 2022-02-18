@@ -175,6 +175,8 @@ async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-na
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NACamera
+    assert module.is_local
+    assert module.local_url == "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
     person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
     assert person_id in module.home.persons
     assert module.home.persons[person_id].pseudo == "John Doe"
@@ -588,6 +590,7 @@ async def test_async_camera_monitoring(async_home):
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NOC
+    assert module.is_local is False
 
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         response = json.load(json_file)
@@ -766,3 +769,86 @@ async def test_async_set_persons_away(async_account):
             params={"home_id": home_id},
             url="https://api.netatmo.com/api/setpersonsaway",
         )
+
+
+@pytest.mark.asyncio
+async def test_async_public_weather_update(async_account):
+    """Test basic public weather update."""
+    lon_ne = "6.221652"
+    lat_ne = "46.610870"
+    lon_sw = "6.217828"
+    lat_sw = "46.596485"
+
+    area_id = async_account.register_public_weather_area(lat_ne, lon_ne, lat_sw, lon_sw)
+    await async_account.async_update_public_weather(area_id)
+
+    area = async_account.public_weather_areas[area_id]
+    assert area.location == pyatmo.modules.netatmo.Location(
+        lat_ne,
+        lon_ne,
+        lat_sw,
+        lon_sw,
+    )
+    assert area.stations_in_area() == 8
+
+    assert area.get_latest_rain() == {
+        "70:ee:50:1f:68:9e": 0,
+        "70:ee:50:27:25:b0": 0,
+        "70:ee:50:36:94:7c": 0.5,
+        "70:ee:50:36:a9:fc": 0,
+    }
+
+    assert area.get_60_min_rain() == {
+        "70:ee:50:1f:68:9e": 0,
+        "70:ee:50:27:25:b0": 0,
+        "70:ee:50:36:94:7c": 0.2,
+        "70:ee:50:36:a9:fc": 0,
+    }
+
+    assert area.get_24_h_rain() == {
+        "70:ee:50:1f:68:9e": 9.999,
+        "70:ee:50:27:25:b0": 11.716000000000001,
+        "70:ee:50:36:94:7c": 12.322000000000001,
+        "70:ee:50:36:a9:fc": 11.009,
+    }
+
+    assert area.get_latest_pressures() == {
+        "70:ee:50:1f:68:9e": 1007.3,
+        "70:ee:50:27:25:b0": 1012.8,
+        "70:ee:50:36:94:7c": 1010.6,
+        "70:ee:50:36:a9:fc": 1010,
+        "70:ee:50:01:20:fa": 1014.4,
+        "70:ee:50:04:ed:7a": 1005.4,
+        "70:ee:50:27:9f:2c": 1010.6,
+        "70:ee:50:3c:02:78": 1011.7,
+    }
+
+    assert area.get_latest_temperatures() == {
+        "70:ee:50:1f:68:9e": 21.1,
+        "70:ee:50:27:25:b0": 23.2,
+        "70:ee:50:36:94:7c": 21.4,
+        "70:ee:50:36:a9:fc": 20.1,
+        "70:ee:50:01:20:fa": 27.4,
+        "70:ee:50:04:ed:7a": 19.8,
+        "70:ee:50:27:9f:2c": 25.5,
+        "70:ee:50:3c:02:78": 23.3,
+    }
+
+    assert area.get_latest_humidities() == {
+        "70:ee:50:1f:68:9e": 69,
+        "70:ee:50:27:25:b0": 60,
+        "70:ee:50:36:94:7c": 62,
+        "70:ee:50:36:a9:fc": 67,
+        "70:ee:50:01:20:fa": 58,
+        "70:ee:50:04:ed:7a": 76,
+        "70:ee:50:27:9f:2c": 56,
+        "70:ee:50:3c:02:78": 58,
+    }
+
+    assert area.get_latest_wind_strengths() == {"70:ee:50:36:a9:fc": 15}
+
+    assert area.get_latest_wind_angles() == {"70:ee:50:36:a9:fc": 17}
+
+    assert area.get_latest_gust_strengths() == {"70:ee:50:36:a9:fc": 31}
+
+    assert area.get_latest_gust_angles() == {"70:ee:50:36:a9:fc": 217}

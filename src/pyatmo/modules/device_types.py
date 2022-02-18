@@ -101,6 +101,9 @@ DEVICE_CATEGORY_MAP: dict[NetatmoDeviceType, NetatmoDeviceCategory] = {
     NetatmoDeviceType.NRV: NetatmoDeviceCategory.climate,
     NetatmoDeviceType.NATherm1: NetatmoDeviceCategory.climate,
     NetatmoDeviceType.OTM: NetatmoDeviceCategory.climate,
+    NetatmoDeviceType.NOC: NetatmoDeviceCategory.camera,
+    NetatmoDeviceType.NACamera: NetatmoDeviceCategory.camera,
+    NetatmoDeviceType.NDB: NetatmoDeviceCategory.camera,
 }
 
 

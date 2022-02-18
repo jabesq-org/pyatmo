@@ -7,32 +7,23 @@ from collections import defaultdict
 from typing import Any
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
-from pyatmo.const import _GETPUBLIC_DATA_ENDPOINT
+from pyatmo.const import (
+    _GETPUBLIC_DATA_ENDPOINT,
+    ACCESSORY_GUST_ANGLE_TYPE,
+    ACCESSORY_GUST_STRENGTH_TYPE,
+    ACCESSORY_RAIN_24H_TYPE,
+    ACCESSORY_RAIN_60MIN_TYPE,
+    ACCESSORY_RAIN_LIVE_TYPE,
+    ACCESSORY_RAIN_TIME_TYPE,
+    ACCESSORY_WIND_ANGLE_TYPE,
+    ACCESSORY_WIND_STRENGTH_TYPE,
+    ACCESSORY_WIND_TIME_TYPE,
+    STATION_HUMIDITY_TYPE,
+    STATION_PRESSURE_TYPE,
+    STATION_TEMPERATURE_TYPE,
+)
 from pyatmo.exceptions import NoDevice
-
-STATION_TEMPERATURE_TYPE = "temperature"
-STATION_PRESSURE_TYPE = "pressure"
-STATION_HUMIDITY_TYPE = "humidity"
-
-ACCESSORY_RAIN_LIVE_TYPE = "rain_live"
-ACCESSORY_RAIN_60MIN_TYPE = "rain_60min"
-ACCESSORY_RAIN_24H_TYPE = "rain_24h"
-ACCESSORY_RAIN_TIME_TYPE = "rain_timeutc"
-ACCESSORY_WIND_STRENGTH_TYPE = "wind_strength"
-ACCESSORY_WIND_ANGLE_TYPE = "wind_angle"
-ACCESSORY_WIND_TIME_TYPE = "wind_timeutc"
-ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
-ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
-
-
-@dataclasses.dataclass
-class Location:
-    """Class of Netatmo public weather location."""
-
-    lat_ne: str
-    lon_ne: str
-    lat_sw: str
-    lon_sw: str
+from pyatmo.modules import Location
 
 
 class AbstractPublicData(ABC):

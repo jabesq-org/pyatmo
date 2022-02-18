@@ -174,6 +174,7 @@ async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-na
     module_id = "12:34:56:00:f1:62"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
+    await module.async_update_camera_urls()
     assert module.device_type == NetatmoDeviceType.NACamera
     assert module.is_local
     assert module.local_url == "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"

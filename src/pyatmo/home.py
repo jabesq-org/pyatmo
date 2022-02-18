@@ -101,14 +101,14 @@ class NetatmoHome:
             for s in raw_data.get("schedules", [])
         }
 
-    def update(self, raw_data: dict) -> None:
+    async def update(self, raw_data: dict) -> None:
         for module in raw_data.get("errors", []):
-            self.modules[module["id"]].update({})
+            await self.modules[module["id"]].update({})
 
         data = raw_data["home"]
 
         for module in data.get("modules", []):
-            self.modules[module["id"]].update(module)
+            await self.modules[module["id"]].update(module)
 
         for room in data.get("rooms", []):
             self.rooms[room["id"]].update(room)

@@ -317,13 +317,13 @@ class NetatmoModule(NetatmoBase):
         self.modules = module.get("modules_bridged")
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
 
-    def update(self, raw_data: dict) -> None:
+    async def update(self, raw_data: dict) -> None:
         self.update_topology(raw_data)
 
         if not self.reachable and self.modules:
             # Update bridged modules and associated rooms
             for module_id in self.modules:
                 module = self.home.modules[module_id]
-                module.update(raw_data)
+                await module.update(raw_data)
                 if module.room_id:
                     self.home.rooms[module.room_id].update(raw_data)

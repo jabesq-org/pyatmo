@@ -639,12 +639,27 @@ async def test_async_weather_update(async_account):
     assert module_id in home.modules
     module = home.modules[module_id]
     assert module.device_type == NetatmoDeviceType.NAMain
+    assert module.name == "Villa"
     assert module.modules == [
         "12:34:56:80:44:92",
         "12:34:56:80:7e:18",
         "12:34:56:80:1c:42",
         "12:34:56:80:c1:ea",
     ]
+    assert module.features == {
+        "temperature",
+        "humidity",
+        "co2",
+        "noise",
+        "pressure",
+        "absolute_pressure",
+        "temp_trend",
+        "pressure_trend",
+        "min_temp",
+        "max_temp",
+        "temp_max",
+        "temp_min",
+    }
     assert module.firmware_revision == 181
     assert module.wifi_strength == 57
     assert module.temperature == 21.1
@@ -657,6 +672,15 @@ async def test_async_weather_update(async_account):
     module_id = "12:34:56:80:44:92"
     assert module_id in home.modules
     module = home.modules[module_id]
+    assert module.name == "Villa Bedroom"
+    assert module.features == {
+        "temperature",
+        "temp_trend",
+        "min_temp",
+        "max_temp",
+        "temp_max",
+        "temp_min",
+    }
     assert module.device_type == NetatmoDeviceType.NAModule4
     assert module.modules is None
     assert module.firmware_revision == 51
@@ -666,6 +690,12 @@ async def test_async_weather_update(async_account):
     module_id = "12:34:56:80:c1:ea"
     assert module_id in home.modules
     module = home.modules[module_id]
+    assert module.name == "Villa Rain"
+    assert module.features == {
+        "sum_rain_1",
+        "sum_rain_24",
+        "rain",
+    }
     assert module.device_type == NetatmoDeviceType.NAModule3
     assert module.modules is None
     assert module.firmware_revision == 12
@@ -675,6 +705,16 @@ async def test_async_weather_update(async_account):
     module_id = "12:34:56:80:1c:42"
     assert module_id in home.modules
     module = home.modules[module_id]
+    assert module.name == "Villa Outdoor"
+    assert module.features == {
+        "temperature",
+        "humidity",
+        "temp_trend",
+        "min_temp",
+        "max_temp",
+        "temp_max",
+        "temp_min",
+    }
     assert module.device_type == NetatmoDeviceType.NAModule1
     assert module.modules is None
     assert module.firmware_revision == 50
@@ -685,6 +725,13 @@ async def test_async_weather_update(async_account):
     module_id = "12:34:56:03:1b:e4"
     assert module_id in home.modules
     module = home.modules[module_id]
+    assert module.name == "Villa Garden"
+    assert module.features == {
+        "wind_strength",
+        "gust_strength",
+        "gust_angle",
+        "wind_angle",
+    }
     assert module.device_type == NetatmoDeviceType.NAModule2
     assert module.modules is None
     assert module.firmware_revision == 19
@@ -705,6 +752,22 @@ async def test_async_air_care_update(async_account):
     module_id = "12:34:56:26:68:92"
     assert module_id in home.modules
     module = home.modules[module_id]
+
+    assert module.features == {
+        "temperature",
+        "humidity",
+        "co2",
+        "noise",
+        "pressure",
+        "absolute_pressure",
+        "temp_trend",
+        "pressure_trend",
+        "min_temp",
+        "max_temp",
+        "temp_max",
+        "temp_min",
+    }
+
     assert module.device_type == NetatmoDeviceType.NHC
     assert module.modules is None
     assert module.firmware_revision == 45

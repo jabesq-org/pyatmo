@@ -151,7 +151,6 @@ class Location:
     lon_sw: str
 
 
-@dataclass
 class PublicWeatherArea:
     location: Location
     required_data_type: str | None

@@ -44,3 +44,10 @@ class NetatmoBase(EntityBase, ABC):
             key: NETATMO_ATTRIBUTES_MAP.get(key, default(key, val))(raw_data, val)
             for key, val in self.__dict__.items()
         }
+
+        if (
+            self.bridge
+            and self.bridge in self.home.modules
+            and getattr(self, "device_category") == "weather"
+        ):
+            self.name = f"{self.home.modules[self.bridge].name} {self.name}"

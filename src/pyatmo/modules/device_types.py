@@ -93,6 +93,8 @@ class NetatmoDeviceCategory(str, Enum):
     lock = "lock"
     plug = "plug"
     sensor = "sensor"
+    weather = "weather"
+    air_care = "air_care"
 
     # pylint: enable=C0103
 
@@ -104,6 +106,12 @@ DEVICE_CATEGORY_MAP: dict[NetatmoDeviceType, NetatmoDeviceCategory] = {
     NetatmoDeviceType.NOC: NetatmoDeviceCategory.camera,
     NetatmoDeviceType.NACamera: NetatmoDeviceCategory.camera,
     NetatmoDeviceType.NDB: NetatmoDeviceCategory.camera,
+    NetatmoDeviceType.NAMain: NetatmoDeviceCategory.weather,
+    NetatmoDeviceType.NAModule1: NetatmoDeviceCategory.weather,
+    NetatmoDeviceType.NAModule2: NetatmoDeviceCategory.weather,
+    NetatmoDeviceType.NAModule3: NetatmoDeviceCategory.weather,
+    NetatmoDeviceType.NAModule4: NetatmoDeviceCategory.weather,
+    NetatmoDeviceType.NHC: NetatmoDeviceCategory.air_care,
 }
 
 

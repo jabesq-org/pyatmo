@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pyatmo.exceptions import ApiError
@@ -17,6 +16,27 @@ if TYPE_CHECKING:
     from pyatmo.home import NetatmoHome
 
 LOG = logging.getLogger(__name__)
+
+# Hide from features list
+ATTRIBUTE_FILTER = {
+    "date_min_temp",
+    "date_max_temp",
+    "name",
+    "entity_id",
+    "device_id",
+    "modules",
+    "firmware_revision",
+    "firmware_name",
+    "wifi_strength",
+    "home",
+    "bridge",
+    "room_id",
+    "reachable",
+    "device_category",
+    "device_type",
+    "features",
+    "rf_strength",
+}
 
 
 class FirmwareMixin(EntityBase):
@@ -296,7 +316,6 @@ class MonitoringMixin(EntityBase):
         return await self.async_set_monitoring_state("off")
 
 
-@dataclass
 class NetatmoModule(NetatmoBase):
     """Class to represent a Netatmo module."""
 
@@ -306,6 +325,7 @@ class NetatmoModule(NetatmoBase):
 
     modules: list[str] | None
     reachable: bool | None
+    features: set
 
     def __init__(self, home: NetatmoHome, module: dict) -> None:
         super().__init__(module)
@@ -319,6 +339,7 @@ class NetatmoModule(NetatmoBase):
 
     async def update(self, raw_data: dict) -> None:
         self.update_topology(raw_data)
+        self.update_features()
 
         if not self.reachable and self.modules:
             # Update bridged modules and associated rooms
@@ -327,3 +348,6 @@ class NetatmoModule(NetatmoBase):
                 await module.update(raw_data)
                 if module.room_id:
                     self.home.rooms[module.room_id].update(raw_data)
+
+    def update_features(self) -> None:
+        self.features = {var for var in vars(self) if var not in ATTRIBUTE_FILTER}

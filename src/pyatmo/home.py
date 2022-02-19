@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pyatmo import modules
@@ -24,7 +23,6 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-@dataclass
 class NetatmoHome:
     """Class to represent a Netatmo home."""
 

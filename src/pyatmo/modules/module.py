@@ -27,15 +27,12 @@ ATTRIBUTE_FILTER = {
     "modules",
     "firmware_revision",
     "firmware_name",
-    "wifi_strength",
     "home",
     "bridge",
     "room_id",
-    "reachable",
     "device_category",
     "device_type",
     "features",
-    "rf_strength",
 }
 
 
@@ -98,6 +95,12 @@ class CO2Mixin(EntityBase):
     def __init__(self, home: NetatmoHome, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.co2: int | None = None
+
+
+class HealthIndexMixin(EntityBase):
+    def __init__(self, home: NetatmoHome, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.health_idx: int | None = None
 
 
 class NoiseMixin(EntityBase):

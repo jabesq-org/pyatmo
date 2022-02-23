@@ -112,6 +112,7 @@ DEVICE_CATEGORY_MAP: dict[NetatmoDeviceType, NetatmoDeviceCategory] = {
     NetatmoDeviceType.NAModule3: NetatmoDeviceCategory.weather,
     NetatmoDeviceType.NAModule4: NetatmoDeviceCategory.weather,
     NetatmoDeviceType.NHC: NetatmoDeviceCategory.air_care,
+    NetatmoDeviceType.NBR: NetatmoDeviceCategory.shutter,
 }
 
 

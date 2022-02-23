@@ -180,9 +180,7 @@ class PublicWeatherArea:
 
     def update(self, raw_data: dict) -> None:
         """Update public weather area with latest data."""
-        self.modules = []
-        for station in raw_data.get("public", []):
-            self.modules.append(station)
+        self.modules = list(raw_data.get("public", []))
 
     def stations_in_area(self) -> int:
         """Return available number of stations in area."""

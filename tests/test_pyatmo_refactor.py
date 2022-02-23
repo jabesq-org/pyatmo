@@ -659,6 +659,8 @@ async def test_async_weather_update(async_account):
         "max_temp",
         "temp_max",
         "temp_min",
+        "reachable",
+        "wifi_strength",
     }
     assert module.firmware_revision == 181
     assert module.wifi_strength == 57
@@ -680,6 +682,8 @@ async def test_async_weather_update(async_account):
         "max_temp",
         "temp_max",
         "temp_min",
+        "reachable",
+        "rf_strength",
     }
     assert module.device_type == NetatmoDeviceType.NAModule4
     assert module.modules is None
@@ -695,6 +699,8 @@ async def test_async_weather_update(async_account):
         "sum_rain_1",
         "sum_rain_24",
         "rain",
+        "reachable",
+        "rf_strength",
     }
     assert module.device_type == NetatmoDeviceType.NAModule3
     assert module.modules is None
@@ -714,6 +720,8 @@ async def test_async_weather_update(async_account):
         "max_temp",
         "temp_max",
         "temp_min",
+        "reachable",
+        "rf_strength",
     }
     assert module.device_type == NetatmoDeviceType.NAModule1
     assert module.modules is None
@@ -731,6 +739,8 @@ async def test_async_weather_update(async_account):
         "gust_strength",
         "gust_angle",
         "wind_angle",
+        "reachable",
+        "rf_strength",
     }
     assert module.device_type == NetatmoDeviceType.NAModule2
     assert module.modules is None
@@ -753,6 +763,8 @@ async def test_async_air_care_update(async_account):
     assert module_id in home.modules
     module = home.modules[module_id]
 
+    assert module.device_type == NetatmoDeviceType.NHC
+    assert module.name == "Indoor"
     assert module.features == {
         "temperature",
         "humidity",
@@ -766,9 +778,11 @@ async def test_async_air_care_update(async_account):
         "max_temp",
         "temp_max",
         "temp_min",
+        "health_idx",
+        "reachable",
+        "wifi_strength",
     }
 
-    assert module.device_type == NetatmoDeviceType.NHC
     assert module.modules is None
     assert module.firmware_revision == 45
     assert module.wifi_strength == 68
@@ -778,6 +792,7 @@ async def test_async_air_care_update(async_account):
     assert module.pressure == 1021.4
     assert module.noise == 45
     assert module.absolute_pressure == 1011
+    assert module.health_idx == 1
 
 
 @pytest.mark.asyncio

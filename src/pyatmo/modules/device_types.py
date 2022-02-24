@@ -113,6 +113,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NAModule4: DeviceCategory.weather,
     DeviceType.NHC: DeviceCategory.air_care,
     DeviceType.NBR: DeviceCategory.shutter,
+    DeviceType.NLP: DeviceCategory.plug,
 }
 
 

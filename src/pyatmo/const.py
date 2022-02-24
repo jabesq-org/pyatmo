@@ -58,12 +58,12 @@ ALL_SCOPES = [
     "read_smokedetector",  # Smart Smoke Alarm informations and events
     "read_station",
     "read_thermostat",
-    "write_camera",
-    "write_presence",
-    "write_thermostat",
     "write_bubendorff",
+    "write_camera",
     "write_magellan",
+    "write_presence",
     "write_smarther",
+    "write_thermostat",
 ]
 
 MANUAL = "manual"

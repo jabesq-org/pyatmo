@@ -9,7 +9,7 @@ LOG = logging.getLogger(__name__)
 # pylint: disable=W0613,R0201
 
 
-class NetatmoDeviceType(str, Enum):
+class DeviceType(str, Enum):
     """Class to represent Netatmo device types."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -80,7 +80,7 @@ class NetatmoDeviceType(str, Enum):
     # pylint: enable=C0103
 
 
-class NetatmoDeviceCategory(str, Enum):
+class DeviceCategory(str, Enum):
     """Class to represent Netatmo device types."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -99,77 +99,77 @@ class NetatmoDeviceCategory(str, Enum):
     # pylint: enable=C0103
 
 
-DEVICE_CATEGORY_MAP: dict[NetatmoDeviceType, NetatmoDeviceCategory] = {
-    NetatmoDeviceType.NRV: NetatmoDeviceCategory.climate,
-    NetatmoDeviceType.NATherm1: NetatmoDeviceCategory.climate,
-    NetatmoDeviceType.OTM: NetatmoDeviceCategory.climate,
-    NetatmoDeviceType.NOC: NetatmoDeviceCategory.camera,
-    NetatmoDeviceType.NACamera: NetatmoDeviceCategory.camera,
-    NetatmoDeviceType.NDB: NetatmoDeviceCategory.camera,
-    NetatmoDeviceType.NAMain: NetatmoDeviceCategory.weather,
-    NetatmoDeviceType.NAModule1: NetatmoDeviceCategory.weather,
-    NetatmoDeviceType.NAModule2: NetatmoDeviceCategory.weather,
-    NetatmoDeviceType.NAModule3: NetatmoDeviceCategory.weather,
-    NetatmoDeviceType.NAModule4: NetatmoDeviceCategory.weather,
-    NetatmoDeviceType.NHC: NetatmoDeviceCategory.air_care,
-    NetatmoDeviceType.NBR: NetatmoDeviceCategory.shutter,
+DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
+    DeviceType.NRV: DeviceCategory.climate,
+    DeviceType.NATherm1: DeviceCategory.climate,
+    DeviceType.OTM: DeviceCategory.climate,
+    DeviceType.NOC: DeviceCategory.camera,
+    DeviceType.NACamera: DeviceCategory.camera,
+    DeviceType.NDB: DeviceCategory.camera,
+    DeviceType.NAMain: DeviceCategory.weather,
+    DeviceType.NAModule1: DeviceCategory.weather,
+    DeviceType.NAModule2: DeviceCategory.weather,
+    DeviceType.NAModule3: DeviceCategory.weather,
+    DeviceType.NAModule4: DeviceCategory.weather,
+    DeviceType.NHC: DeviceCategory.air_care,
+    DeviceType.NBR: DeviceCategory.shutter,
 }
 
 
-DEVICE_DESCRIPTION_MAP: dict[NetatmoDeviceType, str] = {
+DEVICE_DESCRIPTION_MAP: dict[DeviceType, str] = {
     # Climate/Energy
-    NetatmoDeviceType.NAPlug: "Smart Thermostat Gateway",
-    NetatmoDeviceType.NATherm1: "Smart Thermostat",
-    NetatmoDeviceType.NRV: "Smart Valve",
-    NetatmoDeviceType.OTH: "OpenTherm Gateway",
-    NetatmoDeviceType.OTM: "OpenTherm Modulating Thermostat",
+    DeviceType.NAPlug: "Smart Thermostat Gateway",
+    DeviceType.NATherm1: "Smart Thermostat",
+    DeviceType.NRV: "Smart Valve",
+    DeviceType.OTH: "OpenTherm Gateway",
+    DeviceType.OTM: "OpenTherm Modulating Thermostat",
     # Cameras/Security,
-    NetatmoDeviceType.NOC: "Smart Outdoor Camera",
-    NetatmoDeviceType.NACamera: "Smart Indoor Camera",
-    NetatmoDeviceType.NSD: "Smart Smoke Detector",
-    NetatmoDeviceType.NIS: "Smart Indoor Siren",
-    NetatmoDeviceType.NACamDoorTag: "Smart Door/Window Sensors",
-    NetatmoDeviceType.NDB: "Smart Video Doorbell",
-    NetatmoDeviceType.NCO: "Smart Carbon Monoxide Alarm",
+    DeviceType.NOC: "Smart Outdoor Camera",
+    DeviceType.NACamera: "Smart Indoor Camera",
+    DeviceType.NSD: "Smart Smoke Detector",
+    DeviceType.NIS: "Smart Indoor Siren",
+    DeviceType.NACamDoorTag: "Smart Door/Window Sensors",
+    DeviceType.NDB: "Smart Video Doorbell",
+    DeviceType.NCO: "Smart Carbon Monoxide Alarm",
     # Weather,
-    NetatmoDeviceType.NAMain: "Smart Home Weather station",
-    NetatmoDeviceType.NAModule1: "Smart Outdoor Module",
-    NetatmoDeviceType.NAModule2: "Smart Anemometer",
-    NetatmoDeviceType.NAModule3: "Smart Rain Gauge",
-    NetatmoDeviceType.NAModule4: "Smart Indoor Module",
-    NetatmoDeviceType.public: "Public Weather station",
+    DeviceType.NAMain: "Smart Home Weather station",
+    DeviceType.NAModule1: "Smart Outdoor Module",
+    DeviceType.NAModule2: "Smart Anemometer",
+    DeviceType.NAModule3: "Smart Rain Gauge",
+    DeviceType.NAModule4: "Smart Indoor Module",
+    DeviceType.public: "Public Weather station",
     # Home Coach,
-    NetatmoDeviceType.NHC: "Smart Indoor Air Quality Monitor",
+    DeviceType.NHC: "Smart Indoor Air Quality Monitor",
     # 3rd Party,
-    NetatmoDeviceType.BNS: "Smarther with Netatmo",
+    DeviceType.BNS: "Smarther with Netatmo",
     # Legrand Wiring devices and electrical panel products,
-    NetatmoDeviceType.NLG: "Gateway",
-    NetatmoDeviceType.NLGS: "Gateway standalone",
-    NetatmoDeviceType.NLP: "Plug",
-    NetatmoDeviceType.NLPM: "Mobile plug",
-    NetatmoDeviceType.NLPBS: "British standard plugs",
-    NetatmoDeviceType.NLF: "2 wire light switch",
-    NetatmoDeviceType.NLFN: "Light switch with neutral",
-    NetatmoDeviceType.NLM: "Light micro module",
-    NetatmoDeviceType.NLL: "Italian light switch with neutral",
-    NetatmoDeviceType.NLV: "Legrand/BTicino Shutters",
-    NetatmoDeviceType.NLLV: "Legrand/BTicino Shutters",
-    NetatmoDeviceType.NLLM: "Legrand/BTicino Shutters",
-    NetatmoDeviceType.NLPO: "Connected Contactor",
-    NetatmoDeviceType.NLPT: "Connected Latching Relay",
-    NetatmoDeviceType.NLPC: "Connected Energy Meter",
-    NetatmoDeviceType.NLE: "Connected Ecometer",
-    NetatmoDeviceType.NLPS: "Smart Load Shedder",
-    NetatmoDeviceType.NLC: "Cable Outlet",
-    NetatmoDeviceType.NLT: "Global Remote Control",
+    DeviceType.NLG: "Gateway",
+    DeviceType.NLGS: "Gateway standalone",
+    DeviceType.NLP: "Plug",
+    DeviceType.NLPM: "Mobile plug",
+    DeviceType.NLPBS: "British standard plugs",
+    DeviceType.NLF: "2 wire light switch",
+    DeviceType.NLFN: "Light switch with neutral",
+    DeviceType.NLM: "Light micro module",
+    DeviceType.NLL: "Italian light switch with neutral",
+    DeviceType.NLV: "Legrand/BTicino Shutters",
+    DeviceType.NLLV: "Legrand/BTicino Shutters",
+    DeviceType.NLLM: "Legrand/BTicino Shutters",
+    DeviceType.NLPO: "Connected Contactor",
+    DeviceType.NLPT: "Connected Latching Relay",
+    DeviceType.NLPC: "Connected Energy Meter",
+    DeviceType.NLE: "Connected Ecometer",
+    DeviceType.NLPS: "Smart Load Shedder",
+    DeviceType.NLC: "Cable Outlet",
+    DeviceType.NLT: "Global Remote Control",
     # BTicino Classe 300 EOS,
-    NetatmoDeviceType.BNCX: "Internal Panel",
-    NetatmoDeviceType.BNEU: "External Unit",
-    NetatmoDeviceType.BNDL: "Door Lock",
-    NetatmoDeviceType.BNSL: "Staircase Light",
+    DeviceType.BNCX: "Internal Panel",
+    DeviceType.BNEU: "External Unit",
+    DeviceType.BNDL: "Door Lock",
+    DeviceType.BNSL: "Staircase Light",
     # Bubbendorf shutters,
-    NetatmoDeviceType.NBG: "Gateway",
-    NetatmoDeviceType.NBR: "Roller Shutter",
-    NetatmoDeviceType.NBO: "Orientable Shutter",
-    NetatmoDeviceType.NBS: "Swing Shutter",
+    DeviceType.NBG: "Gateway",
+    DeviceType.NBR: "Roller Shutter",
+    DeviceType.NBO: "Orientable Shutter",
+    DeviceType.NBS: "Swing Shutter",
 }

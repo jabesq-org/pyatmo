@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING
 
 from pyatmo.const import _SETROOMTHERMPOINT_REQ, FROSTGUARD, HOME, MANUAL
 from pyatmo.modules.base_class import NetatmoBase
-from pyatmo.modules.device_types import NetatmoDeviceType
+from pyatmo.modules.device_types import DeviceType
 
 if TYPE_CHECKING:
-    from pyatmo.home import NetatmoHome
-    from pyatmo.modules.device_types import NetatmoDeviceCategory
-    from pyatmo.modules.module import NetatmoModule
+    from pyatmo.home import Home
+    from pyatmo.modules.device_types import DeviceCategory
+    from pyatmo.modules.module import Module
 
 LOG = logging.getLogger(__name__)
 
@@ -20,14 +20,14 @@ MODE_MAP = {"schedule": "home"}
 
 
 @dataclass
-class NetatmoRoom(NetatmoBase):
+class Room(NetatmoBase):
     """Class to represent a Netatmo room."""
 
-    modules: dict[str, NetatmoModule]
-    device_types: set[NetatmoDeviceType]
-    features: set[NetatmoDeviceCategory]
+    modules: dict[str, Module]
+    device_types: set[DeviceType]
+    features: set[DeviceCategory]
 
-    climate_type: NetatmoDeviceType | None = None
+    climate_type: DeviceType | None = None
 
     reachable: bool | None = None
     therm_setpoint_temperature: float | None = None
@@ -37,9 +37,9 @@ class NetatmoRoom(NetatmoBase):
 
     def __init__(
         self,
-        home: NetatmoHome,
+        home: Home,
         room: dict,
-        all_modules: dict[str, NetatmoModule],
+        all_modules: dict[str, Module],
     ) -> None:
         super().__init__(room)
         self.home = home
@@ -68,11 +68,11 @@ class NetatmoRoom(NetatmoBase):
                 self.features.add(module.device_category)
 
         if "NRV" in self.device_types:
-            self.climate_type = NetatmoDeviceType.NRV
+            self.climate_type = DeviceType.NRV
         elif "NATherm1" in self.device_types:
-            self.climate_type = NetatmoDeviceType.NATherm1
+            self.climate_type = DeviceType.NATherm1
         elif "OTM" in self.device_types:
-            self.climate_type = NetatmoDeviceType.OTM
+            self.climate_type = DeviceType.OTM
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable")

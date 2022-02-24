@@ -14,7 +14,7 @@ from pyatmo.const import (
 )
 from pyatmo.exceptions import InvalidState, NoSchedule
 from pyatmo.person import NetatmoPerson
-from pyatmo.room import NetatmoRoom
+from pyatmo.room import Room
 from pyatmo.schedule import NetatmoSchedule
 
 if TYPE_CHECKING:
@@ -23,14 +23,14 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-class NetatmoHome:
+class Home:
     """Class to represent a Netatmo home."""
 
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
-    rooms: dict[str, NetatmoRoom]
-    modules: dict[str, modules.NetatmoModule]
+    rooms: dict[str, Room]
+    modules: dict[str, modules.Module]
     schedules: dict[str, NetatmoSchedule]
     persons: dict[str, NetatmoPerson]
 
@@ -46,7 +46,7 @@ class NetatmoHome:
             for module in raw_data.get("modules", [])
         }
         self.rooms = {
-            room["id"]: NetatmoRoom(
+            room["id"]: Room(
                 home=self,
                 room=room,
                 all_modules=self.modules,
@@ -82,7 +82,7 @@ class NetatmoHome:
         raw_rooms = raw_data.get("rooms", [])
         for room in raw_rooms:
             if (room_id := room["id"]) not in self.rooms:
-                self.rooms[room_id] = NetatmoRoom(
+                self.rooms[room_id] = Room(
                     home=self,
                     room=room,
                     all_modules=self.modules,

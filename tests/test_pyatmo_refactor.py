@@ -512,6 +512,12 @@ async def test_async_shutters(async_home):
             url="https://api.netatmo.com/api/setstate",
         )
 
+        assert await module.async_stop()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(-1),
+            url="https://api.netatmo.com/api/setstate",
+        )
+
         assert await module.async_set_target_position(47)
         mock_resp.assert_awaited_with(
             params=gen_json_data(47),

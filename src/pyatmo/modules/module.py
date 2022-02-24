@@ -6,14 +6,10 @@ from typing import TYPE_CHECKING
 
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase
-from pyatmo.modules.device_types import (
-    DEVICE_CATEGORY_MAP,
-    NetatmoDeviceCategory,
-    NetatmoDeviceType,
-)
+from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
 
 if TYPE_CHECKING:
-    from pyatmo.home import NetatmoHome
+    from pyatmo.home import Home
 
 LOG = logging.getLogger(__name__)
 
@@ -37,26 +33,26 @@ ATTRIBUTE_FILTER = {
 
 
 class FirmwareMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.firmware_revision: int | None = None
         self.firmware_name: str | None = None
 
 
 class WifiMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.wifi_strength: int | None = None
 
 
 class RfMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.rf_strength: int | None = None
 
 
 class RainMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.rain: float | None = None
         self.sum_rain_1: float | None = None
@@ -64,7 +60,7 @@ class RainMixin(EntityBase):
 
 
 class WindMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.wind_strength: int | None = None
         self.wind_angle: int | None = None
@@ -73,7 +69,7 @@ class WindMixin(EntityBase):
 
 
 class TemperatureMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.temperature: float | None = None
         self.temp_min: float | None = None
@@ -86,31 +82,31 @@ class TemperatureMixin(EntityBase):
 
 
 class HumidityMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.humidity: int | None = None
 
 
 class CO2Mixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.co2: int | None = None
 
 
 class HealthIndexMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.health_idx: int | None = None
 
 
 class NoiseMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.noise: int | None = None
 
 
 class PressureMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.pressure: float | None = None
         self.absolute_pressure: float | None = None
@@ -118,44 +114,44 @@ class PressureMixin(EntityBase):
 
 
 class BoilerMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.boiler_status: bool | None = None
 
 
 class BatteryMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.battery_state: str | None = None
         self.battery_level: int | None = None
 
 
 class DimmableMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.brightness: int | None = None
 
 
 class ApplianceTypeMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.appliance_type: str | None = None
 
 
 class EnergyMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.power: int | None = None
 
 
 class PowerMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.sum_energy_elec: int | None = None
 
 
 class SwitchMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.on: bool | None = None
 
@@ -182,7 +178,7 @@ class SwitchMixin(EntityBase):
 
 
 class ShutterMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.current_position: int | None = None
         self.target_position: int | None = None
@@ -193,7 +189,7 @@ class ShutterMixin(EntityBase):
             "modules": [
                 {
                     "id": self.entity_id,
-                    "target_position": max(min(100, target_position), 0),
+                    "target_position": max(min(100, target_position), -1),
                     "bridge": self.bridge,
                 },
             ],
@@ -208,9 +204,13 @@ class ShutterMixin(EntityBase):
         """Close shutter."""
         return await self.async_set_target_position(0)
 
+    async def async_stop(self) -> bool:
+        """Stop shutter."""
+        return await self.async_set_target_position(-1)
+
 
 class CameraMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.sd_status: int | None = None
         self.vpn_url: str | None = None
@@ -258,7 +258,7 @@ class CameraMixin(EntityBase):
 
 
 class FloodlightMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.floodlight: str | None = None
 
@@ -288,13 +288,13 @@ class FloodlightMixin(EntityBase):
 
 
 class StatusMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.status: str | None = None
 
 
 class MonitoringMixin(EntityBase):
-    def __init__(self, home: NetatmoHome, module: dict):
+    def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.monitoring: bool | None = None
 
@@ -319,20 +319,20 @@ class MonitoringMixin(EntityBase):
         return await self.async_set_monitoring_state("off")
 
 
-class NetatmoModule(NetatmoBase):
+class Module(NetatmoBase):
     """Class to represent a Netatmo module."""
 
-    device_type: NetatmoDeviceType
-    device_category: NetatmoDeviceCategory | None
+    device_type: DeviceType
+    device_category: DeviceCategory | None
     room_id: str | None
 
     modules: list[str] | None
     reachable: bool | None
     features: set
 
-    def __init__(self, home: NetatmoHome, module: dict) -> None:
+    def __init__(self, home: Home, module: dict) -> None:
         super().__init__(module)
-        self.device_type = NetatmoDeviceType(module["type"])
+        self.device_type = DeviceType(module["type"])
         self.home = home
         self.room_id = module.get("room_id")
         self.reachable = module.get("reachable")

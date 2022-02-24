@@ -5,10 +5,10 @@ import logging
 from abc import ABC
 from typing import TYPE_CHECKING
 
-from pyatmo.modules.device_types import NetatmoDeviceType
+from pyatmo.modules.device_types import DeviceType
 
 if TYPE_CHECKING:
-    from pyatmo.home import NetatmoHome
+    from pyatmo.home import Home
 
 LOG = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 NETATMO_ATTRIBUTES_MAP = {
     "entity_id": lambda x, y: x.get("id", y),
     "modules": lambda x, y: x.get("modules_bridged", y),
-    "device_type": lambda x, y: NetatmoDeviceType(x.get("type", y)),
+    "device_type": lambda x, y: DeviceType(x.get("type", y)),
     "reachable": lambda x, _: x.get("reachable", False),
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
 }
@@ -28,7 +28,7 @@ def default(key, val):
 
 class EntityBase:
     entity_id: str
-    home: NetatmoHome
+    home: Home
     bridge: str | None
 
 

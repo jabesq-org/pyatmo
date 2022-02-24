@@ -5,7 +5,7 @@ import logging
 
 from pyatmo.modules.module import (
     FirmwareMixin,
-    NetatmoModule,
+    Module,
     RfMixin,
     ShutterMixin,
     WifiMixin,
@@ -14,9 +14,9 @@ from pyatmo.modules.module import (
 LOG = logging.getLogger(__name__)
 
 
-class NBG(FirmwareMixin, WifiMixin, NetatmoModule):
+class NBG(FirmwareMixin, WifiMixin, Module):
     ...
 
 
-class NBR(FirmwareMixin, RfMixin, ShutterMixin, NetatmoModule):
+class NBR(FirmwareMixin, RfMixin, ShutterMixin, Module):
     ...

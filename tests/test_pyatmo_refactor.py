@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 import pyatmo
-from pyatmo import NetatmoDeviceType, NoDevice, NoSchedule
+from pyatmo import DeviceType, NoDevice, NoSchedule
 from pyatmo.modules import NATherm1
 
 from tests.common import fake_post_request
@@ -20,10 +20,10 @@ async def test_async_home(async_home):
     room_id = "3688132631"
     room = async_home.rooms[room_id]
     assert room.device_types == {
-        NetatmoDeviceType.NDB,
-        NetatmoDeviceType.NACamera,
-        NetatmoDeviceType.NBR,
-        NetatmoDeviceType.NIS,
+        DeviceType.NDB,
+        DeviceType.NACamera,
+        DeviceType.NBR,
+        DeviceType.NIS,
     }
     assert len(async_home.rooms) == 5
     assert len(async_home.modules) == 23
@@ -32,12 +32,12 @@ async def test_async_home(async_home):
     module_id = "12:34:56:10:f1:66"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NDB
+    assert module.device_type == DeviceType.NDB
 
     module_id = "12:34:56:10:b9:0e"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NOC
+    assert module.device_type == DeviceType.NOC
 
 
 @pytest.mark.asyncio
@@ -48,7 +48,7 @@ async def test_async_climate_room(async_home):
 
     room = async_home.rooms[room_id]
     assert room.reachable is True
-    assert room.device_types == {NetatmoDeviceType.NATherm1}
+    assert room.device_types == {DeviceType.NATherm1}
 
     module_id = "12:34:56:00:01:ae"
     assert module_id in room.modules
@@ -61,7 +61,7 @@ async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-na
     module_id = "12:34:56:00:01:ae"
     module = async_home.modules[module_id]
     assert module.name == "Livingroom"
-    assert module.device_type == NetatmoDeviceType.NATherm1
+    assert module.device_type == DeviceType.NATherm1
     assert module.reachable is True
     assert module.boiler_status is False
     assert module.firmware_revision == 65
@@ -77,7 +77,7 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     module = async_home.modules[module_id]
     assert module.name == "Valve1"
     assert async_home.rooms[module.room_id].name == "Entrada"
-    assert module.device_type == NetatmoDeviceType.NRV
+    assert module.device_type == DeviceType.NRV
     assert module.reachable is True
     assert module.rf_strength == 51
     assert module.battery_level == 3025
@@ -91,7 +91,7 @@ async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:00:fa:d0"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NAPlug
+    assert module.device_type == DeviceType.NAPlug
     assert len(module.modules) == 3
     assert module.rf_strength == 107
     assert module.wifi_strength == 42
@@ -104,7 +104,7 @@ async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:00:e3:9b"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NIS
+    assert module.device_type == DeviceType.NIS
     assert module.firmware_revision == 209
     assert module.status == "no_sound"
     assert module.monitoring is False
@@ -116,7 +116,7 @@ async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:20:f5:8c"
     module = async_home.modules[module_id]
     assert module.name == "Bureau Modulate"
-    assert module.device_type == NetatmoDeviceType.OTM
+    assert module.device_type == DeviceType.OTM
     assert module.reachable is True
     assert module.boiler_status is False
     assert module.firmware_revision == 6
@@ -131,7 +131,7 @@ async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:20:f5:44"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.OTH
+    assert module.device_type == DeviceType.OTH
     assert len(module.modules) == 1
     assert module.wifi_strength == 57
     assert module.firmware_revision == 22
@@ -143,7 +143,7 @@ async def test_async_climate_NLP(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:80:00:12:ac:f2"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NLP
+    assert module.device_type == DeviceType.NLP
     assert module.firmware_revision == 62
     assert module.on
 
@@ -154,7 +154,7 @@ async def test_async_climate_NBR(async_home):  # pylint: disable=invalid-name
     module_id = "0009999992"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NBR
+    assert module.device_type == DeviceType.NBR
     assert module.firmware_revision == 16
     assert module.current_position == 0
 
@@ -165,7 +165,7 @@ async def test_async_climate_NAMain(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:80:bb:26"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NAMain
+    assert module.device_type == DeviceType.NAMain
 
 
 @pytest.mark.asyncio
@@ -175,7 +175,7 @@ async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-na
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     await module.async_update_camera_urls()
-    assert module.device_type == NetatmoDeviceType.NACamera
+    assert module.device_type == DeviceType.NACamera
     assert module.is_local
     assert module.local_url == "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
     person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
@@ -209,7 +209,7 @@ async def test_async_climate_update(async_account):
     module = home.modules[module_id]
     assert room.reachable is True
     assert module.name == "Livingroom"
-    assert module.device_type == NetatmoDeviceType.NATherm1
+    assert module.device_type == DeviceType.NATherm1
     assert module.reachable is True
     assert module.battery_level == 3793
     assert module.boiler_status is False
@@ -475,7 +475,7 @@ async def test_async_shutters(async_home):
 
     module_id = "0009999992"
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NBR
+    assert module.device_type == DeviceType.NBR
 
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         response = json.load(json_file)
@@ -520,7 +520,7 @@ async def test_async_shutters(async_home):
 
         assert await module.async_set_target_position(-10)
         mock_resp.assert_awaited_with(
-            params=gen_json_data(0),
+            params=gen_json_data(-1),
             url="https://api.netatmo.com/api/setstate",
         )
 
@@ -537,7 +537,7 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     module_id = "12:34:56:10:b9:0e"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NOC
+    assert module.device_type == DeviceType.NOC
     assert module.firmware_revision == 3002000
     assert module.firmware_name == "3.2.0"
     assert module.monitoring is True
@@ -590,7 +590,7 @@ async def test_async_camera_monitoring(async_home):
     module_id = "12:34:56:10:b9:0e"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NOC
+    assert module.device_type == DeviceType.NOC
     assert module.is_local is False
 
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
@@ -638,7 +638,7 @@ async def test_async_weather_update(async_account):
     module_id = "12:34:56:80:bb:26"
     assert module_id in home.modules
     module = home.modules[module_id]
-    assert module.device_type == NetatmoDeviceType.NAMain
+    assert module.device_type == DeviceType.NAMain
     assert module.name == "Villa"
     assert module.modules == [
         "12:34:56:80:44:92",
@@ -685,7 +685,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
     }
-    assert module.device_type == NetatmoDeviceType.NAModule4
+    assert module.device_type == DeviceType.NAModule4
     assert module.modules is None
     assert module.firmware_revision == 51
     assert module.rf_strength == 67
@@ -702,7 +702,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
     }
-    assert module.device_type == NetatmoDeviceType.NAModule3
+    assert module.device_type == DeviceType.NAModule3
     assert module.modules is None
     assert module.firmware_revision == 12
     assert module.rf_strength == 79
@@ -723,7 +723,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
     }
-    assert module.device_type == NetatmoDeviceType.NAModule1
+    assert module.device_type == DeviceType.NAModule1
     assert module.modules is None
     assert module.firmware_revision == 50
     assert module.rf_strength == 68
@@ -742,7 +742,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
     }
-    assert module.device_type == NetatmoDeviceType.NAModule2
+    assert module.device_type == DeviceType.NAModule2
     assert module.modules is None
     assert module.firmware_revision == 19
     assert module.rf_strength == 59
@@ -763,7 +763,7 @@ async def test_async_air_care_update(async_account):
     assert module_id in home.modules
     module = home.modules[module_id]
 
-    assert module.device_type == NetatmoDeviceType.NHC
+    assert module.device_type == DeviceType.NHC
     assert module.name == "Indoor"
     assert module.features == {
         "temperature",

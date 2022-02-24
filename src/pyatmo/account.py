@@ -15,7 +15,7 @@ from pyatmo.const import (
     _SETSTATE_REQ,
 )
 from pyatmo.helpers import extract_raw_data_new
-from pyatmo.home import NetatmoHome
+from pyatmo.home import Home
 from pyatmo.modules import PublicWeatherArea
 
 if TYPE_CHECKING:
@@ -29,7 +29,7 @@ class AbstractAccount(ABC):
 
     auth: AbstractAsyncAuth
     user: str | None
-    homes: dict[str, NetatmoHome]
+    homes: dict[str, Home]
     raw_data: dict
     favorite_stations: bool
     public_weather_areas: dict[str, PublicWeatherArea]
@@ -45,7 +45,7 @@ class AbstractAccount(ABC):
             if (home_id := home["id"]) in self.homes:
                 self.homes[home_id].update_topology(home)
             else:
-                self.homes[home_id] = NetatmoHome(self.auth, raw_data=home)
+                self.homes[home_id] = Home(self.auth, raw_data=home)
 
 
 class AsyncAccount(AbstractAccount):

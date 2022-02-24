@@ -26,8 +26,8 @@ from pyatmo.modules.module import (
     FloodlightMixin,
     HealthIndexMixin,
     HumidityMixin,
+    Module,
     MonitoringMixin,
-    NetatmoModule,
     NoiseMixin,
     PressureMixin,
     RainMixin,
@@ -43,23 +43,23 @@ LOG = logging.getLogger(__name__)
 # pylint: disable=R0901
 
 
-class NRV(FirmwareMixin, RfMixin, BatteryMixin, NetatmoModule):
+class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
     ...
 
 
-class NATherm1(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
+class NATherm1(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
     ...
 
 
-class NAPlug(FirmwareMixin, RfMixin, WifiMixin, NetatmoModule):
+class NAPlug(FirmwareMixin, RfMixin, WifiMixin, Module):
     ...
 
 
-class OTH(FirmwareMixin, WifiMixin, NetatmoModule):
+class OTH(FirmwareMixin, WifiMixin, Module):
     ...
 
 
-class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, NetatmoModule):
+class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
     ...
 
 
@@ -68,7 +68,7 @@ class NetatmoCamera(
     MonitoringMixin,
     CameraMixin,
     WifiMixin,
-    NetatmoModule,
+    Module,
 ):
     ...
 
@@ -93,24 +93,24 @@ class NAMain(
     PressureMixin,
     WifiMixin,
     FirmwareMixin,
-    NetatmoModule,
+    Module,
 ):
     ...
 
 
-class NAModule1(TemperatureMixin, HumidityMixin, RfMixin, FirmwareMixin, NetatmoModule):
+class NAModule1(TemperatureMixin, HumidityMixin, RfMixin, FirmwareMixin, Module):
     ...
 
 
-class NAModule2(WindMixin, RfMixin, FirmwareMixin, NetatmoModule):
+class NAModule2(WindMixin, RfMixin, FirmwareMixin, Module):
     ...
 
 
-class NAModule3(RainMixin, RfMixin, FirmwareMixin, NetatmoModule):
+class NAModule3(RainMixin, RfMixin, FirmwareMixin, Module):
     ...
 
 
-class NAModule4(TemperatureMixin, RfMixin, FirmwareMixin, NetatmoModule):
+class NAModule4(TemperatureMixin, RfMixin, FirmwareMixin, Module):
     ...
 
 
@@ -123,12 +123,12 @@ class NHC(
     HealthIndexMixin,
     WifiMixin,
     FirmwareMixin,
-    NetatmoModule,
+    Module,
 ):
     ...
 
 
-class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, NetatmoModule):
+class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, Module):
     ...
 
 
@@ -138,7 +138,7 @@ class NIS(
     FirmwareMixin,
     BatteryMixin,
     RfMixin,
-    NetatmoModule,
+    Module,
 ):
     ...
 

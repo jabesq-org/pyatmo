@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from pyatmo.modules.base_class import NetatmoBase
 
 if TYPE_CHECKING:
-    from .home import NetatmoHome
+    from .home import Home
 
 LOG = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class NetatmoSchedule(NetatmoBase):
     away_temp: float | None
     hg_temp: float | None
 
-    def __init__(self, home: NetatmoHome, raw_data) -> None:
+    def __init__(self, home: Home, raw_data) -> None:
         super().__init__(raw_data)
         self.home = home
         self.selected = raw_data.get("selected", False)

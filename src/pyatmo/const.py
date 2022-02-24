@@ -61,6 +61,9 @@ ALL_SCOPES = [
     "write_camera",
     "write_presence",
     "write_thermostat",
+    "write_bubendorff",
+    "write_magellan",
+    "write_smarther",
 ]
 
 MANUAL = "manual"

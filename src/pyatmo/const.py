@@ -48,9 +48,11 @@ AUTHORIZATION_HEADER = "Authorization"
 # Possible scops
 ALL_SCOPES = [
     "access_camera",
+    "access_doorbell",  # Smart Video Doorbell
     "access_presence",
     "read_bubendorff",  # Bubbendorf shutters
     "read_camera",
+    "read_carbonmonoxidedetector",
     "read_doorbell",  # Smart Video Doorbell
     "read_homecoach",  # Smart Indoor Air Quality Monitor
     "read_magellan",  # Legrand Wiring device or Electrical panel products
@@ -60,9 +62,10 @@ ALL_SCOPES = [
     "read_smokedetector",  # Smart Smoke Alarm informations and events
     "read_station",
     "read_thermostat",
-    "write_bubendorff",
+    "write_bubendorff",  # Bubbendorf shutters
     "write_camera",
     "write_magellan",
+    "write_mx",  # BTicino Classe 300 EOS
     "write_presence",
     "write_smarther",
     "write_thermostat",

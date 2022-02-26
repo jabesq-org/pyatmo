@@ -318,7 +318,7 @@ async def test_async_home_data_no_body(async_auth):
     ],
 )
 @pytest.mark.asyncio
-async def test_async_climate_room_set_thermpoint(
+async def test_async_climate_room_therm_set(
     async_home,
     temp,
     end_time,
@@ -345,7 +345,7 @@ async def test_async_climate_room_set_thermpoint(
     ) as mock_post:
         room = async_home.rooms[room_id]
 
-        await room.async_set_thermpoint(
+        await room.async_therm_set(
             mode=mode,
             temp=temp,
             end_time=end_time,

@@ -22,6 +22,7 @@ WEBHOOK_URL_DROP_ENDPOINT = "api/dropwebhook"
 
 _GETHOMESDATA_ENDPOINT = "api/homesdata"
 _GETHOMESTATUS_ENDPOINT = "api/homestatus"
+_GETEVENTS_ENDPOINT = "api/getevents"
 _SETTHERMMODE_ENDPOINT = "api/setthermmode"
 _SETROOMTHERMPOINT_ENDPOINT = "api/setroomthermpoint"
 _GETROOMMEASURE_ENDPOINT = "api/getroommeasure"
@@ -72,6 +73,8 @@ ALL_SCOPES = [
 MANUAL = "manual"
 HOME = "home"
 FROSTGUARD = "hg"
+SCHEDULES = "schedules"
+EVENTS = "events"
 
 
 STATION_TEMPERATURE_TYPE = "temperature"

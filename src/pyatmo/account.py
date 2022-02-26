@@ -7,12 +7,14 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from pyatmo.const import (
+    _GETEVENTS_REQ,
     _GETHOMECOACHDATA_REQ,
     _GETHOMESDATA_REQ,
     _GETHOMESTATUS_REQ,
     _GETPUBLIC_DATA,
     _GETSTATIONDATA_REQ,
     _SETSTATE_REQ,
+    HOME,
 )
 from pyatmo.helpers import extract_raw_data_new
 from pyatmo.home import Home
@@ -77,7 +79,16 @@ class AsyncAccount(AbstractAccount):
             url=_GETHOMESTATUS_REQ,
             params={"home_id": home_id},
         )
-        raw_data = extract_raw_data_new(await resp.json(), "home")
+        raw_data = extract_raw_data_new(await resp.json(), HOME)
+        await self.homes[home_id].update(raw_data)
+
+    async def async_update_events(self, home_id: str) -> None:
+        """Retrieve events from /getevents."""
+        resp = await self.auth.async_post_request(
+            url=_GETEVENTS_REQ,
+            params={"home_id": home_id},
+        )
+        raw_data = extract_raw_data_new(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data)
 
     async def async_update_weather_stations(self) -> None:
@@ -133,7 +144,7 @@ class AsyncAccount(AbstractAccount):
 
         post_params = {
             "json": {
-                "home": {
+                HOME: {
                     "id": home_id,
                     **data,
                 },
@@ -152,7 +163,7 @@ class AsyncAccount(AbstractAccount):
                 if home_id not in self.homes:
                     continue
                 await self.homes[home_id].update(
-                    {"home": {"modules": [fix_weather_attributes(device_data)]}},
+                    {HOME: {"modules": [fix_weather_attributes(device_data)]}},
                 )
             for module_data in device_data.get("modules", []):
                 await self.update_devices({"devices": [module_data]})

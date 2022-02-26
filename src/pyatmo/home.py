@@ -11,11 +11,14 @@ from pyatmo.const import (
     _SETSTATE_REQ,
     _SETTHERMMODE_REQ,
     _SWITCHHOMESCHEDULE_REQ,
+    EVENTS,
+    SCHEDULES,
 )
+from pyatmo.event import Event
 from pyatmo.exceptions import InvalidState, NoSchedule
-from pyatmo.person import NetatmoPerson
+from pyatmo.person import Person
 from pyatmo.room import Room
-from pyatmo.schedule import NetatmoSchedule
+from pyatmo.schedule import Schedule
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -31,8 +34,9 @@ class Home:
     name: str
     rooms: dict[str, Room]
     modules: dict[str, modules.Module]
-    schedules: dict[str, NetatmoSchedule]
-    persons: dict[str, NetatmoPerson]
+    schedules: dict[str, Schedule]
+    persons: dict[str, Person]
+    events: dict[str, Event]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: dict) -> None:
         self.auth = auth
@@ -54,13 +58,13 @@ class Home:
             for room in raw_data.get("rooms", [])
         }
         self.schedules = {
-            s["id"]: NetatmoSchedule(home=self, raw_data=s)
-            for s in raw_data.get("schedules", [])
+            s["id"]: Schedule(home=self, raw_data=s)
+            for s in raw_data.get(SCHEDULES, [])
         }
         self.persons = {
-            s["id"]: NetatmoPerson(home=self, raw_data=s)
-            for s in raw_data.get("persons", [])
+            s["id"]: Person(home=self, raw_data=s) for s in raw_data.get("persons", [])
         }
+        self.events = {}
 
     def update_topology(self, raw_data: dict) -> None:
         self.name = raw_data.get("name", "Unknown")
@@ -95,8 +99,8 @@ class Home:
             self.rooms.pop(room)
 
         self.schedules = {
-            s["id"]: NetatmoSchedule(home=self, raw_data=s)
-            for s in raw_data.get("schedules", [])
+            s["id"]: Schedule(home=self, raw_data=s)
+            for s in raw_data.get(SCHEDULES, [])
         }
 
     async def update(self, raw_data: dict) -> None:
@@ -111,7 +115,22 @@ class Home:
         for room in data.get("rooms", []):
             self.rooms[room["id"]].update(room)
 
-    def get_selected_schedule(self) -> NetatmoSchedule | None:
+        self.events = {
+            s["id"]: Event(home=self, raw_data=s) for s in data.get(EVENTS, [])
+        }
+        for module in self.modules.values():
+            if hasattr(module, "events"):
+                setattr(
+                    module,
+                    "events",
+                    [
+                        event
+                        for event in self.events.values()
+                        if getattr(event, "module_id") == module.entity_id
+                    ],
+                )
+
+    def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""
         for schedule in self.schedules.values():
             if schedule.selected:

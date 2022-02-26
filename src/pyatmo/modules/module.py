@@ -9,6 +9,7 @@ from pyatmo.modules.base_class import EntityBase, NetatmoBase
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
 
 if TYPE_CHECKING:
+    from pyatmo.event import Event
     from pyatmo.home import Home
 
 LOG = logging.getLogger(__name__)
@@ -148,6 +149,12 @@ class PowerMixin(EntityBase):
     def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.sum_energy_elec: int | None = None
+
+
+class EventMixin(EntityBase):
+    def __init__(self, home: Home, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.events: list[Event] = []
 
 
 class SwitchMixin(EntityBase):

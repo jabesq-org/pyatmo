@@ -107,7 +107,7 @@ class Room(NetatmoBase):
             await self._async_therm_set(mode, temp, end_time)
 
         elif "NRV" in self.device_types or "NATherm1" in self.device_types:
-            await self.async_set_thermpoint(mode, temp, end_time)
+            await self._async_set_thermpoint(mode, temp, end_time)
 
     async def _async_therm_set(
         self,
@@ -132,7 +132,7 @@ class Room(NetatmoBase):
 
         return await self.home.async_set_state(json_therm_set)
 
-    async def async_set_thermpoint(
+    async def _async_set_thermpoint(
         self,
         mode: str,
         temp: float = None,

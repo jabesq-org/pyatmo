@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 @dataclass
-class NetatmoPerson(NetatmoBase):
+class Person(NetatmoBase):
     """Class to represent a Netatmo person."""
 
     pseudo: str | None

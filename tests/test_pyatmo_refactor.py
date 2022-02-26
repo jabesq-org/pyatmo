@@ -955,4 +955,6 @@ async def test_home_event_update(async_account):
 
     events = module.events
     assert len(events) == 5
+    assert events[0].event_type == "outdoor"
+    assert events[0].video_id == "11111111-2222-3333-4444-b42f0fc4cfad"
     assert events[1].event_type == "connection"

@@ -19,11 +19,13 @@ from .legrand import (
     NLV,
 )
 from .netatmo import (
+    NCO,
     NDB,
     NHC,
     NIS,
     NOC,
     NRV,
+    NSD,
     OTH,
     OTM,
     Location,
@@ -46,7 +48,8 @@ __all__ = [
     "NOC",
     "NACamDoorTag",
     "NIS",
-    "NLE",
+    "NCO",
+    "NSD",
     "NLG",
     "NLP",
     "NLT",

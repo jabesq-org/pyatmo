@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 @dataclass
-class NetatmoSchedule(NetatmoBase):
+class Schedule(NetatmoBase):
     """Class to represent a Netatmo schedule."""
 
     selected: bool

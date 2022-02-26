@@ -143,6 +143,20 @@ class NIS(
     ...
 
 
+class NSD(
+    FirmwareMixin,
+    Module,
+):
+    ...
+
+
+class NCO(
+    FirmwareMixin,
+    Module,
+):
+    ...
+
+
 @dataclass
 class Location:
     """Class of Netatmo public weather location."""

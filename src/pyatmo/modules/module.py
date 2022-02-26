@@ -252,9 +252,7 @@ class CameraMixin(EntityBase):
         """Validate camera url."""
         try:
             resp = await self.home.auth.async_post_request(url=f"{url}/command/ping")
-        # except ReadTimeout:
-        #     LOG.debug("Timeout validation of camera url %s", url)
-        #     return None
+
         except ApiError:
             LOG.debug("Api error for camera url %s", url)
             return None

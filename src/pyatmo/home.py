@@ -116,7 +116,8 @@ class Home:
             self.rooms[room["id"]].update(room)
 
         self.events = {
-            s["id"]: Event(home=self, raw_data=s) for s in data.get(EVENTS, [])
+            s["id"]: Event(home_id=self.entity_id, raw_data=s)
+            for s in data.get(EVENTS, [])
         }
         for module in self.modules.values():
             if hasattr(module, "events"):

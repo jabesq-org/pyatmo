@@ -937,3 +937,22 @@ async def test_async_public_weather_update(async_account):
     assert area.get_latest_gust_strengths() == {"70:ee:50:36:a9:fc": 31}
 
     assert area.get_latest_gust_angles() == {"70:ee:50:36:a9:fc": 217}
+
+
+@pytest.mark.asyncio
+async def test_home_event_update(async_account):
+    """Test basic public weather update."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_events(home_id=home_id)
+    home = async_account.homes[home_id]
+
+    events = home.events
+    assert len(events) == 8
+
+    module_id = "12:34:56:10:b9:0e"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+
+    events = module.events
+    assert len(events) == 5
+    assert events[1].event_type == "connection"

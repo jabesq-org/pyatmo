@@ -24,6 +24,7 @@ WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
 
 _GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
 _GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
+_GETEVENTS_REQ = _BASE_URL + "api/getevents"
 _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
 _SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
 _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
@@ -74,6 +75,8 @@ ALL_SCOPES = [
 MANUAL = "manual"
 HOME = "home"
 FROSTGUARD = "hg"
+SCHEDULES = "schedules"
+EVENTS = "events"
 
 
 STATION_TEMPERATURE_TYPE = "temperature"

@@ -65,8 +65,7 @@ async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-na
     assert module.reachable is True
     assert module.boiler_status is False
     assert module.firmware_revision == 65
-    assert module.battery_level == 3793
-    assert module.battery_state == "high"
+    assert module.battery == 75
     assert module.rf_strength == 58
 
 
@@ -80,8 +79,7 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     assert module.device_type == DeviceType.NRV
     assert module.reachable is True
     assert module.rf_strength == 51
-    assert module.battery_level == 3025
-    assert module.battery_state == "full"
+    assert module.battery == 90
     assert module.firmware_revision == 79
 
 
@@ -120,8 +118,7 @@ async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
     assert module.reachable is True
     assert module.boiler_status is False
     assert module.firmware_revision == 6
-    assert module.battery_level == 4176
-    assert module.battery_state == "full"
+    assert module.battery == 90
     assert module.rf_strength == 64
 
 
@@ -211,8 +208,8 @@ async def test_async_climate_update(async_account):
     assert module.name == "Livingroom"
     assert module.device_type == DeviceType.NATherm1
     assert module.reachable is True
-    assert module.battery_level == 3793
     assert module.boiler_status is False
+    assert module.battery == 75
 
     assert isinstance(module, NATherm1)
 
@@ -246,8 +243,7 @@ async def test_async_climate_update(async_account):
 
     assert room.reachable is True
     assert module.reachable is True
-    assert module.battery_level == 3780
-    assert module.boiler_status is True
+    assert module.battery == 75
     assert module.rf_strength == 58
 
 
@@ -692,14 +688,15 @@ async def test_async_weather_update(async_account):
         "rf_strength",
         "co2",
         "humidity",
-        "battery_state",
-        "battery_level",
+        "battery",
     }
     assert module.device_type == DeviceType.NAModule4
     assert module.modules is None
     assert module.firmware_revision == 51
     assert module.rf_strength == 67
     assert module.temperature == 19.3
+    assert module.humidity == 53
+    assert module.battery == 28
 
     module_id = "12:34:56:80:c1:ea"
     assert module_id in home.modules
@@ -711,8 +708,7 @@ async def test_async_weather_update(async_account):
         "rain",
         "reachable",
         "rf_strength",
-        "battery_state",
-        "battery_level",
+        "battery",
     }
     assert module.device_type == DeviceType.NAModule3
     assert module.modules is None
@@ -734,8 +730,7 @@ async def test_async_weather_update(async_account):
         "temp_min",
         "reachable",
         "rf_strength",
-        "battery_state",
-        "battery_level",
+        "battery",
     }
     assert module.device_type == DeviceType.NAModule1
     assert module.modules is None
@@ -755,8 +750,7 @@ async def test_async_weather_update(async_account):
         "wind_angle",
         "reachable",
         "rf_strength",
-        "battery_state",
-        "battery_level",
+        "battery",
     }
     assert module.device_type == DeviceType.NAModule2
     assert module.modules is None

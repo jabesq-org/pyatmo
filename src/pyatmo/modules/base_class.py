@@ -21,6 +21,7 @@ NETATMO_ATTRIBUTES_MAP = {
     "event_type": lambda x, y: EventTypes(x.get("type", y)),
     "reachable": lambda x, _: x.get("reachable", False),
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
+    "battery_level": lambda x, y: x.get("battery_vp", x.get("battery_level")),
 }
 
 

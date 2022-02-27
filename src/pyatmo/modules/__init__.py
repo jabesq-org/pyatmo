@@ -18,6 +18,7 @@ from .legrand import (
     NLT,
     NLV,
 )
+from .module import Camera, Plug
 from .netatmo import (
     NCO,
     NDB,
@@ -43,6 +44,8 @@ from .netatmo import (
 )
 
 __all__ = [
+    "Plug",
+    "Camera",
     "Module",
     "NACamera",
     "NOC",

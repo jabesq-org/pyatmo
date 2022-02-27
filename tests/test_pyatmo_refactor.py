@@ -690,6 +690,10 @@ async def test_async_weather_update(async_account):
         "temp_min",
         "reachable",
         "rf_strength",
+        "co2",
+        "humidity",
+        "battery_state",
+        "battery_level",
     }
     assert module.device_type == DeviceType.NAModule4
     assert module.modules is None
@@ -707,6 +711,8 @@ async def test_async_weather_update(async_account):
         "rain",
         "reachable",
         "rf_strength",
+        "battery_state",
+        "battery_level",
     }
     assert module.device_type == DeviceType.NAModule3
     assert module.modules is None
@@ -728,6 +734,8 @@ async def test_async_weather_update(async_account):
         "temp_min",
         "reachable",
         "rf_strength",
+        "battery_state",
+        "battery_level",
     }
     assert module.device_type == DeviceType.NAModule1
     assert module.modules is None
@@ -747,6 +755,8 @@ async def test_async_weather_update(async_account):
         "wind_angle",
         "reachable",
         "rf_strength",
+        "battery_state",
+        "battery_level",
     }
     assert module.device_type == DeviceType.NAModule2
     assert module.modules is None

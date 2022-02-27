@@ -389,6 +389,8 @@ class Module(NetatmoBase):
 
 
 # pylint: disable=too-many-ancestors
+
+
 class Camera(
     FirmwareMixin,
     MonitoringMixin,
@@ -401,6 +403,10 @@ class Camera(
 
 
 class Plug(FirmwareMixin, EnergyMixin, SwitchMixin, Module):
+    ...
+
+
+class Shutter(FirmwareMixin, ShutterMixin, Module):
     ...
 
 

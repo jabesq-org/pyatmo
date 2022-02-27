@@ -359,3 +359,22 @@ class Module(NetatmoBase):
 
     def update_features(self) -> None:
         self.features = {var for var in vars(self) if var not in ATTRIBUTE_FILTER}
+
+
+# pylint: disable=too-many-ancestors
+class Camera(
+    FirmwareMixin,
+    MonitoringMixin,
+    EventMixin,
+    CameraMixin,
+    WifiMixin,
+    Module,
+):
+    ...
+
+
+class Plug(FirmwareMixin, EnergyMixin, SwitchMixin, Module):
+    ...
+
+
+# pylint: enable=too-many-ancestors

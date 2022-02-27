@@ -103,11 +103,11 @@ class Room(NetatmoBase):
         """Set room temperature set point."""
         mode = MODE_MAP.get(mode, mode)
 
-        if "OTM" in self.device_types:
-            await self._async_therm_set(mode, temp, end_time)
-
-        elif "NRV" in self.device_types or "NATherm1" in self.device_types:
+        if "NATherm1" in self.device_types:
             await self._async_set_thermpoint(mode, temp, end_time)
+
+        else:
+            await self._async_therm_set(mode, temp, end_time)
 
     async def _async_therm_set(
         self,

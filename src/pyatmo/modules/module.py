@@ -16,6 +16,9 @@ LOG = logging.getLogger(__name__)
 
 # Hide from features list
 ATTRIBUTE_FILTER = {
+    "battery_state",
+    "battery_level",
+    "battery_percent",
     "date_min_temp",
     "date_max_temp",
     "name",
@@ -31,6 +34,19 @@ ATTRIBUTE_FILTER = {
     "device_type",
     "features",
 }
+
+
+def process_battery_state(data: str) -> int:
+    """Process battery data and return percent (int) for display."""
+    mapping = {
+        "max": 100,
+        "full": 90,
+        "high": 75,
+        "medium": 50,
+        "low": 25,
+        "very low": 10,
+    }
+    return mapping[data]
 
 
 class FirmwareMixin(EntityBase):
@@ -125,6 +141,15 @@ class BatteryMixin(EntityBase):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.battery_state: str | None = None
         self.battery_level: int | None = None
+        self.battery_percent: int | None = None
+
+    @property
+    def battery(self) -> int:
+        if self.battery_percent is not None:
+            return self.battery_percent
+        if self.battery_state is None:
+            return 0
+        return process_battery_state(self.battery_state)
 
 
 class DimmableMixin(EntityBase):
@@ -359,6 +384,8 @@ class Module(NetatmoBase):
 
     def update_features(self) -> None:
         self.features = {var for var in vars(self) if var not in ATTRIBUTE_FILTER}
+        if "battery_state" in vars(self) or "battery_percent" in vars(self):
+            self.features.add("battery")
 
 
 # pylint: disable=too-many-ancestors

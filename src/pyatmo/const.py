@@ -24,6 +24,7 @@ WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
 
 _GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
 _GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
+_GETEVENTS_REQ = _BASE_URL + "api/getevents"
 _SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
 _SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
 _GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
@@ -47,24 +48,47 @@ AUTHORIZATION_HEADER = "Authorization"
 
 # Possible scops
 ALL_SCOPES = [
-    "read_station",
-    "read_camera",
     "access_camera",
-    "write_camera",
-    "read_presence",
+    "access_doorbell",  # Smart Video Doorbell
     "access_presence",
-    "write_presence",
-    "read_homecoach",  # Smart Indoor Air Quality Monitor
-    "read_smokedetector",  # Smart Smoke Alarm informations and events
-    "read_thermostat",
-    "write_thermostat",
-    "read_magellan",  # Legrand Wiring device or Electrical panel products
     "read_bubendorff",  # Bubbendorf shutters
-    "read_smarther",  # Smarther with Netatmo thermostat
+    "read_camera",
+    "read_carbonmonoxidedetector",
     "read_doorbell",  # Smart Video Doorbell
+    "read_homecoach",  # Smart Indoor Air Quality Monitor
+    "read_magellan",  # Legrand Wiring device or Electrical panel products
     "read_mx",  # BTicino Classe 300 EOS
+    "read_presence",
+    "read_smarther",  # Smarther with Netatmo thermostat
+    "read_smokedetector",  # Smart Smoke Alarm informations and events
+    "read_station",
+    "read_thermostat",
+    "write_bubendorff",  # Bubbendorf shutters
+    "write_camera",
+    "write_magellan",
+    "write_mx",  # BTicino Classe 300 EOS
+    "write_presence",
+    "write_smarther",
+    "write_thermostat",
 ]
 
 MANUAL = "manual"
 HOME = "home"
 FROSTGUARD = "hg"
+SCHEDULES = "schedules"
+EVENTS = "events"
+
+
+STATION_TEMPERATURE_TYPE = "temperature"
+STATION_PRESSURE_TYPE = "pressure"
+STATION_HUMIDITY_TYPE = "humidity"
+
+ACCESSORY_RAIN_LIVE_TYPE = "rain_live"
+ACCESSORY_RAIN_60MIN_TYPE = "rain_60min"
+ACCESSORY_RAIN_24H_TYPE = "rain_24h"
+ACCESSORY_RAIN_TIME_TYPE = "rain_timeutc"
+ACCESSORY_WIND_STRENGTH_TYPE = "wind_strength"
+ACCESSORY_WIND_ANGLE_TYPE = "wind_angle"
+ACCESSORY_WIND_TIME_TYPE = "wind_timeutc"
+ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
+ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"

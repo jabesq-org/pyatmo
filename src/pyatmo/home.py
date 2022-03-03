@@ -2,14 +2,23 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pyatmo import modules
-from pyatmo.const import _SETSTATE_REQ, _SETTHERMMODE_REQ, _SWITCHHOMESCHEDULE_REQ
+from pyatmo.const import (
+    _SETPERSONSAWAY_REQ,
+    _SETPERSONSHOME_REQ,
+    _SETSTATE_REQ,
+    _SETTHERMMODE_REQ,
+    _SWITCHHOMESCHEDULE_REQ,
+    EVENTS,
+    SCHEDULES,
+)
+from pyatmo.event import Event
 from pyatmo.exceptions import InvalidState, NoSchedule
-from pyatmo.room import NetatmoRoom
-from pyatmo.schedule import NetatmoSchedule
+from pyatmo.person import Person
+from pyatmo.room import Room
+from pyatmo.schedule import Schedule
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -17,16 +26,17 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-@dataclass
-class NetatmoHome:
+class Home:
     """Class to represent a Netatmo home."""
 
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
-    rooms: dict[str, NetatmoRoom]
-    modules: dict[str, modules.NetatmoModule]
-    schedules: dict[str, NetatmoSchedule]
+    rooms: dict[str, Room]
+    modules: dict[str, modules.Module]
+    schedules: dict[str, Schedule]
+    persons: dict[str, Person]
+    events: dict[str, Event]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: dict) -> None:
         self.auth = auth
@@ -40,7 +50,7 @@ class NetatmoHome:
             for module in raw_data.get("modules", [])
         }
         self.rooms = {
-            room["id"]: NetatmoRoom(
+            room["id"]: Room(
                 home=self,
                 room=room,
                 all_modules=self.modules,
@@ -48,9 +58,13 @@ class NetatmoHome:
             for room in raw_data.get("rooms", [])
         }
         self.schedules = {
-            s["id"]: NetatmoSchedule(home=self, raw_data=s)
-            for s in raw_data.get("schedules", [])
+            s["id"]: Schedule(home=self, raw_data=s)
+            for s in raw_data.get(SCHEDULES, [])
         }
+        self.persons = {
+            s["id"]: Person(home=self, raw_data=s) for s in raw_data.get("persons", [])
+        }
+        self.events = {}
 
     def update_topology(self, raw_data: dict) -> None:
         self.name = raw_data.get("name", "Unknown")
@@ -72,7 +86,7 @@ class NetatmoHome:
         raw_rooms = raw_data.get("rooms", [])
         for room in raw_rooms:
             if (room_id := room["id"]) not in self.rooms:
-                self.rooms[room_id] = NetatmoRoom(
+                self.rooms[room_id] = Room(
                     home=self,
                     room=room,
                     all_modules=self.modules,
@@ -85,23 +99,39 @@ class NetatmoHome:
             self.rooms.pop(room)
 
         self.schedules = {
-            s["id"]: NetatmoSchedule(home=self, raw_data=s)
-            for s in raw_data.get("schedules", [])
+            s["id"]: Schedule(home=self, raw_data=s)
+            for s in raw_data.get(SCHEDULES, [])
         }
 
-    def update(self, raw_data: dict) -> None:
+    async def update(self, raw_data: dict) -> None:
         for module in raw_data.get("errors", []):
-            self.modules[module["id"]].update({})
+            await self.modules[module["id"]].update({})
 
         data = raw_data["home"]
 
         for module in data.get("modules", []):
-            self.modules[module["id"]].update(module)
+            await self.modules[module["id"]].update(module)
 
         for room in data.get("rooms", []):
             self.rooms[room["id"]].update(room)
 
-    def get_selected_schedule(self) -> NetatmoSchedule | None:
+        self.events = {
+            s["id"]: Event(home_id=self.entity_id, raw_data=s)
+            for s in data.get(EVENTS, [])
+        }
+        for module in self.modules.values():
+            if hasattr(module, "events"):
+                setattr(
+                    module,
+                    "events",
+                    [
+                        event
+                        for event in self.events.values()
+                        if getattr(event, "module_id") == module.entity_id
+                    ],
+                )
+
+    def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""
         for schedule in self.schedules.values():
             if schedule.selected:
@@ -163,8 +193,8 @@ class NetatmoHome:
 
         return False
 
-    async def async_switch_home_schedule(self, schedule_id: str) -> bool:
-        """Switch the schedule for a give home ID."""
+    async def async_switch_schedule(self, schedule_id: str) -> bool:
+        """Switch the schedule."""
         if not self.is_valid_schedule(schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
@@ -195,6 +225,29 @@ class NetatmoHome:
             return True
 
         return False
+
+    async def async_set_persons_home(
+        self,
+        person_ids: list[str] = None,
+    ):
+        """Mark persons as home."""
+        post_params: dict[str, str | list] = {"home_id": self.entity_id}
+        if person_ids:
+            post_params["person_ids[]"] = person_ids
+        return await self.auth.async_post_request(
+            url=_SETPERSONSHOME_REQ,
+            params=post_params,
+        )
+
+    async def async_set_persons_away(self, person_id: str | None = None):
+        """Mark a person as away or set the whole home to being empty."""
+        post_params = {"home_id": self.entity_id}
+        if person_id:
+            post_params["person_id"] = person_id
+        return await self.auth.async_post_request(
+            url=_SETPERSONSAWAY_REQ,
+            params=post_params,
+        )
 
 
 def is_valid_state(data: dict) -> bool:

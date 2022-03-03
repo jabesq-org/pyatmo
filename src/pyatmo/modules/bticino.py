@@ -3,18 +3,18 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import NetatmoModule, SwitchMixin
+from pyatmo.modules.module import Module, SwitchMixin
 
 LOG = logging.getLogger(__name__)
 
 
-class BNDL(NetatmoModule):
+class BNDL(Module):
     """BTicino door lock."""
 
     ...
 
 
-class BNSL(SwitchMixin, NetatmoModule):
+class BNSL(SwitchMixin, Module):
     """BTicino staircase light."""
 
     ...

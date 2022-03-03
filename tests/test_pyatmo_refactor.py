@@ -25,8 +25,8 @@ async def test_async_home(async_home):
         NetatmoDeviceType.NBR,
         NetatmoDeviceType.NIS,
     }
-    assert len(async_home.rooms) == 5
-    assert len(async_home.modules) == 23
+    assert len(async_home.rooms) == 6
+    assert len(async_home.modules) == 33
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"

@@ -26,7 +26,7 @@ async def test_async_home(async_home):
         DeviceType.NIS,
     }
     assert len(async_home.rooms) == 6
-    assert len(async_home.modules) == 33
+    assert len(async_home.modules) == 34
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -178,6 +178,16 @@ async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-na
     person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
     assert person_id in module.home.persons
     assert module.home.persons[person_id].pseudo == "John Doe"
+
+
+@pytest.mark.asyncio
+async def test_async_climate_NLPC(async_home):  # pylint: disable=invalid-name
+    """Test Legrand / BTicino connected energy meter module."""
+    module_id = "12:34:56:00:00:a1:4c:da"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.NLPC
+    assert module.power == 476
 
 
 @pytest.mark.asyncio

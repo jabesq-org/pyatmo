@@ -247,6 +247,15 @@
                     "id": "12:34:56:00:16:0e#8",
                     "type": "NLE",
                     "bridge": "12:34:56:00:16:0e"
+                },
+                {
+                    "id": "12:34:56:00:00:a1:4c:da",
+                    "type": "NLPC",
+                    "firmware_revision": 62,
+                    "last_seen": 1646511241,
+                    "power": 476,
+                    "reachable": true,
+                    "bridge": "12:34:56:80:60:40"
                 }
             ],
             "rooms": [

@@ -266,6 +266,9 @@ class CameraMixin(EntityBase):
 
     async def async_update_camera_urls(self) -> None:
         """Update and validate the camera urls."""
+        if self.device_type == "NDB":
+            self.is_local = None
+
         if self.vpn_url and self.is_local:
             temp_local_url = await self._async_check_url(self.vpn_url)
             if temp_local_url:

@@ -48,28 +48,28 @@ AUTHORIZATION_HEADER = "Authorization"
 
 # Possible scops
 ALL_SCOPES = [
-    "access_camera",
-    "access_doorbell",  # Smart Video Doorbell
-    "access_presence",
+    "access_camera",  # Netatmo camera products
+    "access_doorbell",  # Netatmo Smart Video Doorbell
+    "access_presence",  # Netatmo Smart Outdoor Camera
     "read_bubendorff",  # Bubbendorf shutters
-    "read_camera",
-    "read_carbonmonoxidedetector",
-    "read_doorbell",  # Smart Video Doorbell
-    "read_homecoach",  # Smart Indoor Air Quality Monitor
+    "read_camera",  # Netatmo camera products
+    "read_carbonmonoxidedetector",  # Netatmo CO sensor
+    "read_doorbell",  # Netatmo Smart Video Doorbell
+    "read_homecoach",  # Netatmo Smart Indoor Air Quality Monitor
     "read_magellan",  # Legrand Wiring device or Electrical panel products
     "read_mx",  # BTicino Classe 300 EOS
-    "read_presence",
+    "read_presence",  # Netatmo Smart Outdoor Camera
     "read_smarther",  # Smarther with Netatmo thermostat
     "read_smokedetector",  # Smart Smoke Alarm informations and events
-    "read_station",
-    "read_thermostat",
+    "read_station",  # Netatmo weather station
+    "read_thermostat",  # Netatmo climate products
     "write_bubendorff",  # Bubbendorf shutters
-    "write_camera",
-    "write_magellan",
+    "write_camera",  # Netatmo camera products
+    "write_magellan",  # Legrand Wiring device or Electrical panel products
     "write_mx",  # BTicino Classe 300 EOS
-    "write_presence",
-    "write_smarther",
-    "write_thermostat",
+    "write_presence",  # Netatmo Smart Outdoor Camera
+    "write_smarther",  # Smarther products
+    "write_thermostat",  # Netatmo climate products
 ]
 
 MANUAL = "manual"

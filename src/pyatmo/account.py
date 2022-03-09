@@ -6,6 +6,7 @@ from abc import ABC
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from pyatmo import modules
 from pyatmo.const import (
     _GETEVENTS_REQ,
     _GETHOMECOACHDATA_REQ,
@@ -18,7 +19,6 @@ from pyatmo.const import (
 )
 from pyatmo.helpers import extract_raw_data_new
 from pyatmo.home import Home
-from pyatmo import modules
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -174,7 +174,8 @@ class AsyncAccount(AbstractAccount):
                 device_data = fix_weather_attributes(device_data)
                 if device_data["id"] not in self.modules:
                     self.modules[device_data["id"]] = getattr(
-                        modules, device_data["type"]
+                        modules,
+                        device_data["type"],
                     )(
                         home=self,
                         module=device_data,

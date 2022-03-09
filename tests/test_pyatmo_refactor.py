@@ -26,7 +26,7 @@ async def test_async_home(async_home):
         DeviceType.NIS,
     }
     assert len(async_home.rooms) == 6
-    assert len(async_home.modules) == 34
+    assert len(async_home.modules) == 33
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -775,16 +775,14 @@ async def test_async_weather_update(async_account):
 @pytest.mark.asyncio
 async def test_async_air_care_update(async_account):
     """Test basic air care update."""
-    home_id = "91763b24c43d3e344f424e8b"
     await async_account.async_update_air_care()
-    home = async_account.homes[home_id]
 
     module_id = "12:34:56:26:68:92"
-    assert module_id in home.modules
-    module = home.modules[module_id]
+    assert module_id in async_account.modules
+    module = async_account.modules[module_id]
 
     assert module.device_type == DeviceType.NHC
-    assert module.name == "Indoor"
+    assert module.name == "Baby Bedroom"
     assert module.features == {
         "temperature",
         "humidity",

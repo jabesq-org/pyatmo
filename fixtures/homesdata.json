@@ -310,12 +310,6 @@
                         "bridge": "12:34:56:80:bb:26"
                     },
                     {
-                        "id": "12:34:56:26:68:92",
-                        "type": "NHC",
-                        "name": "Indoor",
-                        "setup_date": 1571342643
-                    },
-                    {
                         "id": "12:34:56:80:60:40",
                         "type": "NLG",
                         "name": "Prise Control",

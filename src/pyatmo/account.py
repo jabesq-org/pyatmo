@@ -187,10 +187,14 @@ class AsyncAccount(AbstractAccount):
 
     def find_home_of_device(self, device_data) -> str | None:
         """Find home_id of device."""
-        for home_id, home in self.homes.items():
-            if device_data["_id"] in home.modules:
-                return home_id
-        return None
+        return next(
+            (
+                home_id
+                for home_id, home in self.homes.items()
+                if device_data["_id"] in home.modules
+            ),
+            None,
+        )
 
 
 ATTRIBUTES_TO_FIX = {

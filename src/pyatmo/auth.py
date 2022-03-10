@@ -70,7 +70,7 @@ class NetatmoOAuth2:
             self.scope = " ".join(token["scope"])
 
         else:
-            self.scope = " ".join(ALL_SCOPES) if not scope else scope
+            self.scope = scope or " ".join(ALL_SCOPES)
 
         self.extra = {"client_id": self.client_id, "client_secret": self.client_secret}
 

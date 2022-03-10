@@ -84,6 +84,35 @@ class WindMixin(EntityBase):
         self.gust_strength: int | None = None
         self.gust_angle: int | None = None
 
+    @property
+    def wind_direction(self) -> str:
+        return process_angle(self.wind_angle)
+
+    @property
+    def gust_direction(self) -> str:
+        return process_angle(self.gust_angle)
+
+
+def process_angle(angle: int) -> str:
+    """Process angle and return string for display."""
+    if angle >= 330:
+        return "N"
+    if angle >= 300:
+        return "NW"
+    if angle >= 240:
+        return "W"
+    if angle >= 210:
+        return "SW"
+    if angle >= 150:
+        return "S"
+    if angle >= 120:
+        return "SE"
+    if angle >= 60:
+        return "E"
+    if angle >= 30:
+        return "NE"
+    return "N"
+
 
 class TemperatureMixin(EntityBase):
     def __init__(self, home: Home, module: dict):
@@ -389,6 +418,9 @@ class Module(NetatmoBase):
         self.features = {var for var in vars(self) if var not in ATTRIBUTE_FILTER}
         if "battery_state" in vars(self) or "battery_percent" in vars(self):
             self.features.add("battery")
+        if "wind_angle" in self.features:
+            self.features.add("wind_direction")
+            self.features.add("gust_direction")
 
 
 # pylint: disable=too-many-ancestors

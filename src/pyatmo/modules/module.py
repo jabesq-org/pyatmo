@@ -85,11 +85,17 @@ class WindMixin(EntityBase):
         self.gust_angle: int | None = None
 
     @property
-    def wind_direction(self) -> str:
+    def wind_direction(self) -> str | None:
+        """Return wind direction."""
+        if self.wind_angle is None:
+            return None
         return process_angle(self.wind_angle)
 
     @property
-    def gust_direction(self) -> str:
+    def gust_direction(self) -> str | None:
+        """Return gust direction."""
+        if self.gust_angle is None:
+            return None
         return process_angle(self.gust_angle)
 
 
@@ -278,6 +284,7 @@ class CameraMixin(EntityBase):
         self.local_url: str | None = None
         self.is_local: bool | None = None
         self.alim_status: int | None = None
+        self.device_type: DeviceType
 
     async def async_get_live_snapshot(self) -> bytes | None:
         """Fetch live camera image."""

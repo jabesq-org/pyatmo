@@ -19,6 +19,7 @@ from pyatmo.const import (
 )
 from pyatmo.helpers import extract_raw_data_new
 from pyatmo.home import Home
+from pyatmo.modules.module import Module
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -60,10 +61,10 @@ class AsyncAccount(AbstractAccount):
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
         """
         self.auth = auth
-        self.homes = {}
+        self.homes: dict[str, Home] = {}
         self.favorite_stations = favorite_stations
         self.public_weather_areas = {}
-        self.modules = {}
+        self.modules: dict[str, Module] = {}
 
     async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""

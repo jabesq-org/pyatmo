@@ -73,6 +73,8 @@ class Room(NetatmoBase):
             self.climate_type = DeviceType.NATherm1
         elif "OTM" in self.device_types:
             self.climate_type = DeviceType.OTM
+        elif "BNS" in self.device_types:
+            self.climate_type = DeviceType.BNS
 
     def update(self, raw_data: dict) -> None:
         self.reachable = raw_data.get("reachable")

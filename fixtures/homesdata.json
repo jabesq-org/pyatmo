@@ -78,6 +78,14 @@
                             "12:34:56:00:16:0e#7",
                             "12:34:56:00:16:0e#8"
                         ]
+                    },
+                    {
+                        "id": "1002003001",
+                        "name": "Corridor",
+                        "type": "corridor",
+                        "module_ids": [
+                            "10:20:30:bd:b8:1e"
+                        ]
                     }
                 ],
                 "modules": [
@@ -448,6 +456,13 @@
                         "setup_date": 1638376602,
                         "room_id": "100008999",
                         "bridge": "12:34:56:80:60:40"
+                    },
+                    {
+                        "id": "10:20:30:bd:b8:1e",
+                        "type": "BNS",
+                        "name": "Smarther",
+                        "setup_date": 1638022197,
+                        "room_id": "1002003001"
                     }
                 ],
                 "therm_schedules": [

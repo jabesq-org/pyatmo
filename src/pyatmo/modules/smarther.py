@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import Module, WifiMixin, FirmwareMixin, BoilerMixin
+from pyatmo.modules.module import BoilerMixin, FirmwareMixin, Module, WifiMixin
 
 LOG = logging.getLogger(__name__)
 

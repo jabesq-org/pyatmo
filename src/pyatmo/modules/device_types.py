@@ -117,6 +117,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLLM: DeviceCategory.shutter,
     DeviceType.NBR: DeviceCategory.shutter,
     DeviceType.NLP: DeviceCategory.plug,
+    DeviceType.BNS: DeviceCategory.climate,
 }
 
 

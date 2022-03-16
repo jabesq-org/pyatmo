@@ -25,8 +25,8 @@ async def test_async_home(async_home):
         DeviceType.NBR,
         DeviceType.NIS,
     }
-    assert len(async_home.rooms) == 6
-    assert len(async_home.modules) == 33
+    assert len(async_home.rooms) == 7
+    assert len(async_home.modules) == 34
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -146,7 +146,7 @@ async def test_async_climate_NLP(async_home):  # pylint: disable=invalid-name
 
 
 @pytest.mark.asyncio
-async def test_async_climate_NBR(async_home):  # pylint: disable=invalid-name
+async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
     """Test NLP Bubendorf iDiamant roller shutter."""
     module_id = "0009999992"
     assert module_id in async_home.modules
@@ -157,7 +157,7 @@ async def test_async_climate_NBR(async_home):  # pylint: disable=invalid-name
 
 
 @pytest.mark.asyncio
-async def test_async_climate_NAMain(async_home):  # pylint: disable=invalid-name
+async def test_async_weather_NAMain(async_home):  # pylint: disable=invalid-name
     """Test Netatmo weather station main module."""
     module_id = "12:34:56:80:bb:26"
     assert module_id in async_home.modules
@@ -166,7 +166,7 @@ async def test_async_climate_NAMain(async_home):  # pylint: disable=invalid-name
 
 
 @pytest.mark.asyncio
-async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-name
+async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-name
     """Test Netatmo indoor camera module."""
     module_id = "12:34:56:00:f1:62"
     assert module_id in async_home.modules
@@ -181,13 +181,22 @@ async def test_async_climate_NACamera(async_home):  # pylint: disable=invalid-na
 
 
 @pytest.mark.asyncio
-async def test_async_climate_NLPC(async_home):  # pylint: disable=invalid-name
+async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
     """Test Legrand / BTicino connected energy meter module."""
     module_id = "12:34:56:00:00:a1:4c:da"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.NLPC
     assert module.power == 476
+
+
+@pytest.mark.asyncio
+async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
+    """Test Smarther BNS climate module."""
+    module_id = "10:20:30:bd:b8:1e"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.BNS
 
 
 @pytest.mark.asyncio

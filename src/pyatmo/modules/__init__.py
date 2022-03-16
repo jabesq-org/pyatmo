@@ -42,6 +42,7 @@ from .netatmo import (
     NATherm1,
     PublicWeatherArea,
 )
+from .smarther import BNS
 
 __all__ = [
     "Shutter",
@@ -84,6 +85,7 @@ __all__ = [
     "NAModule3",
     "NAModule4",
     "NHC",
+    "BNS",
     "PublicWeatherArea",
     "Location",
 ]

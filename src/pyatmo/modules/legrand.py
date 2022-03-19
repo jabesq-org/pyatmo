@@ -8,6 +8,7 @@ from pyatmo.modules.module import (
     FirmwareMixin,
     Module,
     Plug,
+    PowerMixin,
     RfMixin,
     ShutterMixin,
     SwitchMixin,
@@ -91,19 +92,19 @@ class NLLM(FirmwareMixin, RfMixin, ShutterMixin, Module):
     ...
 
 
-class NLPC(FirmwareMixin, EnergyMixin, Module):
+class NLPC(FirmwareMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino connected energy meter."""
 
     ...
 
 
-class NLE(FirmwareMixin, EnergyMixin, Module):
+class NLE(FirmwareMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino connected ecometer."""
 
     ...
 
 
-class NLPS(FirmwareMixin, EnergyMixin, Module):
+class NLPS(FirmwareMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
     ...

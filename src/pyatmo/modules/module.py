@@ -445,7 +445,7 @@ class Camera(
     ...
 
 
-class Plug(FirmwareMixin, EnergyMixin, SwitchMixin, Module):
+class Plug(FirmwareMixin, PowerMixin, SwitchMixin, Module):
     ...
 
 

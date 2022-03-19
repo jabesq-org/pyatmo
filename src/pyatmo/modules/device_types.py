@@ -95,6 +95,7 @@ class DeviceCategory(str, Enum):
     sensor = "sensor"
     weather = "weather"
     air_care = "air_care"
+    meter = "meter"
 
     # pylint: enable=C0103
 
@@ -118,6 +119,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NBR: DeviceCategory.shutter,
     DeviceType.NLP: DeviceCategory.plug,
     DeviceType.BNS: DeviceCategory.climate,
+    DeviceType.NLPC: DeviceCategory.meter,
 }
 
 

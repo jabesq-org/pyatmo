@@ -202,13 +202,13 @@ class ApplianceTypeMixin(EntityBase):
 class EnergyMixin(EntityBase):
     def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.power: int | None = None
+        self.sum_energy_elec: int | None = None
 
 
 class PowerMixin(EntityBase):
     def __init__(self, home: Home, module: dict):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.sum_energy_elec: int | None = None
+        self.power: int | None = None
 
 
 class EventMixin(EntityBase):
@@ -408,6 +408,7 @@ class Module(NetatmoBase):
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged")
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
+        self.features = set()
 
     async def update(self, raw_data: dict) -> None:
         self.update_topology(raw_data)
@@ -422,7 +423,7 @@ class Module(NetatmoBase):
                     self.home.rooms[module.room_id].update(raw_data)
 
     def update_features(self) -> None:
-        self.features = {var for var in vars(self) if var not in ATTRIBUTE_FILTER}
+        self.features.update({var for var in vars(self) if var not in ATTRIBUTE_FILTER})
         if "battery_state" in vars(self) or "battery_percent" in vars(self):
             self.features.add("battery")
         if "wind_angle" in self.features:

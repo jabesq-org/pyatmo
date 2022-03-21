@@ -29,11 +29,12 @@ class Room(NetatmoBase):
 
     climate_type: DeviceType | None = None
 
+    heating_power_request: int | None = None
+    humidity: int | None = None
     reachable: bool | None = None
     therm_setpoint_temperature: float | None = None
     therm_setpoint_mode: str | None = None
     therm_measured_temperature: float | None = None
-    heating_power_request: int | None = None
 
     def __init__(
         self,
@@ -75,13 +76,15 @@ class Room(NetatmoBase):
             self.climate_type = DeviceType.OTM
         elif "BNS" in self.device_types:
             self.climate_type = DeviceType.BNS
+            self.features.add("humidity")
 
     def update(self, raw_data: dict) -> None:
+        self.heating_power_request = raw_data.get("heating_power_request")
+        self.humidity = raw_data.get("humidity")
         self.reachable = raw_data.get("reachable")
         self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
-        self.heating_power_request = raw_data.get("heating_power_request")
 
     async def async_therm_manual(
         self,

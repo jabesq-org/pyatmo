@@ -7,6 +7,7 @@ import pytest
 import pyatmo
 from pyatmo import DeviceType, NoDevice, NoSchedule
 from pyatmo.modules import NATherm1
+from pyatmo.modules.device_types import DeviceCategory
 
 from tests.common import fake_post_request
 from tests.conftest import MockResponse, does_not_raise
@@ -197,6 +198,14 @@ async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.BNS
+    assert module.name == "Smarther"
+
+    room = async_home.rooms[module.room_id]
+    assert room.name == "Corridor"
+    assert room.device_types == {
+        DeviceType.BNS,
+    }
+    assert room.features == {"humidity", DeviceCategory.climate}
 
 
 @pytest.mark.asyncio

@@ -224,6 +224,7 @@ async def test_async_climate_update(async_account):
     module_id = "12:34:56:00:01:ae"
     module = home.modules[module_id]
     assert room.reachable is True
+    assert room.humidity is None
     assert module.name == "Livingroom"
     assert module.device_type == DeviceType.NATherm1
     assert module.reachable is True

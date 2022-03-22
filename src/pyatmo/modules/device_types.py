@@ -120,6 +120,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLP: DeviceCategory.plug,
     DeviceType.BNS: DeviceCategory.climate,
     DeviceType.NLPC: DeviceCategory.meter,
+    DeviceType.NLE: DeviceCategory.meter,
 }
 
 

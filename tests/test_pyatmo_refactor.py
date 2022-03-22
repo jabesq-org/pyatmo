@@ -3,6 +3,7 @@ import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from freezegun import freeze_time
 
 import pyatmo
 from pyatmo import DeviceType, NoDevice, NoSchedule
@@ -991,3 +992,28 @@ async def test_home_event_update(async_account):
     assert events[0].event_type == "outdoor"
     assert events[0].video_id == "11111111-2222-3333-4444-b42f0fc4cfad"
     assert events[1].event_type == "connection"
+
+
+@freeze_time("2022-02-12 07:59:49")
+@pytest.mark.asyncio
+async def test_historical_data_retrieval(async_home):
+    """Test retrieval of historical measurements."""
+    module_id = "12:34:56:00:00:a1:4c:da"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.NLPC
+
+    await module.async_update_measures()
+    assert module.historical_data[0] == {
+        "Wh": 197,
+        "duration": 60,
+        "startTime": "2022-02-05T08:29:50Z",
+        "endTime": "2022-02-05T09:29:49Z",
+    }
+    assert module.historical_data[-1] == {
+        "Wh": 259,
+        "duration": 60,
+        "startTime": "2022-02-12T07:29:50Z",
+        "endTime": "2022-02-12T08:29:49Z",
+    }
+    assert len(module.historical_data) == 168

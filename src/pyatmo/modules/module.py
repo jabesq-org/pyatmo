@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
+from enum import Enum
 from typing import TYPE_CHECKING
 
+from pyatmo.const import _GETMEASURE_REQ
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -386,6 +389,85 @@ class MonitoringMixin(EntityBase):
     async def async_monitoring_off(self) -> bool:
         """Turn off monitoring."""
         return await self.async_set_monitoring_state("off")
+
+
+class MeasureInterval(Enum):
+    HALF_HOUR = "30min"
+    HOUR = "1hour"
+    THREE_HOURS = "3hours"
+    DAY = "1day"
+    WEEK = "1week"
+    MONTH = "1month"
+
+
+class MeasureType(Enum):
+    BOILERON = "boileron"
+    BOILEROFF = "boileroff"
+    SUM_BOILER_ON = "sum_boiler_on"
+    SUM_BOILER_OFF = "sum_boiler_off"
+    SUM_ENERGY_ELEC = "sum_energy_elec"
+    SUM_ENERGY_ELEC_BASIC = "sum_energy_elec$0"
+    SUM_ENERGY_ELEC_PEAK = "sum_energy_elec$1"
+    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_elec$2"
+    SUM_ENERGY_PRICE = "sum_energy_price"
+    SUM_ENERGY_PRICE_BASIC = "sum_energy_price$0"
+    SUM_ENERGY_PRICE_PEAK = "sum_energy_price$1"
+    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_price$2"
+
+
+class HistoryMixin(EntityBase):
+    def __init__(self, home: Home, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.historical_data: list | None = None
+        self.start_time: int | None = None
+        self.interval: MeasureInterval | None = None
+
+    async def async_update_measures(
+        self,
+        start_time: int = None,
+        interval: MeasureInterval = MeasureInterval.HOUR,
+        days: int = 7,
+    ) -> None:
+        end_time = int(datetime.now().timestamp())
+        if start_time is None:
+            start_time = end_time - days * 24 * 60 * 60
+
+        data_point = MeasureType.SUM_ENERGY_ELEC_BASIC.name
+        params = {
+            "device_id": self.bridge,
+            "module_id": self.entity_id,
+            "scale": interval.name,
+            "type": data_point,
+            "date_begin": start_time,
+            "date_end": end_time,
+        }
+
+        print(params)
+        resp = await self.home.auth.async_post_request(
+            url=_GETMEASURE_REQ,
+            params=params,
+        )
+        raw_data = await resp.json()
+
+        data = raw_data["body"][0]
+        self.start_time = int(data["beg_time"])
+        interval_sec = int(data["step_time"])
+        interval_min = int(interval_sec / 60)
+
+        self.historical_data = []
+        start_time = self.start_time
+        for value in data["value"]:
+            end_time = start_time + interval_sec
+            self.historical_data.append(
+                {
+                    "duration": interval_min,
+                    "startTime": datetime.utcfromtimestamp(start_time + 1).isoformat()
+                    + "Z",
+                    "endTime": datetime.utcfromtimestamp(end_time).isoformat() + "Z",
+                    "Wh": value[0],
+                },
+            )
+            start_time = end_time
 
 
 class Module(NetatmoBase):

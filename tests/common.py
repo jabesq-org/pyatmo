@@ -58,6 +58,10 @@ async def fake_post_request(*args, **kwargs):
         home_id = kwargs.get("params", {}).get("home_id")
         payload = json.loads(load_fixture(f"{endpoint}_{home_id}.json"))
 
+    elif endpoint == "getmeasure":
+        module_id = kwargs.get("params", {}).get("module_id")
+        payload = json.loads(load_fixture(f"{endpoint}_{module_id}.json"))
+
     else:
         payload = json.loads(load_fixture(f"{endpoint}.json"))
 

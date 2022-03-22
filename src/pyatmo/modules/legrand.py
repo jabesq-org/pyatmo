@@ -6,6 +6,7 @@ import logging
 from pyatmo.modules.module import (
     EnergyMixin,
     FirmwareMixin,
+    HistoryMixin,
     Module,
     Plug,
     PowerMixin,
@@ -92,13 +93,13 @@ class NLLM(FirmwareMixin, RfMixin, ShutterMixin, Module):
     ...
 
 
-class NLPC(FirmwareMixin, PowerMixin, EnergyMixin, Module):
+class NLPC(FirmwareMixin, HistoryMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino connected energy meter."""
 
     ...
 
 
-class NLE(FirmwareMixin, PowerMixin, EnergyMixin, Module):
+class NLE(FirmwareMixin, HistoryMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino connected ecometer."""
 
     ...

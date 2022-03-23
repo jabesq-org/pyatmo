@@ -19,7 +19,7 @@ from pyatmo.const import (
 )
 from pyatmo.helpers import extract_raw_data_new
 from pyatmo.home import Home
-from pyatmo.modules.module import Module
+from pyatmo.modules.module import MeasureInterval, Module
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -101,6 +101,20 @@ class AsyncAccount(AbstractAccount):
     async def async_update_air_care(self) -> None:
         """Retrieve status data from /gethomecoachsdata."""
         await self._async_update_data(_GETHOMECOACHDATA_REQ)
+
+    async def async_update_measures(
+        self,
+        home_id: str,
+        module_id: str,
+        start_time: int = None,
+        interval: MeasureInterval = MeasureInterval.HOUR,
+        days: int = 7,
+    ):
+        await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
+            start_time=start_time,
+            interval=interval,
+            days=days,
+        )
 
     def register_public_weather_area(
         self,

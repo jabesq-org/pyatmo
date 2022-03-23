@@ -996,14 +996,18 @@ async def test_home_event_update(async_account):
 
 @freeze_time("2022-02-12 07:59:49")
 @pytest.mark.asyncio
-async def test_historical_data_retrieval(async_home):
+async def test_historical_data_retrieval(async_account):
     """Test retrieval of historical measurements."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_events(home_id=home_id)
+    home = async_account.homes[home_id]
+
     module_id = "12:34:56:00:00:a1:4c:da"
-    assert module_id in async_home.modules
-    module = async_home.modules[module_id]
+    assert module_id in home.modules
+    module = home.modules[module_id]
     assert module.device_type == DeviceType.NLPC
 
-    await module.async_update_measures()
+    await async_account.async_update_measures(home_id=home_id, module_id=module_id)
     assert module.historical_data[0] == {
         "Wh": 197,
         "duration": 60,

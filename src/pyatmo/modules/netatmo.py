@@ -234,7 +234,7 @@ class PublicWeatherArea:
     def get_latest_gust_strengths(self) -> dict:
         return self.get_accessory_data(ACCESSORY_GUST_STRENGTH_TYPE)
 
-    def get_latest_gust_angles(self):
+    def get_latest_gust_angles(self) -> dict:
         return self.get_accessory_data(ACCESSORY_GUST_ANGLE_TYPE)
 
     def get_latest_station_measures(self, data_type) -> dict:

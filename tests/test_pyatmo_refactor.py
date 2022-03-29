@@ -975,7 +975,7 @@ async def test_async_public_weather_update(async_account):
 
 @pytest.mark.asyncio
 async def test_home_event_update(async_account):
-    """Test basic public weather update."""
+    """Test basic event update."""
     home_id = "91763b24c43d3e344f424e8b"
     await async_account.async_update_events(home_id=home_id)
     home = async_account.homes[home_id]

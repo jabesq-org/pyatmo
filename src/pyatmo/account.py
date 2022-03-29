@@ -140,7 +140,21 @@ class AsyncAccount(AbstractAccount):
 
     async def async_update_public_weather(self, area_id: str) -> None:
         """Retrieve status data from /getpublicdata"""
-        await self._async_update_data(_GETPUBLIC_DATA, tag="body", area_id=area_id)
+        params = {
+            "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
+            "lon_ne": self.public_weather_areas[area_id].location.lon_ne,
+            "lat_sw": self.public_weather_areas[area_id].location.lat_sw,
+            "lon_sw": self.public_weather_areas[area_id].location.lon_sw,
+            "filtering": (
+                "true" if self.public_weather_areas[area_id].filtering else "false"
+            ),
+        }
+        await self._async_update_data(
+            _GETPUBLIC_DATA,
+            tag="body",
+            params=params,
+            area_id=area_id,
+        )
 
     async def _async_update_data(
         self,

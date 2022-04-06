@@ -193,14 +193,20 @@ class AsyncAccount(AbstractAccount):
                 if home_id not in self.homes:
                     continue
                 await self.homes[home_id].update(
-                    {HOME: {"modules": [fix_weather_attributes(device_data)]}},
+                    {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             for module_data in device_data.get("modules", []):
                 await self.update_devices({"devices": [module_data]})
 
-            if device_data["type"] == "NHC":
-                device_data["name"] = device_data["station_name"]
-                device_data = fix_weather_attributes(device_data)
+            if (
+                device_data["type"] == "NHC"
+                or self.find_home_of_device(device_data) is None
+            ):
+                device_data["name"] = device_data.get(
+                    "station_name",
+                    device_data.get("module_name", "Unknown"),
+                )
+                device_data = normalize_weather_attributes(device_data)
                 if device_data["id"] not in self.modules:
                     self.modules[device_data["id"]] = getattr(
                         modules,
@@ -210,6 +216,11 @@ class AsyncAccount(AbstractAccount):
                         module=device_data,
                     )
                 await self.modules[device_data["id"]].update(device_data)
+
+                if device_data.get("modules", []):
+                    self.modules[device_data["id"]].modules = [
+                        module["_id"] for module in device_data["modules"]
+                    ]
 
         if area_id is not None:
             self.public_weather_areas[area_id].update(raw_data)
@@ -241,11 +252,12 @@ ATTRIBUTES_TO_FIX = {
 }
 
 
-def fix_weather_attributes(raw_data) -> dict:
+def normalize_weather_attributes(raw_data) -> dict:
+    """Normalize weather attributes."""
     result: dict = {}
     for attribute, value in raw_data.items():
         if attribute == "dashboard_data":
-            result.update(**fix_weather_attributes(value))
+            result.update(**normalize_weather_attributes(value))
         else:
             result[ATTRIBUTES_TO_FIX.get(attribute, attribute)] = value
     return result

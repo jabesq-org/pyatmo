@@ -736,6 +736,57 @@
                         }
                     }
                 ]
+            },
+            {
+                "_id": "00:11:22:2c:be:c8",
+                "station_name": "Zuhause (Kinderzimmer)",
+                "type": "NAMain",
+                "last_status_store": 1649146022,
+                "reachable": true,
+                "favorite": true,
+                "data_type": [
+                    "Pressure"
+                ],
+                "place": {
+                    "altitude": 127,
+                    "city": "Wiesbaden",
+                    "country": "DE",
+                    "timezone": "Europe/Berlin",
+                    "location": [
+                        8.238054275512695,
+                        50.07585525512695
+                    ]
+                },
+                "read_only": true,
+                "dashboard_data": {
+                    "time_utc": 1649146022,
+                    "Pressure": 1015.6,
+                    "AbsolutePressure": 1000.4,
+                    "pressure_trend": "stable"
+                },
+                "modules": [
+                    {
+                        "_id": "00:11:22:2c:ce:b6",
+                        "type": "NAModule1",
+                        "data_type": [
+                            "Temperature",
+                            "Humidity"
+                        ],
+                        "reachable": true,
+                        "last_message": 1649146022,
+                        "last_seen": 1649145996,
+                        "dashboard_data": {
+                            "time_utc": 1649145996,
+                            "Temperature": 7.8,
+                            "Humidity": 87,
+                            "min_temp": 6.5,
+                            "max_temp": 7.8,
+                            "date_max_temp": 1649145996,
+                            "date_min_temp": 1649118465,
+                            "temp_trend": "up"
+                        }
+                    }
+                ]
             }
         ],
         "user": {

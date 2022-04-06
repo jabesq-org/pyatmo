@@ -795,6 +795,58 @@ async def test_async_weather_update(async_account):
 
 
 @pytest.mark.asyncio
+async def test_async_weather_favorite(async_account):
+    """Test favorite weather station."""
+    await async_account.async_update_weather_stations()
+
+    module_id = "00:11:22:2c:be:c8"
+    assert module_id in async_account.modules
+    module = async_account.modules[module_id]
+    assert module.device_type == DeviceType.NAMain
+    assert module.name == "Zuhause (Kinderzimmer)"
+    assert module.modules == ["00:11:22:2c:ce:b6"]
+    assert module.features == {
+        "temperature",
+        "humidity",
+        "co2",
+        "noise",
+        "pressure",
+        "absolute_pressure",
+        "temp_trend",
+        "pressure_trend",
+        "min_temp",
+        "max_temp",
+        "temp_max",
+        "temp_min",
+        "reachable",
+        "wifi_strength",
+    }
+    assert module.pressure == 1015.6
+    assert module.absolute_pressure == 1000.4
+
+    module_id = "00:11:22:2c:ce:b6"
+    assert module_id in async_account.modules
+    module = async_account.modules[module_id]
+    assert module.device_type == DeviceType.NAModule1
+    assert module.name == "Unknown"
+    assert module.modules is None
+    assert module.features == {
+        "temperature",
+        "humidity",
+        "temp_trend",
+        "min_temp",
+        "max_temp",
+        "temp_max",
+        "temp_min",
+        "reachable",
+        "rf_strength",
+        "battery",
+    }
+    assert module.temperature == 7.8
+    assert module.humidity == 87
+
+
+@pytest.mark.asyncio
 async def test_async_air_care_update(async_account):
     """Test basic air care update."""
     await async_account.async_update_air_care()

@@ -693,6 +693,7 @@ async def test_async_weather_update(async_account):
         "temp_min",
         "reachable",
         "wifi_strength",
+        "place",
     }
     assert module.firmware_revision == 181
     assert module.wifi_strength == 57
@@ -702,6 +703,13 @@ async def test_async_weather_update(async_account):
     assert module.pressure == 1026.8
     assert module.noise == 35
     assert module.absolute_pressure == 974.5
+    assert module.place == {
+        "altitude": 329,
+        "city": "Someplace",
+        "country": "FR",
+        "location": [6.1234567, 46.123456],
+        "timezone": "Europe/Paris",
+    }
 
     module_id = "12:34:56:80:44:92"
     assert module_id in home.modules
@@ -719,6 +727,7 @@ async def test_async_weather_update(async_account):
         "co2",
         "humidity",
         "battery",
+        "place",
     }
     assert module.device_type == DeviceType.NAModule4
     assert module.modules is None
@@ -739,6 +748,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
         "battery",
+        "place",
     }
     assert module.device_type == DeviceType.NAModule3
     assert module.modules is None
@@ -761,6 +771,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
         "battery",
+        "place",
     }
     assert module.device_type == DeviceType.NAModule1
     assert module.modules is None
@@ -783,6 +794,7 @@ async def test_async_weather_update(async_account):
         "reachable",
         "rf_strength",
         "battery",
+        "place",
     }
     assert module.device_type == DeviceType.NAModule2
     assert module.modules is None
@@ -820,9 +832,17 @@ async def test_async_weather_favorite(async_account):
         "temp_min",
         "reachable",
         "wifi_strength",
+        "place",
     }
     assert module.pressure == 1015.6
     assert module.absolute_pressure == 1000.4
+    assert module.place == {
+        "altitude": 127,
+        "city": "Wiesbaden",
+        "country": "DE",
+        "location": [8.238054275512695, 50.07585525512695],
+        "timezone": "Europe/Berlin",
+    }
 
     module_id = "00:11:22:2c:ce:b6"
     assert module_id in async_account.modules
@@ -841,6 +861,7 @@ async def test_async_weather_favorite(async_account):
         "reachable",
         "rf_strength",
         "battery",
+        "place",
     }
     assert module.temperature == 7.8
     assert module.humidity == 87

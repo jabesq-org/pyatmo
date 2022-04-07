@@ -57,3 +57,16 @@ class NetatmoBase(EntityBase, ABC):
             key: NETATMO_ATTRIBUTES_MAP.get(key, default(key, val))(raw_data, val)
             for key, val in self.__dict__.items()
         }
+
+
+class Location:
+    latitude: float
+    longitude: float
+
+
+class Place:
+    altitude: int | None
+    city: str | None
+    country: str | None
+    timezone: str | None
+    location: Location | None

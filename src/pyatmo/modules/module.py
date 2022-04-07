@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from pyatmo.const import _GETMEASURE_REQ
 from pyatmo.exceptions import ApiError
-from pyatmo.modules.base_class import EntityBase, NetatmoBase
+from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
 
 if TYPE_CHECKING:
@@ -188,6 +188,12 @@ class BatteryMixin(EntityBase):
         if self.battery_state is None:
             return 0
         return process_battery_state(self.battery_state)
+
+
+class PlaceMixin(EntityBase):
+    def __init__(self, home: Home, module: dict):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.place: Place | None = None
 
 
 class DimmableMixin(EntityBase):
@@ -442,7 +448,6 @@ class HistoryMixin(EntityBase):
             "date_end": end_time,
         }
 
-        print(params)
         resp = await self.home.auth.async_post_request(
             url=_GETMEASURE_REQ,
             params=params,

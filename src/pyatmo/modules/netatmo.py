@@ -29,6 +29,7 @@ from pyatmo.modules.module import (
     Module,
     MonitoringMixin,
     NoiseMixin,
+    PlaceMixin,
     PressureMixin,
     RainMixin,
     RfMixin,
@@ -83,6 +84,7 @@ class NAMain(
     PressureMixin,
     WifiMixin,
     FirmwareMixin,
+    PlaceMixin,
     Module,
 ):
     ...
@@ -94,16 +96,17 @@ class NAModule1(
     RfMixin,
     FirmwareMixin,
     BatteryMixin,
+    PlaceMixin,
     Module,
 ):
     ...
 
 
-class NAModule2(WindMixin, RfMixin, FirmwareMixin, BatteryMixin, Module):
+class NAModule2(WindMixin, RfMixin, FirmwareMixin, BatteryMixin, PlaceMixin, Module):
     ...
 
 
-class NAModule3(RainMixin, RfMixin, FirmwareMixin, BatteryMixin, Module):
+class NAModule3(RainMixin, RfMixin, FirmwareMixin, BatteryMixin, PlaceMixin, Module):
     ...
 
 
@@ -114,6 +117,7 @@ class NAModule4(
     RfMixin,
     FirmwareMixin,
     BatteryMixin,
+    PlaceMixin,
     Module,
 ):
     ...

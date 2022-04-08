@@ -132,6 +132,7 @@ class NHC(
     HealthIndexMixin,
     WifiMixin,
     FirmwareMixin,
+    PlaceMixin,
     Module,
 ):
     ...

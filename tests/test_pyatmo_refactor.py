@@ -902,6 +902,7 @@ async def test_async_air_care_update(async_account):
         "health_idx",
         "reachable",
         "wifi_strength",
+        "place",
     }
 
     assert module.modules is None

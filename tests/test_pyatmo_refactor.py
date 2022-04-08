@@ -8,6 +8,7 @@ from freezegun import freeze_time
 import pyatmo
 from pyatmo import DeviceType, NoDevice, NoSchedule
 from pyatmo.modules import NATherm1
+from pyatmo.modules.base_class import Location, Place
 from pyatmo.modules.device_types import DeviceCategory
 
 from tests.common import fake_post_request
@@ -703,13 +704,15 @@ async def test_async_weather_update(async_account):
     assert module.pressure == 1026.8
     assert module.noise == 35
     assert module.absolute_pressure == 974.5
-    assert module.place == {
-        "altitude": 329,
-        "city": "Someplace",
-        "country": "FR",
-        "location": [6.1234567, 46.123456],
-        "timezone": "Europe/Paris",
-    }
+    assert module.place == Place(
+        {
+            "altitude": 329,
+            "city": "Someplace",
+            "country": "FR",
+            "location": Location(latitude=6.1234567, longitude=46.123456),
+            "timezone": "Europe/Paris",
+        },
+    )
 
     module_id = "12:34:56:80:44:92"
     assert module_id in home.modules
@@ -836,13 +839,18 @@ async def test_async_weather_favorite(async_account):
     }
     assert module.pressure == 1015.6
     assert module.absolute_pressure == 1000.4
-    assert module.place == {
-        "altitude": 127,
-        "city": "Wiesbaden",
-        "country": "DE",
-        "location": [8.238054275512695, 50.07585525512695],
-        "timezone": "Europe/Berlin",
-    }
+    assert module.place == Place(
+        {
+            "altitude": 127,
+            "city": "Wiesbaden",
+            "country": "DE",
+            "location": Location(
+                latitude=8.238054275512695,
+                longitude=50.07585525512695,
+            ),
+            "timezone": "Europe/Berlin",
+        },
+    )
 
     module_id = "00:11:22:2c:ce:b6"
     assert module_id in async_account.modules

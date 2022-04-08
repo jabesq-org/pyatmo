@@ -709,7 +709,7 @@ async def test_async_weather_update(async_account):
             "altitude": 329,
             "city": "Someplace",
             "country": "FR",
-            "location": Location(latitude=6.1234567, longitude=46.123456),
+            "location": Location(longitude=6.1234567, latitude=46.123456),
             "timezone": "Europe/Paris",
         },
     )
@@ -845,8 +845,8 @@ async def test_async_weather_favorite(async_account):
             "city": "Wiesbaden",
             "country": "DE",
             "location": Location(
-                latitude=8.238054275512695,
-                longitude=50.07585525512695,
+                longitude=8.238054275512695,
+                latitude=50.07585525512695,
             ),
             "timezone": "Europe/Berlin",
         },

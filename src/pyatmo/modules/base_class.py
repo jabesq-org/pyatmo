@@ -66,13 +66,13 @@ class Location:
     latitude: float
     longitude: float
 
-    def __init__(self, latitude: float, longitude: float) -> None:
+    def __init__(self, longitude: float, latitude: float) -> None:
         self.latitude = latitude
         self.longitude = longitude
 
     def __iter__(self) -> Iterable:
-        yield self.latitude
         yield self.longitude
+        yield self.latitude
 
 
 @dataclass

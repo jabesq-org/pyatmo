@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -27,15 +26,22 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-class AbstractAccount(ABC):
-    """Abstract class of a Netatmo account."""
+class AsyncAccount:
+    """Async class of a Netatmo account."""
 
-    auth: AbstractAsyncAuth
-    user: str | None
-    homes: dict[str, Home]
-    raw_data: dict
-    favorite_stations: bool
-    public_weather_areas: dict[str, modules.PublicWeatherArea]
+    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
+        """Initialize the Netatmo account.
+
+        Arguments:
+            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+        """
+        self.auth: AbstractAsyncAuth = auth
+        self.user: str | None
+        self.homes: dict[str, Home] = {}
+        self.raw_data: dict
+        self.favorite_stations: bool = favorite_stations
+        self.public_weather_areas: dict[str, modules.PublicWeatherArea] = {}
+        self.modules: dict[str, Module] = {}
 
     def __repr__(self) -> str:
         return (
@@ -49,22 +55,6 @@ class AbstractAccount(ABC):
                 self.homes[home_id].update_topology(home)
             else:
                 self.homes[home_id] = Home(self.auth, raw_data=home)
-
-
-class AsyncAccount(AbstractAccount):
-    """Async class of a Netatmo account."""
-
-    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
-        """Initialize the Netatmo account.
-
-        Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
-        """
-        self.auth = auth
-        self.homes: dict[str, Home] = {}
-        self.favorite_stations = favorite_stations
-        self.public_weather_areas = {}
-        self.modules: dict[str, Module] = {}
 
     async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""

@@ -8,10 +8,10 @@ from pyatmo.modules.module import (
     FirmwareMixin,
     HistoryMixin,
     Module,
-    Plug,
     PowerMixin,
     RfMixin,
     ShutterMixin,
+    Switch,
     SwitchMixin,
     WifiMixin,
 )
@@ -33,37 +33,37 @@ class NLT(FirmwareMixin, Module):
     ...
 
 
-class NLP(Plug):
+class NLP(Switch):
     """Legrand plug."""
 
     ...
 
 
-class NLPM(Plug):
+class NLPM(Switch):
     """Legrand mobile plug."""
 
     ...
 
 
-class NLPBS(Plug):
+class NLPBS(Switch):
     """Legrand british standard plug."""
 
     ...
 
 
-class NLF(Plug):
+class NLF(Switch):
     """Legrand 2 wire light switch."""
 
     ...
 
 
-class NLFN(Plug):
+class NLFN(Switch):
     """Legrand light switch with neutral."""
 
     ...
 
 
-class NLM(Plug):
+class NLM(Switch):
     """Legrand light micro module."""
 
     ...

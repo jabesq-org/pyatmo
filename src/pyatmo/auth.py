@@ -1,6 +1,7 @@
 """Support for Netatmo authentication."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from json import JSONDecodeError
@@ -404,16 +405,23 @@ class AbstractAsyncAuth(ABC):
 
     async def async_addwebhook(self, webhook_url: str) -> None:
         """Register webhook."""
-        resp = await self.async_post_api_request(
-            WEBHOOK_URL_ADD_ENDPOINT,
-            {"url": webhook_url},
-        )
-        LOG.debug("addwebhook: %s", resp)
+        try:
+            resp = await self.async_post_api_request(
+                WEBHOOK_URL_ADD_ENDPOINT, {"url": webhook_url}
+            )
+        except asyncio.exceptions.TimeoutError as exc:
+            raise ApiError("Webhook registration timed out") from exc
+        else:
+            LOG.debug("addwebhook: %s", resp)
 
     async def async_dropwebhook(self) -> None:
         """Unregister webhook."""
-        resp = await self.async_post_api_request(
-            WEBHOOK_URL_DROP_ENDPOINT,
-            {"app_types": "app_security"},
-        )
-        LOG.debug("dropwebhook: %s", resp)
+        try:
+            resp = await self.async_post_api_request(
+                WEBHOOK_URL_DROP_ENDPOINT,
+                {"app_types": "app_security"},
+            )
+        except asyncio.exceptions.TimeoutError as exc:
+            raise ApiError("Webhook registration timed out") from exc
+        else:
+            LOG.debug("dropwebhook: %s", resp)

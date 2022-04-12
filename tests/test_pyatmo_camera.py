@@ -87,7 +87,6 @@ def test_camera_data_camera_urls(camera_home_data, requests_mock):
         headers={"content-type": "application/json"},
     )
 
-
     camera_home_data.update_camera_urls(cid)
 
     assert camera_home_data.camera_urls(cid) == (vpn_url, local_url)

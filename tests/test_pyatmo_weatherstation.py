@@ -1,9 +1,10 @@
 """Define tests for WeatherStation module."""
 # pylint: disable=protected-access
+import datetime as dt
 import json
 
 import pytest
-from freezegun import freeze_time
+import time_machine
 
 import pyatmo
 
@@ -303,7 +304,7 @@ def test_weather_station_get_monitored_conditions(
     assert sorted(weather_station_data.get_monitored_conditions(module_id)) == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
     [
@@ -359,7 +360,7 @@ def test_weather_station_get_last_data(
         assert mod == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, delay, expected",
     [
@@ -394,7 +395,7 @@ def test_weather_station_check_not_updated(
     assert sorted(mod) == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, delay, expected",
     [
@@ -425,7 +426,7 @@ def test_weather_station_check_updated(
         assert mod == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "device_id, scale, module_type, expected",
     [("MyStation", "scale", "type", [28.1])],
@@ -467,7 +468,7 @@ def test_weather_station_get_last_data_measurements(weather_station_data):
     assert mod[module_id]["GustStrength"] == 9
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
     [

@@ -1,9 +1,10 @@
 """Define tests for Camera module."""
 # pylint: disable=protected-access
+import datetime as dt
 import json
 
 import pytest
-from freezegun import freeze_time
+import time_machine
 
 import pyatmo
 
@@ -129,7 +130,7 @@ def test_camera_data_persons_at_home(camera_home_data, home_id, expected):
     assert camera_home_data.persons_at_home(home_id) == expected
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "name, cid, exclude, expected",
     [
@@ -173,7 +174,7 @@ def test_camera_data_known_persons_names(camera_home_data):
     ]
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "name, home_id, expected",
     [
@@ -299,7 +300,7 @@ def test_camera_data_set_persons_home(
         assert mock_req.request_history[0].text == f"home_id={home_id}"
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "camera_id, exclude, expected, expectation",
     [
@@ -320,7 +321,7 @@ def test_camera_data_someone_known_seen(
         assert camera_home_data.someone_known_seen(camera_id, exclude) == expected
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "camera_id, exclude, expected, expectation",
     [
@@ -341,7 +342,7 @@ def test_camera_data_someone_unknown_seen(
         assert camera_home_data.someone_unknown_seen(camera_id, exclude) == expected
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "camera_id, exclude, expected, expectation",
     [

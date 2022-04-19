@@ -217,7 +217,9 @@ class WeatherStationData(AbstractWeatherStationData):
     def update(self):
         """Fetch data from API."""
         self.raw_data = extract_raw_data(
-            self.auth.post_api_request(endpoint=self.endpoint, params=self.params).json(),
+            self.auth.post_api_request(
+                endpoint=self.endpoint, params=self.params
+            ).json(),
             "devices",
         )
         self.process()
@@ -254,7 +256,9 @@ class WeatherStationData(AbstractWeatherStationData):
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
 
-        return self.auth.post_api_request(endpoint=_GETMEASURE_ENDPOINT, params=post_params).json()
+        return self.auth.post_api_request(
+            endpoint=_GETMEASURE_ENDPOINT, params=post_params
+        ).json()
 
     def get_min_max_t_h(
         self,
@@ -322,7 +326,9 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
 
     async def async_update(self):
         """Fetch data from API."""
-        resp = await self.auth.async_post_api_request(endpoint=self.endpoint, params=self.params)
+        resp = await self.auth.async_post_api_request(
+            endpoint=self.endpoint, params=self.params
+        )
 
         assert not isinstance(resp, bytes)
         self.raw_data = extract_raw_data(await resp.json(), "devices")

@@ -111,7 +111,8 @@ def weather_station_data(auth, requests_mock):
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
+        pyatmo.helpers._DEFAULT_BASE_URL
+        + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

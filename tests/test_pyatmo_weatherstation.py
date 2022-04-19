@@ -17,7 +17,8 @@ def test_weather_station_data(weather_station_data):
 
 def test_weather_station_data_no_response(auth, requests_mock):
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
+        pyatmo.helpers._DEFAULT_BASE_URL
+        + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
         json={},
         headers={"content-type": "application/json"},
     )
@@ -30,7 +31,8 @@ def test_weather_station_data_no_body(auth, requests_mock):
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
+        pyatmo.helpers._DEFAULT_BASE_URL
+        + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -43,7 +45,8 @@ def test_weather_station_data_no_data(auth, requests_mock):
     with open("fixtures/home_data_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
+        pyatmo.helpers._DEFAULT_BASE_URL
+        + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

@@ -468,7 +468,10 @@ def test_camera_data_get_camera_picture(camera_home_data, requests_mock):
     ) as fixture_file:
         expect = fixture_file.read()
 
-    requests_mock.post(pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.camera._GETCAMERAPICTURE_ENDPOINT, content=expect)
+    requests_mock.post(
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.camera._GETCAMERAPICTURE_ENDPOINT,
+        content=expect,
+    )
 
     assert camera_home_data.get_camera_picture(image_id, key) == (expect, "jpeg")
 
@@ -480,7 +483,10 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
     ) as fixture_file:
         expect = fixture_file.read()
 
-    requests_mock.post(pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.camera._GETCAMERAPICTURE_ENDPOINT, content=expect)
+    requests_mock.post(
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.camera._GETCAMERAPICTURE_ENDPOINT,
+        content=expect,
+    )
     assert camera_home_data.get_profile_image(
         "John Doe",
         "91763b24c43d3e344f424e8b",

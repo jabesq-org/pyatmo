@@ -38,7 +38,10 @@ def test_public_data(auth, requests_mock):
 
 
 def test_public_data_unavailable(auth, requests_mock):
-    requests_mock.post(pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT, status_code=404)
+    requests_mock.post(
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
+        status_code=404,
+    )
     with pytest.raises(pyatmo.ApiError):
         public_data = pyatmo.PublicData(auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
         public_data.update()

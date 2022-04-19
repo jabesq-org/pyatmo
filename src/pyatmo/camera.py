@@ -456,7 +456,9 @@ class CameraData(AbstractCameraData):
 
     def update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_api_request(endpoint=_GETHOMEDATA_ENDPOINT, params={"size": events})
+        resp = self.auth.post_api_request(
+            endpoint=_GETHOMEDATA_ENDPOINT, params={"size": events}
+        )
 
         self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
@@ -528,7 +530,9 @@ class CameraData(AbstractCameraData):
         }
 
         try:
-            resp = self.auth.post_api_request(endpoint=_SETSTATE_ENDPOINT, params=post_params).json()
+            resp = self.auth.post_api_request(
+                endpoint=_SETSTATE_ENDPOINT, params=post_params
+            ).json()
         except ApiError as err_msg:
             LOG.error("%s", err_msg)
             return False

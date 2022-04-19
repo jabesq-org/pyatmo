@@ -106,7 +106,9 @@ class NetatmoOAuth2:
 
     def refresh_tokens(self) -> dict[str, str | int]:
         """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(self.base_url + AUTH_REQ_ENDPOINT, **self.extra)
+        token = self._oauth.refresh_token(
+            self.base_url + AUTH_REQ_ENDPOINT, **self.extra
+        )
 
         if self.token_updater is not None:
             self.token_updater(token)
@@ -119,7 +121,9 @@ class NetatmoOAuth2:
         params: dict | None = None,
         timeout: int = 5,
     ) -> requests.Response:
-        return self.post_request(url=self.base_url + endpoint, params=params, timeout=timeout)
+        return self.post_request(
+            url=self.base_url + endpoint, params=params, timeout=timeout
+        )
 
     def post_request(
         self,
@@ -223,7 +227,7 @@ class NetatmoOAuth2:
             code=code,
             client_secret=self.client_secret,
             include_client_id=True,
-            user_prefix=self.user_prefix
+            user_prefix=self.user_prefix,
         )
 
     def addwebhook(self, webhook_url: str) -> None:
@@ -271,8 +275,13 @@ class ClientAuth(NetatmoOAuth2):
         user_prefix: str = None,
         base_url: str = _DEFAULT_BASE_URL,
     ):
-        super().__init__(client_id=client_id, client_secret=client_secret, scope=scope, user_prefix=user_prefix,
-                         base_url=base_url)
+        super().__init__(
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+            user_prefix=user_prefix,
+            base_url=base_url,
+        )
 
         self._oauth = OAuth2Session(
             client=LegacyApplicationClient(client_id=self.client_id),
@@ -284,7 +293,7 @@ class ClientAuth(NetatmoOAuth2):
             client_id=self.client_id,
             client_secret=self.client_secret,
             scope=self.scope,
-            user_prefix=self.user_prefix
+            user_prefix=self.user_prefix,
         )
 
 
@@ -340,7 +349,9 @@ class AbstractAsyncAuth(ABC):
         params: dict | None = None,
         timeout: int = 5,
     ) -> ClientResponse:
-        return await self.async_post_request(url=self.base_url + endpoint, params=params, timeout=timeout)
+        return await self.async_post_request(
+            url=self.base_url + endpoint, params=params, timeout=timeout
+        )
 
     async def async_post_request(
         self,

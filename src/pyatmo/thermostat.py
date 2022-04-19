@@ -121,7 +121,9 @@ class HomeData(AbstractHomeData):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
-        resp = self.auth.post_api_request(endpoint=_SWITCHHOMESCHEDULE_ENDPOINT, params=post_params)
+        resp = self.auth.post_api_request(
+            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT, params=post_params
+        )
         LOG.debug("Response: %s", resp)
 
 
@@ -266,7 +268,9 @@ class HomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        return self.auth.post_api_request(endpoint=_SETTHERMMODE_ENDPOINT, params=post_params).json()
+        return self.auth.post_api_request(
+            endpoint=_SETTHERMMODE_ENDPOINT, params=post_params
+        ).json()
 
     def set_room_thermpoint(
         self,

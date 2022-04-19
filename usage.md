@@ -103,7 +103,7 @@ The results are Python data structures, mostly dictionaries as they mirror easil
 
 #### 4-1 Global variables
 
-`_DEFAULT_BASE_URL` and `_*_REQ`: Various URL to access Netatmo web services. 
+`_DEFAULT_BASE_URL` and `_*_REQ`: Various URL to access Netatmo web services.
 They are documented in https://dev.netatmo.com/doc/.
 They should not be changed unless Netatmo API changes.
 

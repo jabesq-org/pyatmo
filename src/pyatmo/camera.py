@@ -102,19 +102,25 @@ class AbstractCameraData(ABC):
 
     def get_camera(self, camera_id: str) -> dict[str, str]:
         """Get camera data."""
-        for home_id in self.cameras:
-            if camera_id in self.cameras[home_id]:
-                return self.cameras[home_id][camera_id]
-
-        return {}
+        return next(
+            (
+                self.cameras[home_id][camera_id]
+                for home_id in self.cameras
+                if camera_id in self.cameras[home_id]
+            ),
+            {},
+        )
 
     def get_camera_home_id(self, camera_id: str) -> str | None:
         """Get camera data."""
-        for home_id in self.cameras:
-            if camera_id in self.cameras[home_id]:
-                return home_id
-
-        return None
+        return next(
+            (
+                home_id
+                for home_id in self.cameras
+                if camera_id in self.cameras[home_id]
+            ),
+            None,
+        )
 
     def get_module(self, module_id: str) -> dict | None:
         """Get module data."""
@@ -122,11 +128,14 @@ class AbstractCameraData(ABC):
 
     def get_smokedetector(self, smoke_id: str) -> dict | None:
         """Get smoke detector."""
-        for home_id in self.smoke_detectors:
-            if smoke_id in self.smoke_detectors[home_id]:
-                return self.smoke_detectors[home_id][smoke_id]
-
-        return None
+        return next(
+            (
+                self.smoke_detectors[home_id][smoke_id]
+                for home_id in self.smoke_detectors
+                if smoke_id in self.smoke_detectors[home_id]
+            ),
+            None,
+        )
 
     def camera_urls(self, camera_id: str) -> tuple[str | None, str | None]:
         """
@@ -155,11 +164,14 @@ class AbstractCameraData(ABC):
 
     def get_person_id(self, name: str, home_id: str) -> str | None:
         """Retrieve the ID of a person."""
-        for pid, data in self.persons[home_id].items():
-            if name == data.get("pseudo"):
-                return pid
-
-        return None
+        return next(
+            (
+                pid
+                for pid, data in self.persons[home_id].items()
+                if name == data.get("pseudo")
+            ),
+            None,
+        )
 
     def build_event_id(self, event_id: str | None, device_type: str | None):
         """Build event id."""
@@ -482,8 +494,7 @@ class CameraData(AbstractCameraData):
             return
 
         if (vpn_url := camera_data.get("vpn_url")) and camera_data.get("is_local"):
-            temp_local_url = self._check_url(vpn_url)
-            if temp_local_url:
+            if temp_local_url := self._check_url(vpn_url):
                 self.cameras[home_id][camera_id]["local_url"] = self._check_url(
                     temp_local_url,
                 )

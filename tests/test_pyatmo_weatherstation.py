@@ -190,7 +190,7 @@ def test_weather_station_get_station(weather_station_data):
 def test_weather_station_get_module(weather_station_data, mid, expected):
     mod = weather_station_data.get_module(mid)
 
-    assert isinstance(mod, dict) is True
+    assert isinstance(mod, dict)
     assert mod.get("_id", mod) == expected
 
 
@@ -353,8 +353,7 @@ def test_weather_station_get_last_data(
     exclude,
     expected,
 ):
-    mod = weather_station_data.get_last_data(station_id, exclude=exclude)
-    if mod:
+    if mod := weather_station_data.get_last_data(station_id, exclude=exclude):
         assert sorted(mod) == expected
     else:
         assert mod == expected
@@ -420,8 +419,7 @@ def test_weather_station_check_updated(
     delay,
     expected,
 ):
-    mod = weather_station_data.check_updated(station_id, delay)
-    if mod:
+    if mod := weather_station_data.check_updated(station_id, delay):
         assert sorted(mod) == expected
     else:
         assert mod == expected
@@ -495,8 +493,7 @@ def test_weather_station_get_last_data_bug_97(
     exclude,
     expected,
 ):
-    mod = weather_station_data.get_last_data(station_id, exclude)
-    if mod:
+    if mod := weather_station_data.get_last_data(station_id, exclude):
         assert sorted(mod) == expected
     else:
         assert mod == expected

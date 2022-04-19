@@ -44,12 +44,10 @@ class AbstractWeatherStationData(ABC):
 
     def get_module_names(self, station_id: str) -> list:
         """Return a list of all module names for a given station."""
-        res = set()
-
         if not (station_data := self.get_station(station_id)):
             return []
 
-        res.add(station_data.get("module_name", station_data.get("type")))
+        res = {station_data.get("module_name", station_data.get("type"))}
         for module in station_data["modules"]:
             # Add module name, use module type if no name is available
             res.add(module.get("module_name", module.get("type")))
@@ -288,16 +286,14 @@ class WeatherStationData(AbstractWeatherStationData):
         else:
             raise ValueError("'frame' value can only be 'last24' or 'day'")
 
-        resp = self.get_data(
+        if resp := self.get_data(
             device_id=station_id,
             module_id=module_id,
             scale="max",
             module_type="Temperature,Humidity",
             date_begin=start,
             date_end=end,
-        )
-
-        if resp:
+        ):
             temperature = [temp[0] for temp in resp["body"].values()]
             humidity = [hum[1] for hum in resp["body"].values()]
             return min(temperature), max(temperature), min(humidity), max(humidity)

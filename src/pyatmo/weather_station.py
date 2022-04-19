@@ -7,7 +7,7 @@ from abc import ABC
 from collections import defaultdict
 
 from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .helpers import _DEFAULT_BASE_URL, extract_raw_data, today_stamps
+from .helpers import extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
 

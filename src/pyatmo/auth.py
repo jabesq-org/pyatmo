@@ -107,7 +107,8 @@ class NetatmoOAuth2:
     def refresh_tokens(self) -> dict[str, str | int]:
         """Refresh and return new tokens."""
         token = self._oauth.refresh_token(
-            self.base_url + AUTH_REQ_ENDPOINT, **self.extra
+            self.base_url + AUTH_REQ_ENDPOINT,
+            **self.extra,
         )
 
         if self.token_updater is not None:
@@ -122,7 +123,9 @@ class NetatmoOAuth2:
         timeout: int = 5,
     ) -> requests.Response:
         return self.post_request(
-            url=self.base_url + endpoint, params=params, timeout=timeout
+            url=self.base_url + endpoint,
+            params=params,
+            timeout=timeout,
         )
 
     def post_request(
@@ -350,7 +353,9 @@ class AbstractAsyncAuth(ABC):
         timeout: int = 5,
     ) -> ClientResponse:
         return await self.async_post_request(
-            url=self.base_url + endpoint, params=params, timeout=timeout
+            url=self.base_url + endpoint,
+            params=params,
+            timeout=timeout,
         )
 
     async def async_post_request(

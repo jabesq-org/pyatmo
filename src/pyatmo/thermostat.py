@@ -128,7 +128,8 @@ class HomeData(AbstractHomeData):
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = self.auth.post_api_request(
-            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT, params=post_params
+            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT,
+            params=post_params,
         )
         LOG.debug("Response: %s", resp)
 
@@ -275,7 +276,8 @@ class HomeStatus(AbstractHomeStatus):
             post_params["schedule_id"] = schedule_id
 
         return self.auth.post_api_request(
-            endpoint=_SETTHERMMODE_ENDPOINT, params=post_params
+            endpoint=_SETTHERMMODE_ENDPOINT,
+            params=post_params,
         ).json()
 
     def set_room_thermpoint(

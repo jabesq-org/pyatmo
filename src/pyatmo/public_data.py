@@ -183,7 +183,8 @@ class PublicData(AbstractPublicData):
             post_params["required_data"] = self.required_data_type
 
         resp = self.auth.post_api_request(
-            endpoint=_GETPUBLIC_DATA_ENDPOINT, params=post_params
+            endpoint=_GETPUBLIC_DATA_ENDPOINT,
+            params=post_params,
         ).json()
         try:
             self.raw_data = resp["body"]

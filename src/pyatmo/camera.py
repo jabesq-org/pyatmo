@@ -114,11 +114,7 @@ class AbstractCameraData(ABC):
     def get_camera_home_id(self, camera_id: str) -> str | None:
         """Get camera data."""
         return next(
-            (
-                home_id
-                for home_id in self.cameras
-                if camera_id in self.cameras[home_id]
-            ),
+            (home_id for home_id in self.cameras if camera_id in self.cameras[home_id]),
             None,
         )
 
@@ -469,7 +465,8 @@ class CameraData(AbstractCameraData):
     def update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
         resp = self.auth.post_api_request(
-            endpoint=_GETHOMEDATA_ENDPOINT, params={"size": events}
+            endpoint=_GETHOMEDATA_ENDPOINT,
+            params={"size": events},
         )
 
         self.raw_data = extract_raw_data(resp.json(), "homes")
@@ -542,7 +539,8 @@ class CameraData(AbstractCameraData):
 
         try:
             resp = self.auth.post_api_request(
-                endpoint=_SETSTATE_ENDPOINT, params=post_params
+                endpoint=_SETSTATE_ENDPOINT,
+                params=post_params,
             ).json()
         except ApiError as err_msg:
             LOG.error("%s", err_msg)

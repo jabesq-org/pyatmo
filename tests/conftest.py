@@ -38,7 +38,7 @@ def auth(requests_mock):
     with open("fixtures/oauth2_token.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.auth.AUTH_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.auth.AUTH_REQ_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -57,7 +57,7 @@ def home_data(auth, requests_mock):
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -72,7 +72,7 @@ def home_status(auth, home_id, requests_mock):
     with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.thermostat._GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -87,7 +87,7 @@ def public_data(auth, requests_mock):
     with open("fixtures/public_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.public_data._GETPUBLIC_DATA,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -111,7 +111,8 @@ def weather_station_data(auth, requests_mock):
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.weather_station._GETSTATIONDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL
+        + pyatmo.weather_station._GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -126,7 +127,7 @@ def home_coach_data(auth, requests_mock):
     with open("fixtures/home_coach_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.home_coach._GETHOMECOACHDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.home_coach._GETHOMECOACHDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -147,15 +148,16 @@ def camera_ping(requests_mock):
         with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
             json_fixture = json.load(json_file)
         requests_mock.post(
-            vpn_url + "/command/ping",
+            f"{vpn_url}/command/ping",
             json=json_fixture,
             headers={"content-type": "application/json"},
         )
+
     local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
     with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        local_url + "/command/ping",
+        f"{local_url}/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -167,7 +169,7 @@ def camera_home_data(auth, camera_ping, requests_mock):  # pylint: disable=W0613
     with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.camera._GETHOMEDATA_REQ,
+        pyatmo.helpers._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -192,7 +194,7 @@ async def async_camera_home_data(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
@@ -211,7 +213,7 @@ async def async_home_coach_data(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         hcd = pyatmo.AsyncHomeCoachData(async_auth)
@@ -230,7 +232,7 @@ async def async_home_data(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         home_data = pyatmo.AsyncHomeData(async_auth)
@@ -249,7 +251,7 @@ async def async_home_status(async_auth, home_id):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         home_status = pyatmo.AsyncHomeStatus(async_auth, home_id)
@@ -271,7 +273,7 @@ async def async_weather_station_data(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         wsd = pyatmo.AsyncWeatherStationData(async_auth)
@@ -291,7 +293,7 @@ async def async_climate_topology(async_auth):
     mock_home_data_resp = MockResponse(home_data_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_home_data_resp),
     ):
         await climate_topology.async_update()
@@ -310,7 +312,7 @@ async def async_climate(async_auth, async_climate_topology):
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_home_status_resp),
     ):
         await climate.async_update()

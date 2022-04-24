@@ -13,17 +13,15 @@ from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
 from pyatmo.exceptions import ApiError
-from pyatmo.helpers import _BASE_URL, ERRORS
+from pyatmo.helpers import _DEFAULT_BASE_URL, ERRORS
 
 LOG = logging.getLogger(__name__)
 
 # Common definitions
 AUTH_REQ_ENDPOINT = "oauth2/token"
-AUTH_REQ = _BASE_URL + AUTH_REQ_ENDPOINT
 AUTH_URL_ENDPOINT = "oauth2/authorize"
-AUTH_URL = _BASE_URL + AUTH_URL_ENDPOINT
-WEBHOOK_URL_ADD = _BASE_URL + "api/addwebhook"
-WEBHOOK_URL_DROP = _BASE_URL + "api/dropwebhook"
+WEBHOOK_URL_ADD_ENDPOINT = "api/addwebhook"
+WEBHOOK_URL_DROP_ENDPOINT = "api/dropwebhook"
 
 AUTHORIZATION_HEADER = "Authorization"
 
@@ -57,6 +55,8 @@ class NetatmoOAuth2:
         token: dict[str, str] | None = None,
         token_updater: Callable[[str], None] | None = None,
         scope: str | None = "read_station",
+        user_prefix: str | None = None,
+        base_url: str = _DEFAULT_BASE_URL,
     ) -> None:
         """Initialize self.
 
@@ -78,17 +78,21 @@ class NetatmoOAuth2:
                 read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
                 read_smokedetector: to retrieve the smoke detector status (Gethomedata)
                 Several values can be used at the same time, ie: 'read_station read_camera'
+            user_prefix {Optional[str]} -- API prefix for the Netatmo customer
+            base_url {str} -- Base URL of the Netatmo API (default: {_DEFAULT_BASE_URL})
         """
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.token_updater = token_updater
+        self.user_prefix = user_prefix
+        self.base_url = base_url
 
         if token:
             self.scope = " ".join(token["scope"])
 
         else:
-            self.scope = " ".join(ALL_SCOPES) if not scope else scope
+            self.scope = scope or " ".join(ALL_SCOPES)
 
         self.extra = {"client_id": self.client_id, "client_secret": self.client_secret}
 
@@ -102,12 +106,27 @@ class NetatmoOAuth2:
 
     def refresh_tokens(self) -> dict[str, str | int]:
         """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(AUTH_REQ, **self.extra)
+        token = self._oauth.refresh_token(
+            self.base_url + AUTH_REQ_ENDPOINT,
+            **self.extra,
+        )
 
         if self.token_updater is not None:
             self.token_updater(token)
 
         return token
+
+    def post_api_request(
+        self,
+        endpoint: str,
+        params: dict | None = None,
+        timeout: int = 5,
+    ) -> requests.Response:
+        return self.post_request(
+            url=self.base_url + endpoint,
+            params=params,
+            timeout=timeout,
+        )
 
     def post_request(
         self,
@@ -191,7 +210,7 @@ class NetatmoOAuth2:
         return requests.Response()
 
     def get_authorization_url(self, state: str | None = None) -> tuple:
-        return self._oauth.authorization_url(AUTH_URL, state)
+        return self._oauth.authorization_url(self.base_url + AUTH_URL_ENDPOINT, state)
 
     def request_token(
         self,
@@ -206,21 +225,22 @@ class NetatmoOAuth2:
         :return: A token dict
         """
         return self._oauth.fetch_token(
-            AUTH_REQ,
+            self.base_url + AUTH_REQ_ENDPOINT,
             authorization_response=authorization_response,
             code=code,
             client_secret=self.client_secret,
             include_client_id=True,
+            user_prefix=self.user_prefix,
         )
 
     def addwebhook(self, webhook_url: str) -> None:
         post_params = {"url": webhook_url}
-        resp = self.post_request(WEBHOOK_URL_ADD, post_params)
+        resp = self.post_api_request(WEBHOOK_URL_ADD_ENDPOINT, post_params)
         LOG.debug("addwebhook: %s", resp)
 
     def dropwebhook(self) -> None:
         post_params = {"app_types": "app_security"}
-        resp = self.post_request(WEBHOOK_URL_DROP, post_params)
+        resp = self.post_api_request(WEBHOOK_URL_DROP_ENDPOINT, post_params)
         LOG.debug("dropwebhook: %s", resp)
 
 
@@ -244,6 +264,8 @@ class ClientAuth(NetatmoOAuth2):
             read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
             read_smokedetector: to retrieve the smoke detector status (Gethomedata)
             Several value can be used at the same time, ie: 'read_station read_camera'
+        user_prefix (Optional[str]) -- API prefix for the Netatmo customer
+        base_url (str) -- Base URL of the Netatmo API (default: {_DEFAULT_BASE_URL})
     """
 
     def __init__(
@@ -253,28 +275,38 @@ class ClientAuth(NetatmoOAuth2):
         username: str,
         password: str,
         scope="read_station",
+        user_prefix: str = None,
+        base_url: str = _DEFAULT_BASE_URL,
     ):
-        super().__init__(client_id=client_id, client_secret=client_secret, scope=scope)
+        super().__init__(
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+            user_prefix=user_prefix,
+            base_url=base_url,
+        )
 
         self._oauth = OAuth2Session(
             client=LegacyApplicationClient(client_id=self.client_id),
         )
         self._oauth.fetch_token(
-            token_url=AUTH_REQ,
+            token_url=self.base_url + AUTH_REQ_ENDPOINT,
             username=username,
             password=password,
             client_id=self.client_id,
             client_secret=self.client_secret,
             scope=self.scope,
+            user_prefix=self.user_prefix,
         )
 
 
 class AbstractAsyncAuth(ABC):
     """Abstract class to make authenticated requests."""
 
-    def __init__(self, websession: ClientSession) -> None:
+    def __init__(self, websession: ClientSession, base_url: str) -> None:
         """Initialize the auth."""
         self.websession = websession
+        self.base_url = base_url
 
     @abstractmethod
     async def async_get_access_token(self) -> str:
@@ -282,7 +314,7 @@ class AbstractAsyncAuth(ABC):
 
     async def async_get_image(
         self,
-        url: str,
+        endpoint: str,
         params: dict | None = None,
         timeout: int = 5,
     ) -> bytes:
@@ -295,6 +327,7 @@ class AbstractAsyncAuth(ABC):
 
         req_args = {"data": params if params is not None else {}}
 
+        url = self.base_url + endpoint
         async with self.websession.get(
             url,
             **req_args,
@@ -311,6 +344,18 @@ class AbstractAsyncAuth(ABC):
             f"{resp_status} - "
             f"invalid content-type in response"
             f"when accessing '{url}'",
+        )
+
+    async def async_post_api_request(
+        self,
+        endpoint: str,
+        params: dict | None = None,
+        timeout: int = 5,
+    ) -> ClientResponse:
+        return await self.async_post_request(
+            url=self.base_url + endpoint,
+            params=params,
+            timeout=timeout,
         )
 
     async def async_post_request(
@@ -374,13 +419,16 @@ class AbstractAsyncAuth(ABC):
 
     async def async_addwebhook(self, webhook_url: str) -> None:
         """Register webhook."""
-        resp = await self.async_post_request(WEBHOOK_URL_ADD, {"url": webhook_url})
+        resp = await self.async_post_api_request(
+            WEBHOOK_URL_ADD_ENDPOINT,
+            {"url": webhook_url},
+        )
         LOG.debug("addwebhook: %s", resp)
 
     async def async_dropwebhook(self) -> None:
         """Unregister webhook."""
-        resp = await self.async_post_request(
-            WEBHOOK_URL_DROP,
+        resp = await self.async_post_api_request(
+            WEBHOOK_URL_DROP_ENDPOINT,
             {"app_types": "app_security"},
         )
         LOG.debug("dropwebhook: %s", resp)

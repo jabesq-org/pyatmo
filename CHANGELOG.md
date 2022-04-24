@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Fetch favorite weather sensors
+- Add support for third-party Netatmo devices (see `base_url` and `user_prefix` parameters)
 
 ### Changed
 

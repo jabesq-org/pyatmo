@@ -91,11 +91,12 @@ class DeviceCategory(str, Enum):
     siren = "siren"
     shutter = "shutter"
     lock = "lock"
-    plug = "plug"
+    switch = "switch"
     sensor = "sensor"
     weather = "weather"
     air_care = "air_care"
     meter = "meter"
+    dimmer = "dimmer"
 
     # pylint: enable=C0103
 
@@ -117,12 +118,12 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLLV: DeviceCategory.shutter,
     DeviceType.NLLM: DeviceCategory.shutter,
     DeviceType.NBR: DeviceCategory.shutter,
-    DeviceType.NLP: DeviceCategory.plug,
-    DeviceType.NLPM: DeviceCategory.plug,
-    DeviceType.NLPBS: DeviceCategory.plug,
-    DeviceType.NLL: DeviceCategory.plug,
-    DeviceType.NLFN: DeviceCategory.plug,
-    DeviceType.NLF: DeviceCategory.plug,
+    DeviceType.NLP: DeviceCategory.switch,
+    DeviceType.NLPM: DeviceCategory.switch,
+    DeviceType.NLPBS: DeviceCategory.switch,
+    DeviceType.NLL: DeviceCategory.switch,
+    DeviceType.NLFN: DeviceCategory.dimmer,
+    DeviceType.NLF: DeviceCategory.switch,
     DeviceType.BNS: DeviceCategory.climate,
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,

@@ -201,6 +201,19 @@ class DimmableMixin(EntityBase):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.brightness: int | None = None
 
+    async def async_set_brightness(self, brightness: int) -> bool:
+        """Set brightness."""
+        json_brightness = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    "brightness": max(min(100, brightness), -1),
+                    "bridge": self.bridge,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_brightness)
+
 
 class ApplianceTypeMixin(EntityBase):
     def __init__(self, home: Home, module: dict):
@@ -533,6 +546,10 @@ class Camera(
 
 
 class Switch(FirmwareMixin, PowerMixin, SwitchMixin, Module):
+    ...
+
+
+class Dimmer(DimmableMixin, Switch):
     ...
 
 

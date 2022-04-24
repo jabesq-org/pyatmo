@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import Module, SwitchMixin
+from pyatmo.modules.module import Module, Switch
 
 LOG = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class BNDL(Module):
     ...
 
 
-class BNSL(SwitchMixin, Module):
+class BNSL(Switch):  # pylint: disable=too-many-ancestors
     """BTicino staircase light."""
 
     ...

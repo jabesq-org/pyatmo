@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import (
+    Dimmer,
     EnergyMixin,
     FirmwareMixin,
     HistoryMixin,
@@ -57,7 +58,7 @@ class NLF(Switch):
     ...
 
 
-class NLFN(Switch):
+class NLFN(Dimmer):
     """Legrand light switch with neutral."""
 
     ...

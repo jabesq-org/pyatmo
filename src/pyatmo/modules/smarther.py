@@ -10,5 +10,3 @@ LOG = logging.getLogger(__name__)
 
 class BNS(FirmwareMixin, BoilerMixin, WifiMixin, Module):
     """Smarther thermostat."""
-
-    ...

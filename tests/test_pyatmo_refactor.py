@@ -298,7 +298,7 @@ async def test_async_climate_switch_schedule(
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ):
         with expected:
@@ -466,7 +466,7 @@ async def test_async_climate_set_thermmode(
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ), exception:
         resp = await async_home.async_set_thermmode(
@@ -483,7 +483,7 @@ async def test_async_climate_empty_home(async_account):
     home_id = "91763b24c43d3e344f424e8c"
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         fake_post_request,
     ):
         await async_account.async_update_status(home_id)

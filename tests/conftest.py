@@ -153,7 +153,7 @@ def camera_home_data(auth, camera_ping, requests_mock):  # pylint: disable=W0613
     with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
+        pyatmo.const._DEFAULT_BASE_URL + pyatmo.const._GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -180,10 +180,14 @@ async def async_camera_home_data(async_auth):
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
+    ) as mock_api_request, patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        AsyncMock(return_value=mock_resp),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
         await camera_data.async_update()
 
+        mock_api_request.assert_called()
         mock_request.assert_called()
         yield camera_data
 
@@ -203,7 +207,7 @@ async def async_home_coach_data(async_auth):
         hcd = pyatmo.AsyncHomeCoachData(async_auth)
         await hcd.async_update()
 
-        mock_request.assert_called()
+        mock_request.assert_awaited()
         yield hcd
 
 
@@ -274,6 +278,9 @@ async def async_account(async_auth):
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        fake_post_request,
+    ), patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         fake_post_request,
     ):
         await account.async_update_topology()

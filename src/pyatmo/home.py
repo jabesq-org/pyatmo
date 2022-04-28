@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING
 
 from pyatmo import modules
 from pyatmo.const import (
-    _SETPERSONSAWAY_REQ,
-    _SETPERSONSHOME_REQ,
-    _SETSTATE_REQ,
-    _SETTHERMMODE_REQ,
-    _SWITCHHOMESCHEDULE_REQ,
+    _DEFAULT_BASE_URL,
+    _SETPERSONSAWAY_ENDPOINT,
+    _SETPERSONSHOME_ENDPOINT,
+    _SETSTATE_ENDPOINT,
+    _SETTHERMMODE_ENDPOINT,
+    _SWITCHHOMESCHEDULE_ENDPOINT,
     EVENTS,
     SCHEDULES,
 )
@@ -184,7 +185,7 @@ class Home:
         )
 
         resp = await self.auth.async_post_request(
-            url=_SETTHERMMODE_REQ,
+            url=_DEFAULT_BASE_URL + _SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
 
@@ -200,7 +201,7 @@ class Home:
 
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
         resp = await self.auth.async_post_request(
-            url=_SWITCHHOMESCHEDULE_REQ,
+            url=_DEFAULT_BASE_URL + _SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
 
@@ -217,7 +218,7 @@ class Home:
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
 
         resp = await self.auth.async_post_request(
-            url=_SETSTATE_REQ,
+            url=_DEFAULT_BASE_URL + _SETSTATE_ENDPOINT,
             params={"json": {"home": {"id": self.entity_id, **data}}},
         )
 
@@ -235,7 +236,7 @@ class Home:
         if person_ids:
             post_params["person_ids[]"] = person_ids
         return await self.auth.async_post_request(
-            url=_SETPERSONSHOME_REQ,
+            url=_DEFAULT_BASE_URL + _SETPERSONSHOME_ENDPOINT,
             params=post_params,
         )
 
@@ -245,7 +246,7 @@ class Home:
         if person_id:
             post_params["person_id"] = person_id
         return await self.auth.async_post_request(
-            url=_SETPERSONSAWAY_REQ,
+            url=_DEFAULT_BASE_URL + _SETPERSONSAWAY_ENDPOINT,
             params=post_params,
         )
 

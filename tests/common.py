@@ -36,10 +36,10 @@ class MockResponse:
 
 async def fake_post_request(*args, **kwargs):
     """Return fake data."""
-    if "url" not in kwargs:
+    if "endpoint" not in kwargs:
         return "{}"
 
-    endpoint = kwargs["url"].split("/")[-1]
+    endpoint = kwargs["endpoint"].split("/")[-1]
 
     if endpoint in "snapshot_720.jpg":
         return b"test stream image bytes"

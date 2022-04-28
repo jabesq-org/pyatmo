@@ -292,5 +292,4 @@ async def async_home(async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"
     await async_account.async_update_status(home_id)
-    home = async_account.homes[home_id]
-    yield home
+    yield async_account.homes[home_id]

@@ -7,13 +7,13 @@ from uuid import uuid4
 
 from pyatmo import modules
 from pyatmo.const import (
-    _GETEVENTS_REQ,
-    _GETHOMECOACHDATA_REQ,
-    _GETHOMESDATA_REQ,
-    _GETHOMESTATUS_REQ,
-    _GETPUBLIC_DATA,
-    _GETSTATIONDATA_REQ,
-    _SETSTATE_REQ,
+    _GETEVENTS_ENDPOINT,
+    _GETHOMECOACHDATA_ENDPOINT,
+    _GETHOMESDATA_ENDPOINT,
+    _GETHOMESTATUS_ENDPOINT,
+    _GETPUBLIC_DATA_ENDPOINT,
+    _GETSTATIONDATA_ENDPOINT,
+    _SETSTATE_ENDPOINT,
     HOME,
 )
 from pyatmo.helpers import extract_raw_data_new
@@ -36,9 +36,9 @@ class AsyncAccount:
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
         """
         self.auth: AbstractAsyncAuth = auth
-        self.user: str | None
+        self.user: str | None = None
         self.homes: dict[str, Home] = {}
-        self.raw_data: dict
+        self.raw_data: dict = {}
         self.favorite_stations: bool = favorite_stations
         self.public_weather_areas: dict[str, modules.PublicWeatherArea] = {}
         self.modules: dict[str, Module] = {}
@@ -58,7 +58,9 @@ class AsyncAccount:
 
     async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""
-        resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
+        resp = await self.auth.async_post_api_request(
+            endpoint=_GETHOMESDATA_ENDPOINT,
+        )
         self.raw_data = extract_raw_data_new(await resp.json(), "homes")
 
         self.user = self.raw_data.get("user", {}).get("email")
@@ -67,8 +69,8 @@ class AsyncAccount:
 
     async def async_update_status(self, home_id: str) -> None:
         """Retrieve status data from /homestatus."""
-        resp = await self.auth.async_post_request(
-            url=_GETHOMESTATUS_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data_new(await resp.json(), HOME)
@@ -76,8 +78,8 @@ class AsyncAccount:
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
-        resp = await self.auth.async_post_request(
-            url=_GETEVENTS_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=_GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data_new(await resp.json(), HOME)
@@ -86,11 +88,14 @@ class AsyncAccount:
     async def async_update_weather_stations(self) -> None:
         """Retrieve status data from /getstationsdata."""
         params = {"get_favorites": ("true" if self.favorite_stations else "false")}
-        await self._async_update_data(_GETSTATIONDATA_REQ, params=params)
+        await self._async_update_data(
+            _GETSTATIONDATA_ENDPOINT,
+            params=params,
+        )
 
     async def async_update_air_care(self) -> None:
         """Retrieve status data from /gethomecoachsdata."""
-        await self._async_update_data(_GETHOMECOACHDATA_REQ)
+        await self._async_update_data(_GETHOMECOACHDATA_ENDPOINT)
 
     async def async_update_measures(
         self,
@@ -140,7 +145,7 @@ class AsyncAccount:
             ),
         }
         await self._async_update_data(
-            _GETPUBLIC_DATA,
+            _GETPUBLIC_DATA_ENDPOINT,
             tag="body",
             params=params,
             area_id=area_id,
@@ -154,7 +159,7 @@ class AsyncAccount:
         area_id: str = None,
     ) -> None:
         """Retrieve status data from <endpoint>."""
-        resp = await self.auth.async_post_request(url=endpoint, params=params)
+        resp = await self.auth.async_post_api_request(endpoint=endpoint, params=params)
         raw_data = extract_raw_data_new(await resp.json(), tag)
         await self.update_devices(raw_data, area_id)
 
@@ -170,7 +175,10 @@ class AsyncAccount:
                 },
             },
         }
-        resp = await self.auth.async_post_request(url=_SETSTATE_REQ, params=post_params)
+        resp = await self.auth.async_post_api_request(
+            endpoint=_SETSTATE_ENDPOINT,
+            params=post_params,
+        )
         LOG.debug("Response: %s", resp)
 
     async def update_devices(self, raw_data: dict, area_id: str = None) -> None:

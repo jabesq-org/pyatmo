@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from pyatmo.const import _GETMEASURE_REQ
+from pyatmo.const import _GETMEASURE_ENDPOINT
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -313,7 +313,8 @@ class CameraMixin(EntityBase):
         if not self.local_url and not self.vpn_url:
             return None
         resp = await self.home.auth.async_get_image(
-            url=f"{(self.local_url or self.vpn_url)}/live/snapshot_720.jpg",
+            base_url=f"{(self.local_url or self.vpn_url)}",
+            endpoint="/live/snapshot_720.jpg",
             timeout=10,
         )
 
@@ -337,7 +338,10 @@ class CameraMixin(EntityBase):
     async def _async_check_url(self, url: str) -> str | None:
         """Validate camera url."""
         try:
-            resp = await self.home.auth.async_post_request(url=f"{url}/command/ping")
+            resp = await self.home.auth.async_post_api_request(
+                base_url=f"{url}",
+                endpoint="/command/ping",
+            )
 
         except ApiError:
             LOG.debug("Api error for camera url %s", url)
@@ -461,8 +465,8 @@ class HistoryMixin(EntityBase):
             "date_end": end_time,
         }
 
-        resp = await self.home.auth.async_post_request(
-            url=_GETMEASURE_REQ,
+        resp = await self.home.auth.async_post_api_request(
+            endpoint=_GETMEASURE_ENDPOINT,
             params=params,
         )
         raw_data = await resp.json()

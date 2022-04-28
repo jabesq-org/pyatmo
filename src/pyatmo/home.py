@@ -135,11 +135,7 @@ class Home:
     def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""
         return next(
-            (
-                schedule
-                for schedule in self.schedules.values()
-                if schedule.selected
-            ),
+            (schedule for schedule in self.schedules.values() if schedule.selected),
             None,
         )
 

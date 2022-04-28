@@ -480,12 +480,12 @@ class HistoryMixin(EntityBase):
                 {
                     "duration": interval_min,
                     "startTime": datetime.utcfromtimestamp(
-                        start_time + 1
+                        start_time + 1,
                     ).isoformat()
                     + "Z",
                     "endTime": f"{datetime.utcfromtimestamp(end_time).isoformat()}Z",
                     "Wh": value[0],
-                }
+                },
             )
 
             start_time = end_time

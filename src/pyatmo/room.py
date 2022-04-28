@@ -5,7 +5,13 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pyatmo.const import _SETROOMTHERMPOINT_REQ, FROSTGUARD, HOME, MANUAL
+from pyatmo.const import (
+    _DEFAULT_BASE_URL,
+    _SETROOMTHERMPOINT_ENDPOINT,
+    FROSTGUARD,
+    HOME,
+    MANUAL,
+)
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import DeviceType
 
@@ -163,6 +169,6 @@ class Room(NetatmoBase):
             end_time,
         )
         await self.home.auth.async_post_request(
-            url=_SETROOMTHERMPOINT_REQ,
+            url=_DEFAULT_BASE_URL + _SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         )

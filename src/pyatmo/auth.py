@@ -289,7 +289,11 @@ class ClientAuth(NetatmoOAuth2):
 class AbstractAsyncAuth(ABC):
     """Abstract class to make authenticated requests."""
 
-    def __init__(self, websession: ClientSession, base_url: str) -> None:
+    def __init__(
+        self,
+        websession: ClientSession,
+        base_url: str = _DEFAULT_BASE_URL,
+    ) -> None:
         """Initialize the auth."""
         self.websession = websession
         self.base_url = base_url
@@ -301,6 +305,7 @@ class AbstractAsyncAuth(ABC):
     async def async_get_image(
         self,
         endpoint: str,
+        base_url: str | None = None,
         params: dict | None = None,
         timeout: int = 5,
     ) -> bytes:
@@ -313,7 +318,7 @@ class AbstractAsyncAuth(ABC):
 
         req_args = {"data": params if params is not None else {}}
 
-        url = self.base_url + endpoint
+        url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,
             **req_args,
@@ -335,11 +340,12 @@ class AbstractAsyncAuth(ABC):
     async def async_post_api_request(
         self,
         endpoint: str,
+        base_url: str | None = None,
         params: dict | None = None,
         timeout: int = 5,
     ) -> ClientResponse:
         return await self.async_post_request(
-            url=self.base_url + endpoint,
+            url=(base_url or self.base_url) + endpoint,
             params=params,
             timeout=timeout,
         )
@@ -407,7 +413,8 @@ class AbstractAsyncAuth(ABC):
         """Register webhook."""
         try:
             resp = await self.async_post_api_request(
-                WEBHOOK_URL_ADD_ENDPOINT, {"url": webhook_url}
+                endpoint=WEBHOOK_URL_ADD_ENDPOINT,
+                params={"url": webhook_url},
             )
         except asyncio.exceptions.TimeoutError as exc:
             raise ApiError("Webhook registration timed out") from exc
@@ -418,8 +425,8 @@ class AbstractAsyncAuth(ABC):
         """Unregister webhook."""
         try:
             resp = await self.async_post_api_request(
-                WEBHOOK_URL_DROP_ENDPOINT,
-                {"app_types": "app_security"},
+                endpoint=WEBHOOK_URL_DROP_ENDPOINT,
+                params={"app_types": "app_security"},
             )
         except asyncio.exceptions.TimeoutError as exc:
             raise ApiError("Webhook registration timed out") from exc

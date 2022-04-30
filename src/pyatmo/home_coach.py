@@ -1,6 +1,6 @@
 """Support for Netatmo air care devices."""
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
-from pyatmo.const import _GETHOMECOACHDATA_ENDPOINT
+from pyatmo.const import GETHOMECOACHDATA_ENDPOINT
 from pyatmo.weather_station import AsyncWeatherStationData, WeatherStationData
 
 
@@ -15,7 +15,7 @@ class HomeCoachData(WeatherStationData):
         Arguments:
             auth {NetatmoOAuth2} -- Authentication information with a valid access token
         """
-        super().__init__(auth, endpoint=_GETHOMECOACHDATA_ENDPOINT, favorites=False)
+        super().__init__(auth, endpoint=GETHOMECOACHDATA_ENDPOINT, favorites=False)
 
 
 class AsyncHomeCoachData(AsyncWeatherStationData):
@@ -29,4 +29,4 @@ class AsyncHomeCoachData(AsyncWeatherStationData):
         Arguments:
             auth {AbstractAsyncAuth} -- Authentication information with a valid access token
         """
-        super().__init__(auth, endpoint=_GETHOMECOACHDATA_ENDPOINT, favorites=False)
+        super().__init__(auth, endpoint=GETHOMECOACHDATA_ENDPOINT, favorites=False)

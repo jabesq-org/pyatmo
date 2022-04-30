@@ -8,11 +8,11 @@ from typing import Any
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import (
-    _GETHOMESDATA_ENDPOINT,
-    _GETHOMESTATUS_ENDPOINT,
-    _SETROOMTHERMPOINT_ENDPOINT,
-    _SETTHERMMODE_ENDPOINT,
-    _SWITCHHOMESCHEDULE_ENDPOINT,
+    GETHOMESDATA_ENDPOINT,
+    GETHOMESTATUS_ENDPOINT,
+    SETROOMTHERMPOINT_ENDPOINT,
+    SETTHERMMODE_ENDPOINT,
+    SWITCHHOMESCHEDULE_ENDPOINT,
 )
 from pyatmo.exceptions import InvalidRoom, NoSchedule
 from pyatmo.helpers import extract_raw_data
@@ -116,7 +116,7 @@ class HomeData(AbstractHomeData):
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_api_request(endpoint=_GETHOMESDATA_ENDPOINT)
+        resp = self.auth.post_api_request(endpoint=GETHOMESDATA_ENDPOINT)
 
         self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
@@ -128,7 +128,7 @@ class HomeData(AbstractHomeData):
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
         resp = self.auth.post_api_request(
-            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT,
+            endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
             params=post_params,
         )
         LOG.debug("Response: %s", resp)
@@ -147,7 +147,7 @@ class AsyncHomeData(AbstractHomeData):
 
     async def async_update(self):
         """Fetch and process data from API."""
-        resp = await self.auth.async_post_api_request(endpoint=_GETHOMESDATA_ENDPOINT)
+        resp = await self.auth.async_post_api_request(endpoint=GETHOMESDATA_ENDPOINT)
 
         assert not isinstance(resp, bytes)
         self.raw_data = extract_raw_data(await resp.json(), "homes")
@@ -159,7 +159,7 @@ class AsyncHomeData(AbstractHomeData):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         resp = await self.auth.async_post_api_request(
-            endpoint=_SWITCHHOMESCHEDULE_ENDPOINT,
+            endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": home_id, "schedule_id": schedule_id},
         )
         LOG.debug("Response: %s", resp)
@@ -254,7 +254,7 @@ class HomeStatus(AbstractHomeStatus):
     def update(self) -> None:
         """Fetch and process data from API."""
         resp = self.auth.post_api_request(
-            endpoint=_GETHOMESTATUS_ENDPOINT,
+            endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
 
@@ -276,7 +276,7 @@ class HomeStatus(AbstractHomeStatus):
             post_params["schedule_id"] = schedule_id
 
         return self.auth.post_api_request(
-            endpoint=_SETTHERMMODE_ENDPOINT,
+            endpoint=SETTHERMMODE_ENDPOINT,
             params=post_params,
         ).json()
 
@@ -298,7 +298,7 @@ class HomeStatus(AbstractHomeStatus):
             post_params["endtime"] = str(end_time)
 
         return self.auth.post_api_request(
-            endpoint=_SETROOMTHERMPOINT_ENDPOINT,
+            endpoint=SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         ).json()
 
@@ -319,7 +319,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
     async def async_update(self) -> None:
         """Fetch and process data from API."""
         resp = await self.auth.async_post_api_request(
-            endpoint=_GETHOMESTATUS_ENDPOINT,
+            endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
 
@@ -342,7 +342,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
             post_params["schedule_id"] = schedule_id
 
         resp = await self.auth.async_post_api_request(
-            endpoint=_SETTHERMMODE_ENDPOINT,
+            endpoint=SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)
@@ -366,7 +366,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
             post_params["endtime"] = str(end_time)
 
         resp = await self.auth.async_post_api_request(
-            endpoint=_SETROOMTHERMPOINT_ENDPOINT,
+            endpoint=SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)

@@ -22,7 +22,7 @@ def test_client_auth_invalid(requests_mock):
     with open("fixtures/invalid_grant.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.auth.AUTH_REQ_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.auth.AUTH_REQ_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -38,36 +38,36 @@ def test_client_auth_invalid(requests_mock):
 def test_post_request_json(auth, requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL,
+        pyatmo.const.DEFAULT_BASE_URL,
         json={"a": "b"},
         headers={"content-type": "application/json"},
     )
-    resp = auth.post_request(pyatmo.const._DEFAULT_BASE_URL, None).json()
+    resp = auth.post_request(pyatmo.const.DEFAULT_BASE_URL, None).json()
     assert resp == {"a": "b"}
 
 
 def test_post_request_binary(auth, requests_mock):
     """Test wrapper for posting requests against the Netatmo API."""
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL,
+        pyatmo.const.DEFAULT_BASE_URL,
         text="Success",
         headers={"content-type": "application/text"},
     )
-    resp = auth.post_request(pyatmo.const._DEFAULT_BASE_URL, None).content
+    resp = auth.post_request(pyatmo.const.DEFAULT_BASE_URL, None).content
     assert resp == b"Success"
 
 
 @pytest.mark.parametrize("test_input,expected", [(200, None), (404, None), (401, None)])
 def test_post_request_fail(auth, requests_mock, test_input, expected):
     """Test failing requests against the Netatmo API."""
-    requests_mock.post(pyatmo.const._DEFAULT_BASE_URL, status_code=test_input)
+    requests_mock.post(pyatmo.const.DEFAULT_BASE_URL, status_code=test_input)
 
     if test_input == 200:
-        resp = auth.post_request(pyatmo.const._DEFAULT_BASE_URL, None).content
+        resp = auth.post_request(pyatmo.const.DEFAULT_BASE_URL, None).content
         assert resp is expected
     else:
         with pytest.raises(pyatmo.ApiError):
-            resp = auth.post_request(pyatmo.const._DEFAULT_BASE_URL, None).content
+            resp = auth.post_request(pyatmo.const.DEFAULT_BASE_URL, None).content
 
 
 @pytest.mark.parametrize(

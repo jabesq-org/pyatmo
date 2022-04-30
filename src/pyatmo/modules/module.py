@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from pyatmo.const import _GETMEASURE_ENDPOINT
+from pyatmo.const import GETMEASURE_ENDPOINT
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -466,7 +466,7 @@ class HistoryMixin(EntityBase):
         }
 
         resp = await self.home.auth.async_post_api_request(
-            endpoint=_GETMEASURE_ENDPOINT,
+            endpoint=GETMEASURE_ENDPOINT,
             params=params,
         )
         raw_data = await resp.json()

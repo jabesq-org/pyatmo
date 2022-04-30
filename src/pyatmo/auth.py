@@ -14,11 +14,11 @@ from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
 from pyatmo.const import (
-    _DEFAULT_BASE_URL,
     ALL_SCOPES,
     AUTH_REQ_ENDPOINT,
     AUTH_URL_ENDPOINT,
     AUTHORIZATION_HEADER,
+    DEFAULT_BASE_URL,
     ERRORS,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
@@ -42,7 +42,7 @@ class NetatmoOAuth2:
         token_updater: Callable[[str], None] | None = None,
         scope: str | None = "read_station",
         user_prefix: str | None = None,
-        base_url: str = _DEFAULT_BASE_URL,
+        base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         """Initialize self.
 
@@ -262,7 +262,7 @@ class ClientAuth(NetatmoOAuth2):
         password: str,
         scope="read_station",
         user_prefix: str | None = None,
-        base_url: str = _DEFAULT_BASE_URL,
+        base_url: str = DEFAULT_BASE_URL,
     ):
         super().__init__(
             client_id=client_id,
@@ -292,7 +292,7 @@ class AbstractAsyncAuth(ABC):
     def __init__(
         self,
         websession: ClientSession,
-        base_url: str = _DEFAULT_BASE_URL,
+        base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         """Initialize the auth."""
         self.websession = websession

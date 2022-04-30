@@ -8,7 +8,6 @@ from typing import Any
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import (
-    _GETPUBLIC_DATA_ENDPOINT,
     ACCESSORY_GUST_ANGLE_TYPE,
     ACCESSORY_GUST_STRENGTH_TYPE,
     ACCESSORY_RAIN_24H_TYPE,
@@ -18,6 +17,7 @@ from pyatmo.const import (
     ACCESSORY_WIND_ANGLE_TYPE,
     ACCESSORY_WIND_STRENGTH_TYPE,
     ACCESSORY_WIND_TIME_TYPE,
+    GETPUBLIC_DATA_ENDPOINT,
     STATION_HUMIDITY_TYPE,
     STATION_PRESSURE_TYPE,
     STATION_TEMPERATURE_TYPE,
@@ -173,7 +173,7 @@ class PublicData(AbstractPublicData):
             post_params["required_data"] = self.required_data_type
 
         resp = self.auth.post_api_request(
-            endpoint=_GETPUBLIC_DATA_ENDPOINT,
+            endpoint=GETPUBLIC_DATA_ENDPOINT,
             params=post_params,
         ).json()
         try:
@@ -225,7 +225,7 @@ class AsyncPublicData(AbstractPublicData):
             post_params["required_data"] = self.required_data_type
 
         resp = await self.auth.async_post_api_request(
-            endpoint=_GETPUBLIC_DATA_ENDPOINT,
+            endpoint=GETPUBLIC_DATA_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)

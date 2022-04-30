@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 
 from pyatmo import modules
 from pyatmo.const import (
-    _DEFAULT_BASE_URL,
-    _SETPERSONSAWAY_ENDPOINT,
-    _SETPERSONSHOME_ENDPOINT,
-    _SETSTATE_ENDPOINT,
-    _SETTHERMMODE_ENDPOINT,
-    _SWITCHHOMESCHEDULE_ENDPOINT,
+    DEFAULT_BASE_URL,
     EVENTS,
     SCHEDULES,
+    SETPERSONSAWAY_ENDPOINT,
+    SETPERSONSHOME_ENDPOINT,
+    SETSTATE_ENDPOINT,
+    SETTHERMMODE_ENDPOINT,
+    SWITCHHOMESCHEDULE_ENDPOINT,
 )
 from pyatmo.event import Event
 from pyatmo.exceptions import InvalidState, NoSchedule
@@ -185,7 +185,7 @@ class Home:
         )
 
         resp = await self.auth.async_post_request(
-            url=_DEFAULT_BASE_URL + _SETTHERMMODE_ENDPOINT,
+            url=DEFAULT_BASE_URL + SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
 
@@ -201,7 +201,7 @@ class Home:
 
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
         resp = await self.auth.async_post_request(
-            url=_DEFAULT_BASE_URL + _SWITCHHOMESCHEDULE_ENDPOINT,
+            url=DEFAULT_BASE_URL + SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
 
@@ -218,7 +218,7 @@ class Home:
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
 
         resp = await self.auth.async_post_request(
-            url=_DEFAULT_BASE_URL + _SETSTATE_ENDPOINT,
+            url=DEFAULT_BASE_URL + SETSTATE_ENDPOINT,
             params={"json": {"home": {"id": self.entity_id, **data}}},
         )
 
@@ -236,7 +236,7 @@ class Home:
         if person_ids:
             post_params["person_ids[]"] = person_ids
         return await self.auth.async_post_request(
-            url=_DEFAULT_BASE_URL + _SETPERSONSHOME_ENDPOINT,
+            url=DEFAULT_BASE_URL + SETPERSONSHOME_ENDPOINT,
             params=post_params,
         )
 
@@ -246,7 +246,7 @@ class Home:
         if person_id:
             post_params["person_id"] = person_id
         return await self.auth.async_post_request(
-            url=_DEFAULT_BASE_URL + _SETPERSONSAWAY_ENDPOINT,
+            url=DEFAULT_BASE_URL + SETPERSONSAWAY_ENDPOINT,
             params=post_params,
         )
 

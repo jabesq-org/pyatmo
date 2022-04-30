@@ -7,7 +7,7 @@ from abc import ABC
 from collections import defaultdict
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
-from pyatmo.const import _GETMEASURE_ENDPOINT, _GETSTATIONDATA_ENDPOINT
+from pyatmo.const import GETMEASURE_ENDPOINT, GETSTATIONDATA_ENDPOINT
 from pyatmo.helpers import extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
@@ -197,7 +197,7 @@ class WeatherStationData(AbstractWeatherStationData):
     def __init__(
         self,
         auth: NetatmoOAuth2,
-        endpoint: str = _GETSTATIONDATA_ENDPOINT,
+        endpoint: str = GETSTATIONDATA_ENDPOINT,
         favorites: bool = True,
     ) -> None:
         """Initialize the Netatmo weather station data.
@@ -254,7 +254,7 @@ class WeatherStationData(AbstractWeatherStationData):
         post_params["real_time"] = "true" if real_time else "false"
 
         return self.auth.post_api_request(
-            endpoint=_GETMEASURE_ENDPOINT,
+            endpoint=GETMEASURE_ENDPOINT,
             params=post_params,
         ).json()
 
@@ -307,7 +307,7 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
     def __init__(
         self,
         auth: AbstractAsyncAuth,
-        endpoint: str = _GETSTATIONDATA_ENDPOINT,
+        endpoint: str = GETSTATIONDATA_ENDPOINT,
         favorites: bool = True,
     ) -> None:
         """Initialize the Netatmo weather station data.

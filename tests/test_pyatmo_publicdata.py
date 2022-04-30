@@ -16,7 +16,7 @@ def test_public_data(auth, requests_mock):
     with open("fixtures/public_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETPUBLIC_DATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -39,7 +39,7 @@ def test_public_data(auth, requests_mock):
 
 def test_public_data_unavailable(auth, requests_mock):
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETPUBLIC_DATA_ENDPOINT,
         status_code=404,
     )
     with pytest.raises(pyatmo.ApiError):
@@ -51,7 +51,7 @@ def test_public_data_error(auth, requests_mock):
     with open("fixtures/public_data_error_mongo.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.public_data._GETPUBLIC_DATA_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETPUBLIC_DATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

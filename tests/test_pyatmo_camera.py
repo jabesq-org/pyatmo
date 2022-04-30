@@ -19,7 +19,7 @@ def test_home_data_no_body(auth, requests_mock):
     with open("fixtures/camera_data_empty.json", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -35,7 +35,7 @@ def test_home_data_no_homes(auth, requests_mock):
     ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -110,7 +110,7 @@ def test_camera_data_camera_urls_disconnected(auth, camera_ping, requests_mock):
     ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETHOMEDATA_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -230,7 +230,7 @@ def test_camera_data_set_persons_away(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._SETPERSONSAWAY_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETPERSONSAWAY_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -281,7 +281,7 @@ def test_camera_data_set_persons_home(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._SETPERSONSHOME_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETPERSONSHOME_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -439,7 +439,7 @@ def test_camera_data_set_state(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._SETSTATE_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETSTATE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -470,7 +470,7 @@ def test_camera_data_get_camera_picture(camera_home_data, requests_mock):
         expect = fixture_file.read()
 
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETCAMERAPICTURE_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETCAMERAPICTURE_ENDPOINT,
         content=expect,
     )
 
@@ -485,7 +485,7 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
         expect = fixture_file.read()
 
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETCAMERAPICTURE_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETCAMERAPICTURE_ENDPOINT,
         content=expect,
     )
     assert camera_home_data.get_profile_image(
@@ -527,7 +527,7 @@ def test_camera_data_update_events(
     ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.const._DEFAULT_BASE_URL + pyatmo.camera._GETEVENTSUNTIL_ENDPOINT,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETEVENTSUNTIL_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

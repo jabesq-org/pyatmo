@@ -12,7 +12,7 @@ ERRORS: dict[int, str] = {
     503: "Service Unavailable",
 }
 
-_DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
+DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
 
 # Endpoints
 AUTH_REQ_ENDPOINT = "oauth2/token"
@@ -20,27 +20,27 @@ AUTH_URL_ENDPOINT = "oauth2/authorize"
 WEBHOOK_URL_ADD_ENDPOINT = "api/addwebhook"
 WEBHOOK_URL_DROP_ENDPOINT = "api/dropwebhook"
 
-_GETHOMESDATA_ENDPOINT = "api/homesdata"
-_GETHOMESTATUS_ENDPOINT = "api/homestatus"
-_GETEVENTS_ENDPOINT = "api/getevents"
-_SETTHERMMODE_ENDPOINT = "api/setthermmode"
-_SETROOMTHERMPOINT_ENDPOINT = "api/setroomthermpoint"
-_GETROOMMEASURE_ENDPOINT = "api/getroommeasure"
-_SWITCHHOMESCHEDULE_ENDPOINT = "api/switchhomeschedule"
+GETHOMESDATA_ENDPOINT = "api/homesdata"
+GETHOMESTATUS_ENDPOINT = "api/homestatus"
+GETEVENTS_ENDPOINT = "api/getevents"
+SETTHERMMODE_ENDPOINT = "api/setthermmode"
+SETROOMTHERMPOINT_ENDPOINT = "api/setroomthermpoint"
+GETROOMMEASURE_ENDPOINT = "api/getroommeasure"
+SWITCHHOMESCHEDULE_ENDPOINT = "api/switchhomeschedule"
 
-_GETHOMEDATA_ENDPOINT = "api/gethomedata"
-_GETCAMERAPICTURE_ENDPOINT = "api/getcamerapicture"
-_GETEVENTSUNTIL_ENDPOINT = "api/geteventsuntil"
-_SETPERSONSAWAY_ENDPOINT = "api/setpersonsaway"
-_SETPERSONSHOME_ENDPOINT = "api/setpersonshome"
-_SETSTATE_ENDPOINT = "api/setstate"
+GETHOMEDATA_ENDPOINT = "api/gethomedata"
+GETCAMERAPICTURE_ENDPOINT = "api/getcamerapicture"
+GETEVENTSUNTIL_ENDPOINT = "api/geteventsuntil"
+SETPERSONSAWAY_ENDPOINT = "api/setpersonsaway"
+SETPERSONSHOME_ENDPOINT = "api/setpersonshome"
+SETSTATE_ENDPOINT = "api/setstate"
 
-_GETHOMECOACHDATA_ENDPOINT = "api/gethomecoachsdata"
+GETHOMECOACHDATA_ENDPOINT = "api/gethomecoachsdata"
 
-_GETMEASURE_ENDPOINT = "api/getmeasure"
-_GETSTATIONDATA_ENDPOINT = "api/getstationsdata"
+GETMEASURE_ENDPOINT = "api/getmeasure"
+GETSTATIONDATA_ENDPOINT = "api/getstationsdata"
 
-_GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
+GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
 
 AUTHORIZATION_HEADER = "Authorization"
 

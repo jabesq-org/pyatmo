@@ -35,8 +35,8 @@ class NetatmoOAuth2:
 
     def __init__(
         self,
-        client_id: str = None,
-        client_secret: str = None,
+        client_id: str,
+        client_secret: str,
         redirect_uri: str | None = None,
         token: dict[str, str] | None = None,
         token_updater: Callable[[str], None] | None = None,
@@ -261,7 +261,7 @@ class ClientAuth(NetatmoOAuth2):
         username: str,
         password: str,
         scope="read_station",
-        user_prefix: str = None,
+        user_prefix: str | None = None,
         base_url: str = _DEFAULT_BASE_URL,
     ):
         super().__init__(

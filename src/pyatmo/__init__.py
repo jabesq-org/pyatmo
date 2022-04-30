@@ -1,5 +1,5 @@
 """Expose submodules."""
-from pyatmo import modules
+from pyatmo import const, modules
 from pyatmo.account import AsyncAccount
 from pyatmo.auth import AbstractAsyncAuth, ClientAuth, NetatmoOAuth2
 from pyatmo.camera import AsyncCameraData, CameraData
@@ -39,5 +39,6 @@ __all__ = [
     "NoSchedule",
     "PublicData",
     "WeatherStationData",
+    "const",
     "modules",
 ]

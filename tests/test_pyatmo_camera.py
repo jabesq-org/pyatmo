@@ -74,17 +74,19 @@ def test_camera_data_camera_urls(camera_home_data, requests_mock):
     with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        vpn_url + "/command/ping",
+        f"{vpn_url}/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
+
     with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        local_url + "/command/ping",
+        f"{local_url}/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
+
 
     camera_home_data.update_camera_urls(cid)
 
@@ -373,8 +375,7 @@ def test_camera_data_motion_detected(
     ],
 )
 def test_camera_data_get_smokedetector(camera_home_data, sid, expected):
-    smokedetector = camera_home_data.get_smokedetector(sid)
-    if smokedetector:
+    if smokedetector := camera_home_data.get_smokedetector(sid):
         assert smokedetector["name"] == expected
     else:
         assert smokedetector is expected

@@ -69,7 +69,7 @@
         },
         {
             "label": "Build wheel artifacts",
-            "command": "rm -r dist && python -m build",
+            "command": "rm -r dist; python -m build",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceRoot}/"

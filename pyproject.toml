@@ -1,3 +1,7 @@
 [build-system]
 requires = ["wheel", "setuptools", "attrs>=17.1"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+asyncio_mode = "auto"

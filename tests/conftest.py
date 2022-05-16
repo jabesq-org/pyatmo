@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 
 import pytest
-import pytest_asyncio
 
 import pyatmo
 
@@ -177,14 +176,14 @@ def camera_home_data(auth, camera_ping, requests_mock):  # pylint: disable=W0613
     return camera_data
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_auth():
     """AsyncAuth fixture."""
     with patch("pyatmo.auth.AbstractAsyncAuth", AsyncMock()) as auth:
         yield auth
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_camera_home_data(async_auth):
     """AsyncCameraHomeData fixture."""
     with open("fixtures/camera_home_data.json", encoding="utf-8") as json_file:
@@ -203,7 +202,7 @@ async def async_camera_home_data(async_auth):
         yield camera_data
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_home_coach_data(async_auth):
     """AsyncHomeCoacheData fixture."""
     with open("fixtures/home_coach_simple.json", encoding="utf-8") as json_file:
@@ -222,7 +221,7 @@ async def async_home_coach_data(async_auth):
         yield hcd
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_home_data(async_auth):
     """AsyncHomeData fixture."""
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
@@ -241,7 +240,7 @@ async def async_home_data(async_auth):
         return home_data
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_home_status(async_auth, home_id):
     """AsyncHomeStatus fixture."""
     with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
@@ -260,7 +259,7 @@ async def async_home_status(async_auth, home_id):
         return home_status
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_weather_station_data(async_auth):
     """AsyncWeatherStationData fixture."""
     with open(
@@ -282,7 +281,7 @@ async def async_weather_station_data(async_auth):
         return wsd
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_climate_topology(async_auth):
     """AsyncClimateTopology fixture."""
     climate_topology = pyatmo.AsyncClimateTopology(async_auth)
@@ -299,7 +298,7 @@ async def async_climate_topology(async_auth):
         yield climate_topology
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_climate(async_auth, async_climate_topology):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"

@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from pyatmo.const import RawData
 from pyatmo.modules.base_class import NetatmoBase
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ class Schedule(NetatmoBase):
     away_temp: float | None
     hg_temp: float | None
 
-    def __init__(self, home: Home, raw_data) -> None:
+    def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(raw_data)
         self.home = home
         self.selected = raw_data.get("selected", False)

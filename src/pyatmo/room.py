@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import (
     DEFAULT_BASE_URL,
@@ -11,6 +11,7 @@ from pyatmo.const import (
     HOME,
     MANUAL,
     SETROOMTHERMPOINT_ENDPOINT,
+    RawData,
 )
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import DeviceType
@@ -44,7 +45,7 @@ class Room(NetatmoBase):
     def __init__(
         self,
         home: Home,
-        room: dict,
+        room: dict[str, Any],
         all_modules: dict[str, Module],
     ) -> None:
         super().__init__(room)
@@ -58,7 +59,7 @@ class Room(NetatmoBase):
         self.features = set()
         self.evaluate_device_type()
 
-    def update_topology(self, raw_data: dict) -> None:
+    def update_topology(self, raw_data: RawData) -> None:
         self.name = raw_data["name"]
         self.modules = {
             m_id: m
@@ -83,7 +84,7 @@ class Room(NetatmoBase):
             self.climate_type = DeviceType.BNS
             self.features.add("humidity")
 
-    def update(self, raw_data: dict) -> None:
+    def update(self, raw_data: RawData) -> None:
         self.heating_power_request = raw_data.get("heating_power_request")
         self.humidity = raw_data.get("humidity")
         self.reachable = raw_data.get("reachable")
@@ -93,22 +94,22 @@ class Room(NetatmoBase):
 
     async def async_therm_manual(
         self,
-        temp: float = None,
-        end_time: int = None,
+        temp: float | None = None,
+        end_time: int | None = None,
     ) -> None:
         await self.async_therm_set(MANUAL, temp, end_time)
 
-    async def async_therm_home(self, end_time: int = None) -> None:
+    async def async_therm_home(self, end_time: int | None = None) -> None:
         await self.async_therm_set(HOME, end_time=end_time)
 
-    async def async_therm_frostguard(self, end_time: int = None) -> None:
+    async def async_therm_frostguard(self, end_time: int | None = None) -> None:
         await self.async_therm_set(FROSTGUARD, end_time=end_time)
 
     async def async_therm_set(
         self,
         mode: str,
-        temp: float = None,
-        end_time: int = None,
+        temp: float | None = None,
+        end_time: int | None = None,
     ) -> None:
         """Set room temperature set point."""
         mode = MODE_MAP.get(mode, mode)
@@ -122,10 +123,10 @@ class Room(NetatmoBase):
     async def _async_therm_set(
         self,
         mode: str,
-        temp: float = None,
-        end_time: int = None,
+        temp: float | None = None,
+        end_time: int | None = None,
     ) -> bool:
-        json_therm_set: dict[str, list[dict[str, str | int | float]]] = {
+        json_therm_set: dict[str, Any] = {
             "rooms": [
                 {
                     "id": self.entity_id,
@@ -145,8 +146,8 @@ class Room(NetatmoBase):
     async def _async_set_thermpoint(
         self,
         mode: str,
-        temp: float = None,
-        end_time: int = None,
+        temp: float | None = None,
+        end_time: int | None = None,
     ) -> None:
         """Set room temperature set point (NRV, NATherm1)."""
         post_params = {

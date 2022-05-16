@@ -1,8 +1,9 @@
 import os
 import sys
 
-from pyatmo.auth import ALL_SCOPES, ClientAuth
+from pyatmo.auth import ClientAuth
 from pyatmo.camera import CameraData
+from pyatmo.const import ALL_SCOPES
 from pyatmo.exceptions import NoDevice
 from pyatmo.home_coach import HomeCoachData
 from pyatmo.public_data import PublicData
@@ -21,7 +22,7 @@ def tty_print(message: str) -> None:
         print(message)
 
 
-def main():
+def main() -> None:
     """Run basic health checks."""
     client_id = os.getenv("CLIENT_ID", "")
     client_secret = os.getenv("CLIENT_SECRET", "")

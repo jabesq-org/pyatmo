@@ -18,7 +18,7 @@ from .legrand import (
     NLT,
     NLV,
 )
-from .module import Camera, Shutter, Switch
+from .module import Camera, Module, Shutter, Switch
 from .netatmo import (
     NCO,
     NDB,
@@ -30,7 +30,6 @@ from .netatmo import (
     OTH,
     OTM,
     Location,
-    Module,
     NACamDoorTag,
     NACamera,
     NAMain,

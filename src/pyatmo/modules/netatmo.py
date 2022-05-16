@@ -16,6 +16,7 @@ from pyatmo.const import (
     STATION_HUMIDITY_TYPE,
     STATION_PRESSURE_TYPE,
     STATION_TEMPERATURE_TYPE,
+    RawData,
 )
 from pyatmo.modules.module import (
     BatteryMixin,
@@ -181,7 +182,7 @@ class PublicWeatherArea:
     location: Location
     required_data_type: str | None
     filtering: bool
-    modules: list[dict]
+    modules: list[dict[str, Any]]
 
     def __init__(
         self,
@@ -202,7 +203,7 @@ class PublicWeatherArea:
         self.required_data_type = required_data_type
         self.filtering = filtering
 
-    def update(self, raw_data: dict) -> None:
+    def update(self, raw_data: RawData) -> None:
         """Update public weather area with latest data."""
         self.modules = []
         for station in raw_data.get("public", []):
@@ -212,38 +213,38 @@ class PublicWeatherArea:
         """Return available number of stations in area."""
         return len(self.modules)
 
-    def get_latest_rain(self) -> dict:
+    def get_latest_rain(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_RAIN_LIVE_TYPE)
 
-    def get_60_min_rain(self) -> dict:
+    def get_60_min_rain(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_RAIN_60MIN_TYPE)
 
-    def get_24_h_rain(self) -> dict:
+    def get_24_h_rain(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_RAIN_24H_TYPE)
 
-    def get_latest_pressures(self) -> dict:
+    def get_latest_pressures(self) -> dict[str, Any]:
         return self.get_latest_station_measures(STATION_PRESSURE_TYPE)
 
-    def get_latest_temperatures(self) -> dict:
+    def get_latest_temperatures(self) -> dict[str, Any]:
         return self.get_latest_station_measures(STATION_TEMPERATURE_TYPE)
 
-    def get_latest_humidities(self) -> dict:
+    def get_latest_humidities(self) -> dict[str, Any]:
         return self.get_latest_station_measures(STATION_HUMIDITY_TYPE)
 
-    def get_latest_wind_strengths(self) -> dict:
+    def get_latest_wind_strengths(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_WIND_STRENGTH_TYPE)
 
-    def get_latest_wind_angles(self) -> dict:
+    def get_latest_wind_angles(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_WIND_ANGLE_TYPE)
 
-    def get_latest_gust_strengths(self) -> dict:
+    def get_latest_gust_strengths(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_GUST_STRENGTH_TYPE)
 
-    def get_latest_gust_angles(self) -> dict:
+    def get_latest_gust_angles(self) -> dict[str, Any]:
         return self.get_accessory_data(ACCESSORY_GUST_ANGLE_TYPE)
 
-    def get_latest_station_measures(self, data_type) -> dict:
-        measures: dict = {}
+    def get_latest_station_measures(self, data_type: str) -> dict[str, Any]:
+        measures: dict[str, Any] = {}
         for station in self.modules:
             for module in station["measures"].values():
                 if (
@@ -261,7 +262,7 @@ class PublicWeatherArea:
         return measures
 
     def get_accessory_data(self, data_type: str) -> dict[str, Any]:
-        data: dict = {}
+        data: dict[str, Any] = {}
         for station in self.modules:
             for module in station["measures"].values():
                 if data_type in module:

@@ -7,6 +7,7 @@ from calendar import timegm
 from datetime import datetime
 from typing import Any
 
+from pyatmo.const import RawData
 from pyatmo.exceptions import NoDevice
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -25,12 +26,14 @@ def today_stamps() -> tuple[int, int]:
     return today, today + 3600 * 24
 
 
-def fix_id(raw_data: dict) -> dict:
+def fix_id(raw_data: RawData) -> dict[str, Any]:
     """Fix known errors in station ids like superfluous spaces."""
     if not raw_data:
         return raw_data
 
     for station in raw_data:
+        if not isinstance(station, dict):
+            continue
         if "_id" not in station:
             continue
 
@@ -42,7 +45,7 @@ def fix_id(raw_data: dict) -> dict:
     return raw_data
 
 
-def extract_raw_data(resp: Any, tag: str) -> dict:
+def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
     """Extract raw data from server response."""
     if (
         resp is None
@@ -60,9 +63,9 @@ def extract_raw_data(resp: Any, tag: str) -> dict:
     return raw_data
 
 
-def extract_raw_data_new(resp: Any, tag: str) -> dict:
+def extract_raw_data_new(resp: Any, tag: str) -> dict[str, Any]:
     """Extract raw data from server response."""
-    raw_data: dict | list = {}
+    raw_data = {}
 
     if tag == "body":
         return {"public": resp["body"], "errors": []}

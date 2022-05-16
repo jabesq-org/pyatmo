@@ -90,7 +90,7 @@ class NetatmoOAuth2:
             scope=self.scope,
         )
 
-    def refresh_tokens(self) -> dict[str, str | int]:
+    def refresh_tokens(self) -> Any:
         """Refresh and return new tokens."""
         token = self._oauth.refresh_token(
             self.base_url + AUTH_REQ_ENDPOINT,
@@ -105,7 +105,7 @@ class NetatmoOAuth2:
     def post_api_request(
         self,
         endpoint: str,
-        params: dict | None = None,
+        params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> requests.Response:
         return self.post_request(
@@ -117,7 +117,7 @@ class NetatmoOAuth2:
     def post_request(
         self,
         url: str,
-        params: dict | None = None,
+        params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> requests.Response:
         """Wrapper for post requests."""
@@ -140,7 +140,12 @@ class NetatmoOAuth2:
 
         else:
 
-            def query(url: str, params: dict, timeout: int, retries: int) -> Any:
+            def query(
+                url: str,
+                params: dict[str, Any],
+                timeout: int,
+                retries: int,
+            ) -> Any:
                 if retries == 0:
                     LOG.error("Too many retries")
                     return requests.Response()
@@ -195,14 +200,14 @@ class NetatmoOAuth2:
 
         return requests.Response()
 
-    def get_authorization_url(self, state: str | None = None) -> tuple:
+    def get_authorization_url(self, state: str | None = None) -> Any:
         return self._oauth.authorization_url(self.base_url + AUTH_URL_ENDPOINT, state)
 
     def request_token(
         self,
         authorization_response: str | None = None,
         code: str | None = None,
-    ) -> dict[str, str]:
+    ) -> Any:
         """
         Generic method for fetching a Netatmo access token.
         :param authorization_response: Authorization response URL, the callback
@@ -260,7 +265,7 @@ class ClientAuth(NetatmoOAuth2):
         client_secret: str,
         username: str,
         password: str,
-        scope="read_station",
+        scope: str = "read_station",
         user_prefix: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
     ):
@@ -306,7 +311,7 @@ class AbstractAsyncAuth(ABC):
         self,
         endpoint: str,
         base_url: str | None = None,
-        params: dict | None = None,
+        params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> bytes:
         """Wrapper for async get requests."""
@@ -341,7 +346,7 @@ class AbstractAsyncAuth(ABC):
         self,
         endpoint: str,
         base_url: str | None = None,
-        params: dict | None = None,
+        params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> ClientResponse:
         return await self.async_post_request(
@@ -353,7 +358,7 @@ class AbstractAsyncAuth(ABC):
     async def async_post_request(
         self,
         url: str,
-        params: dict | None = None,
+        params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> ClientResponse:
         """Wrapper for async post requests."""

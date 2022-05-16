@@ -4,8 +4,9 @@ from __future__ import annotations
 import logging
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Any, Iterable
 
+from pyatmo.const import RawData
 from pyatmo.modules.device_types import DeviceType
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ NETATMO_ATTRIBUTES_MAP = {
 }
 
 
-def default(key, val):
+def default(key: str, val: Any) -> Any:
     return lambda x, _: x.get(key, val)
 
 
@@ -40,11 +41,11 @@ class EntityBase:
 class NetatmoBase(EntityBase, ABC):
     """Base class for Netatmo entities."""
 
-    def __init__(self, raw_data: dict) -> None:
+    def __init__(self, raw_data: RawData) -> None:
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", f"Unknown {self.entity_id}")
 
-    def update_topology(self, raw_data: dict) -> None:
+    def update_topology(self, raw_data: RawData) -> None:
         self._update_attributes(raw_data)
 
         if (
@@ -54,7 +55,7 @@ class NetatmoBase(EntityBase, ABC):
         ):
             self.name = f"{self.home.modules[self.bridge].name} {self.name}"
 
-    def _update_attributes(self, raw_data: dict) -> None:
+    def _update_attributes(self, raw_data: RawData) -> None:
         self.__dict__ = {
             key: NETATMO_ATTRIBUTES_MAP.get(key, default(key, val))(raw_data, val)
             for key, val in self.__dict__.items()
@@ -70,7 +71,7 @@ class Location:
         self.latitude = latitude
         self.longitude = longitude
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterable[float]:
         yield self.longitude
         yield self.latitude
 
@@ -85,7 +86,7 @@ class Place:
 
     def __init__(
         self,
-        data: dict,
+        data: dict[str, Any],
     ) -> None:
         if data is None:
             return

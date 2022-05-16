@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from aiohttp import ClientResponse
 
 from pyatmo import modules
 from pyatmo.const import (
@@ -14,6 +16,7 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     SETTHERMMODE_ENDPOINT,
     SWITCHHOMESCHEDULE_ENDPOINT,
+    RawData,
 )
 from pyatmo.event import Event
 from pyatmo.exceptions import InvalidState, NoSchedule
@@ -39,7 +42,7 @@ class Home:
     persons: dict[str, Person]
     events: dict[str, Event]
 
-    def __init__(self, auth: AbstractAsyncAuth, raw_data: dict) -> None:
+    def __init__(self, auth: AbstractAsyncAuth, raw_data: RawData) -> None:
         self.auth = auth
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
@@ -67,7 +70,7 @@ class Home:
         }
         self.events = {}
 
-    def update_topology(self, raw_data: dict) -> None:
+    def update_topology(self, raw_data: RawData) -> None:
         self.name = raw_data.get("name", "Unknown")
 
         raw_modules = raw_data.get("modules", [])
@@ -104,7 +107,7 @@ class Home:
             for s in raw_data.get(SCHEDULES, [])
         }
 
-    async def update(self, raw_data: dict) -> None:
+    async def update(self, raw_data: RawData) -> None:
         for module in raw_data.get("errors", []):
             await self.modules[module["id"]].update({})
 
@@ -158,8 +161,8 @@ class Home:
     async def async_set_thermmode(
         self,
         mode: str,
-        end_time: int = None,
-        schedule_id: str = None,
+        end_time: int | None = None,
+        schedule_id: str | None = None,
     ) -> bool:
         """Set thermotat mode."""
         if schedule_id is not None and not self.is_valid_schedule(
@@ -210,7 +213,7 @@ class Home:
 
         return False
 
-    async def async_set_state(self, data: dict) -> bool:
+    async def async_set_state(self, data: dict[str, Any]) -> bool:
         """Set state using given data."""
         if not is_valid_state(data):
             raise InvalidState("Data for '/set_state' contains errors.")
@@ -229,10 +232,10 @@ class Home:
 
     async def async_set_persons_home(
         self,
-        person_ids: list[str] = None,
-    ):
+        person_ids: list[str] | None = None,
+    ) -> ClientResponse:
         """Mark persons as home."""
-        post_params: dict[str, str | list] = {"home_id": self.entity_id}
+        post_params: dict[str, Any] = {"home_id": self.entity_id}
         if person_ids:
             post_params["person_ids[]"] = person_ids
         return await self.auth.async_post_request(
@@ -240,7 +243,10 @@ class Home:
             params=post_params,
         )
 
-    async def async_set_persons_away(self, person_id: str | None = None):
+    async def async_set_persons_away(
+        self,
+        person_id: str | None = None,
+    ) -> ClientResponse:
         """Mark a person as away or set the whole home to being empty."""
         post_params = {"home_id": self.entity_id}
         if person_id:
@@ -251,6 +257,6 @@ class Home:
         )
 
 
-def is_valid_state(data: dict) -> bool:
+def is_valid_state(data: dict[str, Any]) -> bool:
     """Check set state data."""
     return data is not None

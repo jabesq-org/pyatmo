@@ -1,6 +1,8 @@
 """Common constants."""
 from __future__ import annotations
 
+from typing import Any, Dict
+
 ERRORS: dict[int, str] = {
     400: "Bad request",
     401: "Unauthorized",
@@ -11,6 +13,9 @@ ERRORS: dict[int, str] = {
     502: "Bad Gateway",
     503: "Service Unavailable",
 }
+
+# Special types
+RawData = Dict[str, Any]
 
 DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
 

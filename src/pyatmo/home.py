@@ -8,7 +8,6 @@ from aiohttp import ClientResponse
 
 from pyatmo import modules
 from pyatmo.const import (
-    DEFAULT_BASE_URL,
     EVENTS,
     SCHEDULES,
     SETPERSONSAWAY_ENDPOINT,
@@ -187,8 +186,8 @@ class Home:
             schedule_id,
         )
 
-        resp = await self.auth.async_post_request(
-            url=DEFAULT_BASE_URL + SETTHERMMODE_ENDPOINT,
+        resp = await self.auth.async_post_api_request(
+            endpoint=SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
 
@@ -203,8 +202,8 @@ class Home:
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
-        resp = await self.auth.async_post_request(
-            url=DEFAULT_BASE_URL + SWITCHHOMESCHEDULE_ENDPOINT,
+        resp = await self.auth.async_post_api_request(
+            endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
 
@@ -220,8 +219,8 @@ class Home:
 
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
 
-        resp = await self.auth.async_post_request(
-            url=DEFAULT_BASE_URL + SETSTATE_ENDPOINT,
+        resp = await self.auth.async_post_api_request(
+            endpoint=SETSTATE_ENDPOINT,
             params={"json": {"home": {"id": self.entity_id, **data}}},
         )
 
@@ -238,8 +237,8 @@ class Home:
         post_params: dict[str, Any] = {"home_id": self.entity_id}
         if person_ids:
             post_params["person_ids[]"] = person_ids
-        return await self.auth.async_post_request(
-            url=DEFAULT_BASE_URL + SETPERSONSHOME_ENDPOINT,
+        return await self.auth.async_post_api_request(
+            endpoint=SETPERSONSHOME_ENDPOINT,
             params=post_params,
         )
 
@@ -251,8 +250,8 @@ class Home:
         post_params = {"home_id": self.entity_id}
         if person_id:
             post_params["person_id"] = person_id
-        return await self.auth.async_post_request(
-            url=DEFAULT_BASE_URL + SETPERSONSAWAY_ENDPOINT,
+        return await self.auth.async_post_api_request(
+            endpoint=SETPERSONSAWAY_ENDPOINT,
             params=post_params,
         )
 

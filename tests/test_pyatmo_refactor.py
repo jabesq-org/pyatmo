@@ -298,7 +298,7 @@ async def test_async_climate_switch_schedule(
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ):
         with expected:
@@ -313,7 +313,7 @@ async def test_async_home_data_no_body(async_auth):
         json_fixture = json.load(fixture_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ) as mock_request:
         climate = pyatmo.AsyncAccount(async_auth)
@@ -367,7 +367,7 @@ async def test_async_climate_room_therm_set(
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_post:
         room = async_home.rooms[room_id]
@@ -378,7 +378,7 @@ async def test_async_climate_room_therm_set(
             end_time=end_time,
         )
         mock_post.assert_awaited_once_with(
-            url="https://api.netatmo.com/api/setroomthermpoint",
+            endpoint="api/setroomthermpoint",
             params=expected_params,
         )
 
@@ -466,7 +466,7 @@ async def test_async_climate_set_thermmode(
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ), exception:
         resp = await async_home.async_set_thermmode(
@@ -483,7 +483,7 @@ async def test_async_climate_empty_home(async_account):
     home_id = "91763b24c43d3e344f424e8c"
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         fake_post_request,
     ):
         await async_account.async_update_status(home_id)
@@ -524,43 +524,43 @@ async def test_async_shutters(async_home):
         }
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_resp:
         assert await module.async_open()
         mock_resp.assert_awaited_with(
             params=gen_json_data(100),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_close()
         mock_resp.assert_awaited_with(
             params=gen_json_data(0),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_stop()
         mock_resp.assert_awaited_with(
             params=gen_json_data(-1),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_set_target_position(47)
         mock_resp.assert_awaited_with(
             params=gen_json_data(47),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_set_target_position(-10)
         mock_resp.assert_awaited_with(
             params=gen_json_data(-1),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_set_target_position(101)
         mock_resp.assert_awaited_with(
             params=gen_json_data(100),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
 
@@ -595,25 +595,25 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
         }
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_resp:
         assert await module.async_floodlight_on()
         mock_resp.assert_awaited_with(
             params=gen_json_data("on"),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_floodlight_off()
         mock_resp.assert_awaited_with(
             params=gen_json_data("off"),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_floodlight_auto()
         mock_resp.assert_awaited_with(
             params=gen_json_data("auto"),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
 
@@ -645,19 +645,19 @@ async def test_async_camera_monitoring(async_home):
         }
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_resp:
         assert await module.async_monitoring_on()
         mock_resp.assert_awaited_with(
             params=gen_json_data("on"),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
         assert await module.async_monitoring_off()
         mock_resp.assert_awaited_with(
             params=gen_json_data("off"),
-            url="https://api.netatmo.com/api/setstate",
+            endpoint="api/setstate",
         )
 
 
@@ -932,14 +932,14 @@ async def test_async_set_persons_home(async_account):
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_resp:
         await home.async_set_persons_home(person_ids)
 
         mock_resp.assert_awaited_with(
             params={"home_id": home_id, "person_ids[]": person_ids},
-            url="https://api.netatmo.com/api/setpersonshome",
+            endpoint="api/setpersonshome",
         )
 
 
@@ -953,7 +953,7 @@ async def test_async_set_persons_away(async_account):
         response = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
     ) as mock_resp:
         person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
@@ -961,14 +961,14 @@ async def test_async_set_persons_away(async_account):
 
         mock_resp.assert_awaited_with(
             params={"home_id": home_id, "person_id": person_id},
-            url="https://api.netatmo.com/api/setpersonsaway",
+            endpoint="api/setpersonsaway",
         )
 
         await home.async_set_persons_away()
 
         mock_resp.assert_awaited_with(
             params={"home_id": home_id},
-            url="https://api.netatmo.com/api/setpersonsaway",
+            endpoint="api/setpersonsaway",
         )
 
 

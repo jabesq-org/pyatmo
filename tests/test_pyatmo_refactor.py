@@ -1,9 +1,10 @@
 """Define tests for climate module."""
+import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from freezegun import freeze_time
+import time_machine
 
 import pyatmo
 from pyatmo import DeviceType, NoDevice, NoSchedule
@@ -1076,7 +1077,7 @@ async def test_home_event_update(async_account):
     assert events[1].event_type == "connection"
 
 
-@freeze_time("2022-02-12 07:59:49")
+@time_machine.travel(dt.datetime(2022, 2, 12, 7, 59, 49))
 @pytest.mark.asyncio
 async def test_historical_data_retrieval(async_account):
     """Test retrieval of historical measurements."""

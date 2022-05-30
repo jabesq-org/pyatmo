@@ -92,16 +92,12 @@ class WindMixin(EntityBase):
     @property
     def wind_direction(self) -> str | None:
         """Return wind direction."""
-        if self.wind_angle is None:
-            return None
-        return process_angle(self.wind_angle)
+        return None if self.wind_angle is None else process_angle(self.wind_angle)
 
     @property
     def gust_direction(self) -> str | None:
         """Return gust direction."""
-        if self.gust_angle is None:
-            return None
-        return process_angle(self.gust_angle)
+        return None if self.gust_angle is None else process_angle(self.gust_angle)
 
 
 def process_angle(angle: int) -> str:
@@ -476,7 +472,7 @@ class HistoryMixin(EntityBase):
         data = raw_data["body"][0]
         self.start_time = int(data["beg_time"])
         interval_sec = int(data["step_time"])
-        interval_min = int(interval_sec / 60)
+        interval_min = interval_sec // 60
 
         self.historical_data = []
         start_time = self.start_time
@@ -485,12 +481,15 @@ class HistoryMixin(EntityBase):
             self.historical_data.append(
                 {
                     "duration": interval_min,
-                    "startTime": datetime.utcfromtimestamp(start_time + 1).isoformat()
+                    "startTime": datetime.utcfromtimestamp(
+                        start_time + 1
+                    ).isoformat()
                     + "Z",
-                    "endTime": datetime.utcfromtimestamp(end_time).isoformat() + "Z",
+                    "endTime": f"{datetime.utcfromtimestamp(end_time).isoformat()}Z",
                     "Wh": value[0],
-                },
+                }
             )
+
             start_time = end_time
 
 

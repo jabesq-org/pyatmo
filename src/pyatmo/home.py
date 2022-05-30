@@ -136,10 +136,14 @@ class Home:
 
     def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""
-        for schedule in self.schedules.values():
-            if schedule.selected:
-                return schedule
-        return None
+        return next(
+            (
+                schedule
+                for schedule in self.schedules.values()
+                if schedule.selected
+            ),
+            None,
+        )
 
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""

@@ -546,7 +546,9 @@ class Camera(
     WifiMixin,
     Module,
 ):
-    ...
+    async def update(self, raw_data: RawData) -> None:
+        await Module.update(self, raw_data)
+        await self.async_update_camera_urls()
 
 
 class Switch(FirmwareMixin, PowerMixin, SwitchMixin, Module):

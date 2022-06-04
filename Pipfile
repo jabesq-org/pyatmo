@@ -19,16 +19,13 @@ pytest-asyncio = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 requests-mock = "*"
-tox = "~=3.25"
+tox = ">=3.25"
 twine = "*"
 
 [packages]
 requests = "*"
 requests-oauthlib = "*"
 aiohttp = ">=3.7.4"
-
-[requires]
-python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true

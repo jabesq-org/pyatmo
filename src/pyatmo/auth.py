@@ -326,7 +326,7 @@ class AbstractAsyncAuth(ABC):
         url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,
-            **req_args,
+            **req_args,  # type: ignore
             headers=headers,
             timeout=timeout,
         ) as resp:

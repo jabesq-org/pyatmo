@@ -148,7 +148,7 @@ class Room(NetatmoBase):
             "room_id": self.entity_id,
             "mode": mode,
         }
-        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # Temp and endtime should only be sent when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             post_params["temp"] = str(temp)

@@ -459,7 +459,7 @@ class CameraData(AbstractCameraData):
         """Initialize the Netatmo camera data.
 
         Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            auth {NetatmoOAuth2} -- Authentication information with valid access token
         """
         self.auth = auth
 
@@ -644,7 +644,7 @@ class AsyncCameraData(AbstractCameraData):
         """Initialize the Netatmo camera data.
 
         Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            auth {AbstractAsyncAuth} -- Authentication information with valid access token
         """
         self.auth = auth
 

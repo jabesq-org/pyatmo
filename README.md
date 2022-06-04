@@ -19,7 +19,7 @@ To install pyatmo simply run:
     pip install pyatmo
 
 Depending on your permissions you might be required to use sudo.
-Once installed you can simple add `pyatmo` to your Python 3 scripts by including:
+Once installed you can simply add `pyatmo` to your Python 3 scripts by including:
 
     import pyatmo
 

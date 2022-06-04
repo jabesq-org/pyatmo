@@ -210,10 +210,9 @@ class NetatmoOAuth2:
     ) -> Any:
         """
         Generic method for fetching a Netatmo access token.
-        :param authorization_response: Authorization response URL, the callback
-                                       URL of the request back to you.
-        :param code: Authorization code
-        :return: A token dict
+        :param authorization_response: Authorization response URL, the callback URL of the request back to you.
+        :param code: Authorization code.
+        :return: A token dict.
         """
         return self._oauth.fetch_token(
             self.base_url + AUTH_REQ_ENDPOINT,

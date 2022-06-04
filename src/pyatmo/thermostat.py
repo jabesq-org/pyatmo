@@ -110,7 +110,7 @@ class HomeData(AbstractHomeData):
         """Initialize the Netatmo home data.
 
         Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            auth {NetatmoOAuth2} -- Authentication information with valid access token
         """
         self.auth = auth
 
@@ -141,7 +141,7 @@ class AsyncHomeData(AbstractHomeData):
         """Initialize the Netatmo home data.
 
         Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            auth {AbstractAsyncAuth} -- Authentication information with valid access token
         """
         self.auth = auth
 
@@ -289,7 +289,7 @@ class HomeStatus(AbstractHomeStatus):
     ) -> str | None:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
-        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # Temp and endtime should only be sent when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             post_params["temp"] = str(temp)
@@ -357,7 +357,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
     ) -> str | None:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
-        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # Temp and endtime should only be sent when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             post_params["temp"] = str(temp)

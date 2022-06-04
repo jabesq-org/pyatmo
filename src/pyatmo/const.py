@@ -63,7 +63,7 @@ ALL_SCOPES = [
     "read_mx",  # BTicino Classe 300 EOS
     "read_presence",  # Netatmo Smart Outdoor Camera
     "read_smarther",  # Smarther with Netatmo thermostat
-    "read_smokedetector",  # Smart Smoke Alarm informations and events
+    "read_smokedetector",  # Smart Smoke Alarm information and events
     "read_station",  # Netatmo weather station
     "read_thermostat",  # Netatmo climate products
     "write_bubendorff",  # Bubbendorf shutters

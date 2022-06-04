@@ -34,7 +34,7 @@ class AsyncAccount:
         """Initialize the Netatmo account.
 
         Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            auth {AbstractAsyncAuth} -- Authentication information with valid access token
         """
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None

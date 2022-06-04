@@ -17,7 +17,7 @@ LAT_SW = "46.596485"
 
 
 def tty_print(message: str) -> None:
-    """Print to stdout if in a interactive terminal."""
+    """Print to stdout if in an interactive terminal."""
     if sys.stdout.isatty():
         print(message)
 

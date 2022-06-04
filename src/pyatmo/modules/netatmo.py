@@ -204,7 +204,7 @@ class PublicWeatherArea:
         self.filtering = filtering
 
     def update(self, raw_data: RawData) -> None:
-        """Update public weather area with latest data."""
+        """Update public weather area with the latest data."""
         self.modules = list(raw_data.get("public", []))
 
     def stations_in_area(self) -> int:

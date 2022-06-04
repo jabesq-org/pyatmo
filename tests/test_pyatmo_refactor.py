@@ -11,7 +11,6 @@ from pyatmo import DeviceType, NoDevice, NoSchedule
 from pyatmo.modules import NATherm1
 from pyatmo.modules.base_class import Location, Place
 from pyatmo.modules.device_types import DeviceCategory
-
 from tests.common import fake_post_request
 from tests.conftest import MockResponse, does_not_raise
 

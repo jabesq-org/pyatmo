@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 import pyatmo
-
 from tests.conftest import MockResponse, does_not_raise
 
 LON_NE = "6.221652"

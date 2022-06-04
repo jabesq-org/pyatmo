@@ -5,7 +5,6 @@ import json
 import pytest
 
 import pyatmo
-
 from tests.conftest import does_not_raise
 
 

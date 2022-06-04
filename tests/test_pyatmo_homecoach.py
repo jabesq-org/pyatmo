@@ -59,7 +59,7 @@ def test_home_coach_data_no_devices(auth, requests_mock):
     with open("fixtures/home_coach_no_devices.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.home_coach._GETHOMECOACHDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMECOACHDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

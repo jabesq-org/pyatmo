@@ -2,7 +2,7 @@
 
 > 2013-01-21, philippelt@users.sourceforge.net
 
-> 2014-01-13, Revision to include new modules additionnal informations
+> 2014-01-13, Revision to include new modules additionnal information
 
 > 2016-06-25 Update documentation for Netatmo Welcome
 
@@ -14,7 +14,7 @@ More information about the Netatmo REST API can be obtained from http://dev.neta
 
 This package support only user based authentication.
 
-### 1 Setup your environment from Netatmo Web interface
+### 1 Set up your environment from Netatmo Web interface
 
 Before being able to use the module you will need :
 
@@ -85,7 +85,7 @@ The user must have named the sensors indoor and outdoor through the Web interfac
 
 The Netatmo design is based on stations (usually the in-house module) and modules (radio sensors reporting to a station, usually an outdoor sensor).
 
-Sensor design is not exactly the same for station and external modules and they are not addressed the same way wether in the station or an external module. This is a design issue of the API that restrict the ability to write generic code that could work for station sensor the same way than other modules sensors. The station role (the reporting device) and module role (getting environmental data) should not have been mixed. The fact that a sensor is physically built in the station should not interfere with this two distincts objects.
+Sensor design is not exactly the same for station and external modules, and they are not addressed the same way wether in the station or an external module. This is a design issue of the API that restrict the ability to write generic code that could work for station sensor the same way as other modules sensors. The station role (the reporting device) and module role (getting environmental data) should not have been mixed. The fact that a sensor is physically built in the station should not interfere with this two distincts objects.
 
 The consequence is that, for the API, we will use terms of station data (for the sensors inside the station) and module data (for external(s) module). Lookup methods like module_by_name look for external modules and **NOT station
 modules**.
@@ -94,8 +94,8 @@ Having two roles, the station has a 'station_name' property as well as a 'module
 
 > Exception : to reflect again the API structure, the last data uploaded by the station is indexed by module_name (wether it is a station module or an external module).
 
-Sensors (stations and modules) are managed in the API using ID's (network hardware adresses). The Netatmo web account management gives you the capability to associate names to station sensor and module (and to the station itself). This is by far more comfortable and the interface provides service to locate a station or a module by name or by Id depending of your taste. Module lookup by name includes the optional station name in case
-multiple stations would have similar module names (if you monitor multiple stations/locations, it would not be a surprise that each of them would have an 'outdoor' module). This is a benefit in the sense it give you the ability to write generic code (for example, collect all 'outdoor' temperatures for all your stations).
+Sensors (stations and modules) are managed in the API using ID's (network hardware adresses). The Netatmo web account management gives you the capability to associate names to station sensor and module (and to the station itself). This is by far more comfortable and the interface provides service to locate a station or a module by name or by ID depending on your taste. Module lookup by name includes the optional station name in case
+multiple stations would have similar module names (if you monitor multiple stations/locations, it would not be a surprise that each of them would have an 'outdoor' module). This is a benefit in the sense it gives you the ability to write generic code (for example, collect all 'outdoor' temperatures for all your stations).
 
 The results are Python data structures, mostly dictionaries as they mirror easily the JSON returned data. All supplied classes provides simple properties to use as well as access to full data returned by the netatmo web services (rawData property for most classes).
 
@@ -103,11 +103,9 @@ The results are Python data structures, mostly dictionaries as they mirror easil
 
 #### 4-1 Global variables
 
-```python
-_BASE_URL and _*_REQ : Various URL to access Netatmo web services. They are
-documented in http://dev.netatmo.com/doc/ They should not be changed unless
-Netatmo API changes.
-```
+`_DEFAULT_BASE_URL` and `_*_REQ`: Various URL to access Netatmo web services.
+They are documented in https://dev.netatmo.com/doc/.
+They should not be changed unless Netatmo API changes.
 
 #### 4-2 ClientAuth class
 
@@ -120,6 +118,8 @@ authorization = pyatmo.ClientAuth(
     username=USERNAME,
     password=PASSWORD,
     scope="read_station",
+    base_url="https://example.com/api",  #optional
+    user_prefix="xmpl",                  #optional
 )
 ```
 
@@ -132,6 +132,8 @@ Properties, all properties are read-only unless specified :
 - **accessToken** : Retrieve a valid access token (renewed if necessary)
 - **refreshToken** : The token used to renew the access token (normally should not be used)
 - **expiration** : The expiration time (epoch) of the current token
+- **base_url** : If targeting a third-party Netatmo-compatible API, the custom base URL to reach it
+- **user_prefix** : If targeting a third-part Netatmo-compatible API, the custom user prefix for this API
 - **scope** : The scope of the required access token (what will it be used for) default to read_station to provide backward compatibility.
 
 Possible values for scope are :
@@ -169,24 +171,24 @@ Properties, all properties are read-only unless specified:
 
 Methods :
 
-- **station_by_name** (station=None) : Find a station by it's station name
+- **station_by_name** (station=None) : Find a station by it is station name
 
   - Input : Station name to lookup (str)
   - Output : station dictionary or None
 
-- **station_by_id** (sid) : Find a station by it's Netatmo ID (mac address)
+- **station_by_id** (sid) : Find a station by it is Netatmo ID (mac address)
 
   - Input : Station ID
   - Output : station dictionary or None
 
-- **module_by_name** (module, station=None) : Find a module by it's module name
+- **module_by_name** (module, station=None) : Find a module by it is module name
 
   - Input : module name and optional station name
   - Output : module dictionary or None
 
   The station name parameter, if provided, is used to check wether the module belongs to the appropriate station (in case multiple stations would have same module name).
 
-- **module_by_id** (mid, sid=None) : Find a module by it's ID and belonging station's ID
+- **module_by_id** (mid, sid=None) : Find a module by it is ID and belonging station's ID
 
   - Input : module ID and optional Station ID
   - Output : module dictionary or None
@@ -254,7 +256,7 @@ for m in weather_data.check_not_updated("<optional station name>"):
     _ "last24" : For a shifting window of the last 24 hours
     _ "day" : For all available data in the current day
     _ Output :
-    \_ A 4 values tuple (Temp mini, Temp maxi, Humid mini, Humid maxi)
+    \_  4 values tuple (Temp mini, Temp maxi, Humid mini, Humid maxi)
 
          >Note : I have been obliged to determine the min and max manually, the built-in service in the API doesn't always provide the actual min and max. The double parameter (scale) and aggregation request (min, max) is not satisfying
 
@@ -293,7 +295,7 @@ Methods :
   - Input : Home ID
   - Output : home dictionary or None
 
-- **home_by_name** (home=None) : Find a home by it's home name
+- **home_by_name** (home=None) : Find a home by its home name
 
   - Input : home name to lookup (str)
   - Output : home dictionary or None
@@ -303,7 +305,7 @@ Methods :
   - Input : camera ID
   - Output : camera dictionary or None
 
-- **camera_by_name** (camera=None, home=None) : Find a camera by it's camera name
+- **camera_by_name** (camera=None, home=None) : Find a camera by its camera name
 
   - Input : camera name and home name to lookup (str)
   - Output : camera dictionary or None
@@ -397,7 +399,7 @@ Methods :
   - Input : module ID
   - Output : module dictionary or None
 
-- **module_by_name** (module=None, device=None) : Find a module by it's module name
+- **module_by_name** (module=None, device=None) : Find a module by its module name
 
   - Input : module name and device name to lookup (str)
   - Output : module dictionary or None

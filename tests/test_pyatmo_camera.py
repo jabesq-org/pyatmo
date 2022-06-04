@@ -1,9 +1,10 @@
 """Define tests for Camera module."""
 # pylint: disable=protected-access
+import datetime as dt
 import json
 
 import pytest
-from freezegun import freeze_time
+import time_machine
 
 import pyatmo
 
@@ -18,7 +19,7 @@ def test_home_data_no_body(auth, requests_mock):
     with open("fixtures/camera_data_empty.json", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.camera._GETHOMEDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -34,7 +35,7 @@ def test_home_data_no_homes(auth, requests_mock):
     ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.camera._GETHOMEDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -73,14 +74,15 @@ def test_camera_data_camera_urls(camera_home_data, requests_mock):
     with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        vpn_url + "/command/ping",
+        f"{vpn_url}/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
+
     with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        local_url + "/command/ping",
+        f"{local_url}/command/ping",
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -108,7 +110,7 @@ def test_camera_data_camera_urls_disconnected(auth, camera_ping, requests_mock):
     ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.camera._GETHOMEDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMEDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -129,7 +131,7 @@ def test_camera_data_persons_at_home(camera_home_data, home_id, expected):
     assert camera_home_data.persons_at_home(home_id) == expected
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "name, cid, exclude, expected",
     [
@@ -173,7 +175,7 @@ def test_camera_data_known_persons_names(camera_home_data):
     ]
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "name, home_id, expected",
     [
@@ -228,7 +230,7 @@ def test_camera_data_set_persons_away(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
-        pyatmo.camera._SETPERSONSAWAY_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETPERSONSAWAY_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -279,7 +281,7 @@ def test_camera_data_set_persons_home(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     mock_req = requests_mock.post(
-        pyatmo.camera._SETPERSONSHOME_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETPERSONSHOME_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -299,7 +301,7 @@ def test_camera_data_set_persons_home(
         assert mock_req.request_history[0].text == f"home_id={home_id}"
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "camera_id, exclude, expected, expectation",
     [
@@ -320,7 +322,7 @@ def test_camera_data_someone_known_seen(
         assert camera_home_data.someone_known_seen(camera_id, exclude) == expected
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "camera_id, exclude, expected, expectation",
     [
@@ -341,7 +343,7 @@ def test_camera_data_someone_unknown_seen(
         assert camera_home_data.someone_unknown_seen(camera_id, exclude) == expected
 
 
-@freeze_time("2019-06-16")
+@time_machine.travel(dt.datetime(2019, 6, 16))
 @pytest.mark.parametrize(
     "camera_id, exclude, expected, expectation",
     [
@@ -372,8 +374,7 @@ def test_camera_data_motion_detected(
     ],
 )
 def test_camera_data_get_smokedetector(camera_home_data, sid, expected):
-    smokedetector = camera_home_data.get_smokedetector(sid)
-    if smokedetector:
+    if smokedetector := camera_home_data.get_smokedetector(sid):
         assert smokedetector["name"] == expected
     else:
         assert smokedetector is expected
@@ -438,7 +439,7 @@ def test_camera_data_set_state(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.camera._SETSTATE_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETSTATE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -468,7 +469,10 @@ def test_camera_data_get_camera_picture(camera_home_data, requests_mock):
     ) as fixture_file:
         expect = fixture_file.read()
 
-    requests_mock.post(pyatmo.camera._GETCAMERAPICTURE_REQ, content=expect)
+    requests_mock.post(
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETCAMERAPICTURE_ENDPOINT,
+        content=expect,
+    )
 
     assert camera_home_data.get_camera_picture(image_id, key) == (expect, "jpeg")
 
@@ -480,7 +484,10 @@ def test_camera_data_get_profile_image(camera_home_data, requests_mock):
     ) as fixture_file:
         expect = fixture_file.read()
 
-    requests_mock.post(pyatmo.camera._GETCAMERAPICTURE_REQ, content=expect)
+    requests_mock.post(
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETCAMERAPICTURE_ENDPOINT,
+        content=expect,
+    )
     assert camera_home_data.get_profile_image(
         "John Doe",
         "91763b24c43d3e344f424e8b",
@@ -520,7 +527,7 @@ def test_camera_data_update_events(
     ) as fixture_file:
         json_fixture = json.load(fixture_file)
     requests_mock.post(
-        pyatmo.camera._GETEVENTSUNTIL_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETEVENTSUNTIL_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

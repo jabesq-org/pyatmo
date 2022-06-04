@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 import pyatmo
-
 from tests.conftest import MockResponse, does_not_raise
 
 LON_NE = "6.221652"
@@ -23,13 +22,17 @@ async def test_async_auth(async_auth, mocker):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=mock_resp),
+    ) as mock_api_request, patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
         await camera_data.async_update()
 
-        mock_request.assert_called()
+        mock_api_request.assert_awaited()
+        mock_request.assert_awaited()
         assert camera_data.homes is not None
 
 
@@ -44,14 +47,14 @@ async def test_async_home_data_no_body(async_auth):
         json_fixture = json.load(fixture_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
 
     with pytest.raises(pyatmo.NoDevice):
         await camera_data.async_update()
-        mock_request.assert_called()
+        mock_request.assert_awaited()
 
 
 @pytest.mark.asyncio
@@ -63,14 +66,14 @@ async def test_async_home_data_no_homes(async_auth):
         json_fixture = json.load(fixture_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ) as mock_request:
         camera_data = pyatmo.AsyncCameraData(async_auth)
 
     with pytest.raises(pyatmo.NoDevice):
         await camera_data.async_update()
-        mock_request.assert_called()
+        mock_request.assert_awaited()
 
 
 @pytest.mark.asyncio
@@ -88,13 +91,13 @@ async def test_async_public_data(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ) as mock_request:
         public_data = pyatmo.AsyncPublicData(async_auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
         await public_data.async_update()
 
-        mock_request.assert_called()
+        mock_request.assert_awaited()
         assert public_data.status == "ok"
 
         public_data = pyatmo.AsyncPublicData(
@@ -117,7 +120,7 @@ async def test_async_public_data_error(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
 
@@ -181,7 +184,7 @@ async def test_async_home_data_no_data(async_auth):
     mock_resp = MockResponse(None, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
         with pytest.raises(pyatmo.NoDevice):
@@ -197,7 +200,7 @@ async def test_async_data_no_body(async_auth):
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
         home_data = pyatmo.AsyncHomeData(async_auth)
@@ -227,7 +230,7 @@ async def test_async_home_data_switch_home_schedule(
         json_fixture = json.load(json_file)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ):
         with expected:
@@ -339,7 +342,7 @@ async def test_async_home_status_set_thermmode(
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
         res = await async_home_status.async_set_thermmode(
@@ -410,7 +413,7 @@ async def test_async_home_status_set_room_thermpoint(
     mock_resp = MockResponse(json_fixture, 200)
 
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
         result = await async_home_status.async_set_room_thermpoint(
@@ -519,26 +522,26 @@ async def test_async_camera_data_set_persons_away(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ) as mock_req:
         result = await async_camera_home_data.async_set_persons_away(home_id, person_id)
         assert result["status"] == expected
 
     if person_id is not None:
-        mock_req.assert_called_once_with(
+        mock_req.assert_awaited_once_with(
             params={
                 "home_id": home_id,
                 "person_id": person_id,
             },
-            url="https://api.netatmo.com/api/setpersonsaway",
+            endpoint="api/setpersonsaway",
         )
     else:
-        mock_req.assert_called_once_with(
+        mock_req.assert_awaited_once_with(
             params={
                 "home_id": home_id,
             },
-            url="https://api.netatmo.com/api/setpersonsaway",
+            endpoint="api/setpersonsaway",
         )
 
 
@@ -579,7 +582,7 @@ async def test_async_camera_data_set_persons_home(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
     ) as mock_req:
         result = await async_camera_home_data.async_set_persons_home(
@@ -589,17 +592,17 @@ async def test_async_camera_data_set_persons_home(
         assert result["status"] == expected
 
     if isinstance(person_ids, list) or person_ids:
-        mock_req.assert_called_once_with(
+        mock_req.assert_awaited_once_with(
             params={
                 "home_id": home_id,
                 "person_ids[]": person_ids,
             },
-            url="https://api.netatmo.com/api/setpersonshome",
+            endpoint="api/setpersonshome",
         )
     else:
-        mock_req.assert_called_once_with(
+        mock_req.assert_awaited_once_with(
             params={
                 "home_id": home_id,
             },
-            url="https://api.netatmo.com/api/setpersonshome",
+            endpoint="api/setpersonshome",
         )

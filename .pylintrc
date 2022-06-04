@@ -1,6 +1,7 @@
 [BASIC]
 good-names-rgxs=
   NA.*
+good-names=on, off
 
 [MESSAGES CONTROL]
 # Reasons disabled:

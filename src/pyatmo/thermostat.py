@@ -6,18 +6,18 @@ from abc import ABC
 from collections import defaultdict
 from typing import Any
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .exceptions import InvalidRoom, NoSchedule
-from .helpers import _BASE_URL, extract_raw_data
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import (
+    GETHOMESDATA_ENDPOINT,
+    GETHOMESTATUS_ENDPOINT,
+    SETROOMTHERMPOINT_ENDPOINT,
+    SETTHERMMODE_ENDPOINT,
+    SWITCHHOMESCHEDULE_ENDPOINT,
+)
+from pyatmo.exceptions import InvalidRoom, NoSchedule
+from pyatmo.helpers import extract_raw_data
 
 LOG = logging.getLogger(__name__)
-
-_GETHOMESDATA_REQ = _BASE_URL + "api/homesdata"
-_GETHOMESTATUS_REQ = _BASE_URL + "api/homestatus"
-_SETTHERMMODE_REQ = _BASE_URL + "api/setthermmode"
-_SETROOMTHERMPOINT_REQ = _BASE_URL + "api/setroomthermpoint"
-_GETROOMMEASURE_REQ = _BASE_URL + "api/getroommeasure"
-_SWITCHHOMESCHEDULE_REQ = _BASE_URL + "api/switchhomeschedule"
 
 
 class AbstractHomeData(ABC):
@@ -67,11 +67,14 @@ class AbstractHomeData(ABC):
 
     def _get_selected_schedule(self, home_id: str) -> dict:
         """Get the selected schedule for a given home ID."""
-        for value in self.schedules.get(home_id, {}).values():
-            if "selected" in value.keys():
-                return value
-
-        return {}
+        return next(
+            (
+                value
+                for value in self.schedules.get(home_id, {}).values()
+                if "selected" in value.keys()
+            ),
+            {},
+        )
 
     def get_hg_temp(self, home_id: str) -> float | None:
         """Return frost guard temperature value."""
@@ -83,11 +86,14 @@ class AbstractHomeData(ABC):
 
     def get_thermostat_type(self, home_id: str, room_id: str) -> str | None:
         """Return the thermostat type of the room."""
-        for module in self.modules.get(home_id, {}).values():
-            if module.get("room_id") == room_id:
-                return module.get("type")
-
-        return None
+        return next(
+            (
+                module.get("type")
+                for module in self.modules.get(home_id, {}).values()
+                if module.get("room_id") == room_id
+            ),
+            None,
+        )
 
     def is_valid_schedule(self, home_id: str, schedule_id: str):
         """Check if valid schedule."""
@@ -104,13 +110,13 @@ class HomeData(AbstractHomeData):
         """Initialize the Netatmo home data.
 
         Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
+            auth {NetatmoOAuth2} -- Authentication information with valid access token
         """
         self.auth = auth
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_request(url=_GETHOMESDATA_REQ)
+        resp = self.auth.post_api_request(endpoint=GETHOMESDATA_ENDPOINT)
 
         self.raw_data = extract_raw_data(resp.json(), "homes")
         self.process()
@@ -121,7 +127,10 @@ class HomeData(AbstractHomeData):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
         post_params = {"home_id": home_id, "schedule_id": schedule_id}
-        resp = self.auth.post_request(url=_SWITCHHOMESCHEDULE_REQ, params=post_params)
+        resp = self.auth.post_api_request(
+            endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
+            params=post_params,
+        )
         LOG.debug("Response: %s", resp)
 
 
@@ -132,13 +141,13 @@ class AsyncHomeData(AbstractHomeData):
         """Initialize the Netatmo home data.
 
         Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
+            auth {AbstractAsyncAuth} -- Authentication information with valid access token
         """
         self.auth = auth
 
     async def async_update(self):
         """Fetch and process data from API."""
-        resp = await self.auth.async_post_request(url=_GETHOMESDATA_REQ)
+        resp = await self.auth.async_post_api_request(endpoint=GETHOMESDATA_ENDPOINT)
 
         assert not isinstance(resp, bytes)
         self.raw_data = extract_raw_data(await resp.json(), "homes")
@@ -149,8 +158,8 @@ class AsyncHomeData(AbstractHomeData):
         if not self.is_valid_schedule(home_id, schedule_id):
             raise NoSchedule(f"{schedule_id} is not a valid schedule id")
 
-        resp = await self.auth.async_post_request(
-            url=_SWITCHHOMESCHEDULE_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": home_id, "schedule_id": schedule_id},
         )
         LOG.debug("Response: %s", resp)
@@ -244,8 +253,8 @@ class HomeStatus(AbstractHomeStatus):
 
     def update(self) -> None:
         """Fetch and process data from API."""
-        resp = self.auth.post_request(
-            url=_GETHOMESTATUS_REQ,
+        resp = self.auth.post_api_request(
+            endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
 
@@ -266,7 +275,10 @@ class HomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        return self.auth.post_request(url=_SETTHERMMODE_REQ, params=post_params).json()
+        return self.auth.post_api_request(
+            endpoint=SETTHERMMODE_ENDPOINT,
+            params=post_params,
+        ).json()
 
     def set_room_thermpoint(
         self,
@@ -277,7 +289,7 @@ class HomeStatus(AbstractHomeStatus):
     ) -> str | None:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
-        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # Temp and endtime should only be sent when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             post_params["temp"] = str(temp)
@@ -285,8 +297,8 @@ class HomeStatus(AbstractHomeStatus):
         if end_time is not None:
             post_params["endtime"] = str(end_time)
 
-        return self.auth.post_request(
-            url=_SETROOMTHERMPOINT_REQ,
+        return self.auth.post_api_request(
+            endpoint=SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         ).json()
 
@@ -306,8 +318,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
-        resp = await self.auth.async_post_request(
-            url=_GETHOMESTATUS_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": self.home_id},
         )
 
@@ -329,8 +341,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
         if schedule_id is not None and mode == "schedule":
             post_params["schedule_id"] = schedule_id
 
-        resp = await self.auth.async_post_request(
-            url=_SETTHERMMODE_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)
@@ -345,7 +357,7 @@ class AsyncHomeStatus(AbstractHomeStatus):
     ) -> str | None:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
-        # Temp and endtime should only be send when mode=='manual', but netatmo api can
+        # Temp and endtime should only be sent when mode=='manual', but netatmo api can
         # handle that even when mode == 'home' and these settings don't make sense
         if temp is not None:
             post_params["temp"] = str(temp)
@@ -353,8 +365,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
         if end_time is not None:
             post_params["endtime"] = str(end_time)
 
-        resp = await self.auth.async_post_request(
-            url=_SETROOMTHERMPOINT_REQ,
+        resp = await self.auth.async_post_api_request(
+            endpoint=SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         )
         assert not isinstance(resp, bytes)

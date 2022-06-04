@@ -5,7 +5,6 @@ import json
 import pytest
 
 import pyatmo
-
 from tests.conftest import does_not_raise
 
 
@@ -59,7 +58,7 @@ def test_home_data(home_data):
 
 def test_home_data_no_data(auth, requests_mock):
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESDATA_ENDPOINT,
         json={},
         headers={"content-type": "application/json"},
     )
@@ -72,7 +71,7 @@ def test_home_data_no_body(auth, requests_mock):
     with open("fixtures/home_data_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -85,7 +84,7 @@ def test_home_data_no_homes(auth, requests_mock):
     with open("fixtures/home_data_no_homes.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -98,7 +97,7 @@ def test_home_data_no_home_name(auth, requests_mock):
     with open("fixtures/home_data_nohomename.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -145,7 +144,7 @@ def test_home_data_switch_home_schedule(
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SWITCHHOMESCHEDULE_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SWITCHHOMESCHEDULE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -211,7 +210,7 @@ def test_home_status_error_and_data(auth, requests_mock):
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -235,14 +234,14 @@ def test_home_status_error(auth, requests_mock):
     with open("fixtures/home_status_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -275,9 +274,9 @@ def test_home_status_get_thermostat(home_status):
         "type": "NATherm1",
         "firmware_revision": 65,
         "rf_strength": 58,
-        "battery_level": 3793,
+        "battery_level": 3780,
         "boiler_valve_comfort_boost": False,
-        "boiler_status": False,
+        "boiler_status": True,
         "anticipating": False,
         "bridge": "12:34:56:00:fa:d0",
         "battery_state": "high",
@@ -341,7 +340,7 @@ def test_home_status_measured_temperature(home_status):
 
 @pytest.mark.parametrize("home_id", ["91763b24c43d3e344f424e8b"])
 def test_home_status_boiler_status(home_status):
-    assert home_status.boiler_status("12:34:56:00:01:ae") is False
+    assert home_status.boiler_status("12:34:56:00:01:ae") is True
 
 
 @pytest.mark.parametrize(
@@ -419,7 +418,7 @@ def test_home_status_set_thermmode(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SETTHERMMODE_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETTHERMMODE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -488,7 +487,7 @@ def test_home_status_set_room_thermpoint(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETROOMTHERMPOINT_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -552,7 +551,7 @@ def test_home_status_set_room_thermpoint_error(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._SETROOMTHERMPOINT_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.SETROOMTHERMPOINT_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -575,14 +574,14 @@ def test_home_status_error_disconnected(
     ) as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESTATUS_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETHOMESTATUS_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
     with open("fixtures/home_data_simple.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.thermostat._GETHOMESDATA_REQ,
+        pyatmo.const.GETHOMESDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )

@@ -1,8 +1,9 @@
 import os
 import sys
 
-from pyatmo.auth import ALL_SCOPES, ClientAuth
+from pyatmo.auth import ClientAuth
 from pyatmo.camera import CameraData
+from pyatmo.const import ALL_SCOPES
 from pyatmo.exceptions import NoDevice
 from pyatmo.home_coach import HomeCoachData
 from pyatmo.public_data import PublicData
@@ -16,12 +17,12 @@ LAT_SW = "46.596485"
 
 
 def tty_print(message: str) -> None:
-    """Print to stdout if in a interactive terminal."""
+    """Print to stdout if in an interactive terminal."""
     if sys.stdout.isatty():
         print(message)
 
 
-def main():
+def main() -> None:
     """Run basic health checks."""
     client_id = os.getenv("CLIENT_ID", "")
     client_secret = os.getenv("CLIENT_SECRET", "")

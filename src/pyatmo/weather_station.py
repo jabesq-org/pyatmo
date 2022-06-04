@@ -6,13 +6,11 @@ import time
 from abc import ABC
 from collections import defaultdict
 
-from .auth import AbstractAsyncAuth, NetatmoOAuth2
-from .helpers import _BASE_URL, extract_raw_data, today_stamps
+from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
+from pyatmo.const import GETMEASURE_ENDPOINT, GETSTATIONDATA_ENDPOINT
+from pyatmo.helpers import extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
-
-_GETMEASURE_REQ = _BASE_URL + "api/getmeasure"
-_GETSTATIONDATA_REQ = _BASE_URL + "api/getstationsdata"
 
 
 class AbstractWeatherStationData(ABC):
@@ -44,12 +42,10 @@ class AbstractWeatherStationData(ABC):
 
     def get_module_names(self, station_id: str) -> list:
         """Return a list of all module names for a given station."""
-        res = set()
-
         if not (station_data := self.get_station(station_id)):
             return []
 
-        res.add(station_data.get("module_name", station_data.get("type")))
+        res = {station_data.get("module_name", station_data.get("type"))}
         for module in station_data["modules"]:
             # Add module name, use module type if no name is available
             res.add(module.get("module_name", module.get("type")))
@@ -168,15 +164,15 @@ class AbstractWeatherStationData(ABC):
 
                 # For potential use, add battery and radio coverage information
                 # to module data if present
-                for i in (
+                for val in (
                     "rf_status",
                     "battery_vp",
                     "battery_percent",
                     "reachable",
                     "wifi_status",
                 ):
-                    if i in module:
-                        last_data[module[key]][i] = module[i]
+                    if val in module:
+                        last_data[module[key]][val] = module[val]
 
         return last_data
 
@@ -198,7 +194,12 @@ class AbstractWeatherStationData(ABC):
 class WeatherStationData(AbstractWeatherStationData):
     """Class of Netatmo weather station devices."""
 
-    def __init__(self, auth: NetatmoOAuth2, url_req: str = _GETSTATIONDATA_REQ) -> None:
+    def __init__(
+        self,
+        auth: NetatmoOAuth2,
+        endpoint: str = GETSTATIONDATA_ENDPOINT,
+        favorites: bool = True,
+    ) -> None:
         """Initialize the Netatmo weather station data.
 
         Arguments:
@@ -206,12 +207,16 @@ class WeatherStationData(AbstractWeatherStationData):
             url_req {str} -- Optional request endpoint
         """
         self.auth = auth
-        self.url_req = url_req
+        self.endpoint = endpoint
+        self.params = {"get_favorites": ("true" if favorites else "false")}
 
     def update(self):
         """Fetch data from API."""
         self.raw_data = extract_raw_data(
-            self.auth.post_request(url=self.url_req).json(),
+            self.auth.post_api_request(
+                endpoint=self.endpoint,
+                params=self.params,
+            ).json(),
             "devices",
         )
         self.process()
@@ -248,7 +253,10 @@ class WeatherStationData(AbstractWeatherStationData):
         post_params["optimize"] = "true" if optimize else "false"
         post_params["real_time"] = "true" if real_time else "false"
 
-        return self.auth.post_request(url=_GETMEASURE_REQ, params=post_params).json()
+        return self.auth.post_api_request(
+            endpoint=GETMEASURE_ENDPOINT,
+            params=post_params,
+        ).json()
 
     def get_min_max_t_h(
         self,
@@ -278,16 +286,14 @@ class WeatherStationData(AbstractWeatherStationData):
         else:
             raise ValueError("'frame' value can only be 'last24' or 'day'")
 
-        resp = self.get_data(
+        if resp := self.get_data(
             device_id=station_id,
             module_id=module_id,
             scale="max",
             module_type="Temperature,Humidity",
             date_begin=start,
             date_end=end,
-        )
-
-        if resp:
+        ):
             temperature = [temp[0] for temp in resp["body"].values()]
             humidity = [hum[1] for hum in resp["body"].values()]
             return min(temperature), max(temperature), min(humidity), max(humidity)
@@ -301,7 +307,8 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
     def __init__(
         self,
         auth: AbstractAsyncAuth,
-        url_req: str = _GETSTATIONDATA_REQ,
+        endpoint: str = GETSTATIONDATA_ENDPOINT,
+        favorites: bool = True,
     ) -> None:
         """Initialize the Netatmo weather station data.
 
@@ -310,11 +317,15 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
             url_req {str} -- Optional request endpoint
         """
         self.auth = auth
-        self.url_req = url_req
+        self.endpoint = endpoint
+        self.params = {"get_favorites": ("true" if favorites else "false")}
 
     async def async_update(self):
         """Fetch data from API."""
-        resp = await self.auth.async_post_request(url=self.url_req)
+        resp = await self.auth.async_post_api_request(
+            endpoint=self.endpoint,
+            params=self.params,
+        )
 
         assert not isinstance(resp, bytes)
         self.raw_data = extract_raw_data(await resp.json(), "devices")

@@ -1,9 +1,10 @@
 """Define tests for WeatherStation module."""
 # pylint: disable=protected-access
+import datetime as dt
 import json
 
 import pytest
-from freezegun import freeze_time
+import time_machine
 
 import pyatmo
 
@@ -17,7 +18,7 @@ def test_weather_station_data(weather_station_data):
 
 def test_weather_station_data_no_response(auth, requests_mock):
     requests_mock.post(
-        pyatmo.weather_station._GETSTATIONDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETSTATIONDATA_ENDPOINT,
         json={},
         headers={"content-type": "application/json"},
     )
@@ -30,7 +31,7 @@ def test_weather_station_data_no_body(auth, requests_mock):
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.weather_station._GETSTATIONDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -43,7 +44,7 @@ def test_weather_station_data_no_data(auth, requests_mock):
     with open("fixtures/home_data_empty.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.weather_station._GETSTATIONDATA_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETSTATIONDATA_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -187,7 +188,7 @@ def test_weather_station_get_station(weather_station_data):
 def test_weather_station_get_module(weather_station_data, mid, expected):
     mod = weather_station_data.get_module(mid)
 
-    assert isinstance(mod, dict) is True
+    assert isinstance(mod, dict)
     assert mod.get("_id", mod) == expected
 
 
@@ -300,7 +301,7 @@ def test_weather_station_get_monitored_conditions(
     assert sorted(weather_station_data.get_monitored_conditions(module_id)) == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
     [
@@ -350,14 +351,13 @@ def test_weather_station_get_last_data(
     exclude,
     expected,
 ):
-    mod = weather_station_data.get_last_data(station_id, exclude=exclude)
-    if mod:
+    if mod := weather_station_data.get_last_data(station_id, exclude=exclude):
         assert sorted(mod) == expected
     else:
         assert mod == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, delay, expected",
     [
@@ -392,7 +392,7 @@ def test_weather_station_check_not_updated(
     assert sorted(mod) == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, delay, expected",
     [
@@ -417,14 +417,13 @@ def test_weather_station_check_updated(
     delay,
     expected,
 ):
-    mod = weather_station_data.check_updated(station_id, delay)
-    if mod:
+    if mod := weather_station_data.check_updated(station_id, delay):
         assert sorted(mod) == expected
     else:
         assert mod == expected
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "device_id, scale, module_type, expected",
     [("MyStation", "scale", "type", [28.1])],
@@ -440,7 +439,7 @@ def test_weather_station_get_data(
     with open("fixtures/weatherstation_measure.json", encoding="utf-8") as json_file:
         json_fixture = json.load(json_file)
     requests_mock.post(
-        pyatmo.weather_station._GETMEASURE_REQ,
+        pyatmo.const.DEFAULT_BASE_URL + pyatmo.const.GETMEASURE_ENDPOINT,
         json=json_fixture,
         headers={"content-type": "application/json"},
     )
@@ -466,7 +465,7 @@ def test_weather_station_get_last_data_measurements(weather_station_data):
     assert mod[module_id]["GustStrength"] == 9
 
 
-@freeze_time("2019-06-11")
+@time_machine.travel(dt.datetime(2019, 6, 11))
 @pytest.mark.parametrize(
     "station_id, exclude, expected",
     [
@@ -492,8 +491,7 @@ def test_weather_station_get_last_data_bug_97(
     exclude,
     expected,
 ):
-    mod = weather_station_data.get_last_data(station_id, exclude)
-    if mod:
+    if mod := weather_station_data.get_last_data(station_id, exclude):
         assert sorted(mod) == expected
     else:
         assert mod == expected

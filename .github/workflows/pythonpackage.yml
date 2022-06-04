@@ -19,11 +19,11 @@ jobs:
         python-version: [3.10.0]
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -32,7 +32,7 @@ jobs:
           pip install black
       - name: Check with black
         run: |
-          black --check --diff src/pyatmo/ tests/ setup.py
+          black --check --diff src/pyatmo/ tests/
 
   linter:
     runs-on: ubuntu-latest
@@ -42,9 +42,9 @@ jobs:
         python-version: [3.10.0]
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -66,9 +66,9 @@ jobs:
         python-version: [3.8, 3.9, 3.10.0]
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run tests with tox

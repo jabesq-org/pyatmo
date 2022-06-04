@@ -62,6 +62,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [7.0.0] - 2022-06-05
+
+### Added
+
+- Adds support for Netatmo modulating thermostat
+- Adds support for Netatmo doorbell
+- Adds support for shutters, lights, energy meters and switches
+- Adds support for 3rd party devices from different Legrand brands such as BTicinio, Bubendorff, Smarther, CX3
+- Fetch favorite weather sensors
+- Add support for third-party Netatmo devices (see `base_url` and `user_prefix` parameters)
+
+### Changed
+
+- Replace freezegun with time-machine
+
+### Deprecated
+
+- The following modules are deprecated and will be removed in pyatmo 8.0.0
+    - camera
+    - home_coach
+    - public_data
+    - thermostat
+    - weather_station
+
+### Removed
+
+-
+
+### Fixed
+
+- Use async fixture decorators
+
+### Security
+
+-
+
 ## [6.2.4] - 2022-01-31
 
 ### Fixed

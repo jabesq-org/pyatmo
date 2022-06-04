@@ -5,6 +5,7 @@ import logging
 from abc import ABC
 from collections import defaultdict
 from typing import Any
+from warnings import warn
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import (
@@ -18,6 +19,8 @@ from pyatmo.exceptions import InvalidRoom, NoSchedule
 from pyatmo.helpers import extract_raw_data
 
 LOG = logging.getLogger(__name__)
+
+warn(f"The module {__name__} is deprecated.", DeprecationWarning, stacklevel=2)
 
 
 class AbstractHomeData(ABC):

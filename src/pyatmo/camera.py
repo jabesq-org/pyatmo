@@ -6,6 +6,7 @@ import time
 from abc import ABC
 from collections import defaultdict
 from typing import Any
+from warnings import warn
 
 import aiohttp
 from requests.exceptions import ReadTimeout
@@ -21,6 +22,8 @@ from pyatmo.const import (
 )
 from pyatmo.exceptions import ApiError, NoDevice
 from pyatmo.helpers import LOG, extract_raw_data
+
+warn(f"The module {__name__} is deprecated.", DeprecationWarning, stacklevel=2)
 
 
 class AbstractCameraData(ABC):

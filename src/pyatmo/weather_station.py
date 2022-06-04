@@ -5,12 +5,16 @@ import logging
 import time
 from abc import ABC
 from collections import defaultdict
+from warnings import warn
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import GETMEASURE_ENDPOINT, GETSTATIONDATA_ENDPOINT
 from pyatmo.helpers import extract_raw_data, today_stamps
 
 LOG = logging.getLogger(__name__)
+
+
+warn(f"The module {__name__} is deprecated.", DeprecationWarning, stacklevel=2)
 
 
 class AbstractWeatherStationData(ABC):

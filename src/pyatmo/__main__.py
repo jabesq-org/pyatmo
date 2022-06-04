@@ -1,5 +1,6 @@
 import os
 import sys
+from warnings import warn
 
 from pyatmo.auth import ClientAuth
 from pyatmo.camera import CameraData
@@ -14,6 +15,8 @@ LON_NE = "6.221652"
 LAT_NE = "46.610870"
 LON_SW = "6.217828"
 LAT_SW = "46.596485"
+
+warn(f"The module {__name__} is deprecated.", DeprecationWarning, stacklevel=2)
 
 
 def tty_print(message: str) -> None:

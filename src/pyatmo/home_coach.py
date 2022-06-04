@@ -1,7 +1,11 @@
 """Support for Netatmo air care devices."""
+from warnings import warn
+
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import GETHOMECOACHDATA_ENDPOINT
 from pyatmo.weather_station import AsyncWeatherStationData, WeatherStationData
+
+warn(f"The module {__name__} is deprecated.", DeprecationWarning, stacklevel=2)
 
 
 class HomeCoachData(WeatherStationData):

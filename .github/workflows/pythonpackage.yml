@@ -32,7 +32,7 @@ jobs:
           pip install black
       - name: Check with black
         run: |
-          black --check --diff src/pyatmo/ tests/ setup.py
+          black --check --diff src/pyatmo/ tests/
 
   linter:
     runs-on: ubuntu-latest

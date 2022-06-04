@@ -5,3 +5,15 @@ build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]
 minversion = "6.0"
 asyncio_mode = "auto"
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+tag_regex = "^(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
+write_to = "src/pyatmo/__version__.py"
+write_to_template = '''"""
+Pyatmo: Simple API to access Netatmo devices and data
+
+DO NO EDIT THIS FILE - VERSION IS MANAGED BY SETUPTOOLS_SCM
+"""
+__version__ = "{version}"
+'''

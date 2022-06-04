@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [7.0.1] - 2022-06-05
+
+### Deprecated
+
+- The following modules are deprecated and will be removed in pyatmo 8.0.0
+    - camera
+    - home_coach
+    - public_data
+    - thermostat
+    - weather_station
+
 ## [7.0.0] - 2022-06-05
 
 ### Added
@@ -48,7 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
--
+- The following modules are deprecated and will be removed in pyatmo 8.0.0
+    - camera
+    - home_coach
+    - public_data
+    - thermostat
+    - weather_station
 
 ### Removed
 
@@ -206,7 +222,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v7.0.0...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v7.0.1...HEAD
+[7.0.1]: https://github.com/jabesq/pyatmo/compare/v7.0.0...v7.0.1
 [7.0.0]: https://github.com/jabesq/pyatmo/compare/v6.2.4...v7.0.0
 [6.2.4]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.4
 [6.2.2]: https://github.com/jabesq/pyatmo/compare/v6.2.1...v6.2.2

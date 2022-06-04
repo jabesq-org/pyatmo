@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Deprecated
+
+-
+
+### Removed
+
+-
+
+### Fixed
+
+-
+
+### Security
+
+-
+
+## [7.0.0] - 2022-06-05
+
+### Added
+
+- Adds support for Netatmo modulating thermostat
+- Adds support for Netatmo doorbell
+- Adds support for shutters, lights, energy meters and switches
+- Adds support for 3rd party devices from different Legrand brands such as BTicinio, Bubendorff, Smarther, CX3
 - Fetch favorite weather sensors
 - Add support for third-party Netatmo devices (see `base_url` and `user_prefix` parameters)
 
@@ -176,7 +206,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v6.2.4...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v7.0.0...HEAD
+[7.0.0]: https://github.com/jabesq/pyatmo/compare/v6.2.4...v7.0.0
 [6.2.4]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.4
 [6.2.2]: https://github.com/jabesq/pyatmo/compare/v6.2.1...v6.2.2
 [6.2.1]: https://github.com/jabesq/pyatmo/compare/v6.2.0...v6.2.1

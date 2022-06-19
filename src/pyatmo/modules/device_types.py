@@ -6,7 +6,7 @@ from enum import Enum
 
 LOG = logging.getLogger(__name__)
 
-# pylint: disable=W0613,R0201
+# pylint: disable=W0613
 
 
 class DeviceType(str, Enum):

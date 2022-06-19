@@ -1,4 +1,5 @@
 """Expose submodules."""
+from .base_class import Place
 from .idiamant import NBG, NBR
 from .legrand import (
     NLC,
@@ -87,4 +88,5 @@ __all__ = [
     "BNS",
     "PublicWeatherArea",
     "Location",
+    "Place",
 ]

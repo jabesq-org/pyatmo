@@ -19,7 +19,7 @@ from .legrand import (
     NLT,
     NLV,
 )
-from .module import Camera, Module, Shutter, Switch
+from .module import Camera, Dimmer, Module, Shutter, Switch
 from .netatmo import (
     NCO,
     NDB,
@@ -89,4 +89,5 @@ __all__ = [
     "PublicWeatherArea",
     "Location",
     "Place",
+    "Dimmer",
 ]

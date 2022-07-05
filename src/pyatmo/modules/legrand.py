@@ -54,6 +54,10 @@ class NLM(Switch):
     """Legrand light micro module."""
 
 
+class NLIS(Switch):
+    """Legrand double switch."""
+
+
 class NLL(FirmwareMixin, EnergyMixin, WifiMixin, SwitchMixin, Module):
     """Legrand / BTicino italian light switch with neutral."""
 

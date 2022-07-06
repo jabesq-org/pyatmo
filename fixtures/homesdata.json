@@ -86,6 +86,14 @@
                         "module_ids": [
                             "10:20:30:bd:b8:1e"
                         ]
+                    },
+                    {
+                        "id": "100007520",
+                        "name": "Toilettes",
+                        "type": "toilets",
+                        "module_ids": [
+                            "00:11:22:33:00:11:45:fe"
+                        ]
                     }
                 ],
                 "modules": [
@@ -326,7 +334,8 @@
                         "modules_bridged": [
                             "12:34:56:80:00:12:ac:f2",
                             "12:34:56:80:00:c3:69:3c",
-                            "12:34:56:00:00:a1:4c:da"
+                            "12:34:56:00:00:a1:4c:da",
+                            "00:11:22:33:00:11:45:fe"
                         ]
                     },
                     {
@@ -463,6 +472,17 @@
                         "name": "Smarther",
                         "setup_date": 1638022197,
                         "room_id": "1002003001"
+                    },
+                    {
+                        "id": "00:11:22:33:00:11:45:fe",
+                        "type": "NLF",
+                        "on": false,
+                        "brightness": 63,
+                        "firmware_revision": 57,
+                        "last_seen": 1657086939,
+                        "power": 0,
+                        "reachable": true,
+                        "bridge": "12:34:56:80:60:40"
                     }
                 ],
                 "schedules": [

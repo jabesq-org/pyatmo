@@ -265,6 +265,17 @@
                     "boiler_valve_comfort_boost": false,
                     "boiler_status": true,
                     "cooler_status": false
+                },
+                {
+                    "id": "00:11:22:33:00:11:45:fe",
+                    "type": "NLF",
+                    "on": false,
+                    "brightness": 63,
+                    "firmware_revision": 57,
+                    "last_seen": 1657086939,
+                    "power": 0,
+                    "reachable": true,
+                    "bridge": "12:34:56:80:60:40"
                 }
             ],
             "rooms": [

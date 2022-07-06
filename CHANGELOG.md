@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- Adds Legrand NLIS double switches
 
 ### Changed
 
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Use dimmer type for Legrand NLF dimmers
 
 ### Security
 

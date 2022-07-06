@@ -42,7 +42,7 @@ class NLPBS(Switch):
     """Legrand british standard plug."""
 
 
-class NLF(Switch):
+class NLF(Dimmer):
     """Legrand 2 wire light switch."""
 
 

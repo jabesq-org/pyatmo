@@ -667,7 +667,10 @@ class AsyncCameraData(AbstractCameraData):
         except aiohttp.ContentTypeError as err:
             LOG.debug("One or more camera could not be reached. (%s)", err)
         except aiohttp.ClientConnectorError as err:
-            LOG.debug("One or more camera could not be reached (network unreacheable). (%s)", err)
+            LOG.debug(
+                "One or more camera could not be reached (network unreacheable). (%s)",
+                err,
+            )
         self._store_last_event()
 
     async def _async_update_all_camera_urls(self) -> None:

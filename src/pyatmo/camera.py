@@ -791,10 +791,7 @@ class AsyncCameraData(AbstractCameraData):
             timeout=10,
         )
 
-        if not isinstance(resp, bytes):
-            return None
-
-        return resp
+        return resp if isinstance(resp, bytes) else None
 
     async def async_get_camera_picture(
         self,
@@ -808,10 +805,11 @@ class AsyncCameraData(AbstractCameraData):
             params=post_params,
         )
 
-        if not isinstance(resp, bytes):
-            return b"", None
-
-        return resp, imghdr.what("NONE.FILE", resp)
+        return (
+            (resp, imghdr.what("NONE.FILE", resp))
+            if isinstance(resp, bytes)
+            else (b"", None)
+        )
 
     async def async_get_profile_image(
         self,

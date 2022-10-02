@@ -38,6 +38,10 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
+class NLPT(Switch):
+    """Legrand latching relay/teleruptor."""
+
+
 class NLPBS(Switch):
     """Legrand british standard plug."""
 

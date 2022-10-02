@@ -1,4 +1,4 @@
-ARG VARIANT="3.8"
+ARG VARIANT="3.10"
 
 FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT} as builder
 
@@ -11,8 +11,8 @@ COPY Pipfile Pipfile.lock ./
 # Create Python requirements files from pipenv (lockfile)
 RUN pip3 install -U pip \
     && pip3 install pipenv \
-    && pipenv lock --requirements > /tmp/requirements.txt \
-    && pipenv lock --dev --requirements > /tmp/requirements_dev.txt
+    && pipenv requirements > /tmp/requirements.txt \
+    && pipenv requirements --dev > /tmp/requirements_dev.txt
 
 FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 

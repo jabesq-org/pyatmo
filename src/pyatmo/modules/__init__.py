@@ -17,6 +17,7 @@ from .legrand import (
     NLPC,
     NLPM,
     NLPS,
+    NLPT,
     NLT,
     NLV,
 )
@@ -81,6 +82,7 @@ __all__ = [
     "NLPC",
     "NLPM",
     "NLPS",
+    "NLPT",
     "NLT",
     "NLV",
     "NOC",

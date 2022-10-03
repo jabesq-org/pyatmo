@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [7.1.0] - 2022-10-03
+
+### Added
+
+- Adds Legrand NLIS double switches
+- Adds Legrand NLPT relay/teleruptor
+
+### Fixed
+
+- Use dimmer type for Legrand NLF dimmers
+
 ## [7.0.1] - 2022-06-05
 
 ### Deprecated

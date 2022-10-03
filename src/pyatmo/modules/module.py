@@ -116,9 +116,7 @@ def process_angle(angle: int) -> str:
         return "SE"
     if angle >= 60:
         return "E"
-    if angle >= 30:
-        return "NE"
-    return "N"
+    return "NE" if angle >= 30 else "N"
 
 
 class TemperatureMixin(EntityBase):
@@ -311,15 +309,12 @@ class CameraMixin(EntityBase):
         if not self.local_url and not self.vpn_url:
             return None
         resp = await self.home.auth.async_get_image(
-            base_url=f"{(self.local_url or self.vpn_url)}",
+            base_url=f"{self.local_url or self.vpn_url}",
             endpoint="/live/snapshot_720.jpg",
             timeout=10,
         )
 
-        if not isinstance(resp, bytes):
-            return None
-
-        return resp
+        return resp if isinstance(resp, bytes) else None
 
     async def async_update_camera_urls(self) -> None:
         """Update and validate the camera urls."""

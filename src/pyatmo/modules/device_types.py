@@ -6,7 +6,7 @@ from enum import Enum
 
 LOG = logging.getLogger(__name__)
 
-# pylint: disable=W0613,R0201
+# pylint: disable=W0613
 
 
 class DeviceType(str, Enum):
@@ -23,13 +23,13 @@ class DeviceType(str, Enum):
     OTM = "OTM"  # OpenTherm modulating thermostat
 
     # Cameras/Security
-    NOC = "NOC"  # Smart Outdoor Camera (with Siren)
-    NACamera = "NACamera"  # Smart Indoor Camera
-    NSD = "NSD"  # Smart Smoke Detector
-    NIS = "NIS"  # Smart Indoor Siren
     NACamDoorTag = "NACamDoorTag"  # Smart Door and Window Sensors
-    NDB = "NDB"  # Smart Video Doorbell
+    NACamera = "NACamera"  # Smart Indoor Camera
     NCO = "NCO"  # Smart Carbon Monoxide Alarm
+    NDB = "NDB"  # Smart Video Doorbell
+    NIS = "NIS"  # Smart Indoor Siren
+    NOC = "NOC"  # Smart Outdoor Camera (with Siren)
+    NSD = "NSD"  # Smart Smoke Detector
 
     # Weather
     NAMain = "NAMain"  # Smart Home Weather Station
@@ -44,37 +44,39 @@ class DeviceType(str, Enum):
 
     # 3rd Party
     BNS = "BNS"  # Smarther with Netatmo
+
     # Legrand Wiring devices and electrical panel products
-    NLG = "NLG"  # Gateway
-    NLGS = "NLGS"  # Gateway standalone
-    NLP = "NLP"  # Plug
-    NLPM = "NLPM"  # mobile plug
-    NLPBS = "NLPBS"  # British standard plugs
+    NLC = "NLC"  # Cable outlet
+    NLE = "NLE"  # Connected Ecometer
     NLF = "NLF"  # 2 wire light switch
     NLFN = "NLFN"  # light switch with neutral
-    NLM = "NLM"  # light micro module
+    NLG = "NLG"  # Gateway
+    NLGS = "NLGS"  # Gateway standalone
+    NLIS = "NLIS"  # Double light switch
     NLL = "NLL"  # Italian light switch with neutral
-    NLV = "NLV"  # Legrand / BTicino shutters
-    NLLV = "NLLV"  # Legrand / BTicino shutters
     NLLM = "NLLM"  # Legrand / BTicino shutters
-    NLPO = "NLPO"  # Connected contactor
-    NLPT = "NLPT"  # Connected latching relay / Telerupt
+    NLLV = "NLLV"  # Legrand / BTicino shutters
+    NLM = "NLM"  # light micro module
+    NLP = "NLP"  # Plug
+    NLPBS = "NLPBS"  # British standard plugs
     NLPC = "NLPC"  # Connected energy meter
-    NLE = "NLE"  # Connected Ecometer
+    NLPM = "NLPM"  # mobile plug
+    NLPO = "NLPO"  # Connected contactor
     NLPS = "NLPS"  # Smart Load Shedder
-    NLC = "NLC"  # Cable outlet
+    NLPT = "NLPT"  # Connected latching relay / Telerupt
     NLT = "NLT"  # Global remote control
+    NLV = "NLV"  # Legrand / BTicino shutters
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
-    BNEU = "BNEU"  # external unit
     BNDL = "BNDL"  # door lock
+    BNEU = "BNEU"  # external unit
     BNSL = "BNSL"  # staircase light
 
     # Bubbendorf shutters
     NBG = "NBG"  # gateway
-    NBR = "NBR"  # roller shutter
     NBO = "NBO"  # orientable shutter
+    NBR = "NBR"  # roller shutter
     NBS = "NBS"  # swing shutter
 
     # pylint: enable=C0103
@@ -121,9 +123,10 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLP: DeviceCategory.switch,
     DeviceType.NLPM: DeviceCategory.switch,
     DeviceType.NLPBS: DeviceCategory.switch,
+    DeviceType.NLIS: DeviceCategory.switch,
     DeviceType.NLL: DeviceCategory.switch,
     DeviceType.NLFN: DeviceCategory.dimmer,
-    DeviceType.NLF: DeviceCategory.switch,
+    DeviceType.NLF: DeviceCategory.dimmer,
     DeviceType.BNS: DeviceCategory.climate,
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
@@ -162,8 +165,9 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLP: ("Legrand", "Plug"),
     DeviceType.NLPM: ("Legrand", "Mobile plug"),
     DeviceType.NLPBS: ("Legrand", "British standard plugs"),
-    DeviceType.NLF: ("Legrand", "2 wire light switch"),
-    DeviceType.NLFN: ("Legrand", "Light switch with neutral"),
+    DeviceType.NLF: ("Legrand", "2 wire light switch/dimmer"),
+    DeviceType.NLIS: ("Legrand", "Double switch"),
+    DeviceType.NLFN: ("Legrand", "Light switch/dimmer with neutral"),
     DeviceType.NLM: ("Legrand", "Light micro module"),
     DeviceType.NLL: ("Legrand", "Italian light switch with neutral"),
     DeviceType.NLV: ("Legrand/BTicino", "Shutters"),

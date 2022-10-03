@@ -25,7 +25,7 @@ twine = "*"
 [packages]
 requests = "*"
 requests-oauthlib = "*"
-aiohttp = ">=3.7.4"
+aiohttp = ">3.8.1"
 
 [pipenv]
 allow_prereleases = true

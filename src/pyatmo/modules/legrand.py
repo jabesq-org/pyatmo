@@ -38,11 +38,15 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
+class NLPT(Switch):
+    """Legrand latching relay/teleruptor."""
+
+
 class NLPBS(Switch):
     """Legrand british standard plug."""
 
 
-class NLF(Switch):
+class NLF(Dimmer):
     """Legrand 2 wire light switch."""
 
 
@@ -52,6 +56,10 @@ class NLFN(Dimmer):
 
 class NLM(Switch):
     """Legrand light micro module."""
+
+
+class NLIS(Switch):
+    """Legrand double switch."""
 
 
 class NLL(FirmwareMixin, EnergyMixin, WifiMixin, SwitchMixin, Module):

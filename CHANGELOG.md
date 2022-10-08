@@ -25,11 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix Netatmo radiator valves (NRV) set termpature
+-
 
 ### Security
 
 -
+
+## [7.1.1]
+
+### Fixed
+
+- Fix Netatmo radiator valves (NRV) set termpature
 
 ## [7.1.0] - 2022-10-03
 

@@ -3,6 +3,7 @@ from .base_class import Place
 from .idiamant import NBG, NBR
 from .legrand import (
     NLC,
+    NLD,
     NLE,
     NLF,
     NLFE,
@@ -70,6 +71,7 @@ __all__ = [
     "NHC",
     "NIS",
     "NLC",
+    "NLD",
     "NLE",
     "NLF",
     "NLFN",

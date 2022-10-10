@@ -70,6 +70,10 @@ class NLIS(Switch):
     """Legrand double switch."""
 
 
+class NLD(Dimmer):
+    """Legrand Double On/Off dimmer remote"""
+
+
 class NLL(FirmwareMixin, EnergyMixin, WifiMixin, SwitchMixin, Module):
     """Legrand / BTicino italian light switch with neutral."""
 

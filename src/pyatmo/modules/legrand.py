@@ -58,6 +58,10 @@ class NLFN(Dimmer):
     """Legrand light switch with neutral."""
 
 
+class NLFE(Dimmer):
+    """Legrand On-Off dimmer switch."""
+
+
 class NLM(Switch):
     """Legrand light micro module."""
 

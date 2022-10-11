@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- Add NLPO Legrand contactor
+- Add NLD Legrand Double On/Off dimmer remote
+- Add NLFE Legrand On-Off dimmer switch
 
 ### Changed
 

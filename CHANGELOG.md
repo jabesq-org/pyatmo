@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add NLPO Legrand contactor
 - Add NLD Legrand Double On/Off dimmer remote
 - Add NLFE Legrand On-Off dimmer switch
+- Add BTicino device support for BNCX, BNDL, BNSL
 
 ### Changed
 

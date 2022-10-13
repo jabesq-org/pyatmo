@@ -14,3 +14,7 @@ class BNDL(Module):
 
 class BNSL(Switch):  # pylint: disable=too-many-ancestors
     """BTicino staircase light."""
+
+
+class BNCX(Module):
+    """BTicino"""

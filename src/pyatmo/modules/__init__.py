@@ -1,10 +1,13 @@
 """Expose submodules."""
 from .base_class import Place
+from .bticino import BNCX, BNDL, BNSL
 from .idiamant import NBG, NBR
 from .legrand import (
     NLC,
+    NLD,
     NLE,
     NLF,
+    NLFE,
     NLFN,
     NLG,
     NLIS,
@@ -16,6 +19,7 @@ from .legrand import (
     NLPBS,
     NLPC,
     NLPM,
+    NLPO,
     NLPS,
     NLPT,
     NLT,
@@ -48,6 +52,9 @@ from .smarther import BNS
 
 __all__ = [
     "BNS",
+    "BNCX",
+    "BNDL",
+    "BNSL",
     "Camera",
     "Dimmer",
     "Location",
@@ -68,9 +75,11 @@ __all__ = [
     "NHC",
     "NIS",
     "NLC",
+    "NLD",
     "NLE",
     "NLF",
     "NLFN",
+    "NLFE",
     "NLG",
     "NLIS",
     "NLL",
@@ -81,6 +90,7 @@ __all__ = [
     "NLPBS",
     "NLPC",
     "NLPM",
+    "NLPO",
     "NLPS",
     "NLPT",
     "NLT",

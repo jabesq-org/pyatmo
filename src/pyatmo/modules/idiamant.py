@@ -20,3 +20,11 @@ class NBG(FirmwareMixin, WifiMixin, Module):
 
 class NBR(FirmwareMixin, RfMixin, ShutterMixin, Module):
     ...
+
+
+class NBO(FirmwareMixin, RfMixin, ShutterMixin, Module):
+    ...
+
+
+class NBS(FirmwareMixin, RfMixin, ShutterMixin, Module):
+    ...

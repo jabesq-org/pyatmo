@@ -113,6 +113,8 @@ class Home:
         data = raw_data["home"]
 
         for module in data.get("modules", []):
+            if module["id"] not in self.modules:
+                self.update_topology({"modules": [module]})
             await self.modules[module["id"]].update(module)
 
         for room in data.get("rooms", []):

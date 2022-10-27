@@ -496,11 +496,19 @@ class CameraData(AbstractCameraData):
 
         if (vpn_url := camera_data.get("vpn_url")) and camera_data.get("is_local"):
             if temp_local_url := self._check_url(vpn_url):
-                self.cameras[home_id][camera_id]["local_url"] = self._check_url(
-                    temp_local_url,
-                )
+                if local_url := self._check_url(temp_local_url):
+                    self.cameras[home_id][camera_id]["local_url"] = local_url
+                else:
+                    LOG.warning(
+                        "Invalid IP for camera %s (%s)",
+                        self.cameras[home_id][camera_id]["name"],
+                        temp_local_url,
+                    )
+                    self.cameras[home_id][camera_id]["is_local"] = False
 
     def _check_url(self, url: str) -> str | None:
+        if url.startswith("http://169.254"):
+            return None
         try:
             resp = self.auth.post_request(url=f"{url}/command/ping").json()
         except ReadTimeout:

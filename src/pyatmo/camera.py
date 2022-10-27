@@ -509,8 +509,13 @@ class CameraData(AbstractCameraData):
     def _check_url(self, url: str) -> str | None:
         if url.startswith("http://169.254"):
             return None
+        resp_json = {}
         try:
-            resp = self.auth.post_request(url=f"{url}/command/ping").json()
+            resp = self.auth.post_request(url=f"{url}/command/ping")
+            if resp.status_code:
+                resp_json = resp.json()
+            else:
+                raise ReadTimeout
         except ReadTimeout:
             LOG.debug("Timeout validation of camera url %s", url)
             return None
@@ -518,7 +523,7 @@ class CameraData(AbstractCameraData):
             LOG.debug("Api error for camera url %s", url)
             return None
 
-        return resp.get("local_url") if resp else None
+        return resp_json.get("local_url") if resp_json else None
 
     def set_state(
         self,

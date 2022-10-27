@@ -166,7 +166,7 @@ class NetatmoOAuth2:
 
             resp = query(url, req_args, timeout, 3)
 
-        if resp is None:
+        if resp.status_code is None:
             LOG.debug("Resp is None - %s", resp)
             return requests.Response()
 
@@ -382,7 +382,7 @@ class AbstractAsyncAuth(ABC):
             resp_status = resp.status
             resp_content = await resp.read()
 
-            if not resp.ok:
+            if resp.status_code and not resp.ok:
                 LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
                 try:
                     resp_json = await resp.json()

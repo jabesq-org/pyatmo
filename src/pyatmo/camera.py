@@ -506,7 +506,11 @@ class CameraData(AbstractCameraData):
         if '169.254' in url:
             return None
         try:
-            resp = self.auth.post_request(url=f"{url}/command/ping").json()
+            resp = self.auth.post_request(url=f"{url}/command/ping")
+            if resp.status_code:
+                resp = resp.json()
+            else:
+                raise ReadTimeout
         except ReadTimeout:
             LOG.debug("Timeout validation of camera url %s", url)
             return None

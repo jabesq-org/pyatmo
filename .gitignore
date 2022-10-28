@@ -3,7 +3,7 @@ build/
 
 dist/
 
-pyatmo.egg-info/
+**/pyatmo.egg-info/
 
 *.pyc
 .DS_Store

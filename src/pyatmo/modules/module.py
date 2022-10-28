@@ -472,19 +472,18 @@ class HistoryMixin(EntityBase):
         raw_data = await resp.json()
 
         data = raw_data["body"][0]
-        self.start_time = int(data["beg_time"])
         interval_sec = int(data["step_time"])
         interval_min = interval_sec // 60
 
         self.historical_data = []
+        self.start_time = int(data["beg_time"])
         start_time = self.start_time
         for value in data["value"]:
             end_time = start_time + interval_sec
             self.historical_data.append(
                 {
                     "duration": interval_min,
-                    "startTime": datetime.utcfromtimestamp(start_time + 1).isoformat()
-                    + "Z",
+                    "startTime": f"{datetime.utcfromtimestamp(start_time + 1).isoformat()}Z",
                     "endTime": f"{datetime.utcfromtimestamp(end_time).isoformat()}Z",
                     "Wh": value[0],
                 },

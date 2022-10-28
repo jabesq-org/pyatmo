@@ -499,11 +499,15 @@ class CameraData(AbstractCameraData):
                 if local_url := self._check_url(temp_local_url):
                     self.cameras[home_id][camera_id]["local_url"] = local_url
                 else:
-                    LOG.warning("Invalid IP for camera %s (%s)", self.cameras[home_id][camera_id]['name'], temp_local_url)
-                    self.cameras[home_id][camera_id]['is_local'] = False
+                    LOG.warning(
+                        "Invalid IP for camera %s (%s)",
+                        self.cameras[home_id][camera_id]["name"],
+                        temp_local_url,
+                    )
+                    self.cameras[home_id][camera_id]["is_local"] = False
 
     def _check_url(self, url: str) -> str | None:
-        if '169.254' in url:
+        if "169.254" in url:
             return None
         resp_json = dict()
         try:

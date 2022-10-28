@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Handle invalid ip addressed from the API more gracefully
-- Response handling issues 
+- Response handling issues
 
 ### Security
 

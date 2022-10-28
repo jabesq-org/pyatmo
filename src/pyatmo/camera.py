@@ -509,7 +509,7 @@ class CameraData(AbstractCameraData):
     def _check_url(self, url: str) -> str | None:
         if url.startswith("http://169.254"):
             return None
-        resp_json = dict()
+        resp_json = {}
         try:
             resp = self.auth.post_request(url=f"{url}/command/ping")
             if resp.status_code:

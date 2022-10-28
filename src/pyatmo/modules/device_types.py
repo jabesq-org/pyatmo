@@ -66,6 +66,7 @@ class DeviceType(str, Enum):
     NLPT = "NLPT"  # Connected latching relay / Telerupt
     NLT = "NLT"  # Global remote control
     NLV = "NLV"  # Legrand / BTicino shutters
+    NLUI = "NLUI"  # Legrand device stub
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway

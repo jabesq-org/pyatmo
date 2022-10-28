@@ -134,7 +134,7 @@
                         "battery_percent": 79
                     },
                     {
-                        "_id": "12:34:56:03:1b:e4",
+                        "_id": "12:34:56:03:1b:e5",
                         "type": "NAModule2",
                         "module_name": "Garden",
                         "data_type": [
@@ -734,6 +734,32 @@
                             "date_min_temp": 1644582039,
                             "temp_trend": "stable"
                         }
+                    },
+                    {
+                        "_id": "12:34:56:03:1b:e4",
+                        "type": "NAModule2",
+                        "module_name": "Garden",
+                        "data_type": [
+                            "Wind"
+                        ],
+                        "last_setup": 1549193862,
+                        "reachable": true,
+                        "dashboard_data": {
+                            "time_utc": 1559413170,
+                            "WindStrength": 4,
+                            "WindAngle": 217,
+                            "GustStrength": 9,
+                            "GustAngle": 206,
+                            "max_wind_str": 21,
+                            "max_wind_angle": 217,
+                            "date_max_wind_str": 1559386669
+                        },
+                        "firmware": 19,
+                        "last_message": 1559413177,
+                        "last_seen": 1559413177,
+                        "rf_status": 59,
+                        "battery_vp": 5689,
+                        "battery_percent": 85
                     }
                 ]
             },

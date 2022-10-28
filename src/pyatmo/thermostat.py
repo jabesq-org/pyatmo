@@ -267,8 +267,8 @@ class HomeStatus(AbstractHomeStatus):
     def set_thermmode(
         self,
         mode: str,
-        end_time: int = None,
-        schedule_id: str = None,
+        end_time: int | None = None,
+        schedule_id: str | None = None,
     ) -> str | None:
         """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
@@ -287,8 +287,8 @@ class HomeStatus(AbstractHomeStatus):
         self,
         room_id: str,
         mode: str,
-        temp: float = None,
-        end_time: int = None,
+        temp: float | None = None,
+        end_time: int | None = None,
     ) -> str | None:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}
@@ -333,8 +333,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
     async def async_set_thermmode(
         self,
         mode: str,
-        end_time: int = None,
-        schedule_id: str = None,
+        end_time: int | None = None,
+        schedule_id: str | None = None,
     ) -> str | None:
         """Set thermotat mode."""
         post_params = {"home_id": self.home_id, "mode": mode}
@@ -355,8 +355,8 @@ class AsyncHomeStatus(AbstractHomeStatus):
         self,
         room_id: str,
         mode: str,
-        temp: float = None,
-        end_time: int = None,
+        temp: float | None = None,
+        end_time: int | None = None,
     ) -> str | None:
         """Set room themperature set point."""
         post_params = {"home_id": self.home_id, "room_id": room_id, "mode": mode}

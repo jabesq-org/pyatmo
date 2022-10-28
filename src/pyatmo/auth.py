@@ -9,7 +9,7 @@ from time import sleep
 from typing import Any, Callable
 
 import requests
-from aiohttp import ClientError, ClientResponse, ClientSession
+from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
@@ -394,7 +394,7 @@ class AbstractAsyncAuth(ABC):
                         f"when accessing '{url}'",
                     )
 
-                except JSONDecodeError as exc:
+                except (JSONDecodeError, ContentTypeError) as exc:
                     raise ApiError(
                         f"{resp_status} - "
                         f"{ERRORS.get(resp_status, '')} - "

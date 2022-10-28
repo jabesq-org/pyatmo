@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Handle invalid ip addressed from the API more gracefully
 - Let weather station devices register home even if home does not exist
+- Catch ContentTypeError error and handle more graceful
 
 ### Security
 

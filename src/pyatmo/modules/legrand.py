@@ -104,3 +104,7 @@ class NLPS(FirmwareMixin, PowerMixin, EnergyMixin, Module):
 
 class NLC(FirmwareMixin, SwitchMixin, Module):
     """Legrand / BTicino cable outlet."""
+
+
+class NLUI(FirmwareMixin, Module):
+    """Legrand NLUI device stubs."""

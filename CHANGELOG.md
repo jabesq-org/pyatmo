@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- Add Legrand NLUI device class
 
 ### Changed
 
--
+- Minor code clean ups
 
 ### Deprecated
 
@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Catch ContentTypeError error and handle more graceful
+- Handle invalid ip addressed from the API more gracefully
+- Let weather station devices register home even if home does not exist
 
 ### Security
 

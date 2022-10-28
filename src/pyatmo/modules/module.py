@@ -6,6 +6,8 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict
 
+from aiohttp import ClientConnectorError
+
 from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
@@ -324,9 +326,14 @@ class CameraMixin(EntityBase):
         if self.vpn_url and self.is_local:
             temp_local_url = await self._async_check_url(self.vpn_url)
             if temp_local_url:
-                self.local_url = await self._async_check_url(
-                    temp_local_url,
-                )
+                try:
+                    self.local_url = await self._async_check_url(
+                        temp_local_url,
+                    )
+                except ClientConnectorError as exc:
+                    LOG.debug("Cannot connect to %s - reason: %s", temp_local_url, exc)
+                    self.is_local = False
+                    self.local_url = None
 
     async def _async_check_url(self, url: str) -> str | None:
         """Validate camera url."""
@@ -465,19 +472,18 @@ class HistoryMixin(EntityBase):
         raw_data = await resp.json()
 
         data = raw_data["body"][0]
-        self.start_time = int(data["beg_time"])
         interval_sec = int(data["step_time"])
         interval_min = interval_sec // 60
 
         self.historical_data = []
+        self.start_time = int(data["beg_time"])
         start_time = self.start_time
         for value in data["value"]:
             end_time = start_time + interval_sec
             self.historical_data.append(
                 {
                     "duration": interval_min,
-                    "startTime": datetime.utcfromtimestamp(start_time + 1).isoformat()
-                    + "Z",
+                    "startTime": f"{datetime.utcfromtimestamp(start_time + 1).isoformat()}Z",
                     "endTime": f"{datetime.utcfromtimestamp(end_time).isoformat()}Z",
                     "Wh": value[0],
                 },

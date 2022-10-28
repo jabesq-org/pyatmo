@@ -76,6 +76,7 @@ ALL_SCOPES = [
 ]
 
 MANUAL = "manual"
+MAX = "max"
 HOME = "home"
 FROSTGUARD = "hg"
 SCHEDULES = "schedules"

@@ -194,11 +194,30 @@ class AsyncAccount:
                 self.find_home_of_device(device_data),
             ):
                 if home_id not in self.homes:
-                    continue
+                    modules_data = []
+                    for module_data in device_data.get("modules", []):
+                        module_data["home_id"] = home_id
+                        module_data["id"] = module_data["_id"]
+                        module_data["name"] = module_data.get("module_name")
+                        modules_data.append(normalize_weather_attributes(module_data))
+                    modules_data.append(normalize_weather_attributes(device_data))
+
+                    self.homes[home_id] = Home(
+                        self.auth,
+                        raw_data={
+                            "id": home_id,
+                            "name": device_data.get("home_name", "Unknown"),
+                            "modules": modules_data,
+                        },
+                    )
                 await self.homes[home_id].update(
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
+            else:
+                LOG.debug("No home %s found.", home_id)
+
             for module_data in device_data.get("modules", []):
+                module_data["home_id"] = home_id
                 await self.update_devices({"devices": [module_data]})
 
             if (

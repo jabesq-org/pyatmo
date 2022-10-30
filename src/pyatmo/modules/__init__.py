@@ -1,7 +1,7 @@
 """Expose submodules."""
 from .base_class import Place
 from .bticino import BNCX, BNDL, BNSL
-from .idiamant import NBG, NBR
+from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
     NLC,
     NLD,
@@ -23,6 +23,7 @@ from .legrand import (
     NLPS,
     NLPT,
     NLT,
+    NLUI,
     NLV,
 )
 from .module import Camera, Dimmer, Module, Shutter, Switch
@@ -70,6 +71,8 @@ __all__ = [
     "NATherm1",
     "NBG",
     "NBR",
+    "NBO",
+    "NBS",
     "NCO",
     "NDB",
     "NHC",
@@ -95,6 +98,7 @@ __all__ = [
     "NLPT",
     "NLT",
     "NLV",
+    "NLUI",
     "NOC",
     "NRV",
     "NSD",

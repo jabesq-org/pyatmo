@@ -9,7 +9,7 @@ from time import sleep
 from typing import Any, Callable
 
 import requests
-from aiohttp import ClientError, ClientResponse, ClientSession
+from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
@@ -121,7 +121,7 @@ class NetatmoOAuth2:
         timeout: int = 5,
     ) -> requests.Response:
         """Wrapper for post requests."""
-        resp = None
+        resp = requests.Response()
         req_args = {"data": params if params is not None else {}}
 
         if "json" in req_args["data"]:
@@ -166,7 +166,7 @@ class NetatmoOAuth2:
 
             resp = query(url, req_args, timeout, 3)
 
-        if resp is None:
+        if resp.status_code is None:
             LOG.debug("Resp is None - %s", resp)
             return requests.Response()
 
@@ -394,7 +394,7 @@ class AbstractAsyncAuth(ABC):
                         f"when accessing '{url}'",
                     )
 
-                except JSONDecodeError as exc:
+                except (JSONDecodeError, ContentTypeError) as exc:
                     raise ApiError(
                         f"{resp_status} - "
                         f"{ERRORS.get(resp_status, '')} - "

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Let weather station devices register home even if home does not exist
 - Catch ContentTypeError error and handle more graceful
 - Fix key error when battery hits very_low
+- Response handling issues
 
 ### Security
 

@@ -51,7 +51,7 @@ def process_battery_state(data: str) -> int:
         "high": 75,
         "medium": 50,
         "low": 25,
-        "very low": 10,
+        "very_low": 10,
     }
     return mapping[data]
 

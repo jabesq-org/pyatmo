@@ -29,7 +29,7 @@ async def test_async_home(async_home):
         DeviceType.NIS,
     }
     assert len(async_home.rooms) == 8
-    assert len(async_home.modules) == 35
+    assert len(async_home.modules) == 36
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -528,7 +528,7 @@ async def test_async_shutters(async_home):
                     "id": "91763b24c43d3e344f424e8b",
                     "modules": [
                         {
-                            "bridge": "70:ee:50:3e:d5:d4",
+                            "bridge": "12:34:56:30:d5:d4",
                             "id": module_id,
                             "target_position": position,
                         },

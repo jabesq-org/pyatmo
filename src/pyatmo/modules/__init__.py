@@ -25,6 +25,7 @@ from .legrand import (
     NLT,
     NLUI,
     NLV,
+    NLunknown,
 )
 from .module import Camera, Dimmer, Module, Shutter, Switch
 from .netatmo import (
@@ -102,6 +103,7 @@ __all__ = [
     "NOC",
     "NRV",
     "NSD",
+    "NLunknown",
     "OTH",
     "OTM",
     "Place",

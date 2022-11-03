@@ -19,6 +19,7 @@ from pyatmo.const import (
 )
 from pyatmo.event import Event
 from pyatmo.exceptions import InvalidState, NoSchedule
+from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
 from pyatmo.schedule import Schedule
@@ -36,7 +37,7 @@ class Home:
     entity_id: str
     name: str
     rooms: dict[str, Room]
-    modules: dict[str, modules.Module]
+    modules: dict[str, Module]
     schedules: dict[str, Schedule]
     persons: dict[str, Person]
     events: dict[str, Event]
@@ -46,10 +47,7 @@ class Home:
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
         self.modules = {
-            module["id"]: getattr(modules, module["type"])(
-                home=self,
-                module=module,
-            )
+            module["id"]: self.get_module(module)
             for module in raw_data.get("modules", [])
         }
         self.rooms = {
@@ -68,6 +66,19 @@ class Home:
             s["id"]: Person(home=self, raw_data=s) for s in raw_data.get("persons", [])
         }
         self.events = {}
+
+    def get_module(self, module) -> Module:
+        try:
+            return getattr(modules, module["type"])(
+                home=self,
+                module=module,
+            )
+        except AttributeError:
+            LOG.info("Unknown device type %s", module["type"])
+            return getattr(modules, "NLunknown")(
+                home=self,
+                module=module,
+            )
 
     def update_topology(self, raw_data: RawData) -> None:
         self.name = raw_data.get("name", "Unknown")

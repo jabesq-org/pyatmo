@@ -69,6 +69,7 @@ class DeviceType(str, Enum):
     NLV = "NLV"  # Legrand / BTicino shutters
     NLUI = "NLUI"  # Legrand device stub
     NLunknown = "NLunknown"  # Legrand device stub
+    NLUF = "NLUF"  # Legrand device stub
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway

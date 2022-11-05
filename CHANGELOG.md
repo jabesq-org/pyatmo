@@ -31,6 +31,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [7.4.0]
+
+### Added
+
+- Add NLUF device stub
+
+### Changed
+
+- Update test fixture data to be in line with HA tests
+
+### Fixed
+
+- Handle unknown device types and log
+- Fix misc device types and add stubs for unknown
+
 ## [7.3.0]
 
 ### Added

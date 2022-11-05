@@ -23,8 +23,10 @@ from .legrand import (
     NLPS,
     NLPT,
     NLT,
+    NLUF,
     NLUI,
     NLV,
+    NLunknown,
 )
 from .module import Camera, Dimmer, Module, Shutter, Switch
 from .netatmo import (
@@ -52,9 +54,9 @@ from .netatmo import (
 from .smarther import BNS
 
 __all__ = [
-    "BNS",
     "BNCX",
     "BNDL",
+    "BNS",
     "BNSL",
     "Camera",
     "Dimmer",
@@ -70,8 +72,8 @@ __all__ = [
     "NAPlug",
     "NATherm1",
     "NBG",
-    "NBR",
     "NBO",
+    "NBR",
     "NBS",
     "NCO",
     "NDB",
@@ -81,8 +83,8 @@ __all__ = [
     "NLD",
     "NLE",
     "NLF",
-    "NLFN",
     "NLFE",
+    "NLFN",
     "NLG",
     "NLIS",
     "NLL",
@@ -97,8 +99,10 @@ __all__ = [
     "NLPS",
     "NLPT",
     "NLT",
-    "NLV",
+    "NLUF",
     "NLUI",
+    "NLunknown",
+    "NLV",
     "NOC",
     "NRV",
     "NSD",

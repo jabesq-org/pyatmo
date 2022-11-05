@@ -47,6 +47,7 @@ class DeviceType(str, Enum):
 
     # Legrand Wiring devices and electrical panel products
     NLC = "NLC"  # Cable outlet
+    NLD = "NLD"  # Dimmer
     NLE = "NLE"  # Connected Ecometer
     NLF = "NLF"  # 2 wire light switch
     NLFN = "NLFN"  # light switch with neutral
@@ -67,6 +68,8 @@ class DeviceType(str, Enum):
     NLT = "NLT"  # Global remote control
     NLV = "NLV"  # Legrand / BTicino shutters
     NLUI = "NLUI"  # Legrand device stub
+    NLunknown = "NLunknown"  # Legrand device stub
+    NLUF = "NLUF"  # Legrand device stub
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway

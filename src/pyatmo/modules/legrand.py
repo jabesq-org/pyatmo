@@ -107,4 +107,12 @@ class NLC(FirmwareMixin, SwitchMixin, Module):
 
 
 class NLUI(FirmwareMixin, Module):
-    """Legrand NLUI device stubs."""
+    """Legrand NLUI device stub."""
+
+
+class NLUF(FirmwareMixin, Module):
+    """Legrand NLUF device stub."""
+
+
+class NLunknown(Module):
+    """NLunknown device stub."""

@@ -132,6 +132,8 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPBS: DeviceCategory.switch,
     DeviceType.NLIS: DeviceCategory.switch,
     DeviceType.NLL: DeviceCategory.switch,
+    DeviceType.NLM: DeviceCategory.switch,
+    DeviceType.NLC: DeviceCategory.switch,
     DeviceType.NLFN: DeviceCategory.dimmer,
     DeviceType.NLF: DeviceCategory.dimmer,
     DeviceType.BNS: DeviceCategory.climate,

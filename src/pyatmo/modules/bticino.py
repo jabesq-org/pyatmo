@@ -17,4 +17,8 @@ class BNSL(Switch):  # pylint: disable=too-many-ancestors
 
 
 class BNCX(Module):
-    """BTicino"""
+    """BTicino internal panel = gateway."""
+
+
+class BNEU(Module):
+    """BTicino external unit."""

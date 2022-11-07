@@ -28,6 +28,7 @@ from .legrand import (
     NLUI,
     NLUP,
     NLV,
+    Z3L,
     NLunknown,
 )
 from .module import Camera, Dimmer, Module, Shutter, Switch
@@ -109,6 +110,7 @@ __all__ = [
     "NLunknown",
     "NLUP",
     "NLV",
+    "Z3L",
     "NOC",
     "NRV",
     "NSD",

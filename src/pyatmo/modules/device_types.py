@@ -48,6 +48,7 @@ class DeviceType(str, Enum):
     # Legrand Wiring devices and electrical panel products
     NLC = "NLC"  # Cable outlet
     NLD = "NLD"  # Dimmer
+    NLDD = "NLDD"  # Dimmer
     NLE = "NLE"  # Connected Ecometer
     NLF = "NLF"  # 2 wire light switch
     NLFN = "NLFN"  # light switch with neutral
@@ -70,7 +71,6 @@ class DeviceType(str, Enum):
     NLUI = "NLUI"  # Legrand device stub
     NLunknown = "NLunknown"  # Legrand device stub
     NLUF = "NLUF"  # Legrand device stub
-    NLDD = "NLDD"  # Legrand dimmer
     NLUP = "NLUP"  # Legrand device stub
 
     # BTicino Classe 300 EOS
@@ -145,6 +145,8 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
     DeviceType.Z3L: DeviceCategory.dimmer,
+    DeviceType.NLDD: DeviceCategory.dimmer,
+    DeviceType.NLUP: DeviceCategory.switch,
 }
 
 
@@ -195,6 +197,9 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLPS: ("Legrand", "Smart Load Shedder"),
     DeviceType.NLC: ("Legrand", "Cable Outlet"),
     DeviceType.NLT: ("Legrand", "Global Remote Control"),
+    DeviceType.NLD: ("Legrand", "Dimmer"),
+    DeviceType.NLDD: ("Legrand", "Dimmer"),
+    DeviceType.NLUP: ("Legrand", "Power outlet"),
     # BTicino Classe 300 EOS,
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),

@@ -215,7 +215,7 @@ class AsyncAccount:
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
-                LOG.debug("No home %s found.", home_id)
+                LOG.debug("No home %s of device %s found.", home_id, device_data["_id"])
                 if home_id is None and not home_id_none:
                     home_id_none = True
                     LOG.debug("home %s raw: %s", home_id, raw_data)

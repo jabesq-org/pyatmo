@@ -26,6 +26,7 @@ from .legrand import (
     NLT,
     NLUF,
     NLUI,
+    NLUP,
     NLV,
     NLunknown,
 )
@@ -106,6 +107,7 @@ __all__ = [
     "NLUF",
     "NLUI",
     "NLunknown",
+    "NLUP",
     "NLV",
     "NOC",
     "NRV",

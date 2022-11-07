@@ -118,5 +118,9 @@ class NLDD(FirmwareMixin, Module):
     """Legrand NLDD device stub."""
 
 
+class NLUP(FirmwareMixin, Module):
+    """Legrand NLUP device stub."""
+
+
 class NLunknown(Module):
     """NLunknown device stub."""

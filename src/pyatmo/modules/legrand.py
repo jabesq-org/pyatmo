@@ -114,13 +114,17 @@ class NLUF(FirmwareMixin, Module):
     """Legrand NLUF device stub."""
 
 
-class NLDD(FirmwareMixin, Module):
-    """Legrand NLDD device stub."""
+class NLDD(Dimmer):
+    """Legrand NLDD dimmer."""
 
 
-class NLUP(FirmwareMixin, Module):
-    """Legrand NLUP device stub."""
+class NLUP(FirmwareMixin, PowerMixin, Module):
+    """Legrand NLUP Power outlet."""
 
 
 class NLunknown(Module):
     """NLunknown device stub."""
+
+
+class Z3L(Dimmer):
+    """Zigbee 3 Light."""

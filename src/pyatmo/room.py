@@ -42,6 +42,7 @@ class Room(NetatmoBase):
         all_modules: dict[str, Module],
     ) -> None:
         super().__init__(room)
+        LOG.debug("Adding room %s to home %s", room, home.entity_id)
         self.home = home
         self.modules = {
             m_id: m

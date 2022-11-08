@@ -80,6 +80,7 @@ class Room(NetatmoBase):
             self.features.add("humidity")
 
     def update(self, raw_data: RawData) -> None:
+        LOG.debug("Room %s update: %s", self.name, raw_data)
         self.heating_power_request = raw_data.get("heating_power_request")
         self.humidity = raw_data.get("humidity")
         self.reachable = raw_data.get("reachable")

@@ -128,3 +128,7 @@ class NLunknown(Module):
 
 class Z3L(Dimmer):
     """Zigbee 3 Light."""
+
+
+class EBU(Module):
+    """EBU gas meter."""

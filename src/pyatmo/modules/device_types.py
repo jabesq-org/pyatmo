@@ -90,6 +90,7 @@ class DeviceType(str, Enum):
 
     # Zigbee 3 light
     Z3L = "Z3L"  # Zigbee 3 Light
+    EBU = "EBU"  # EBU gas meter
 
     # pylint: enable=C0103
 
@@ -212,4 +213,5 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
     # Zigbee 3
     DeviceType.Z3L: ("Legrand", "Zigbee 3 Light"),
+    DeviceType.EBU: ("Legrand", "EBU gas meter"),
 }

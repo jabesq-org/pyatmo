@@ -3,6 +3,7 @@ from .base_class import Place
 from .bticino import BNCX, BNDL, BNEU, BNSL
 from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
+    EBU,
     NLC,
     NLD,
     NLDD,
@@ -110,6 +111,7 @@ __all__ = [
     "NLunknown",
     "NLUP",
     "NLV",
+    "EBU",
     "Z3L",
     "NOC",
     "NRV",

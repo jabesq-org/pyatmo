@@ -38,7 +38,7 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
-class NLPO(Switch):
+class NLPO(Switch, EnergyMixin):
     """Legrand contactor."""
 
 

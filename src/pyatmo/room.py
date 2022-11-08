@@ -61,6 +61,7 @@ class Room(NetatmoBase):
             if m_id in raw_data.get("module_ids", [])
         }
         self.evaluate_device_type()
+        LOG.debug("Room %s climate type: %s", self.name, self.climate_type)
 
     def evaluate_device_type(self) -> None:
         for module in self.modules.values():

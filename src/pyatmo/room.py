@@ -69,12 +69,12 @@ class Room(NetatmoBase):
             if module.device_category is not None:
                 self.features.add(module.device_category.name)
 
-        if "NRV" in self.device_types:
+        if "OTM" in self.device_types:
+            self.climate_type = DeviceType.OTM
+        elif "NRV" in self.device_types:
             self.climate_type = DeviceType.NRV
         elif "NATherm1" in self.device_types:
             self.climate_type = DeviceType.NATherm1
-        elif "OTM" in self.device_types:
-            self.climate_type = DeviceType.OTM
         elif "BNS" in self.device_types:
             self.climate_type = DeviceType.BNS
             self.features.add("humidity")

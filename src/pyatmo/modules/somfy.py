@@ -3,16 +3,10 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import (
-    FirmwareMixin,
-    Module,
-    RfMixin,
-    ShutterMixin,
-    WifiMixin,
+from pyatmo.modules.module import Module
 )
 
 LOG = logging.getLogger(__name__)
 
-
-class TPSRS(FirmwareMixin, RfMixin, ShutterMixin, Module):
+class TPSRS(Module):
     ...

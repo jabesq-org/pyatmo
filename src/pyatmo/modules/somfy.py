@@ -13,7 +13,6 @@ from pyatmo.modules.module import (
 
 LOG = logging.getLogger(__name__)
 
+
 class TPSRS(FirmwareMixin, RfMixin, ShutterMixin, Module):
     ...
-	
-	

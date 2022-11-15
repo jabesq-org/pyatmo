@@ -113,5 +113,5 @@ __all__ = [
     "PublicWeatherArea",
     "Shutter",
     "Switch",
-    "TPSRS"
+    "TPSRS",
 ]

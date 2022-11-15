@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import Module
+
 )
 
 LOG = logging.getLogger(__name__)

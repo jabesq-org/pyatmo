@@ -83,6 +83,9 @@ class DeviceType(str, Enum):
     NBR = "NBR"  # roller shutter
     NBS = "NBS"  # swing shutter
 
+    # Somfy shutters
+    TPSRS = "TPSRS"  # Somfy io shutter
+
     # pylint: enable=C0103
 
 

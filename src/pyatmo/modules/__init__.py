@@ -52,6 +52,7 @@ from .netatmo import (
     PublicWeatherArea,
 )
 from .smarther import BNS
+from .somfy import TPSRS
 
 __all__ = [
     "BNCX",
@@ -112,4 +113,5 @@ __all__ = [
     "PublicWeatherArea",
     "Shutter",
     "Switch",
+    "TPSRS",
 ]

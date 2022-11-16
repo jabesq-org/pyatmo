@@ -218,9 +218,10 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),
     DeviceType.NBO: ("Bubbendorf", "Orientable Shutter"),
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
+    # Somfy
+    DeviceType.TPSRS: ("Somfy", "io Shutter"),
     # 3rd Party
     DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
-    DeviceType.Z3L: ("Legrand", "Zigbee 3 Light"),
-    DeviceType.EBU: ("Legrand", "EBU gas meter"),
-    DeviceType.TPSRS: ("Somfy", "io Shutter"),
+    DeviceType.Z3L: ("3rd Party", "Zigbee 3 Light"),
+    DeviceType.EBU: ("3rd Party", "EBU gas meter"),
 }

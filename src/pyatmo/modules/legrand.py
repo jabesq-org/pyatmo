@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import (
+    ContactorMixin,
     Dimmer,
     EnergyMixin,
     FirmwareMixin,
@@ -38,7 +39,7 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
-class NLPO(Switch, EnergyMixin):
+class NLPO(ContactorMixin, Switch):
     """Legrand contactor."""
 
 

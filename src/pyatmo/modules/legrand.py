@@ -106,7 +106,7 @@ class NLC(FirmwareMixin, SwitchMixin, Module):
     """Legrand / BTicino cable outlet."""
 
 
-class NLDD(Dimmer):
+class NLDD(Module):
     """Legrand NLDD dimmer."""
 
 

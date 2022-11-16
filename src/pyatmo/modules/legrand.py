@@ -10,6 +10,7 @@ from pyatmo.modules.module import (
     FirmwareMixin,
     HistoryMixin,
     Module,
+    OffloadMixin,
     PowerMixin,
     RfMixin,
     ShutterMixin,
@@ -39,7 +40,7 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
-class NLPO(ContactorMixin, Switch):
+class NLPO(ContactorMixin, OffloadMixin, Switch):
     """Legrand contactor."""
 
 

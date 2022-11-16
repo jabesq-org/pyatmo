@@ -106,6 +106,18 @@ class NLC(FirmwareMixin, SwitchMixin, Module):
     """Legrand / BTicino cable outlet."""
 
 
+class NLDD(Dimmer):
+    """Legrand NLDD dimmer."""
+
+
+class NLUP(FirmwareMixin, PowerMixin, Module):
+    """Legrand NLUP Power outlet."""
+
+
+class NLAO(FirmwareMixin, SwitchMixin, Module):
+    """Legrand wireless batteryless light switch."""
+
+
 class NLUI(FirmwareMixin, Module):
     """Legrand NLUI device stub."""
 
@@ -114,12 +126,12 @@ class NLUF(FirmwareMixin, Module):
     """Legrand NLUF device stub."""
 
 
-class NLDD(Dimmer):
-    """Legrand NLDD dimmer."""
+class NLUO(Module):
+    """Legrand NLUO device stub."""
 
 
-class NLUP(FirmwareMixin, PowerMixin, Module):
-    """Legrand NLUP Power outlet."""
+class NLLF(Module):
+    """Legrand NLLF device stub."""
 
 
 class NLunknown(Module):

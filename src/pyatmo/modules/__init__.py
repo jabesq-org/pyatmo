@@ -4,6 +4,7 @@ from .bticino import BNCX, BNDL, BNEU, BNSL
 from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
     EBU,
+    NLAO,
     NLC,
     NLD,
     NLDD,
@@ -14,6 +15,7 @@ from .legrand import (
     NLG,
     NLIS,
     NLL,
+    NLLF,
     NLLM,
     NLLV,
     NLM,
@@ -27,6 +29,7 @@ from .legrand import (
     NLT,
     NLUF,
     NLUI,
+    NLUO,
     NLUP,
     NLV,
     Z3L,
@@ -108,6 +111,9 @@ __all__ = [
     "NLT",
     "NLUF",
     "NLUI",
+    "NLAO",
+    "NLLF",
+    "NLUO",
     "NLunknown",
     "NLUP",
     "NLV",

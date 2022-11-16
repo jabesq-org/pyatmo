@@ -147,7 +147,6 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
     DeviceType.Z3L: DeviceCategory.dimmer,
-    DeviceType.NLDD: DeviceCategory.dimmer,
     DeviceType.NLUP: DeviceCategory.switch,
     DeviceType.NLPO: DeviceCategory.switch,
     DeviceType.TPSRS: DeviceCategory.shutter,

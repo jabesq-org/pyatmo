@@ -159,10 +159,7 @@ class Home:
         return schedule_id in self.schedules
 
     def has_otm(self) -> bool:
-        for room in self.rooms.values():
-            if "OTM" in room.device_types:
-                return True
-        return False
+        return any("OTM" in room.device_types for room in self.rooms.values())
 
     def get_hg_temp(self) -> float | None:
         """Return frost guard temperature value for given home."""

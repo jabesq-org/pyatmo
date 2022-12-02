@@ -3,9 +3,9 @@ from .base_class import Place
 from .bticino import BNCX, BNDL, BNEU, BNSL
 from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
-    NLAS,
     EBU,
     NLAO,
+    NLAS,
     NLC,
     NLD,
     NLDD,

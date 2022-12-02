@@ -70,6 +70,7 @@ class DeviceType(str, Enum):
     NLUI = "NLUI"  # Legrand device stub
     NLunknown = "NLunknown"  # Legrand device stub
     NLUF = "NLUF"  # Legrand device stub
+    NLAS = "NLAS"  # Legrand wireless batteryless scene switch
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
@@ -187,7 +188,8 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLPS: ("Legrand", "Smart Load Shedder"),
     DeviceType.NLC: ("Legrand", "Cable Outlet"),
     DeviceType.NLT: ("Legrand", "Global Remote Control"),
-    # BTicino Classe 300 EOS,
+    DeviceType.NLAS: ("Legrand", "Wireless batteryless scene switch"),
+    # BTicino Classe 300 EOS
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),
     DeviceType.BNDL: ("BTicino", "Door Lock"),

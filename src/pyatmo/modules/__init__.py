@@ -3,6 +3,7 @@ from .base_class import Place
 from .bticino import BNCX, BNDL, BNSL
 from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
+    NLAS,
     NLC,
     NLD,
     NLE,
@@ -114,4 +115,5 @@ __all__ = [
     "Shutter",
     "Switch",
     "TPSRS",
+    "NLAS",
 ]

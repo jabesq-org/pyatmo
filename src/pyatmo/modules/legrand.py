@@ -116,3 +116,7 @@ class NLUF(FirmwareMixin, Module):
 
 class NLunknown(Module):
     """NLunknown device stub."""
+
+
+class NLAS(Module):
+    """NLAS wireless batteryless scene switch."""

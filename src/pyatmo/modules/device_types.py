@@ -42,12 +42,10 @@ class DeviceType(str, Enum):
     # Home Coach
     NHC = "NHC"  # Smart Indoor Air Quality Monitor
 
-    # 3rd Party
-    BNS = "BNS"  # Smarther with Netatmo
-
     # Legrand Wiring devices and electrical panel products
     NLC = "NLC"  # Cable outlet
     NLD = "NLD"  # Dimmer
+    NLDD = "NLDD"  # Dimmer
     NLE = "NLE"  # Connected Ecometer
     NLF = "NLF"  # 2 wire light switch
     NLFN = "NLFN"  # light switch with neutral
@@ -67,10 +65,14 @@ class DeviceType(str, Enum):
     NLPT = "NLPT"  # Connected latching relay / Telerupt
     NLT = "NLT"  # Global remote control
     NLV = "NLV"  # Legrand / BTicino shutters
-    NLUI = "NLUI"  # Legrand device stub
+    NLAO = "NLAO"  # Legrand wireless batteryless light switch
+    NLUO = "NLUO"  # Legrand Plug-In dimmer switch
+    NLUI = "NLUI"  # Legrand In-Wall ON/OFF switch
     NLunknown = "NLunknown"  # Legrand device stub
     NLUF = "NLUF"  # Legrand device stub
     NLAS = "NLAS"  # Legrand wireless batteryless scene switch
+    NLUP = "NLUP"  # Legrand device stub
+    NLLF = "NLLF"  # Legrand device stub
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
@@ -84,8 +86,13 @@ class DeviceType(str, Enum):
     NBR = "NBR"  # roller shutter
     NBS = "NBS"  # swing shutter
 
-    # Somfy shutters
+    # Somfy
     TPSRS = "TPSRS"  # Somfy io shutter
+
+    # 3rd Party
+    BNS = "BNS"  # Smarther with Netatmo
+    EBU = "EBU"  # EBU gas meter
+    Z3L = "Z3L"  # Zigbee 3 Light
 
     # pylint: enable=C0103
 
@@ -133,22 +140,30 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPBS: DeviceCategory.switch,
     DeviceType.NLIS: DeviceCategory.switch,
     DeviceType.NLL: DeviceCategory.switch,
+    DeviceType.NLM: DeviceCategory.switch,
+    DeviceType.NLC: DeviceCategory.switch,
     DeviceType.NLFN: DeviceCategory.dimmer,
     DeviceType.NLF: DeviceCategory.dimmer,
     DeviceType.BNS: DeviceCategory.climate,
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
+    DeviceType.Z3L: DeviceCategory.dimmer,
+    DeviceType.NLUP: DeviceCategory.switch,
+    DeviceType.NLPO: DeviceCategory.switch,
+    DeviceType.TPSRS: DeviceCategory.shutter,
+    DeviceType.NLUO: DeviceCategory.dimmer,
+    DeviceType.NLUI: DeviceCategory.switch,
 }
 
 
 DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
-    # Climate/Energy
+    # Netatmo Climate/Energy
     DeviceType.NAPlug: ("Netatmo", "Smart Thermostat Gateway"),
     DeviceType.NATherm1: ("Netatmo", "Smart Thermostat"),
     DeviceType.NRV: ("Netatmo", "Smart Valve"),
     DeviceType.OTH: ("Netatmo", "OpenTherm Gateway"),
     DeviceType.OTM: ("Netatmo", "OpenTherm Modulating Thermostat"),
-    # Cameras/Security,
+    # Netatmo Cameras/Security
     DeviceType.NOC: ("Netatmo", "Smart Outdoor Camera"),
     DeviceType.NACamera: ("Netatmo", "Smart Indoor Camera"),
     DeviceType.NSD: ("Netatmo", "Smart Smoke Detector"),
@@ -156,18 +171,16 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NACamDoorTag: ("Netatmo", "Smart Door/Window Sensors"),
     DeviceType.NDB: ("Netatmo", "Smart Video Doorbell"),
     DeviceType.NCO: ("Netatmo", "Smart Carbon Monoxide Alarm"),
-    # Weather,
+    # Netatmo Weather
     DeviceType.NAMain: ("Netatmo", "Smart Home Weather station"),
     DeviceType.NAModule1: ("Netatmo", "Smart Outdoor Module"),
     DeviceType.NAModule2: ("Netatmo", "Smart Anemometer"),
     DeviceType.NAModule3: ("Netatmo", "Smart Rain Gauge"),
     DeviceType.NAModule4: ("Netatmo", "Smart Indoor Module"),
     DeviceType.public: ("Netatmo", "Public Weather station"),
-    # Home Coach,
+    # Netatmo Home Coach
     DeviceType.NHC: ("Netatmo", "Smart Indoor Air Quality Monitor"),
-    # 3rd Party,
-    DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
-    # Legrand Wiring devices and electrical panel products,
+    # Legrand Wiring devices and electrical panel products
     DeviceType.NLG: ("Legrand", "Gateway"),
     DeviceType.NLGS: ("Legrand", "Gateway standalone"),
     DeviceType.NLP: ("Legrand", "Plug"),
@@ -189,14 +202,24 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLC: ("Legrand", "Cable Outlet"),
     DeviceType.NLT: ("Legrand", "Global Remote Control"),
     DeviceType.NLAS: ("Legrand", "Wireless batteryless scene switch"),
+    DeviceType.NLD: ("Legrand", "Dimmer"),
+    DeviceType.NLDD: ("Legrand", "Dimmer"),
+    DeviceType.NLUP: ("Legrand", "Power outlet"),
+    DeviceType.NLUO: ("Legrand", "Plug-In dimmer switch"),
+    DeviceType.NLUI: ("Legrand", "In-wall switch"),
     # BTicino Classe 300 EOS
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),
     DeviceType.BNDL: ("BTicino", "Door Lock"),
     DeviceType.BNSL: ("BTicino", "Staircase Light"),
-    # Bubbendorf shutters,
+    # Bubbendorf shutters
     DeviceType.NBG: ("Bubbendorf", "Gateway"),
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),
     DeviceType.NBO: ("Bubbendorf", "Orientable Shutter"),
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
+    # 3rd Party
+    DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
+    DeviceType.Z3L: ("Legrand", "Zigbee 3 Light"),
+    DeviceType.EBU: ("Legrand", "EBU gas meter"),
+    DeviceType.TPSRS: ("Somfy", "io Shutter"),
 }

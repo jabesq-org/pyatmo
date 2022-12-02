@@ -38,7 +38,7 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
-class NLPO(Switch):
+class NLPO(Switch, EnergyMixin):
     """Legrand contactor."""
 
 
@@ -106,6 +106,18 @@ class NLC(FirmwareMixin, SwitchMixin, Module):
     """Legrand / BTicino cable outlet."""
 
 
+class NLDD(Module):
+    """Legrand NLDD dimmer."""
+
+
+class NLUP(FirmwareMixin, PowerMixin, Module):
+    """Legrand NLUP Power outlet."""
+
+
+class NLAO(FirmwareMixin, SwitchMixin, Module):
+    """Legrand wireless batteryless light switch."""
+
+
 class NLUI(FirmwareMixin, Module):
     """Legrand NLUI device stub."""
 
@@ -114,9 +126,25 @@ class NLUF(FirmwareMixin, Module):
     """Legrand NLUF device stub."""
 
 
+class NLUO(Module):
+    """Legrand NLUO device stub."""
+
+
+class NLLF(Module):
+    """Legrand NLLF device stub."""
+
+
 class NLunknown(Module):
     """NLunknown device stub."""
 
 
 class NLAS(Module):
     """NLAS wireless batteryless scene switch."""
+
+
+class Z3L(Dimmer):
+    """Zigbee 3 Light."""
+
+
+class EBU(Module):
+    """EBU gas meter."""

@@ -1,10 +1,13 @@
 """Expose submodules."""
 from .base_class import Place
-from .bticino import BNCX, BNDL, BNSL
+from .bticino import BNCX, BNDL, BNEU, BNSL
 from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
+    EBU,
+    NLAO,
     NLC,
     NLD,
+    NLDD,
     NLE,
     NLF,
     NLFE,
@@ -12,6 +15,7 @@ from .legrand import (
     NLG,
     NLIS,
     NLL,
+    NLLF,
     NLLM,
     NLLV,
     NLM,
@@ -25,7 +29,10 @@ from .legrand import (
     NLT,
     NLUF,
     NLUI,
+    NLUO,
+    NLUP,
     NLV,
+    Z3L,
     NLunknown,
 )
 from .module import Camera, Dimmer, Module, Shutter, Switch
@@ -57,6 +64,7 @@ from .somfy import TPSRS
 __all__ = [
     "BNCX",
     "BNDL",
+    "BNEU",
     "BNS",
     "BNSL",
     "Camera",
@@ -82,6 +90,7 @@ __all__ = [
     "NIS",
     "NLC",
     "NLD",
+    "NLDD",
     "NLE",
     "NLF",
     "NLFE",
@@ -102,8 +111,14 @@ __all__ = [
     "NLT",
     "NLUF",
     "NLUI",
+    "NLAO",
+    "NLLF",
+    "NLUO",
     "NLunknown",
+    "NLUP",
     "NLV",
+    "EBU",
+    "Z3L",
     "NOC",
     "NRV",
     "NSD",

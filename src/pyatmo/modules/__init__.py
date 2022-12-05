@@ -5,6 +5,7 @@ from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
     EBU,
     NLAO,
+    NLAS,
     NLC,
     NLD,
     NLDD,
@@ -129,4 +130,5 @@ __all__ = [
     "Shutter",
     "Switch",
     "TPSRS",
+    "NLAS",
 ]

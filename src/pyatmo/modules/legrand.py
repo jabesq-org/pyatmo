@@ -138,6 +138,10 @@ class NLunknown(Module):
     """NLunknown device stub."""
 
 
+class NLAS(Module):
+    """NLAS wireless batteryless scene switch."""
+
+
 class Z3L(Dimmer):
     """Zigbee 3 Light."""
 

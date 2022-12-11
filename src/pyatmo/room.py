@@ -79,6 +79,13 @@ class Room(NetatmoBase):
             self.climate_type = DeviceType.BNS
             self.features.add("humidity")
 
+        LOG.debug(
+            "Room %s (climate type: %s, features: %s)",
+            self.name,
+            self.climate_type,
+            self.features,
+        )
+
     def update(self, raw_data: RawData) -> None:
         LOG.debug("Room %s update: %s", self.name, raw_data)
         self.heating_power_request = raw_data.get("heating_power_request")

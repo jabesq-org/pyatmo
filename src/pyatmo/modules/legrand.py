@@ -120,7 +120,7 @@ class NLAO(FirmwareMixin, SwitchMixin, Module):
     """Legrand wireless batteryless light switch."""
 
 
-class NLUI(FirmwareMixin, Module):
+class NLUI(FirmwareMixin, SwitchMixin, Module):
     """Legrand NLUI device stub."""
 
 

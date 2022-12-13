@@ -121,14 +121,14 @@ class NLAO(FirmwareMixin, SwitchMixin, Module):
 
 
 class NLUI(FirmwareMixin, SwitchMixin, Module):
-    """Legrand NLUI device stub."""
+    """Legrand NLUI in-wall switch."""
 
 
 class NLUF(FirmwareMixin, Module):
     """Legrand NLUF device stub."""
 
 
-class NLUO(Module):
+class NLUO(Dimmer):
     """Legrand NLUO device stub."""
 
 

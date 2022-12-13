@@ -154,3 +154,7 @@ class EBU(Module):
 
 class NLAS(Module):
     """NLAS wireless batteryless scene switch."""
+
+
+class NLTS(Module):
+    """NLTS motion sensor."""

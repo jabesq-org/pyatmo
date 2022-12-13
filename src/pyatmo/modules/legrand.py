@@ -112,7 +112,7 @@ class NLDD(Module):
     """Legrand NLDD dimmer."""
 
 
-class NLUP(FirmwareMixin, PowerMixin, Module):
+class NLUP(FirmwareMixin, PowerMixin, SwitchMixin, Module):
     """Legrand NLUP Power outlet."""
 
 

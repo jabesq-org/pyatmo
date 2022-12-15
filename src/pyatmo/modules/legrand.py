@@ -108,8 +108,8 @@ class NLC(FirmwareMixin, SwitchMixin, Module):
     """Legrand / BTicino cable outlet."""
 
 
-class NLDD(Module):
-    """Legrand NLDD dimmer."""
+class NLDD(FirmwareMixin, Module):
+    """Legrand NLDD dimmer remote control."""
 
 
 class NLUP(FirmwareMixin, PowerMixin, SwitchMixin, Module):
@@ -150,10 +150,6 @@ class Z3L(Dimmer):
 
 class EBU(Module):
     """EBU gas meter."""
-
-
-class NLAS(Module):
-    """NLAS wireless batteryless scene switch."""
 
 
 class NLTS(Module):

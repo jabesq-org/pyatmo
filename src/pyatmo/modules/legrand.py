@@ -124,7 +124,7 @@ class NLUI(FirmwareMixin, SwitchMixin, Module):
     """Legrand NLUI in-wall switch."""
 
 
-class NLUF(FirmwareMixin, Module):
+class NLUF(Dimmer):
     """Legrand NLUF device stub."""
 
 

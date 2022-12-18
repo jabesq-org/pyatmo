@@ -135,6 +135,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLLV: DeviceCategory.shutter,
     DeviceType.NLLM: DeviceCategory.shutter,
     DeviceType.NBR: DeviceCategory.shutter,
+    DeviceType.NBO: DeviceCategory.shutter,
     DeviceType.NLP: DeviceCategory.switch,
     DeviceType.NLPM: DeviceCategory.switch,
     DeviceType.NLPBS: DeviceCategory.switch,

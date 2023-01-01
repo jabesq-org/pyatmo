@@ -42,7 +42,6 @@ class Room(NetatmoBase):
         all_modules: dict[str, Module],
     ) -> None:
         super().__init__(room)
-        LOG.debug("Adding room %s to home %s", room, home.entity_id)
         self.home = home
         self.modules = {
             m_id: m
@@ -61,7 +60,6 @@ class Room(NetatmoBase):
             if m_id in raw_data.get("module_ids", [])
         }
         self.evaluate_device_type()
-        LOG.debug("Room %s climate type: %s", self.name, self.climate_type)
 
     def evaluate_device_type(self) -> None:
         for module in self.modules.values():
@@ -79,15 +77,7 @@ class Room(NetatmoBase):
             self.climate_type = DeviceType.BNS
             self.features.add("humidity")
 
-        LOG.debug(
-            "Room %s (climate type: %s, features: %s)",
-            self.name,
-            self.climate_type,
-            self.features,
-        )
-
     def update(self, raw_data: RawData) -> None:
-        LOG.debug("Room %s update: %s", self.name, raw_data)
         self.heating_power_request = raw_data.get("heating_power_request")
         self.humidity = raw_data.get("humidity")
         self.reachable = raw_data.get("reachable")

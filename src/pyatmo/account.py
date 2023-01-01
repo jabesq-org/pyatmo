@@ -214,10 +214,9 @@ class AsyncAccount:
                 await self.homes[home_id].update(
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
-            else:
-                if home_id is None and not home_id_none:
-                    home_id_none = True
-                    LOG.debug("home %s raw: %s", home_id, raw_data)
+            elif home_id is None and not home_id_none:
+                home_id_none = True
+                LOG.debug("home %s raw: %s", home_id, raw_data)
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id

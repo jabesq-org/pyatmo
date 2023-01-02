@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add NLAS - wireless batteryless scene switch device type
-- Add BNEU, EBU, NLDD, NLAO, NLLF, NLUO, NLUP, Z3L, NLTS, NLUF
+-
 
 ### Changed
 
@@ -26,12 +25,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Update Legrand and BTicino devices
-- Fix broken temperature setter when OTM is in the setup
+-
 
 ### Security
 
 -
+
+## [7.5.0]
+
+### Added
+
+- Add NLAS - wireless batteryless scene switch device type
+- Add BNEU, EBU, NLDD, NLAO, NLLF, NLUO, NLUP, Z3L, NLTS, NLUF
+
+### Fixed
+
+- Update Legrand and BTicino devices
+- Fix broken temperature setter when OTM is in the setup
 
 ## [7.4.0]
 

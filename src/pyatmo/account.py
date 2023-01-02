@@ -188,7 +188,6 @@ class AsyncAccount:
         area_id: str | None = None,
     ) -> None:
         """Update device states."""
-        home_id_none = False
         for device_data in raw_data.get("devices", {}):
             if home_id := device_data.get(
                 "home_id",
@@ -215,9 +214,7 @@ class AsyncAccount:
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
-                if home_id is None and not home_id_none:
-                    home_id_none = True
-                    LOG.debug("home %s raw: %s", home_id, raw_data)
+                LOG.debug("No home %s found.", home_id)
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id

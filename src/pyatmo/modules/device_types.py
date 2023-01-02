@@ -73,6 +73,7 @@ class DeviceType(str, Enum):
     NLAS = "NLAS"  # Legrand wireless batteryless scene switch
     NLUP = "NLUP"  # Legrand device stub
     NLLF = "NLLF"  # Legrand device stub
+    NLTS = "NLTS"  # Legrand motion sensor stub
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
@@ -154,6 +155,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.TPSRS: DeviceCategory.shutter,
     DeviceType.NLUO: DeviceCategory.dimmer,
     DeviceType.NLUI: DeviceCategory.switch,
+    DeviceType.NLUF: DeviceCategory.dimmer,
 }
 
 
@@ -208,6 +210,8 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLUP: ("Legrand", "Power outlet"),
     DeviceType.NLUO: ("Legrand", "Plug-In dimmer switch"),
     DeviceType.NLUI: ("Legrand", "In-wall switch"),
+    DeviceType.NLTS: ("Legrand", "Motion sensor"),
+    DeviceType.NLUF: ("Legrand", "In-Wall dimmer"),
     # BTicino Classe 300 EOS
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),
@@ -218,9 +222,10 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),
     DeviceType.NBO: ("Bubbendorf", "Orientable Shutter"),
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
+    # Somfy
+    DeviceType.TPSRS: ("Somfy", "io Shutter"),
     # 3rd Party
     DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
-    DeviceType.Z3L: ("Legrand", "Zigbee 3 Light"),
-    DeviceType.EBU: ("Legrand", "EBU gas meter"),
-    DeviceType.TPSRS: ("Somfy", "io Shutter"),
+    DeviceType.Z3L: ("3rd Party", "Zigbee 3 Light"),
+    DeviceType.EBU: ("3rd Party", "EBU gas meter"),
 }

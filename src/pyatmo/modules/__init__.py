@@ -28,6 +28,7 @@ from .legrand import (
     NLPS,
     NLPT,
     NLT,
+    NLTS,
     NLUF,
     NLUI,
     NLUO,
@@ -131,4 +132,5 @@ __all__ = [
     "Switch",
     "TPSRS",
     "NLAS",
+    "NLTS",
 ]

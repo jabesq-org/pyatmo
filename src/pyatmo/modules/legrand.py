@@ -4,11 +4,13 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import (
+    ContactorMixin,
     Dimmer,
     EnergyMixin,
     FirmwareMixin,
     HistoryMixin,
     Module,
+    OffloadMixin,
     PowerMixin,
     RfMixin,
     ShutterMixin,
@@ -38,7 +40,7 @@ class NLPM(Switch):
     """Legrand mobile plug."""
 
 
-class NLPO(Switch, EnergyMixin):
+class NLPO(ContactorMixin, OffloadMixin, Switch):
     """Legrand contactor."""
 
 
@@ -106,11 +108,11 @@ class NLC(FirmwareMixin, SwitchMixin, Module):
     """Legrand / BTicino cable outlet."""
 
 
-class NLDD(Module):
-    """Legrand NLDD dimmer."""
+class NLDD(FirmwareMixin, Module):
+    """Legrand NLDD dimmer remote control."""
 
 
-class NLUP(FirmwareMixin, PowerMixin, Module):
+class NLUP(FirmwareMixin, PowerMixin, SwitchMixin, Module):
     """Legrand NLUP Power outlet."""
 
 
@@ -118,15 +120,15 @@ class NLAO(FirmwareMixin, SwitchMixin, Module):
     """Legrand wireless batteryless light switch."""
 
 
-class NLUI(FirmwareMixin, Module):
-    """Legrand NLUI device stub."""
+class NLUI(FirmwareMixin, SwitchMixin, Module):
+    """Legrand NLUI in-wall switch."""
 
 
-class NLUF(FirmwareMixin, Module):
+class NLUF(Dimmer):
     """Legrand NLUF device stub."""
 
 
-class NLUO(Module):
+class NLUO(Dimmer):
     """Legrand NLUO device stub."""
 
 
@@ -148,3 +150,7 @@ class Z3L(Dimmer):
 
 class EBU(Module):
     """EBU gas meter."""
+
+
+class NLTS(Module):
+    """NLTS motion sensor."""

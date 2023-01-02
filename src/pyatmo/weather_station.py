@@ -230,10 +230,10 @@ class WeatherStationData(AbstractWeatherStationData):
         device_id: str,
         scale: str,
         module_type: str,
-        module_id: str = None,
-        date_begin: float = None,
-        date_end: float = None,
-        limit: int = None,
+        module_id: str | None = None,
+        date_begin: float | None = None,
+        date_end: float | None = None,
+        limit: int | None = None,
         optimize: bool = False,
         real_time: bool = False,
     ) -> dict | None:
@@ -265,7 +265,7 @@ class WeatherStationData(AbstractWeatherStationData):
     def get_min_max_t_h(
         self,
         station_id: str,
-        module_id: str = None,
+        module_id: str | None = None,
         frame: str = "last24",
     ) -> tuple[float, float, float, float] | None:
         """Return minimum and maximum temperature and humidity over the given timeframe.

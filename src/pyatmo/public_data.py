@@ -145,7 +145,7 @@ class PublicData(AbstractPublicData):
         lon_ne: str,
         lat_sw: str,
         lon_sw: str,
-        required_data_type: str = None,
+        required_data_type: str | None = None,
         filtering: bool = False,
     ) -> None:
         """Initialize self.
@@ -197,7 +197,7 @@ class AsyncPublicData(AbstractPublicData):
         lon_ne: str,
         lat_sw: str,
         lon_sw: str,
-        required_data_type: str = None,
+        required_data_type: str | None = None,
         filtering: bool = False,
     ) -> None:
         """Initialize self.

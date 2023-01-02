@@ -158,6 +158,9 @@ class Home:
         """Check if valid schedule."""
         return schedule_id in self.schedules
 
+    def has_otm(self) -> bool:
+        return any("OTM" in room.device_types for room in self.rooms.values())
+
     def get_hg_temp(self) -> float | None:
         """Return frost guard temperature value for given home."""
         if (schedule := self.get_selected_schedule()) is None:

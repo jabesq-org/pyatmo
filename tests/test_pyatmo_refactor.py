@@ -27,9 +27,10 @@ async def test_async_home(async_home):
         DeviceType.NACamera,
         DeviceType.NBR,
         DeviceType.NIS,
+        DeviceType.NBO,
     }
     assert len(async_home.rooms) == 8
-    assert len(async_home.modules) == 36
+    assert len(async_home.modules) == 37
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -170,6 +171,17 @@ async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.NBR
     assert module.firmware_revision == 16
+    assert module.current_position == 0
+
+
+@pytest.mark.asyncio
+async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
+    """Test NBO Bubendorf iDiamant roller shutter."""
+    module_id = "0009999993"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.NBO
+    assert module.firmware_revision == 22
     assert module.current_position == 0
 
 

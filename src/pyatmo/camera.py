@@ -153,7 +153,7 @@ class AbstractCameraData(ABC):
 
         return camera_data.get("light_mode_status")
 
-    def persons_at_home(self, home_id: str = None) -> list:
+    def persons_at_home(self, home_id: str | None = None) -> list:
         """Return a list of known persons who are currently at home."""
         home_data = self.homes.get(home_id, {})
         return [
@@ -528,9 +528,9 @@ class CameraData(AbstractCameraData):
     def set_state(
         self,
         camera_id: str,
-        home_id: str = None,
-        floodlight: str = None,
-        monitoring: str = None,
+        home_id: str | None = None,
+        floodlight: str | None = None,
+        monitoring: str | None = None,
     ) -> bool:
         """Turn camera (light) on/off.
 
@@ -570,7 +570,7 @@ class CameraData(AbstractCameraData):
         LOG.debug("%s", resp)
         return True
 
-    def set_persons_home(self, home_id: str, person_ids: list[str] = None):
+    def set_persons_home(self, home_id: str, person_ids: list[str] | None = None):
         """Mark persons as home."""
         post_params: dict[str, str | list] = {"home_id": home_id}
         if person_ids:
@@ -619,8 +619,8 @@ class CameraData(AbstractCameraData):
     def update_events(
         self,
         home_id: str,
-        event_id: str = None,
-        device_type: str = None,
+        event_id: str | None = None,
+        device_type: str | None = None,
     ) -> None:
         """Update the list of events."""
         if not (event_id or device_type):
@@ -691,9 +691,9 @@ class AsyncCameraData(AbstractCameraData):
     async def async_set_state(
         self,
         camera_id: str,
-        home_id: str = None,
-        floodlight: str = None,
-        monitoring: str = None,
+        home_id: str | None = None,
+        floodlight: str | None = None,
+        monitoring: str | None = None,
     ) -> bool:
         """Turn camera (light) on/off.
 
@@ -773,7 +773,7 @@ class AsyncCameraData(AbstractCameraData):
     async def async_set_persons_home(
         self,
         home_id: str,
-        person_ids: list[str] = None,
+        person_ids: list[str] | None = None,
     ):
         """Mark persons as home."""
         post_params: dict[str, str | list] = {"home_id": home_id}

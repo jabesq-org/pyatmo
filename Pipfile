@@ -21,6 +21,7 @@ pytest-mock = "*"
 requests-mock = "*"
 tox = ">=3.25"
 twine = "*"
+no-implicit-optional = "*"
 
 [packages]
 requests = "*"

@@ -237,6 +237,18 @@ class EventMixin(EntityBase):
         self.events: list[Event] = []
 
 
+class ContactorMixin(EntityBase):
+    def __init__(self, home: Home, module: ModuleT):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.contactor_mode: str | None = None
+
+
+class OffloadMixin(EntityBase):
+    def __init__(self, home: Home, module: ModuleT):
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.offload: bool | None = None
+
+
 class SwitchMixin(EntityBase):
     def __init__(self, home: Home, module: ModuleT):
         super().__init__(home, module)  # type: ignore # mypy issue 4335

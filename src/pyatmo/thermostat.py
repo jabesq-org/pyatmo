@@ -1,11 +1,13 @@
 """Support for Netatmo energy devices (relays, thermostats and valves)."""
 from __future__ import annotations
 
+import json
 import logging
 from abc import ABC
 from collections import defaultdict
 from typing import Any
 from warnings import warn
+from copy import deepcopy
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import (
@@ -14,6 +16,7 @@ from pyatmo.const import (
     SETROOMTHERMPOINT_ENDPOINT,
     SETTHERMMODE_ENDPOINT,
     SWITCHHOMESCHEDULE_ENDPOINT,
+    SYNCSCHEDULE_ENDPOINT,
 )
 from pyatmo.exceptions import InvalidRoom, NoSchedule
 from pyatmo.helpers import extract_raw_data
@@ -98,6 +101,44 @@ class AbstractHomeData(ABC):
             None,
         )
 
+    def get_schedule(self, home_id: str, schedule_id: str):
+        """Get schedule with the given id"""
+        return next(
+            (
+                value
+                for value in self.schedules.get(home_id, {}).values()
+                if value.get("id", None) == schedule_id
+            ),
+            None,
+        )
+
+    def _modify_schedule_temps(self, home_id: str, schedule_id: str, temps: dict):
+        """Modifies the schedule with the given id accordingly"""
+        schedule = self.get_schedule(home_id, schedule_id)
+        if schedule is None:
+            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
+
+        modified_schedule = deepcopy(schedule)
+        for zone in modified_schedule.get("zones", {}):
+            if "rooms_temp" in zone and "name" in zone:
+                zone.pop("rooms", None)
+
+                for room_temp in zone.get("rooms_temp"):
+                    if "room_id" in room_temp:
+                        new_room_temp = next(
+                            (
+                                value
+                                for (key, value) in temps.get(zone["name"], {}).items()
+                                if key == room_temp["room_id"]
+                            ),
+                            None,
+                        )
+
+                        if new_room_temp is not None:
+                            room_temp["temp"] = new_room_temp
+
+        return modified_schedule
+
     def is_valid_schedule(self, home_id: str, schedule_id: str):
         """Check if valid schedule."""
         schedules = (
@@ -136,6 +177,27 @@ class HomeData(AbstractHomeData):
         )
         LOG.debug("Response: %s", resp)
 
+    def set_scheduled_room_temperatures(
+        self, home_id: str, schedule_id: str, temps: dict
+    ) -> Any:
+        """Sets the scheduled room temperature for the given schedule ID."""
+
+        modified_schedule = self._modify_schedule_temps(home_id, schedule_id, temps)
+
+        modified_schedule["home_id"] = home_id
+        modified_schedule["schedule_id"] = schedule_id
+        modified_schedule.pop("id", None)
+        modified_schedule.pop("default", None)
+        modified_schedule.pop("selected", None)
+        modified_schedule.pop("type", None)
+
+        resp = self.auth.post_api_request(
+            endpoint=SYNCSCHEDULE_ENDPOINT,
+            params=json.dumps(modified_schedule),
+        )
+
+        LOG.debug("Response: %s", resp)
+
 
 class AsyncHomeData(AbstractHomeData):
     """Class of Netatmo energy devices."""
@@ -164,6 +226,26 @@ class AsyncHomeData(AbstractHomeData):
         resp = await self.auth.async_post_api_request(
             endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": home_id, "schedule_id": schedule_id},
+        )
+        LOG.debug("Response: %s", resp)
+
+    async def async_set_scheduled_room_temperatures(
+        self, home_id: str, schedule_id: str, temps: dict
+    ) -> None:
+        """Sets the scheduled room temperature for the given schedule ID."""
+
+        modified_schedule = self._modify_schedule_temps(home_id, schedule_id, temps)
+
+        modified_schedule["home_id"] = home_id
+        modified_schedule["schedule_id"] = schedule_id
+        modified_schedule.pop("id", None)
+        modified_schedule.pop("default", None)
+        modified_schedule.pop("selected", None)
+        modified_schedule.pop("type", None)
+
+        resp = self.auth.async_post_api_request(
+            endpoint=SYNCSCHEDULE_ENDPOINT,
+            params=json.dumps(modified_schedule),
         )
         LOG.debug("Response: %s", resp)
 

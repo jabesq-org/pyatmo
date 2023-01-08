@@ -5,9 +5,9 @@ import json
 import logging
 from abc import ABC
 from collections import defaultdict
+from copy import deepcopy
 from typing import Any
 from warnings import warn
-from copy import deepcopy
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
 from pyatmo.const import (
@@ -178,7 +178,10 @@ class HomeData(AbstractHomeData):
         LOG.debug("Response: %s", resp)
 
     def set_scheduled_room_temperatures(
-        self, home_id: str, schedule_id: str, temps: dict
+        self,
+        home_id: str,
+        schedule_id: str,
+        temps: dict,
     ) -> Any:
         """Sets the scheduled room temperature for the given schedule ID."""
 
@@ -230,7 +233,10 @@ class AsyncHomeData(AbstractHomeData):
         LOG.debug("Response: %s", resp)
 
     async def async_set_scheduled_room_temperatures(
-        self, home_id: str, schedule_id: str, temps: dict
+        self,
+        home_id: str,
+        schedule_id: str,
+        temps: dict,
     ) -> None:
         """Sets the scheduled room temperature for the given schedule ID."""
 

@@ -1,7 +1,6 @@
 """Support for Netatmo energy devices (relays, thermostats and valves)."""
 from __future__ import annotations
 
-import json
 import logging
 from abc import ABC
 from collections import defaultdict
@@ -196,7 +195,7 @@ class HomeData(AbstractHomeData):
 
         resp = self.auth.post_api_request(
             endpoint=SYNCSCHEDULE_ENDPOINT,
-            params=json.dumps(modified_schedule),
+            params={"json": modified_schedule},
         )
 
         LOG.debug("Response: %s", resp)
@@ -251,7 +250,7 @@ class AsyncHomeData(AbstractHomeData):
 
         resp = self.auth.async_post_api_request(
             endpoint=SYNCSCHEDULE_ENDPOINT,
-            params=json.dumps(modified_schedule),
+            params={"json": modified_schedule},
         )
         LOG.debug("Response: %s", resp)
 

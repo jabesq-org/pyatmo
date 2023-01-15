@@ -1277,11 +1277,11 @@
         },
         "tox": {
             "hashes": [
-                "sha256:3910e7ddf260de9004738a416f2efdbca21ad7f35d279f8a323117256696535f",
-                "sha256:aa1c07530f07265d025d534715f5e8d522606db71568cf6acbf7eadc30a8d0ed"
+                "sha256:7c31940d755355210151e8bef23feab3d714a8a4795e513c454ff0baccd995b1",
+                "sha256:e9d5006a533d280e2ca26e3ca61052ffa55a65b683486f92d12563a14a9b7a4f"
             ],
             "index": "pypi",
-            "version": "==4.1.2"
+            "version": "==4.2.8"
         },
         "twine": {
             "hashes": [

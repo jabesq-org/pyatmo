@@ -157,7 +157,6 @@ class AbstractWeatherStationData(ABC):
             last_data[station[key]]["reachable"] = station.get("reachable")
 
         for module in station["modules"]:
-
             if "dashboard_data" not in module or key not in module:
                 continue
 

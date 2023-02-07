@@ -123,7 +123,6 @@ async def test_async_public_data_error(async_auth):
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
-
         public_data = pyatmo.AsyncPublicData(async_auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
         with pytest.raises(pyatmo.NoDevice):

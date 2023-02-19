@@ -22,7 +22,7 @@ class Schedule(NetatmoBase):
     selected: bool
     away_temp: float | None
     hg_temp: float | None
-    timetable: List[TimetableEntry]
+    timetable: list[TimetableEntry]
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(raw_data)
@@ -31,7 +31,8 @@ class Schedule(NetatmoBase):
         self.hg_temp = raw_data.get("hg_temp")
         self.away_temp = raw_data.get("away_temp")
         self.timetable = map(
-            lambda r: TimetableEntry(home, r), raw_data.get("timetable", [])
+            lambda r: TimetableEntry(home, r),
+            raw_data.get("timetable", []),
         )
         self.zones = map(lambda r: Zone(home, r), raw_data.get("zones", []))
 
@@ -54,7 +55,7 @@ class Zone(NetatmoBase):
     """Class to represent a Netatmo schedule's zone."""
 
     type: int | 0
-    rooms: List[Room]
+    rooms: list[Room]
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(raw_data)

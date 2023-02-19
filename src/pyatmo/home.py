@@ -19,11 +19,7 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.event import Event
-from pyatmo.exceptions import (
-    InvalidSchedule,
-    InvalidState,
-    NoSchedule,
-)
+from pyatmo.exceptions import InvalidSchedule, InvalidState, NoSchedule
 from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
@@ -259,7 +255,9 @@ class Home:
         )
 
     async def async_set_schedule_temperatures(
-        self, zone_id: int, temps: dict[str, int]
+        self,
+        zone_id: int,
+        temps: dict[str, int],
     ) -> None:
         """Sets the scheduled room temperature for the given schedule ID."""
         selected_schedule = self.get_selected_schedule()
@@ -279,7 +277,7 @@ class Home:
                 {
                     "m_offset": timetable_entry.m_offset,
                     "zone_id": timetable_entry.zone_id,
-                }
+                },
             )
 
         for zone in selected_schedule.zones:
@@ -296,7 +294,7 @@ class Home:
                     temp = temps[room.entity_id]
 
                 new_zone["rooms"].append(
-                    {"id": room.entity_id, "therm_setpoint_temperature": temp}
+                    {"id": room.entity_id, "therm_setpoint_temperature": temp},
                 )
 
             schedule["zones"].append(new_zone)
@@ -304,7 +302,9 @@ class Home:
         await self.async_sync_schedule(selected_schedule.entity_id, schedule)
 
     async def async_sync_schedule(
-        self, schedule_id: str, schedule: dict[str, Any]
+        self,
+        schedule_id: str,
+        schedule: dict[str, Any],
     ) -> None:
         """Modify an existing schedule."""
         if not is_valid_schedule(schedule):

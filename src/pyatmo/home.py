@@ -262,18 +262,14 @@ class Home:
         """Sets the scheduled room temperature for the given schedule ID."""
         selected_schedule = self.get_selected_schedule()
 
-        if not is_valid_schedule(selected_schedule):
+        if selected_schedule is None:
             raise NoSchedule("Could not determine selected schedule.")
 
-        schedule = {
-            "away_temp": selected_schedule.away_temp,
-            "hg_temp": selected_schedule.hg_temp,
-            "timetable": [],
-            "zones": [],
-        }
+        timetable_entries = []
+        zones = []
 
         for timetable_entry in selected_schedule.timetable:
-            schedule["timetable"].append(
+            timetable_entries.append(
                 {
                     "m_offset": timetable_entry.m_offset,
                     "zone_id": timetable_entry.zone_id,
@@ -297,7 +293,14 @@ class Home:
                     {"id": room.entity_id, "therm_setpoint_temperature": temp},
                 )
 
-            schedule["zones"].append(new_zone)
+            zones.append(new_zone)
+
+        schedule = {
+            "away_temp": selected_schedule.away_temp,
+            "hg_temp": selected_schedule.hg_temp,
+            "timetable": timetable_entries,
+            "zones": zones,
+        }
 
         await self.async_sync_schedule(selected_schedule.entity_id, schedule)
 

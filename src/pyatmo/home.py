@@ -291,7 +291,6 @@ class Home:
             }
 
             for room in zone.rooms:
-                print("room: ", room)
                 temp = room.therm_setpoint_temperature
                 if zone.entity_id == zone_id and room.entity_id in temps:
                     temp = temps[room.entity_id]

@@ -369,6 +369,10 @@ class AbstractAsyncAuth(ABC):
 
         req_args = {"data": params if params is not None else {}}
 
+        if "params" in req_args["data"]:
+            req_args["params"] = req_args["data"]["params"]
+            req_args["data"].pop("params")
+
         if "json" in req_args["data"]:
             req_args["json"] = req_args["data"]["json"]
             req_args.pop("data")

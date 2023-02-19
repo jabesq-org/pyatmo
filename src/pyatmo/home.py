@@ -15,10 +15,15 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     SETTHERMMODE_ENDPOINT,
     SWITCHHOMESCHEDULE_ENDPOINT,
+    SYNCHOMESCHEDULE_ENDPOINT,
     RawData,
 )
 from pyatmo.event import Event
-from pyatmo.exceptions import InvalidState, NoSchedule
+from pyatmo.exceptions import (
+    InvalidSchedule,
+    InvalidState,
+    NoSchedule,
+)
 from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
@@ -253,7 +258,85 @@ class Home:
             params=post_params,
         )
 
+    async def async_set_schedule_temperatures(
+        self, zone_id: int, temps: dict[str, int]
+    ) -> None:
+        """Sets the scheduled room temperature for the given schedule ID."""
+        selected_schedule = self.get_selected_schedule()
+
+        if not is_valid_schedule(selected_schedule):
+            raise NoSchedule("Could not determine selected schedule.")
+
+        schedule = {
+            "away_temp": selected_schedule.away_temp,
+            "hg_temp": selected_schedule.hg_temp,
+            "timetable": [],
+            "zones": [],
+        }
+
+        for timetable_entry in selected_schedule.timetable:
+            schedule["timetable"].append(
+                {
+                    "m_offset": timetable_entry.m_offset,
+                    "zone_id": timetable_entry.zone_id,
+                }
+            )
+
+        for zone in selected_schedule.zones:
+            new_zone = {
+                "id": zone.entity_id,
+                "name": zone.name,
+                "type": zone.type,
+                "rooms": [],
+            }
+
+            for room in zone.rooms:
+                print("room: ", room)
+                temp = room.therm_setpoint_temperature
+                if zone.entity_id == zone_id and room.entity_id in temps:
+                    temp = temps[room.entity_id]
+
+                new_zone["rooms"].append(
+                    {"id": room.entity_id, "therm_setpoint_temperature": temp}
+                )
+
+            schedule["zones"].append(new_zone)
+
+        await self.async_sync_schedule(selected_schedule.entity_id, schedule)
+
+    async def async_sync_schedule(
+        self, schedule_id: str, schedule: dict[str, Any]
+    ) -> None:
+        """Modify an existing schedule."""
+        if not is_valid_schedule(schedule):
+            raise InvalidSchedule("Data for '/synchomeschedule' contains errors.")
+        LOG.debug(
+            "Setting schedule (%s) for home (%s) to %s",
+            schedule_id,
+            self.entity_id,
+            schedule,
+        )
+
+        resp = await self.auth.async_post_api_request(
+            endpoint=SYNCHOMESCHEDULE_ENDPOINT,
+            params={
+                "params": {
+                    "home_id": self.entity_id,
+                    "schedule_id": schedule_id,
+                    "name": "Default",
+                },
+                "json": schedule,
+            },
+        )
+
+        return (await resp.json()).get("status") == "ok"
+
 
 def is_valid_state(data: dict[str, Any]) -> bool:
     """Check set state data."""
     return data is not None
+
+
+def is_valid_schedule(schedule: dict[str, Any]) -> bool:
+    """Check schedule."""
+    return schedule is not None

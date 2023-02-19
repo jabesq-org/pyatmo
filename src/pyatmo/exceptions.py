@@ -5,6 +5,10 @@ class NoSchedule(Exception):
     pass
 
 
+class InvalidSchedule(Exception):
+    pass
+
+
 class InvalidHome(Exception):
     pass
 

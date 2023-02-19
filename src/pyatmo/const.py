@@ -32,6 +32,7 @@ SETTHERMMODE_ENDPOINT = "api/setthermmode"
 SETROOMTHERMPOINT_ENDPOINT = "api/setroomthermpoint"
 GETROOMMEASURE_ENDPOINT = "api/getroommeasure"
 SWITCHHOMESCHEDULE_ENDPOINT = "api/switchhomeschedule"
+SYNCHOMESCHEDULE_ENDPOINT = "api/synchomeschedule"
 SYNCSCHEDULE_ENDPOINT = "api/syncschedule"
 
 GETHOMEDATA_ENDPOINT = "api/gethomedata"

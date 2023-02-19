@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from pyatmo.const import RawData
 from pyatmo.modules.base_class import NetatmoBase
@@ -30,9 +30,11 @@ class Schedule(NetatmoBase):
         self.selected = raw_data.get("selected", False)
         self.hg_temp = raw_data.get("hg_temp")
         self.away_temp = raw_data.get("away_temp")
-        self.timetable = map(
-            lambda r: TimetableEntry(home, r),
-            raw_data.get("timetable", []),
+        self.timetable = list(
+            map(
+                lambda r: TimetableEntry(home, r),
+                raw_data.get("timetable", []),
+            )
         )
         self.zones = map(lambda r: Zone(home, r), raw_data.get("zones", []))
 
@@ -54,7 +56,7 @@ class TimetableEntry:
 class Zone(NetatmoBase):
     """Class to represent a Netatmo schedule's zone."""
 
-    type: int | 0
+    type: int
     rooms: list[Room]
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
@@ -67,4 +69,6 @@ class Zone(NetatmoBase):
             room.update(room_raw_data)
             return room
 
-        self.rooms = map(lambda r: room_factory(home, r), raw_data.get("rooms", []))
+        self.rooms = list(
+            map(lambda r: room_factory(home, r), raw_data.get("rooms", []))
+        )

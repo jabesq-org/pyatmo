@@ -115,6 +115,7 @@ class DeviceCategory(str, Enum):
     air_care = "air_care"
     meter = "meter"
     dimmer = "dimmer"
+    opening = "opening"
 
     # pylint: enable=C0103
 
@@ -124,6 +125,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NATherm1: DeviceCategory.climate,
     DeviceType.OTM: DeviceCategory.climate,
     DeviceType.NOC: DeviceCategory.camera,
+    DeviceType.NACamDoorTag: DeviceCategory.opening,
     DeviceType.NACamera: DeviceCategory.camera,
     DeviceType.NDB: DeviceCategory.camera,
     DeviceType.NAMain: DeviceCategory.weather,

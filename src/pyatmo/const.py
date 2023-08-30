@@ -67,7 +67,7 @@ ALL_SCOPES = [
     "read_smokedetector",  # Smart Smoke Alarm information and events
     "read_station",  # Netatmo weather station
     "read_thermostat",  # Netatmo climate products
-    "read_mhs1", # Bticino MyHome Server 1 modules
+    "read_mhs1",  # Bticino MyHome Server 1 modules
     "write_bubendorff",  # Bubbendorf shutters
     "write_camera",  # Netatmo camera products
     "write_magellan",  # Legrand Wiring device or Electrical panel products
@@ -75,7 +75,7 @@ ALL_SCOPES = [
     "write_presence",  # Netatmo Smart Outdoor Camera
     "write_smarther",  # Smarther products
     "write_thermostat",  # Netatmo climate products
-    "write_mhs1", # Bticino MyHome Server 1 modules
+    "write_mhs1",  # Bticino MyHome Server 1 modules
 ]
 
 MANUAL = "manual"

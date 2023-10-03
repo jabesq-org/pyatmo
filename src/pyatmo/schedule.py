@@ -36,7 +36,7 @@ class Schedule(NetatmoBase):
                 raw_data.get("timetable", []),
             ),
         )
-        self.zones = map(lambda r: Zone(home, r), raw_data.get("zones", []))
+        self.zones = list(map(lambda r: Zone(home, r), raw_data.get("zones", [])))
 
 
 @dataclass

@@ -1,8 +1,8 @@
 """Module to represent Netatmo modules."""
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
+import logging
 from typing import Any
 
 from pyatmo.const import (
@@ -46,34 +46,50 @@ LOG = logging.getLogger(__name__)
 
 
 class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
+    """Class to represent a Netatmo NRV."""
+
     ...
 
 
 class NATherm1(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
+    """Class to represent a Netatmo NATherm1."""
+
     ...
 
 
 class NAPlug(FirmwareMixin, RfMixin, WifiMixin, Module):
+    """Class to represent a Netatmo NAPlug."""
+
     ...
 
 
 class OTH(FirmwareMixin, WifiMixin, Module):
+    """Class to represent a Netatmo OTH."""
+
     ...
 
 
 class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
+    """Class to represent a Netatmo OTM."""
+
     ...
 
 
 class NACamera(Camera):
+    """Class to represent a Netatmo NACamera."""
+
     ...
 
 
 class NOC(FloodlightMixin, Camera):
+    """Class to represent a Netatmo NOC."""
+
     ...
 
 
 class NDB(Camera):
+    """Class to represent a Netatmo NDB."""
+
     ...
 
 
@@ -88,6 +104,8 @@ class NAMain(
     PlaceMixin,
     Module,
 ):
+    """Class to represent a Netatmo NAMain."""
+
     ...
 
 
@@ -100,14 +118,20 @@ class NAModule1(
     PlaceMixin,
     Module,
 ):
+    """Class to represent a Netatmo NAModule1."""
+
     ...
 
 
 class NAModule2(WindMixin, RfMixin, FirmwareMixin, BatteryMixin, PlaceMixin, Module):
+    """Class to represent a Netatmo NAModule2."""
+
     ...
 
 
 class NAModule3(RainMixin, RfMixin, FirmwareMixin, BatteryMixin, PlaceMixin, Module):
+    """Class to represent a Netatmo NAModule3."""
+
     ...
 
 
@@ -121,6 +145,8 @@ class NAModule4(
     PlaceMixin,
     Module,
 ):
+    """Class to represent a Netatmo NAModule4."""
+
     ...
 
 
@@ -136,10 +162,14 @@ class NHC(
     PlaceMixin,
     Module,
 ):
+    """Class to represent a Netatmo NHC."""
+
     ...
 
 
 class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, Module):
+    """Class to represent a Netatmo NACamDoorTag."""
+
     ...
 
 
@@ -151,6 +181,8 @@ class NIS(
     RfMixin,
     Module,
 ):
+    """Class to represent a Netatmo NIS."""
+
     ...
 
 
@@ -158,6 +190,8 @@ class NSD(
     FirmwareMixin,
     Module,
 ):
+    """Class to represent a Netatmo NSD."""
+
     ...
 
 
@@ -165,6 +199,8 @@ class NCO(
     FirmwareMixin,
     Module,
 ):
+    """Class to represent a Netatmo NCO."""
+
     ...
 
 
@@ -179,6 +215,8 @@ class Location:
 
 
 class PublicWeatherArea:
+    """Class of Netatmo public weather data."""
+
     location: Location
     required_data_type: str | None
     filtering: bool
@@ -193,6 +231,8 @@ class PublicWeatherArea:
         required_data_type: str | None = None,
         filtering: bool = False,
     ) -> None:
+        """Initialize self."""
+
         self.location = Location(
             lat_ne,
             lon_ne,
@@ -205,43 +245,58 @@ class PublicWeatherArea:
 
     def update(self, raw_data: RawData) -> None:
         """Update public weather area with the latest data."""
+
         self.modules = list(raw_data.get("public", []))
 
     def stations_in_area(self) -> int:
         """Return available number of stations in area."""
+
         return len(self.modules)
 
     def get_latest_rain(self) -> dict[str, Any]:
+        """Return latest rain measures."""
         return self.get_accessory_data(ACCESSORY_RAIN_LIVE_TYPE)
 
     def get_60_min_rain(self) -> dict[str, Any]:
+        """Return 60 min rain measures."""
         return self.get_accessory_data(ACCESSORY_RAIN_60MIN_TYPE)
 
     def get_24_h_rain(self) -> dict[str, Any]:
+        """Return 24 h rain measures."""
         return self.get_accessory_data(ACCESSORY_RAIN_24H_TYPE)
 
     def get_latest_pressures(self) -> dict[str, Any]:
+        """Return latest pressure measures."""
         return self.get_latest_station_measures(STATION_PRESSURE_TYPE)
 
     def get_latest_temperatures(self) -> dict[str, Any]:
+        """Return latest temperature measures."""
         return self.get_latest_station_measures(STATION_TEMPERATURE_TYPE)
 
     def get_latest_humidities(self) -> dict[str, Any]:
+        """Return latest humidity measures."""
         return self.get_latest_station_measures(STATION_HUMIDITY_TYPE)
 
     def get_latest_wind_strengths(self) -> dict[str, Any]:
+        """Return latest wind strength measures."""
         return self.get_accessory_data(ACCESSORY_WIND_STRENGTH_TYPE)
 
     def get_latest_wind_angles(self) -> dict[str, Any]:
+        """Return latest wind angle measures."""
         return self.get_accessory_data(ACCESSORY_WIND_ANGLE_TYPE)
 
     def get_latest_gust_strengths(self) -> dict[str, Any]:
+        """Return latest gust strength measures."""
         return self.get_accessory_data(ACCESSORY_GUST_STRENGTH_TYPE)
 
     def get_latest_gust_angles(self) -> dict[str, Any]:
+        """Return latest gust angle measures."""
+
         return self.get_accessory_data(ACCESSORY_GUST_ANGLE_TYPE)
 
     def get_latest_station_measures(self, data_type: str) -> dict[str, Any]:
+        """Return latest station measures of a given type."""
+
         measures: dict[str, Any] = {}
         for station in self.modules:
             for module in station["measures"].values():
@@ -260,6 +315,8 @@ class PublicWeatherArea:
         return measures
 
     def get_accessory_data(self, data_type: str) -> dict[str, Any]:
+        """Return accessory data of a given type."""
+
         data: dict[str, Any] = {}
         for station in self.modules:
             for module in station["measures"].values():

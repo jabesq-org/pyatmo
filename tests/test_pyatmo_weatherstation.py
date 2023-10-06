@@ -3,10 +3,9 @@
 import datetime as dt
 import json
 
+import pyatmo
 import pytest
 import time_machine
-
-import pyatmo
 
 
 def test_weather_station_data(weather_station_data):

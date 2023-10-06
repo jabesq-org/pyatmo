@@ -1,10 +1,10 @@
 """Support for Netatmo weather station devices (stations and modules)."""
 from __future__ import annotations
 
-import logging
-import time
 from abc import ABC
 from collections import defaultdict
+import logging
+import time
 from warnings import warn
 
 from pyatmo.auth import AbstractAsyncAuth, NetatmoOAuth2
@@ -26,6 +26,7 @@ class AbstractWeatherStationData(ABC):
 
     def process(self) -> None:
         """Process data from API."""
+
         self.stations = {d["_id"]: d for d in self.raw_data}
         self.modules = {}
 
@@ -46,6 +47,7 @@ class AbstractWeatherStationData(ABC):
 
     def get_module_names(self, station_id: str) -> list:
         """Return a list of all module names for a given station."""
+
         if not (station_data := self.get_station(station_id)):
             return []
 
@@ -58,6 +60,7 @@ class AbstractWeatherStationData(ABC):
 
     def get_modules(self, station_id: str) -> dict:
         """Return a dict of modules per given station."""
+
         if not (station_data := self.get_station(station_id)):
             return {}
 
@@ -82,14 +85,17 @@ class AbstractWeatherStationData(ABC):
 
     def get_station(self, station_id: str) -> dict:
         """Return station by id."""
+
         return self.stations.get(station_id, {})
 
     def get_module(self, module_id: str) -> dict:
         """Return module by id."""
+
         return self.modules.get(module_id, {})
 
     def get_monitored_conditions(self, module_id: str) -> list:
         """Return monitored conditions for given module."""
+
         if not (module := (self.get_module(module_id) or self.get_station(module_id))):
             return []
 
@@ -135,8 +141,8 @@ class AbstractWeatherStationData(ABC):
 
     def get_last_data(self, station_id: str, exclude: int = 0) -> dict:
         """Return data for a given station and time frame."""
-        key = "_id"
 
+        key = "_id"
         last_data: dict = {}
 
         if (
@@ -181,6 +187,7 @@ class AbstractWeatherStationData(ABC):
 
     def check_not_updated(self, station_id: str, delay: int = 3600) -> list:
         """Check if a given station has not been updated."""
+
         res = self.get_last_data(station_id)
         return [
             key for key, value in res.items() if time.time() - value["When"] > delay
@@ -188,6 +195,7 @@ class AbstractWeatherStationData(ABC):
 
     def check_updated(self, station_id: str, delay: int = 3600) -> list:
         """Check if a given station has been updated."""
+
         res = self.get_last_data(station_id)
         return [
             key for key, value in res.items() if time.time() - value["When"] < delay
@@ -203,18 +211,15 @@ class WeatherStationData(AbstractWeatherStationData):
         endpoint: str = GETSTATIONDATA_ENDPOINT,
         favorites: bool = True,
     ) -> None:
-        """Initialize the Netatmo weather station data.
+        """Initialize the Netatmo weather station data."""
 
-        Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
-            url_req {str} -- Optional request endpoint
-        """
         self.auth = auth
         self.endpoint = endpoint
         self.params = {"get_favorites": ("true" if favorites else "false")}
 
     def update(self):
         """Fetch data from API."""
+
         self.raw_data = extract_raw_data(
             self.auth.post_api_request(
                 endpoint=self.endpoint,
@@ -237,6 +242,7 @@ class WeatherStationData(AbstractWeatherStationData):
         real_time: bool = False,
     ) -> dict | None:
         """Retrieve data from a device or module."""
+
         post_params = {"device_id": device_id}
         if module_id:
             post_params["module_id"] = module_id
@@ -267,18 +273,8 @@ class WeatherStationData(AbstractWeatherStationData):
         module_id: str | None = None,
         frame: str = "last24",
     ) -> tuple[float, float, float, float] | None:
-        """Return minimum and maximum temperature and humidity over the given timeframe.
+        """Return minimum and maximum temperature and humidity over the given timeframe."""
 
-        Arguments:
-            station_id {str} -- Station ID
-
-        Keyword Arguments:
-            module_id {str} -- Module ID (default: {None})
-            frame {str} -- Timeframe can be "last24" or "day" (default: {"last24"})
-
-        Returns:
-            (min_t {float}, max_t {float}, min_h {float}, max_h {float}) -- minimum and maximum for temperature and humidity
-        """
         if frame == "last24":
             end = time.time()
             start = end - 24 * 3600  # 24 hours ago
@@ -313,18 +309,15 @@ class AsyncWeatherStationData(AbstractWeatherStationData):
         endpoint: str = GETSTATIONDATA_ENDPOINT,
         favorites: bool = True,
     ) -> None:
-        """Initialize the Netatmo weather station data.
+        """Initialize the Netatmo weather station data."""
 
-        Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
-            url_req {str} -- Optional request endpoint
-        """
         self.auth = auth
         self.endpoint = endpoint
         self.params = {"get_favorites": ("true" if favorites else "false")}
 
     async def async_update(self):
         """Fetch data from API."""
+
         resp = await self.auth.async_post_api_request(
             endpoint=self.endpoint,
             params=self.params,

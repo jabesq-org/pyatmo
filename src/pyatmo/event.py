@@ -95,10 +95,14 @@ class Event:
     subevents: list[Event] | None = None
 
     def __init__(self, home_id: str, raw_data: RawData) -> None:
+        """Initialize a Netatmo event instance."""
+
         self.home_id = home_id
         self._init_attributes(raw_data)
 
     def _init_attributes(self, raw_data: RawData) -> None:
+        """Initialize attributes of the instance."""
+
         for attrib, value in raw_data.items():
             if attrib == "subevents":
                 value = [Event(self.home_id, event) for event in value]

@@ -31,11 +31,8 @@ class AsyncAccount:
     """Async class of a Netatmo account."""
 
     def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
-        """Initialize the Netatmo account.
+        """Initialize the Netatmo account."""
 
-        Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with valid access token
-        """
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
         self.homes: dict[str, Home] = {}
@@ -45,12 +42,15 @@ class AsyncAccount:
         self.modules: dict[str, Module] = {}
 
     def __repr__(self) -> str:
+        """Return the representation."""
+
         return (
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
 
     def process_topology(self) -> None:
         """Process topology information from /homesdata."""
+
         for home in self.raw_data["homes"]:
             if (home_id := home["id"]) in self.homes:
                 self.homes[home_id].update_topology(home)
@@ -59,6 +59,7 @@ class AsyncAccount:
 
     async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""
+
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
         )
@@ -106,6 +107,8 @@ class AsyncAccount:
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
     ) -> None:
+        """Retrieve measures data from /getmeasure."""
+
         await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
             start_time=start_time,
             interval=interval,
@@ -124,6 +127,7 @@ class AsyncAccount:
         area_id: str = str(uuid4()),
     ) -> str:
         """Register public weather area to monitor."""
+
         self.public_weather_areas[area_id] = modules.PublicWeatherArea(
             lat_ne,
             lon_ne,
@@ -135,7 +139,7 @@ class AsyncAccount:
         return area_id
 
     async def async_update_public_weather(self, area_id: str) -> None:
-        """Retrieve status data from /getpublicdata"""
+        """Retrieve status data from /getpublicdata."""
         params = {
             "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
             "lon_ne": self.public_weather_areas[area_id].location.lon_ne,

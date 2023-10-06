@@ -1,10 +1,10 @@
 """Collection of helper functions."""
 from __future__ import annotations
 
+from calendar import timegm
+from datetime import datetime, timezone
 import logging
 import time
-from calendar import timegm
-from datetime import datetime
 from typing import Any
 
 from pyatmo.const import RawData
@@ -14,20 +14,31 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def to_time_string(value: str) -> str:
-    return datetime.utcfromtimestamp(int(value)).isoformat(sep="_")
+    """Convert epoch to time string."""
+
+    return (
+        datetime.fromtimestamp(int(value), tz=timezone.utc)
+        .isoformat(sep="_")
+        .split("+")[0]
+    )
 
 
 def to_epoch(value: str) -> int:
+    """Convert time string to epoch."""
+
     return timegm(time.strptime(f"{value}GMT", "%Y-%m-%d_%H:%M:%S%Z"))
 
 
 def today_stamps() -> tuple[int, int]:
+    """Return today's start and end timestamps."""
+
     today: int = timegm(time.strptime(time.strftime("%Y-%m-%d") + "GMT", "%Y-%m-%d%Z"))
     return today, today + 3600 * 24
 
 
 def fix_id(raw_data: RawData) -> dict[str, Any]:
     """Fix known errors in station ids like superfluous spaces."""
+
     if not raw_data:
         return raw_data
 

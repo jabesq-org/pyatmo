@@ -3,10 +3,9 @@
 import datetime as dt
 import json
 
+import pyatmo
 import pytest
 import time_machine
-
-import pyatmo
 
 from .conftest import does_not_raise
 

@@ -1,10 +1,10 @@
 """Base class for Netatmo entities."""
 from __future__ import annotations
 
-import logging
 from abc import ABC
 from collections.abc import Iterable
 from dataclasses import dataclass
+import logging
 from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import RawData
@@ -30,10 +30,14 @@ NETATMO_ATTRIBUTES_MAP = {
 
 
 def default(key: str, val: Any) -> Any:
+    """Return default value."""
+
     return lambda x, _: x.get(key, val)
 
 
 class EntityBase:
+    """Base class for Netatmo entities."""
+
     entity_id: str
     home: Home
     bridge: str | None
@@ -43,10 +47,14 @@ class NetatmoBase(EntityBase, ABC):
     """Base class for Netatmo entities."""
 
     def __init__(self, raw_data: RawData) -> None:
+        """Initialize a Netatmo entity."""
+
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", f"Unknown {self.entity_id}")
 
     def update_topology(self, raw_data: RawData) -> None:
+        """Update topology."""
+
         self._update_attributes(raw_data)
 
         if (
@@ -57,6 +65,8 @@ class NetatmoBase(EntityBase, ABC):
             self.name = f"{self.home.modules[self.bridge].name} {self.name}"
 
     def _update_attributes(self, raw_data: RawData) -> None:
+        """Update attributes."""
+
         self.__dict__ = {
             key: NETATMO_ATTRIBUTES_MAP.get(key, default(key, val))(raw_data, val)
             for key, val in self.__dict__.items()
@@ -65,20 +75,28 @@ class NetatmoBase(EntityBase, ABC):
 
 @dataclass
 class Location:
+    """Class of Netatmo public weather location."""
+
     latitude: float
     longitude: float
 
     def __init__(self, longitude: float, latitude: float) -> None:
+        """Initialize self."""
+
         self.latitude = latitude
         self.longitude = longitude
 
     def __iter__(self) -> Iterable[float]:
+        """Iterate over latitude and longitude."""
+
         yield self.longitude
         yield self.latitude
 
 
 @dataclass
 class Place:
+    """Class of Netatmo public weather place."""
+
     altitude: int | None
     city: str | None
     country: str | None
@@ -89,6 +107,8 @@ class Place:
         self,
         data: dict[str, Any],
     ) -> None:
+        """Initialize self."""
+
         if data is None:
             return
         self.altitude = data.get("altitude")

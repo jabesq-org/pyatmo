@@ -1,16 +1,17 @@
 """Support for Netatmo authentication."""
 from __future__ import annotations
 
-import asyncio
-import logging
 from abc import ABC, abstractmethod
+import asyncio
+from collections.abc import Callable
 from json import JSONDecodeError
+import logging
 from time import sleep
-from typing import Any, Callable
+from typing import Any
 
-import requests
 from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
+import requests
 from requests_oauthlib import OAuth2Session
 
 from pyatmo.const import (
@@ -29,9 +30,7 @@ LOG = logging.getLogger(__name__)
 
 
 class NetatmoOAuth2:
-    """
-    Handle authentication with OAuth2
-    """
+    """Handle authentication with OAuth2."""
 
     def __init__(
         self,
@@ -44,29 +43,29 @@ class NetatmoOAuth2:
         user_prefix: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
     ) -> None:
-        """Initialize self.
+        """Initialize self."""
 
-        Keyword Arguments:
-            client_id {str} -- Application client ID delivered by Netatmo on dev.netatmo.com (default: {None})
-            client_secret {str} -- Application client secret delivered by Netatmo on dev.netatmo.com (default: {None})
-            redirect_uri {Optional[str]} -- Redirect URI where to the authorization server will redirect with an authorization code (default: {None})
-            token {Optional[Dict[str, str]]} -- Authorization token (default: {None})
-            token_updater {Optional[Callable[[str], None]]} -- Callback when the token is updated (default: {None})
-            scope {Optional[str]} -- List of scopes (default: {"read_station"})
-                read_station: to retrieve weather station data (Getstationsdata, Getmeasure)
-                read_camera: to retrieve Welcome data (Gethomedata, Getcamerapicture)
-                access_camera: to access the camera, the videos and the live stream
-                write_camera: to set home/away status of persons (Setpersonsaway, Setpersonshome)
-                read_thermostat: to retrieve thermostat data (Getmeasure, Getthermostatsdata)
-                write_thermostat: to set up the thermostat (Syncschedule, Setthermpoint)
-                read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
-                access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
-                read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
-                read_smokedetector: to retrieve the smoke detector status (Gethomedata)
-                Several values can be used at the same time, ie: 'read_station read_camera'
-            user_prefix {Optional[str]} -- API prefix for the Netatmo customer
-            base_url {str} -- Base URL of the Netatmo API (default: {_DEFAULT_BASE_URL})
-        """
+        # Keyword Arguments:
+        #     client_id {str} -- Application client ID delivered by Netatmo on dev.netatmo.com (default: {None})
+        #     client_secret {str} -- Application client secret delivered by Netatmo on dev.netatmo.com (default: {None})
+        #     redirect_uri {Optional[str]} -- Redirect URI where to the authorization server will redirect with an authorization code (default: {None})
+        #     token {Optional[Dict[str, str]]} -- Authorization token (default: {None})
+        #     token_updater {Optional[Callable[[str], None]]} -- Callback when the token is updated (default: {None})
+        #     scope {Optional[str]} -- List of scopes (default: {"read_station"})
+        #         read_station: to retrieve weather station data (Getstationsdata, Getmeasure)
+        #         read_camera: to retrieve Welcome data (Gethomedata, Getcamerapicture)
+        #         access_camera: to access the camera, the videos and the live stream
+        #         write_camera: to set home/away status of persons (Setpersonsaway, Setpersonshome)
+        #         read_thermostat: to retrieve thermostat data (Getmeasure, Getthermostatsdata)
+        #         write_thermostat: to set up the thermostat (Syncschedule, Setthermpoint)
+        #         read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
+        #         access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
+        #         read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
+        #         read_smokedetector: to retrieve the smoke detector status (Gethomedata)
+        #         Several values can be used at the same time, ie: 'read_station read_camera'
+        #     user_prefix {Optional[str]} -- API prefix for the Netatmo customer
+        #     base_url {str} -- Base URL of the Netatmo API (default: {_DEFAULT_BASE_URL})
+
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
@@ -92,6 +91,7 @@ class NetatmoOAuth2:
 
     def refresh_tokens(self) -> Any:
         """Refresh and return new tokens."""
+
         token = self._oauth.refresh_token(
             self.base_url + AUTH_REQ_ENDPOINT,
             **self.extra,
@@ -108,6 +108,8 @@ class NetatmoOAuth2:
         params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> requests.Response:
+        """Wrap post requests."""
+
         return self.post_request(
             url=self.base_url + endpoint,
             params=params,
@@ -120,7 +122,8 @@ class NetatmoOAuth2:
         params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> requests.Response:
-        """Wrapper for post requests."""
+        """Wrap post requests."""
+
         resp = requests.Response()
         req_args = {"data": params if params is not None else {}}
 
@@ -201,6 +204,8 @@ class NetatmoOAuth2:
         return requests.Response()
 
     def get_authorization_url(self, state: str | None = None) -> Any:
+        """Return the authorization URL."""
+
         return self._oauth.authorization_url(self.base_url + AUTH_URL_ENDPOINT, state)
 
     def request_token(
@@ -208,12 +213,8 @@ class NetatmoOAuth2:
         authorization_response: str | None = None,
         code: str | None = None,
     ) -> Any:
-        """
-        Generic method for fetching a Netatmo access token.
-        :param authorization_response: Authorization response URL, the callback URL of the request back to you.
-        :param code: Authorization code.
-        :return: A token dict.
-        """
+        """Request token."""
+
         return self._oauth.fetch_token(
             self.base_url + AUTH_REQ_ENDPOINT,
             authorization_response=authorization_response,
@@ -224,39 +225,43 @@ class NetatmoOAuth2:
         )
 
     def addwebhook(self, webhook_url: str) -> None:
+        """Register webhook."""
+
         post_params = {"url": webhook_url}
         resp = self.post_api_request(WEBHOOK_URL_ADD_ENDPOINT, post_params)
         LOG.debug("addwebhook: %s", resp)
 
     def dropwebhook(self) -> None:
+        """Unregister webhook."""
+
         post_params = {"app_types": "app_security"}
         resp = self.post_api_request(WEBHOOK_URL_DROP_ENDPOINT, post_params)
         LOG.debug("dropwebhook: %s", resp)
 
 
 class ClientAuth(NetatmoOAuth2):
-    """
-    Request authentication and keep access token available through token method. Renew it automatically if necessary
-    Args:
-        clientId (str): Application clientId delivered by Netatmo on dev.netatmo.com
-        clientSecret (str): Application Secret key delivered by Netatmo on dev.netatmo.com
-        username (str)
-        password (str)
-        scope (Optional[str]):
-            read_station: to retrieve weather station data (Getstationsdata, Getmeasure)
-            read_camera: to retrieve Welcome data (Gethomedata, Getcamerapicture)
-            access_camera: to access the camera, the videos and the live stream
-            write_camera: to set home/away status of persons (Setpersonsaway, Setpersonshome)
-            read_thermostat: to retrieve thermostat data (Getmeasure, Getthermostatsdata)
-            write_thermostat: to set up the thermostat (Syncschedule, Setthermpoint)
-            read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
-            access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
-            read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
-            read_smokedetector: to retrieve the smoke detector status (Gethomedata)
-            Several value can be used at the same time, ie: 'read_station read_camera'
-        user_prefix (Optional[str]) -- API prefix for the Netatmo customer
-        base_url (str) -- Base URL of the Netatmo API (default: {_DEFAULT_BASE_URL})
-    """
+    """Request authentication and keep access token available through token method."""
+
+    # Renew it automatically if necessary
+    # Args:
+    #     clientId (str): Application clientId delivered by Netatmo on dev.netatmo.com
+    #     clientSecret (str): Application Secret key delivered by Netatmo on dev.netatmo.com
+    #     username (str)
+    #     password (str)
+    #     scope (Optional[str]):
+    #         read_station: to retrieve weather station data (Getstationsdata, Getmeasure)
+    #         read_camera: to retrieve Welcome data (Gethomedata, Getcamerapicture)
+    #         access_camera: to access the camera, the videos and the live stream
+    #         write_camera: to set home/away status of persons (Setpersonsaway, Setpersonshome)
+    #         read_thermostat: to retrieve thermostat data (Getmeasure, Getthermostatsdata)
+    #         write_thermostat: to set up the thermostat (Syncschedule, Setthermpoint)
+    #         read_presence: to retrieve Presence data (Gethomedata, Getcamerapicture)
+    #         access_presence: to access the live stream, any video stored on the SD card and to retrieve Presence's lightflood status
+    #         read_homecoach: to retrieve Home Coache data (Gethomecoachsdata)
+    #         read_smokedetector: to retrieve the smoke detector status (Gethomedata)
+    #         Several value can be used at the same time, ie: 'read_station read_camera'
+    #     user_prefix (Optional[str]) -- API prefix for the Netatmo customer
+    #     base_url (str) -- Base URL of the Netatmo API (default: {_DEFAULT_BASE_URL}).
 
     def __init__(
         self,
@@ -267,7 +272,9 @@ class ClientAuth(NetatmoOAuth2):
         scope: str = "read_station",
         user_prefix: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
-    ):
+    ) -> None:
+        """Initialize self."""
+
         super().__init__(
             client_id=client_id,
             client_secret=client_secret,
@@ -299,6 +306,7 @@ class AbstractAsyncAuth(ABC):
         base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         """Initialize the auth."""
+
         self.websession = websession
         self.base_url = base_url
 
@@ -313,7 +321,8 @@ class AbstractAsyncAuth(ABC):
         params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> bytes:
-        """Wrapper for async get requests."""
+        """Wrap async get requests."""
+
         try:
             access_token = await self.async_get_access_token()
         except ClientError as err:
@@ -348,6 +357,8 @@ class AbstractAsyncAuth(ABC):
         params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> ClientResponse:
+        """Wrap async post requests."""
+
         return await self.async_post_request(
             url=(base_url or self.base_url) + endpoint,
             params=params,
@@ -360,7 +371,8 @@ class AbstractAsyncAuth(ABC):
         params: dict[str, Any] | None = None,
         timeout: int = 5,
     ) -> ClientResponse:
-        """Wrapper for async post requests."""
+        """Wrap async post requests."""
+
         try:
             access_token = await self.async_get_access_token()
         except ClientError as err:

@@ -22,3 +22,7 @@ class BNCX(Module):
 
 class BNEU(Module):
     """BTicino external unit."""
+
+
+class BNCS(Module):
+    """BTicino camera."""

@@ -15,6 +15,9 @@ class DeviceType(str, Enum):
     # temporarily disable locally-disabled and locally-enabled
     # pylint: disable=C0103
 
+    # Unknown
+    UNKNOWN = "UNKNOWN"
+
     # Climate/Energy
     NAPlug = "NAPlug"  # Smart thermostat gateway
     NATherm1 = "NATherm1"  # Smart thermostat
@@ -80,6 +83,15 @@ class DeviceType(str, Enum):
     BNDL = "BNDL"  # door lock
     BNEU = "BNEU"  # external unit
     BNSL = "BNSL"  # staircase light
+    BNCS = "BNCS"  # Controlled Socket
+    BNXM = "BNXM"  # X meter
+    BNMS = "BNMS"  # motorized shade
+    BNAS = "BNAS"  # automatic shutter
+    BNAB = "BNAB"  # automatic blind
+    BNMH = "BNMH"  # automatic blind
+    BNTH = "BNTH"  # thermostat
+    BNFC = "BNFC"  # fan coil
+    BNTR = "BNTR"  # radiator
 
     # Bubbendorf shutters
     NBG = "NBG"  # gateway
@@ -94,6 +106,9 @@ class DeviceType(str, Enum):
     BNS = "BNS"  # Smarther with Netatmo
     EBU = "EBU"  # EBU gas meter
     Z3L = "Z3L"  # Zigbee 3 Light
+
+    # Magellan
+    NLDP = "NLDP"  # Pocket Remote
 
     # pylint: enable=C0103
 
@@ -158,6 +173,16 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLUO: DeviceCategory.dimmer,
     DeviceType.NLUI: DeviceCategory.switch,
     DeviceType.NLUF: DeviceCategory.dimmer,
+    DeviceType.NLPS: DeviceCategory.meter,
+    DeviceType.NLD: DeviceCategory.switch,
+    DeviceType.NLDD: DeviceCategory.switch,
+    DeviceType.NLPT: DeviceCategory.switch,
+    DeviceType.BNMS: DeviceCategory.shutter,
+    DeviceType.BNAS: DeviceCategory.shutter,
+    DeviceType.BNAB: DeviceCategory.shutter,
+    DeviceType.BNTH: DeviceCategory.climate,
+    DeviceType.BNFC: DeviceCategory.climate,
+    DeviceType.BNTR: DeviceCategory.climate,
 }
 
 
@@ -219,6 +244,13 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.BNEU: ("BTicino", "External Unit"),
     DeviceType.BNDL: ("BTicino", "Door Lock"),
     DeviceType.BNSL: ("BTicino", "Staircase Light"),
+    DeviceType.BNMS: ("BTicino", "Motorized Shade"),
+    DeviceType.BNAS: ("BTicino", "Automatic Shutter"),
+    DeviceType.BNAB: ("BTicino", "Automatic Blind"),
+    DeviceType.BNMH: ("BTicino", "MyHome server 1"),
+    DeviceType.BNTH: ("BTicino", "Thermostat"),
+    DeviceType.BNFC: ("BTicino", "Fan coil"),
+    DeviceType.BNTR: ("BTicino", "Module towel rail"),
     # Bubbendorf shutters
     DeviceType.NBG: ("Bubbendorf", "Gateway"),
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),

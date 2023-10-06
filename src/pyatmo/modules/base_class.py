@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import logging
 from abc import ABC
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Iterable
+from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import RawData
 from pyatmo.modules.device_types import DeviceType

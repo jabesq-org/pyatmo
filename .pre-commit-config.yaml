@@ -10,7 +10,7 @@ repos:
     rev: v3.14.0
     hooks:
       - id: pyupgrade
-        args: [--py39-plus]
+        args: [--py310-plus]
         exclude: "external_src/int-tools"
 
   - repo: https://github.com/asottile/add-trailing-comma

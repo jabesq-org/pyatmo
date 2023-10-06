@@ -659,7 +659,13 @@ class Module(NetatmoBase):
         """Initialize a Netatmo module instance."""
 
         super().__init__(module)
-        self.device_type = DeviceType(module["type"])
+
+        try:
+            self.device_type = DeviceType(module["type"])
+        except ValueError:
+            LOG.error("Unknown device type %s", module["type"])
+            self.device_type = DeviceType.UNKNOWN
+
         self.home = home
         self.room_id = module.get("room_id")
         self.reachable = module.get("reachable")

@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 LOG = logging.getLogger(__name__)
 
-ModuleT = Dict[str, Any]
+ModuleT = dict[str, Any]
 
 # Hide from features list
 ATTRIBUTE_FILTER = {

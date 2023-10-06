@@ -1,7 +1,7 @@
 """Common constants."""
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 ERRORS: dict[int, str] = {
     400: "Bad request",
@@ -15,7 +15,7 @@ ERRORS: dict[int, str] = {
 }
 
 # Special types
-RawData = Dict[str, Any]
+RawData = dict[str, Any]
 
 DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
 
@@ -51,7 +51,7 @@ GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
 AUTHORIZATION_HEADER = "Authorization"
 
 # Possible scops
-ALL_SCOPES = [
+ALL_SCOPES: list[str] = [
     "access_camera",  # Netatmo camera products
     "access_doorbell",  # Netatmo Smart Video Doorbell
     "access_presence",  # Netatmo Smart Outdoor Camera

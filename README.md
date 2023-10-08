@@ -6,7 +6,7 @@ pyatmo
 [![PyPi](https://img.shields.io/pypi/v/pyatmo.svg)](https://pypi.python.org/pypi/pyatmo)
 [![license](https://img.shields.io/pypi/l/pyatmo.svg)](https://github.com/jabesq/pyatmo/blob/master/LICENSE.txt)
 
-> **Warning:**  
+> **Warning:**
 > Due to personal reasons, I am currently unable to dedicate sufficient time to effectively manage this repository. Consequently, no attention will be given to existing or forthcoming issues until further notice. **However**, I want to assure you that I will continue to merge any pull requests that are submitted, provided they successfully pass the continuous integration tests and do not exhibit any glaring issues.
 >
 > I apologize for any inconvenience this may cause, and I sincerely hope to have the capacity to allocate more time to this repository in the near future. Your understanding is greatly appreciated.

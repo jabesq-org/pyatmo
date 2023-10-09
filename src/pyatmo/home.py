@@ -281,17 +281,15 @@ class Home:
         if selected_schedule is None:
             raise NoSchedule("Could not determine selected schedule.")
 
-        timetable_entries = []
         zones = []
 
-        for timetable_entry in selected_schedule.timetable:
-            timetable_entries.append(
-                {
-                    "m_offset": timetable_entry.m_offset,
-                    "zone_id": timetable_entry.zone_id,
-                },
-            )
-
+        timetable_entries = [
+            {
+                "m_offset": timetable_entry.m_offset,
+                "zone_id": timetable_entry.zone_id,
+            }
+            for timetable_entry in selected_schedule.timetable
+        ]
         for zone in selected_schedule.zones:
             new_zone = {
                 "id": zone.entity_id,

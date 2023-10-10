@@ -72,4 +72,4 @@ Another way to run the tests is by using `tox`. This runs the tests against the 
 
 or by specifying a python version
 
-    tox -e py38
+    tox -e py39

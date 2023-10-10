@@ -1,7 +1,7 @@
 """Support for Netatmo security devices (cameras, smoke detectors, sirens, window sensors, events and persons)."""
 from __future__ import annotations
 
-import imghdr
+import imghdr  # pylint: disable=deprecated-module
 import time
 from abc import ABC
 from collections import defaultdict

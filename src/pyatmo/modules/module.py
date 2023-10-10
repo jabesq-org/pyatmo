@@ -467,11 +467,11 @@ class HistoryMixin(EntityBase):
         if start_time is None:
             start_time = end_time - days * 24 * 60 * 60
 
-        data_point = MeasureType.SUM_ENERGY_ELEC_BASIC.name
+        data_point = MeasureType.SUM_ENERGY_ELEC_BASIC.value
         params = {
             "device_id": self.bridge,
             "module_id": self.entity_id,
-            "scale": interval.name,
+            "scale": interval.value,
             "type": data_point,
             "date_begin": start_time,
             "date_end": end_time,

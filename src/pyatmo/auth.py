@@ -4,9 +4,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from json import JSONDecodeError
 from time import sleep
-from typing import Any, Callable
+from typing import Any
 
 import requests
 from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError

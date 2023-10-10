@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import (
+    BatteryMixin,
     ContactorMixin,
     Dimmer,
     EnergyMixin,
@@ -24,15 +25,15 @@ LOG = logging.getLogger(__name__)
 # pylint: disable=R0901
 
 
-class NLG(FirmwareMixin, Module):
+class NLG(FirmwareMixin, OffloadMixin, WifiMixin, Module):
     """Legrand gateway."""
 
 
-class NLT(FirmwareMixin, Module):
+class NLT(FirmwareMixin, BatteryMixin, Module):
     """Legrand global remote control."""
 
 
-class NLP(Switch):
+class NLP(Switch, HistoryMixin, PowerMixin, OffloadMixin, Module):
     """Legrand plug."""
 
 
@@ -104,7 +105,7 @@ class NLPS(FirmwareMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
 
-class NLC(FirmwareMixin, SwitchMixin, Module):
+class NLC(FirmwareMixin, SwitchMixin, HistoryMixin, PowerMixin, OffloadMixin, Module):
     """Legrand / BTicino cable outlet."""
 
 

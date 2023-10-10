@@ -9,4 +9,6 @@ LOG = logging.getLogger(__name__)
 
 
 class TPSRS(FirmwareMixin, RfMixin, ShutterMixin, Module):
+    """Class to represent a somfy TPSRS."""
+
     ...

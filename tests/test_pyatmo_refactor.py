@@ -3,14 +3,14 @@ import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
-import time_machine
-
 import pyatmo
 from pyatmo import DeviceType, NoDevice, NoSchedule
 from pyatmo.modules import NATherm1
 from pyatmo.modules.base_class import Location, Place
 from pyatmo.modules.device_types import DeviceCategory
+import pytest
+import time_machine
+
 from tests.common import fake_post_request
 from tests.conftest import MockResponse, does_not_raise
 
@@ -326,11 +326,10 @@ async def test_async_climate_switch_schedule(
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse(response, 200)),
-    ):
-        with expected:
-            await async_home.async_switch_schedule(
-                schedule_id=t_sched_id,
-            )
+    ), expected:
+        await async_home.async_switch_schedule(
+            schedule_id=t_sched_id,
+        )
 
 
 @pytest.mark.asyncio

@@ -1,8 +1,8 @@
 """Module to represent a Netatmo person."""
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
+import logging
 from typing import TYPE_CHECKING
 
 from pyatmo.const import RawData
@@ -22,6 +22,8 @@ class Person(NetatmoBase):
     url: str | None
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
+        """Initialize a Netatmo person instance."""
+
         super().__init__(raw_data)
         self.home = home
         self.pseudo = raw_data.get("pseudo")

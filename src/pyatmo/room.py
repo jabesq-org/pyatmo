@@ -1,8 +1,8 @@
 """Module to represent a Netatmo room."""
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
+import logging
 from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import FROSTGUARD, HOME, MANUAL, SETROOMTHERMPOINT_ENDPOINT, RawData
@@ -41,6 +41,8 @@ class Room(NetatmoBase):
         room: dict[str, Any],
         all_modules: dict[str, Module],
     ) -> None:
+        """Initialize a Netatmo room instance."""
+
         super().__init__(room)
         self.home = home
         self.modules = {
@@ -53,6 +55,8 @@ class Room(NetatmoBase):
         self.evaluate_device_type()
 
     def update_topology(self, raw_data: RawData) -> None:
+        """Update room topology."""
+
         self.name = raw_data["name"]
         self.modules = {
             m_id: m
@@ -62,6 +66,8 @@ class Room(NetatmoBase):
         self.evaluate_device_type()
 
     def evaluate_device_type(self) -> None:
+        """Evaluate the device type of the room."""
+
         for module in self.modules.values():
             self.device_types.add(module.device_type)
             if module.device_category is not None:
@@ -78,6 +84,8 @@ class Room(NetatmoBase):
             self.features.add("humidity")
 
     def update(self, raw_data: RawData) -> None:
+        """Update room data."""
+
         self.heating_power_request = raw_data.get("heating_power_request")
         self.humidity = raw_data.get("humidity")
         self.reachable = raw_data.get("reachable")
@@ -90,12 +98,18 @@ class Room(NetatmoBase):
         temp: float | None = None,
         end_time: int | None = None,
     ) -> None:
+        """Set room temperature set point to manual."""
+
         await self.async_therm_set(MANUAL, temp, end_time)
 
     async def async_therm_home(self, end_time: int | None = None) -> None:
+        """Set room temperature set point to home."""
+
         await self.async_therm_set(HOME, end_time=end_time)
 
     async def async_therm_frostguard(self, end_time: int | None = None) -> None:
+        """Set room temperature set point to frostguard."""
+
         await self.async_therm_set(FROSTGUARD, end_time=end_time)
 
     async def async_therm_set(
@@ -105,6 +119,7 @@ class Room(NetatmoBase):
         end_time: int | None = None,
     ) -> None:
         """Set room temperature set point."""
+
         mode = MODE_MAP.get(mode, mode)
 
         if "NATherm1" in self.device_types or (
@@ -121,6 +136,8 @@ class Room(NetatmoBase):
         temp: float | None = None,
         end_time: int | None = None,
     ) -> bool:
+        """Set room temperature set point (OTM)."""
+
         json_therm_set: dict[str, Any] = {
             "rooms": [
                 {
@@ -145,6 +162,7 @@ class Room(NetatmoBase):
         end_time: int | None = None,
     ) -> None:
         """Set room temperature set point (NRV, NATherm1)."""
+
         post_params = {
             "home_id": self.home.entity_id,
             "room_id": self.entity_id,

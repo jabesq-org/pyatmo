@@ -44,6 +44,8 @@ class Home:
     events: dict[str, Event]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: RawData) -> None:
+        """Initialize a Netatmo home instance."""
+
         self.auth = auth
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
@@ -69,6 +71,8 @@ class Home:
         self.events = {}
 
     def get_module(self, module) -> Module:
+        """Return module."""
+
         try:
             return getattr(modules, module["type"])(
                 home=self,
@@ -82,6 +86,8 @@ class Home:
             )
 
     def update_topology(self, raw_data: RawData) -> None:
+        """Update topology."""
+
         self.name = raw_data.get("name", "Unknown")
 
         raw_modules = raw_data.get("modules", [])
@@ -119,6 +125,8 @@ class Home:
         }
 
     async def update(self, raw_data: RawData) -> None:
+        """Update home with the latest data."""
+
         for module in raw_data.get("errors", []):
             await self.modules[module["id"]].update({})
 
@@ -150,6 +158,7 @@ class Home:
 
     def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""
+
         return next(
             (schedule for schedule in self.schedules.values() if schedule.selected),
             None,
@@ -157,19 +166,24 @@ class Home:
 
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""
+
         return schedule_id in self.schedules
 
     def has_otm(self) -> bool:
+        """Check if any room has an OTM device."""
+
         return any("OTM" in room.device_types for room in self.rooms.values())
 
     def get_hg_temp(self) -> float | None:
         """Return frost guard temperature value for given home."""
+
         if (schedule := self.get_selected_schedule()) is None:
             return None
         return schedule.hg_temp
 
     def get_away_temp(self) -> float | None:
         """Return configured away temperature value for given home."""
+
         if (schedule := self.get_selected_schedule()) is None:
             return None
         return schedule.away_temp
@@ -246,6 +260,7 @@ class Home:
         person_id: str | None = None,
     ) -> ClientResponse:
         """Mark a person as away or set the whole home to being empty."""
+
         post_params = {"home_id": self.entity_id}
         if person_id:
             post_params["person_id"] = person_id
@@ -259,22 +274,22 @@ class Home:
         zone_id: int,
         temps: dict[str, int],
     ) -> None:
-        """Sets the scheduled room temperature for the given schedule ID."""
+        """Set the scheduled room temperature for the given schedule ID."""
+
         selected_schedule = self.get_selected_schedule()
 
         if selected_schedule is None:
             raise NoSchedule("Could not determine selected schedule.")
 
-        timetable_entries = []
         zones = []
 
-        for timetable_entry in selected_schedule.timetable:
-            timetable_entries.append(
-                {
-                    "m_offset": timetable_entry.m_offset,
-                    "zone_id": timetable_entry.zone_id,
-                },
-            )
+        timetable_entries = [
+            {
+                "m_offset": timetable_entry.m_offset,
+                "zone_id": timetable_entry.zone_id,
+            }
+            for timetable_entry in selected_schedule.timetable
+        ]
 
         for zone in selected_schedule.zones:
             new_zone = {

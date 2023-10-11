@@ -62,6 +62,7 @@ class DeviceType(str, Enum):
     NLP = "NLP"  # Plug
     NLPBS = "NLPBS"  # British standard plugs
     NLPC = "NLPC"  # Connected energy meter
+    NLPD = "NLPD"  # Dry contact
     NLPM = "NLPM"  # mobile plug
     NLPO = "NLPO"  # Connected contactor
     NLPS = "NLPS"  # Smart Load Shedder
@@ -183,6 +184,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.BNTH: DeviceCategory.climate,
     DeviceType.BNFC: DeviceCategory.climate,
     DeviceType.BNTR: DeviceCategory.climate,
+    DeviceType.NLPD: DeviceCategory.switch,
 }
 
 
@@ -262,4 +264,5 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
     DeviceType.Z3L: ("3rd Party", "Zigbee 3 Light"),
     DeviceType.EBU: ("3rd Party", "EBU gas meter"),
+    DeviceType.NLPD: ("Drivia", "Dry contact"),
 }

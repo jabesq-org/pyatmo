@@ -76,7 +76,7 @@ class DeviceType(str, Enum):
     NLUF = "NLUF"  # Legrand device stub
     NLAS = "NLAS"  # Legrand wireless batteryless scene switch
     NLUP = "NLUP"  # Legrand device stub
-    NLLF = "NLLF"  # Legrand device stub
+    NLLF = "NLLF"  # Legrand Centralized Ventilation Control
     NLTS = "NLTS"  # Legrand motion sensor stub
 
     # BTicino Classe 300 EOS

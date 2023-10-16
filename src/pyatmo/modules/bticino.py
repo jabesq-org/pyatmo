@@ -26,3 +26,35 @@ class BNEU(Module):
 
 class BNCS(Module):
     """BTicino camera."""
+
+
+class BNXM(Module):
+    """BTicino X meter."""
+
+
+class BNMS(Module):
+    """BTicino motorized shade."""
+
+
+class BNAS(Module):
+    """BTicino automatic shutter."""
+
+
+class BNAB(Module):
+    """BTicino automatic blind."""
+
+
+class BNMH(Module):
+    """BTicino automatic blind."""
+
+
+class BNTH(Module):
+    """BTicino thermostat."""
+
+
+class BNFC(Module):
+    """BTicino fan coil."""
+
+
+class BNTR(Module):
+    """BTicino radiator thermostat."""

@@ -155,3 +155,7 @@ class EBU(Module):
 
 class NLTS(Module):
     """NLTS motion sensor."""
+
+
+class NLPD(FirmwareMixin, SwitchMixin, Module):
+    """NLPD dry contact."""

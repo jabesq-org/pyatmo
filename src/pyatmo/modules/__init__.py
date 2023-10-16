@@ -1,6 +1,20 @@
 """Expose submodules."""
 from .base_class import Place
-from .bticino import BNCX, BNDL, BNEU, BNSL
+from .bticino import (
+    BNAB,
+    BNAS,
+    BNCS,
+    BNCX,
+    BNDL,
+    BNEU,
+    BNFC,
+    BNMH,
+    BNMS,
+    BNSL,
+    BNTH,
+    BNTR,
+    BNXM,
+)
 from .idiamant import NBG, NBO, NBR, NBS
 from .legrand import (
     EBU,
@@ -23,6 +37,7 @@ from .legrand import (
     NLP,
     NLPBS,
     NLPC,
+    NLPD,
     NLPM,
     NLPO,
     NLPS,
@@ -64,6 +79,15 @@ from .smarther import BNS
 from .somfy import TPSRS
 
 __all__ = [
+    "BNMS",
+    "BNAS",
+    "BNAB",
+    "BNMH",
+    "BNTH",
+    "BNFC",
+    "BNTR",
+    "BNXM",
+    "BNCS",
     "BNCX",
     "BNDL",
     "BNEU",
@@ -106,6 +130,7 @@ __all__ = [
     "NLP",
     "NLPBS",
     "NLPC",
+    "NLPD",
     "NLPM",
     "NLPO",
     "NLPS",

@@ -11,8 +11,8 @@ from pyatmo.modules.device_types import DeviceCategory
 import pytest
 import time_machine
 
-from tests.common import fake_post_request
-from tests.conftest import MockResponse, does_not_raise
+from tests.common import MockResponse, fake_post_request
+from tests.conftest import does_not_raise
 
 # pylint: disable=F6401
 

@@ -15,9 +15,6 @@ class DeviceType(str, Enum):
     # temporarily disable locally-disabled and locally-enabled
     # pylint: disable=C0103
 
-    # Unknown
-    UNKNOWN = "UNKNOWN"
-
     # Climate/Energy
     NAPlug = "NAPlug"  # Smart thermostat gateway
     NATherm1 = "NATherm1"  # Smart thermostat

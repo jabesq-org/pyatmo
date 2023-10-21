@@ -1128,3 +1128,10 @@ async def test_historical_data_retrieval(async_account):
         "endTime": "2022-02-12T08:29:49Z",
     }
     assert len(module.historical_data) == 168
+
+
+def test_device_types_missing():
+    """Test handling of missing device types."""
+
+    assert DeviceType("NOC") == DeviceType.NOC
+    assert DeviceType("UNKNOWN") == DeviceType.NLunknown

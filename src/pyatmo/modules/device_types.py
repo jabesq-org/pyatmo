@@ -113,6 +113,10 @@ class DeviceType(str, Enum):
 
     # pylint: enable=C0103
 
+    @classmethod
+    def _missing_(cls,key):
+        LOG.warning(f"{key} device is unknown")
+        return DeviceType("NLunknown")
 
 class DeviceCategory(str, Enum):
     """Class to represent Netatmo device types."""

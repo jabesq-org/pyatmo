@@ -660,11 +660,7 @@ class Module(NetatmoBase):
 
         super().__init__(module)
 
-        try:
-            self.device_type = DeviceType(module["type"])
-        except ValueError:
-            LOG.error("Unknown device type %s", module["type"])
-            self.device_type = DeviceType.UNKNOWN
+        self.device_type = DeviceType(module["type"])
 
         self.home = home
         self.room_id = module.get("room_id")

@@ -121,6 +121,7 @@ class DeviceType(str, Enum):
         LOG.warning(msg)
         return DeviceType.NLunknown
 
+
 class DeviceCategory(str, Enum):
     """Class to represent Netatmo device types."""
 

@@ -1,7 +1,6 @@
 """Define shared fixtures."""
 # pylint: disable=redefined-outer-name, protected-access
 from contextlib import contextmanager
-import json
 from unittest.mock import AsyncMock, patch
 
 import pyatmo
@@ -13,33 +12,6 @@ from .common import fake_post_request
 @contextmanager
 def does_not_raise():
     yield
-
-
-@pytest.fixture(scope="function")
-def camera_ping(requests_mock):
-    """Camera ping fixture."""
-    for index in ["w", "z", "g"]:
-        vpn_url = (
-            f"https://prodvpn-eu-2.netatmo.net/restricted/10.255.248.91/"
-            f"6d278460699e56180d47ab47169efb31/"
-            f"MpEylTU2MDYzNjRVD-LJxUnIndumKzLboeAwMDqTT{index},,"
-        )
-        with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
-            json_fixture = json.load(json_file)
-        requests_mock.post(
-            f"{vpn_url}/command/ping",
-            json=json_fixture,
-            headers={"content-type": "application/json"},
-        )
-
-    local_url = "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
-    with open("fixtures/camera_ping.json", encoding="utf-8") as json_file:
-        json_fixture = json.load(json_file)
-    requests_mock.post(
-        f"{local_url}/command/ping",
-        json=json_fixture,
-        headers={"content-type": "application/json"},
-    )
 
 
 @pytest.fixture(scope="function")

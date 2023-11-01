@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bticino MyHome Server 1 scopes
 - NLPD - Drivia dry contact
 - BTicino module stubs (functionality will come later)
+- support for Legrand garage door opener (NLJ)
+- support for BTicino intelligent light (BNIL)
 
 ### Removed
 

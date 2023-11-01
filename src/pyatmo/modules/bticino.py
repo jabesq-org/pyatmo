@@ -58,3 +58,7 @@ class BNFC(Module):
 
 class BNTR(Module):
     """BTicino radiator thermostat."""
+
+
+class BNIL(Switch):
+    """BTicino itelligent light."""

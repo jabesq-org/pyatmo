@@ -159,3 +159,7 @@ class NLTS(Module):
 
 class NLPD(FirmwareMixin, SwitchMixin, Module):
     """NLPD dry contact."""
+
+
+class NLJ(FirmwareMixin, RfMixin, ShutterMixin, Module):
+    """Legrand garage door opener."""

@@ -29,6 +29,7 @@ from .legrand import (
     NLFN,
     NLG,
     NLIS,
+    NLJ,
     NLL,
     NLLF,
     NLLM,
@@ -158,4 +159,5 @@ __all__ = [
     "TPSRS",
     "NLAS",
     "NLTS",
+    "NLJ",
 ]

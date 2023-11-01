@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- support for Legrand garage door opener (NLJ)
+- support for BTicino intelligent light (BNIL)
 
 ### Changed
 

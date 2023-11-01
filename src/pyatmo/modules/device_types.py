@@ -75,6 +75,7 @@ class DeviceType(str, Enum):
     NLUP = "NLUP"  # Legrand device stub
     NLLF = "NLLF"  # Legrand Centralized Ventilation Control
     NLTS = "NLTS"  # Legrand motion sensor stub
+    NLJ = "NLJ"  # Legrand garage door opener
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
@@ -90,6 +91,7 @@ class DeviceType(str, Enum):
     BNTH = "BNTH"  # thermostat
     BNFC = "BNFC"  # fan coil
     BNTR = "BNTR"  # radiator
+    BNIL = "BNIL"  # intelligent light
 
     # Bubbendorf shutters
     NBG = "NBG"  # gateway
@@ -190,6 +192,8 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.BNFC: DeviceCategory.climate,
     DeviceType.BNTR: DeviceCategory.climate,
     DeviceType.NLPD: DeviceCategory.switch,
+    DeviceType.NLJ: DeviceCategory.shutter,
+    DeviceType.BNIL: DeviceCategory.switch,
 }
 
 
@@ -246,6 +250,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLUI: ("Legrand", "In-wall switch"),
     DeviceType.NLTS: ("Legrand", "Motion sensor"),
     DeviceType.NLUF: ("Legrand", "In-Wall dimmer"),
+    DeviceType.NLJ: ("Legrand", "Garage door opener"),
     # BTicino Classe 300 EOS
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),
@@ -258,6 +263,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.BNTH: ("BTicino", "Thermostat"),
     DeviceType.BNFC: ("BTicino", "Fan coil"),
     DeviceType.BNTR: ("BTicino", "Module towel rail"),
+    DeviceType.BNIL: ("BTicino", "Intelligent light"),
     # Bubbendorf shutters
     DeviceType.NBG: ("Bubbendorf", "Gateway"),
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),

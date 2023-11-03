@@ -62,14 +62,13 @@ class AbstractAsyncAuth(ABC):
             headers=headers,
             timeout=timeout,
         ) as resp:
-            resp_status = resp.status
             resp_content = await resp.read()
 
             if resp.headers.get("content-type") == "image/jpeg":
                 return resp_content
 
         raise ApiError(
-            f"{resp_status} - "
+            f"{resp.status} - "
             f"invalid content-type in response"
             f"when accessing '{url}'",
         )

@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
 
 ### Changed
 
@@ -30,6 +29,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 -
+
+## [7.6.0]
+
+### Added
+
+- Opening category for NACamDoorTag
+- Schedule modification
+- Bticino MyHome Server 1 scopes
+- NLPD - Drivia dry contact
+- BTicino module stubs (functionality will come later)
+- support for Legrand garage door opener (NLJ)
+- support for BTicino intelligent light (BNIL)
+
+### Removed
+
+- Support for Python 3.8 and 3.9
+
+### Fixed
+
+- Update functionality for NLP, NLC, NLT and NLG
 
 ## [7.5.0]
 
@@ -295,7 +314,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v7.0.1...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v7.5.0...HEAD
+[7.5.0]: https://github.com/jabesq/pyatmo/compare/v7.4.0...v7.5.0
+[7.4.0]: https://github.com/jabesq/pyatmo/compare/v7.3.0...v7.4.0
+[7.3.0]: https://github.com/jabesq/pyatmo/compare/v7.2.0...v7.3.0
+[7.2.0]: https://github.com/jabesq/pyatmo/compare/v7.1.1...v7.2.0
+[7.1.1]: https://github.com/jabesq/pyatmo/compare/v7.1.0...v7.1.1
+[7.1.0]: https://github.com/jabesq/pyatmo/compare/v7.0.1...v7.1.0
 [7.0.1]: https://github.com/jabesq/pyatmo/compare/v7.0.0...v7.0.1
 [7.0.0]: https://github.com/jabesq/pyatmo/compare/v6.2.4...v7.0.0
 [6.2.4]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.4

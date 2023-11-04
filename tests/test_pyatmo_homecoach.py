@@ -2,9 +2,8 @@
 # pylint: disable=protected-access
 import json
 
-import pytest
-
 import pyatmo
+import pytest
 
 
 def test_home_coach_data(home_coach_data):

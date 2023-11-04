@@ -1,10 +1,10 @@
 """Support for Netatmo security devices (cameras, smoke detectors, sirens, window sensors, events and persons)."""
 from __future__ import annotations
 
-import imghdr
-import time
 from abc import ABC
 from collections import defaultdict
+import imghdr  # pylint: disable=deprecated-module
+import time
 from typing import Any
 from warnings import warn
 
@@ -138,10 +138,8 @@ class AbstractCameraData(ABC):
         )
 
     def camera_urls(self, camera_id: str) -> tuple[str | None, str | None]:
-        """
-        Return the vpn_url and the local_url (if available) of a given camera
-        in order to access its live feed.
-        """
+        """Return the vpn_url and the local_url (if available) of a given camera."""
+
         camera_data = self.get_camera(camera_id)
         return camera_data.get("vpn_url", None), camera_data.get("local_url", None)
 
@@ -367,6 +365,7 @@ class AbstractCameraData(ABC):
         exclude: int = 0,
     ) -> bool:
         """Evaluate if movement has been detected."""
+
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events.get(camera_id, []), reverse=True)
@@ -397,6 +396,7 @@ class AbstractCameraData(ABC):
 
     def module_opened(self, module_id: str, camera_id: str, exclude: int = 0) -> bool:
         """Evaluate if module status is open."""
+
         if exclude:
             limit = time.time() - exclude
             array_time_event = sorted(self.events.get(camera_id, []), reverse=True)
@@ -433,6 +433,7 @@ class AbstractCameraData(ABC):
         monitoring: str | None,
     ):
         """Build camera state parameters."""
+
         if home_id is None:
             home_id = self.get_camera(camera_id)["home_id"]
 
@@ -459,11 +460,8 @@ class CameraData(AbstractCameraData):
     """Class of Netatmo camera data."""
 
     def __init__(self, auth: NetatmoOAuth2) -> None:
-        """Initialize the Netatmo camera data.
+        """Initialize the Netatmo camera data."""
 
-        Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with valid access token
-        """
         self.auth = auth
 
     def update(self, events: int = 30) -> None:
@@ -480,12 +478,14 @@ class CameraData(AbstractCameraData):
 
     def _update_all_camera_urls(self) -> None:
         """Update all camera urls."""
+
         for home_id in self.homes:
             for camera_id in self.cameras[home_id]:
                 self.update_camera_urls(camera_id)
 
     def update_camera_urls(self, camera_id: str) -> None:
         """Update and validate the camera urls."""
+
         camera_data = self.get_camera(camera_id)
         home_id = camera_data["home_id"]
 
@@ -507,6 +507,8 @@ class CameraData(AbstractCameraData):
                     self.cameras[home_id][camera_id]["is_local"] = False
 
     def _check_url(self, url: str) -> str | None:
+        """Check if the url is valid."""
+
         if url.startswith("http://169.254"):
             return None
         resp_json = {}
@@ -532,17 +534,17 @@ class CameraData(AbstractCameraData):
         floodlight: str | None = None,
         monitoring: str | None = None,
     ) -> bool:
-        """Turn camera (light) on/off.
+        """Turn camera (light) on/off."""
 
-        Arguments:
-            camera_id {str} -- ID of a camera
-            home_id {str} -- ID of a home
-            floodlight {str} -- Mode for floodlight (on/off/auto)
-            monitoring {str} -- Mode for monitoring (on/off)
+        # Arguments:
+        #     camera_id {str} -- ID of a camera
+        #     home_id {str} -- ID of a home
+        #     floodlight {str} -- Mode for floodlight (on/off/auto)
+        #     monitoring {str} -- Mode for monitoring (on/off)
 
-        Returns:
-            Boolean -- Success of the request
-        """
+        # Returns:
+        #     Boolean -- Success of the request
+
         post_params = {
             "json": {
                 "home": self.build_state_params(
@@ -657,15 +659,13 @@ class AsyncCameraData(AbstractCameraData):
     """Class of Netatmo camera data."""
 
     def __init__(self, auth: AbstractAsyncAuth) -> None:
-        """Initialize the Netatmo camera data.
+        """Initialize the Netatmo camera data."""
 
-        Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with valid access token
-        """
         self.auth = auth
 
     async def async_update(self, events: int = 30) -> None:
         """Fetch and process data from API."""
+
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMEDATA_ENDPOINT,
             params={"size": events},
@@ -684,6 +684,7 @@ class AsyncCameraData(AbstractCameraData):
 
     async def _async_update_all_camera_urls(self) -> None:
         """Update all camera urls."""
+
         for home_id in self.homes:
             for camera_id in self.cameras[home_id]:
                 await self.async_update_camera_urls(camera_id)
@@ -695,17 +696,14 @@ class AsyncCameraData(AbstractCameraData):
         floodlight: str | None = None,
         monitoring: str | None = None,
     ) -> bool:
-        """Turn camera (light) on/off.
+        """Turn camera (light) on/off."""
 
-        Arguments:
-            camera_id {str} -- ID of a camera
-            home_id {str} -- ID of a home
-            floodlight {str} -- Mode for floodlight (on/off/auto)
-            monitoring {str} -- Mode for monitoring (on/off)
+        # Arguments:
+        # camera_id {str} -- ID of a camera
+        # home_id {str} -- ID of a home
+        #     floodlight {str} -- Mode for floodlight (on/off/auto)
+        #     monitoring {str} -- Mode for monitoring (on/off)
 
-        Returns:
-            Boolean -- Success of the request
-        """
         post_params = {
             "json": {
                 "home": self.build_state_params(

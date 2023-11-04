@@ -2,9 +2,9 @@
 # pylint: disable=protected-access
 import json
 
+import pyatmo
 import pytest
 
-import pyatmo
 from tests.conftest import does_not_raise
 
 

@@ -2,9 +2,8 @@
 # pylint: disable=protected-access
 import json
 
-import pytest
-
 import pyatmo
+import pytest
 
 LON_NE = "6.221652"
 LAT_NE = "46.610870"

@@ -3,9 +3,9 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import pyatmo
 import pytest
 
-import pyatmo
 from tests.conftest import MockResponse, does_not_raise
 
 LON_NE = "6.221652"
@@ -123,7 +123,6 @@ async def test_async_public_data_error(async_auth):
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
     ):
-
         public_data = pyatmo.AsyncPublicData(async_auth, LAT_NE, LON_NE, LAT_SW, LON_SW)
 
         with pytest.raises(pyatmo.NoDevice):
@@ -186,10 +185,9 @@ async def test_async_home_data_no_data(async_auth):
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_resp),
-    ):
-        with pytest.raises(pyatmo.NoDevice):
-            home_data = pyatmo.AsyncHomeData(async_auth)
-            await home_data.async_update()
+    ), pytest.raises(pyatmo.NoDevice):
+        home_data = pyatmo.AsyncHomeData(async_auth)
+        await home_data.async_update()
 
 
 @pytest.mark.asyncio
@@ -232,12 +230,11 @@ async def test_async_home_data_switch_home_schedule(
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=json_fixture),
-    ):
-        with expected:
-            await async_home_data.async_switch_home_schedule(
-                home_id=t_home_id,
-                schedule_id=t_sched_id,
-            )
+    ), expected:
+        await async_home_data.async_switch_home_schedule(
+            home_id=t_home_id,
+            schedule_id=t_sched_id,
+        )
 
 
 @pytest.mark.parametrize(

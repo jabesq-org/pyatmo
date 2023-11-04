@@ -1,12 +1,11 @@
 """Define shared fixtures."""
 # pylint: disable=redefined-outer-name, protected-access
-import json
 from contextlib import contextmanager
+import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 import pyatmo
+import pytest
 
 from .common import MockResponse, fake_post_request
 

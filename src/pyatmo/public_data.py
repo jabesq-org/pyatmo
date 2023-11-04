@@ -1,9 +1,9 @@
 """Support for Netatmo public weather data."""
 from __future__ import annotations
 
-import dataclasses
 from abc import ABC
 from collections import defaultdict
+import dataclasses
 from typing import Any
 from warnings import warn
 
@@ -37,77 +37,124 @@ class AbstractPublicData(ABC):
 
     def process(self, resp: dict) -> None:
         """Process data from API."""
+
         self.status = resp.get("status", "")
 
     def stations_in_area(self) -> int:
+        """Return number of stations in area."""
+
         return len(self.raw_data)
 
     def get_latest_rain(self) -> dict:
+        """Return latest rain measures."""
+
         return self.get_accessory_data(ACCESSORY_RAIN_LIVE_TYPE)
 
     def get_average_rain(self) -> float:
+        """Return average rain measures."""
+
         return average(self.get_latest_rain())
 
     def get_60_min_rain(self) -> dict:
+        """Return 60 min rain measures."""
+
         return self.get_accessory_data(ACCESSORY_RAIN_60MIN_TYPE)
 
     def get_average_60_min_rain(self) -> float:
+        """Return average 60 min rain measures."""
+
         return average(self.get_60_min_rain())
 
     def get_24_h_rain(self) -> dict:
+        """Return 24 h rain measures."""
+
         return self.get_accessory_data(ACCESSORY_RAIN_24H_TYPE)
 
     def get_average_24_h_rain(self) -> float:
+        """Return average 24 h rain measures."""
+
         return average(self.get_24_h_rain())
 
     def get_latest_pressures(self) -> dict:
+        """Return latest pressure measures."""
+
         return self.get_latest_station_measures(STATION_PRESSURE_TYPE)
 
     def get_average_pressure(self) -> float:
+        """Return average pressure measures."""
+
         return average(self.get_latest_pressures())
 
     def get_latest_temperatures(self) -> dict:
+        """Return latest temperature measures."""
+
         return self.get_latest_station_measures(STATION_TEMPERATURE_TYPE)
 
     def get_average_temperature(self) -> float:
+        """Return average temperature measures."""
+
         return average(self.get_latest_temperatures())
 
     def get_latest_humidities(self) -> dict:
+        """Return latest humidity measures."""
+
         return self.get_latest_station_measures(STATION_HUMIDITY_TYPE)
 
     def get_average_humidity(self) -> float:
+        """Return average humidity measures."""
+
         return average(self.get_latest_humidities())
 
     def get_latest_wind_strengths(self) -> dict:
+        """Return latest wind strengths."""
+
         return self.get_accessory_data(ACCESSORY_WIND_STRENGTH_TYPE)
 
     def get_average_wind_strength(self) -> float:
+        """Return average wind strength."""
+
         return average(self.get_latest_wind_strengths())
 
     def get_latest_wind_angles(self) -> dict:
+        """Return latest wind angles."""
+
         return self.get_accessory_data(ACCESSORY_WIND_ANGLE_TYPE)
 
     def get_latest_gust_strengths(self) -> dict:
+        """Return latest gust strengths."""
+
         return self.get_accessory_data(ACCESSORY_GUST_STRENGTH_TYPE)
 
     def get_average_gust_strength(self) -> float:
+        """Return average gust strength."""
+
         return average(self.get_latest_gust_strengths())
 
     def get_latest_gust_angles(self):
+        """Return latest gust angles."""
+
         return self.get_accessory_data(ACCESSORY_GUST_ANGLE_TYPE)
 
     def get_locations(self) -> dict:
+        """Return locations of stations."""
+
         return {
             station["_id"]: station["place"]["location"] for station in self.raw_data
         }
 
     def get_time_for_rain_measures(self) -> dict:
+        """Return time for rain measures."""
+
         return self.get_accessory_data(ACCESSORY_RAIN_TIME_TYPE)
 
     def get_time_for_wind_measures(self) -> dict:
+        """Return time for wind measures."""
+
         return self.get_accessory_data(ACCESSORY_WIND_TIME_TYPE)
 
     def get_latest_station_measures(self, data_type) -> dict:
+        """Return latest station measures of a given type."""
+
         measures: dict = {}
         for station in self.raw_data:
             for module in station["measures"].values():
@@ -126,6 +173,8 @@ class AbstractPublicData(ABC):
         return measures
 
     def get_accessory_data(self, data_type: str) -> dict[str, Any]:
+        """Return all accessory data of a given type."""
+
         data: dict = {}
         for station in self.raw_data:
             for module in station["measures"].values():
@@ -148,18 +197,8 @@ class PublicData(AbstractPublicData):
         required_data_type: str | None = None,
         filtering: bool = False,
     ) -> None:
-        """Initialize self.
+        """Initialize self."""
 
-        Arguments:
-            auth {NetatmoOAuth2} -- Authentication information with a valid access token
-            LAT_NE {str} -- Latitude of the north-east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
-            LON_NE {str} -- Longitude of the north-east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
-            LAT_SW {str} -- latitude of the south-west corner of the requested area. (-85 <= LAT_SW <= 85)
-            LON_SW {str} -- Longitude of the south-west corner of the requested area. (-180 <= LON_SW <= 180)
-
-        Keyword Arguments:
-            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
-        """
         self.auth = auth
         self.required_data_type = required_data_type
         self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
@@ -167,6 +206,7 @@ class PublicData(AbstractPublicData):
 
     def update(self) -> None:
         """Fetch and process data from API."""
+
         post_params: dict = {
             **dataclasses.asdict(self.location),
             "filter": self.filtering,
@@ -200,18 +240,8 @@ class AsyncPublicData(AbstractPublicData):
         required_data_type: str | None = None,
         filtering: bool = False,
     ) -> None:
-        """Initialize self.
+        """Initialize self."""
 
-        Arguments:
-            auth {AbstractAsyncAuth} -- Authentication information with a valid access token
-            LAT_NE {str} -- Latitude of the north-east corner of the requested area. (-85 <= LAT_NE <= 85 and LAT_NE > LAT_SW)
-            LON_NE {str} -- Longitude of the north-east corner of the requested area. (-180 <= LON_NE <= 180 and LON_NE > LON_SW)
-            LAT_SW {str} -- latitude of the south-west corner of the requested area. (-85 <= LAT_SW <= 85)
-            LON_SW {str} -- Longitude of the south-west corner of the requested area. (-180 <= LON_SW <= 180)
-
-        Keyword Arguments:
-            required_data_type {str} -- comma-separated list from above _STATION or _ACCESSORY values (default: {None})
-        """
         self.auth = auth
         self.required_data_type = required_data_type
         self.location = Location(lat_ne, lon_ne, lat_sw, lon_sw)
@@ -219,6 +249,7 @@ class AsyncPublicData(AbstractPublicData):
 
     async def async_update(self) -> None:
         """Fetch and process data from API."""
+
         post_params: dict = {
             **dataclasses.asdict(self.location),
             "filter": self.filtering,
@@ -242,4 +273,6 @@ class AsyncPublicData(AbstractPublicData):
 
 
 def average(data: dict) -> float:
+    """Calculate average value of a dict."""
+
     return sum(data.values()) / len(data) if data else 0.0

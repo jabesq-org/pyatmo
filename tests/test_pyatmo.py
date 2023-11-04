@@ -4,9 +4,8 @@ import json
 import time
 
 import oauthlib
-import pytest
-
 import pyatmo
+import pytest
 
 
 def test_client_auth(auth):

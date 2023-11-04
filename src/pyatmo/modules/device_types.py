@@ -1,8 +1,8 @@
 """Definitions of Netatmo devices types."""
 from __future__ import annotations
 
-import logging
 from enum import Enum
+import logging
 
 LOG = logging.getLogger(__name__)
 
@@ -59,6 +59,7 @@ class DeviceType(str, Enum):
     NLP = "NLP"  # Plug
     NLPBS = "NLPBS"  # British standard plugs
     NLPC = "NLPC"  # Connected energy meter
+    NLPD = "NLPD"  # Dry contact
     NLPM = "NLPM"  # mobile plug
     NLPO = "NLPO"  # Connected contactor
     NLPS = "NLPS"  # Smart Load Shedder
@@ -72,14 +73,25 @@ class DeviceType(str, Enum):
     NLUF = "NLUF"  # Legrand device stub
     NLAS = "NLAS"  # Legrand wireless batteryless scene switch
     NLUP = "NLUP"  # Legrand device stub
-    NLLF = "NLLF"  # Legrand device stub
+    NLLF = "NLLF"  # Legrand Centralized Ventilation Control
     NLTS = "NLTS"  # Legrand motion sensor stub
+    NLJ = "NLJ"  # Legrand garage door opener
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
     BNDL = "BNDL"  # door lock
     BNEU = "BNEU"  # external unit
     BNSL = "BNSL"  # staircase light
+    BNCS = "BNCS"  # Controlled Socket
+    BNXM = "BNXM"  # X meter
+    BNMS = "BNMS"  # motorized shade
+    BNAS = "BNAS"  # automatic shutter
+    BNAB = "BNAB"  # automatic blind
+    BNMH = "BNMH"  # automatic blind
+    BNTH = "BNTH"  # thermostat
+    BNFC = "BNFC"  # fan coil
+    BNTR = "BNTR"  # radiator
+    BNIL = "BNIL"  # intelligent light
 
     # Bubbendorf shutters
     NBG = "NBG"  # gateway
@@ -95,7 +107,18 @@ class DeviceType(str, Enum):
     EBU = "EBU"  # EBU gas meter
     Z3L = "Z3L"  # Zigbee 3 Light
 
+    # Magellan
+    NLDP = "NLDP"  # Pocket Remote
+
     # pylint: enable=C0103
+
+    @classmethod
+    def _missing_(cls, key):
+        """Handle unknown device types."""
+
+        msg = f"{key} device is unknown"
+        LOG.warning(msg)
+        return DeviceType.NLunknown
 
 
 class DeviceCategory(str, Enum):
@@ -115,6 +138,7 @@ class DeviceCategory(str, Enum):
     air_care = "air_care"
     meter = "meter"
     dimmer = "dimmer"
+    opening = "opening"
 
     # pylint: enable=C0103
 
@@ -124,6 +148,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NATherm1: DeviceCategory.climate,
     DeviceType.OTM: DeviceCategory.climate,
     DeviceType.NOC: DeviceCategory.camera,
+    DeviceType.NACamDoorTag: DeviceCategory.opening,
     DeviceType.NACamera: DeviceCategory.camera,
     DeviceType.NDB: DeviceCategory.camera,
     DeviceType.NAMain: DeviceCategory.weather,
@@ -156,6 +181,19 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLUO: DeviceCategory.dimmer,
     DeviceType.NLUI: DeviceCategory.switch,
     DeviceType.NLUF: DeviceCategory.dimmer,
+    DeviceType.NLPS: DeviceCategory.meter,
+    DeviceType.NLD: DeviceCategory.switch,
+    DeviceType.NLDD: DeviceCategory.switch,
+    DeviceType.NLPT: DeviceCategory.switch,
+    DeviceType.BNMS: DeviceCategory.shutter,
+    DeviceType.BNAS: DeviceCategory.shutter,
+    DeviceType.BNAB: DeviceCategory.shutter,
+    DeviceType.BNTH: DeviceCategory.climate,
+    DeviceType.BNFC: DeviceCategory.climate,
+    DeviceType.BNTR: DeviceCategory.climate,
+    DeviceType.NLPD: DeviceCategory.switch,
+    DeviceType.NLJ: DeviceCategory.shutter,
+    DeviceType.BNIL: DeviceCategory.switch,
 }
 
 
@@ -212,11 +250,20 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLUI: ("Legrand", "In-wall switch"),
     DeviceType.NLTS: ("Legrand", "Motion sensor"),
     DeviceType.NLUF: ("Legrand", "In-Wall dimmer"),
+    DeviceType.NLJ: ("Legrand", "Garage door opener"),
     # BTicino Classe 300 EOS
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),
     DeviceType.BNDL: ("BTicino", "Door Lock"),
     DeviceType.BNSL: ("BTicino", "Staircase Light"),
+    DeviceType.BNMS: ("BTicino", "Motorized Shade"),
+    DeviceType.BNAS: ("BTicino", "Automatic Shutter"),
+    DeviceType.BNAB: ("BTicino", "Automatic Blind"),
+    DeviceType.BNMH: ("BTicino", "MyHome server 1"),
+    DeviceType.BNTH: ("BTicino", "Thermostat"),
+    DeviceType.BNFC: ("BTicino", "Fan coil"),
+    DeviceType.BNTR: ("BTicino", "Module towel rail"),
+    DeviceType.BNIL: ("BTicino", "Intelligent light"),
     # Bubbendorf shutters
     DeviceType.NBG: ("Bubbendorf", "Gateway"),
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),
@@ -228,4 +275,5 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
     DeviceType.Z3L: ("3rd Party", "Zigbee 3 Light"),
     DeviceType.EBU: ("3rd Party", "EBU gas meter"),
+    DeviceType.NLPD: ("Drivia", "Dry contact"),
 }

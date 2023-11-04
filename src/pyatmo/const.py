@@ -1,7 +1,7 @@
 """Common constants."""
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 ERRORS: dict[int, str] = {
     400: "Bad request",
@@ -15,7 +15,7 @@ ERRORS: dict[int, str] = {
 }
 
 # Special types
-RawData = Dict[str, Any]
+RawData = dict[str, Any]
 
 DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
 
@@ -32,6 +32,7 @@ SETTHERMMODE_ENDPOINT = "api/setthermmode"
 SETROOMTHERMPOINT_ENDPOINT = "api/setroomthermpoint"
 GETROOMMEASURE_ENDPOINT = "api/getroommeasure"
 SWITCHHOMESCHEDULE_ENDPOINT = "api/switchhomeschedule"
+SYNCHOMESCHEDULE_ENDPOINT = "api/synchomeschedule"
 
 GETHOMEDATA_ENDPOINT = "api/gethomedata"
 GETCAMERAPICTURE_ENDPOINT = "api/getcamerapicture"
@@ -50,7 +51,7 @@ GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
 AUTHORIZATION_HEADER = "Authorization"
 
 # Possible scops
-ALL_SCOPES = [
+ALL_SCOPES: list[str] = [
     "access_camera",  # Netatmo camera products
     "access_doorbell",  # Netatmo Smart Video Doorbell
     "access_presence",  # Netatmo Smart Outdoor Camera
@@ -66,6 +67,7 @@ ALL_SCOPES = [
     "read_smokedetector",  # Smart Smoke Alarm information and events
     "read_station",  # Netatmo weather station
     "read_thermostat",  # Netatmo climate products
+    "read_mhs1",  # Bticino MyHome Server 1 modules
     "write_bubendorff",  # Bubbendorf shutters
     "write_camera",  # Netatmo camera products
     "write_magellan",  # Legrand Wiring device or Electrical panel products
@@ -73,6 +75,7 @@ ALL_SCOPES = [
     "write_presence",  # Netatmo Smart Outdoor Camera
     "write_smarther",  # Smarther products
     "write_thermostat",  # Netatmo climate products
+    "write_mhs1",  # Bticino MyHome Server 1 modules
 ]
 
 MANUAL = "manual"

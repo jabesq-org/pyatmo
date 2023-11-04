@@ -96,12 +96,28 @@ class AbstractAsyncAuth(ABC):
     ) -> ClientResponse:
         """Wrap async post requests."""
 
-        try:
-            access_token = await self.async_get_access_token()
-        except ClientError as err:
-            raise ApiError(f"Access token failure: {err}") from err
+        access_token = await self.get_access_token()
         headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
 
+        req_args = self.prepare_request_arguments(params)
+
+        async with self.websession.post(
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
+        ) as resp:
+            return await self.process_response(resp, url)
+
+    async def get_access_token(self):
+        """Get access token."""
+        try:
+            return await self.async_get_access_token()
+        except ClientError as err:
+            raise ApiError(f"Access token failure: {err}") from err
+
+    def prepare_request_arguments(self, params):
+        """Prepare request arguments."""
         req_args = {"data": params if params is not None else {}}
 
         if "params" in req_args["data"]:
@@ -112,43 +128,49 @@ class AbstractAsyncAuth(ABC):
             req_args["json"] = req_args["data"]["json"]
             req_args.pop("data")
 
-        async with self.websession.post(
-            url,
-            **req_args,
-            headers=headers,
-            timeout=timeout,
-        ) as resp:
-            resp_status = resp.status
-            resp_content = await resp.read()
+        return req_args
 
-            if not resp.ok:
-                LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
-                try:
-                    resp_json = await resp.json()
-                    raise ApiError(
-                        f"{resp_status} - "
-                        f"{ERRORS.get(resp_status, '')} - "
-                        f"{resp_json['error']['message']} "
-                        f"({resp_json['error']['code']}) "
-                        f"when accessing '{url}'",
-                    )
+    async def process_response(self, resp, url):
+        """Process response."""
+        resp_status = resp.status
+        resp_content = await resp.read()
 
-                except (JSONDecodeError, ContentTypeError) as exc:
-                    raise ApiError(
-                        f"{resp_status} - "
-                        f"{ERRORS.get(resp_status, '')} - "
-                        f"when accessing '{url}'",
-                    ) from exc
+        if not resp.ok:
+            LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
+            await self.handle_error_response(resp, resp_status, url)
 
-            try:
-                if "application/json" in resp.headers.get("content-type", []):
-                    return resp
+        return await self.handle_success_response(resp, resp_content)
 
-                if resp_content not in [b"", b"None"]:
-                    return resp
+    async def handle_error_response(self, resp, resp_status, url):
+        """Handle error response."""
+        try:
+            resp_json = await resp.json()
+            raise ApiError(
+                f"{resp_status} - "
+                f"{ERRORS.get(resp_status, '')} - "
+                f"{resp_json['error']['message']} "
+                f"({resp_json['error']['code']}) "
+                f"when accessing '{url}'",
+            )
 
-            except (TypeError, AttributeError):
-                LOG.debug("Invalid response %s", resp)
+        except (JSONDecodeError, ContentTypeError) as exc:
+            raise ApiError(
+                f"{resp_status} - "
+                f"{ERRORS.get(resp_status, '')} - "
+                f"when accessing '{url}'",
+            ) from exc
+
+    async def handle_success_response(self, resp, resp_content):
+        """Handle success response."""
+        try:
+            if "application/json" in resp.headers.get("content-type", []):
+                return resp
+
+            if resp_content not in [b"", b"None"]:
+                return resp
+
+        except (TypeError, AttributeError):
+            LOG.debug("Invalid response %s", resp)
 
         return resp
 

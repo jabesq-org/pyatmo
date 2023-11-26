@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import Module, Switch
+from pyatmo.modules.module import Dimmer, Module, Switch
 
 LOG = logging.getLogger(__name__)
 
@@ -62,3 +62,7 @@ class BNTR(Module):
 
 class BNIL(Switch):
     """BTicino itelligent light."""
+
+
+class BNLD(Dimmer):
+    """BTicino dimmer light."""

@@ -157,7 +157,7 @@ class NLTS(Module):
     """NLTS motion sensor."""
 
 
-class NLPD(FirmwareMixin, SwitchMixin, Module):
+class NLPD(FirmwareMixin, SwitchMixin, EnergyMixin, Module):
     """NLPD dry contact."""
 
 

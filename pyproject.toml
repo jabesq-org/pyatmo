@@ -102,7 +102,6 @@ fixture-parentheses = false
 
 [tool.ruff.isort]
 force-sort-within-sections = true
-known-first-party = ["homeassistant"]
 combine-as-imports = true
 split-on-trailing-comma = false
 

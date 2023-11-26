@@ -56,26 +56,28 @@ ALL_SCOPES: list[str] = [
     "access_doorbell",  # Netatmo Smart Video Doorbell
     "access_presence",  # Netatmo Smart Outdoor Camera
     "read_bubendorff",  # Bubbendorf shutters
+    "read_bfi",  # BTicino IP
     "read_camera",  # Netatmo camera products
     "read_carbonmonoxidedetector",  # Netatmo CO sensor
     "read_doorbell",  # Netatmo Smart Video Doorbell
     "read_homecoach",  # Netatmo Smart Indoor Air Quality Monitor
     "read_magellan",  # Legrand Wiring device or Electrical panel products
+    "read_mhs1",  # Bticino MyHome Server 1 modules
     "read_mx",  # BTicino Classe 300 EOS
     "read_presence",  # Netatmo Smart Outdoor Camera
     "read_smarther",  # Smarther with Netatmo thermostat
     "read_smokedetector",  # Smart Smoke Alarm information and events
     "read_station",  # Netatmo weather station
     "read_thermostat",  # Netatmo climate products
-    "read_mhs1",  # Bticino MyHome Server 1 modules
     "write_bubendorff",  # Bubbendorf shutters
+    "write_bfi",  # BTicino IP
     "write_camera",  # Netatmo camera products
     "write_magellan",  # Legrand Wiring device or Electrical panel products
+    "write_mhs1",  # Bticino MyHome Server 1 modules
     "write_mx",  # BTicino Classe 300 EOS
     "write_presence",  # Netatmo Smart Outdoor Camera
     "write_smarther",  # Smarther products
     "write_thermostat",  # Netatmo climate products
-    "write_mhs1",  # Bticino MyHome Server 1 modules
 ]
 
 MANUAL = "manual"

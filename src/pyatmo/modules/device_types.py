@@ -196,6 +196,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLJ: DeviceCategory.shutter,
     DeviceType.BNIL: DeviceCategory.switch,
     DeviceType.BNLD: DeviceCategory.dimmer,
+    DeviceType.NIS: DeviceCategory.siren,
 }
 
 

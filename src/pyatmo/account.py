@@ -17,7 +17,7 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     RawData,
 )
-from pyatmo.helpers import extract_raw_data_new
+from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import MeasureInterval, Module
 
@@ -63,7 +63,7 @@ class AsyncAccount:
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
         )
-        self.raw_data = extract_raw_data_new(await resp.json(), "homes")
+        self.raw_data = extract_raw_data(await resp.json(), "homes")
 
         self.user = self.raw_data.get("user", {}).get("email")
 
@@ -75,7 +75,7 @@ class AsyncAccount:
             endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data = extract_raw_data_new(await resp.json(), HOME)
+        raw_data = extract_raw_data(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data)
 
     async def async_update_events(self, home_id: str) -> None:
@@ -84,7 +84,7 @@ class AsyncAccount:
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data = extract_raw_data_new(await resp.json(), HOME)
+        raw_data = extract_raw_data(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data)
 
     async def async_update_weather_stations(self) -> None:
@@ -165,7 +165,7 @@ class AsyncAccount:
     ) -> None:
         """Retrieve status data from <endpoint>."""
         resp = await self.auth.async_post_api_request(endpoint=endpoint, params=params)
-        raw_data = extract_raw_data_new(await resp.json(), tag)
+        raw_data = extract_raw_data(await resp.json(), tag)
         await self.update_devices(raw_data, area_id)
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:

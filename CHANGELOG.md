@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Bticino IP scopes
+- Bticino dimmable light (BNLD)
+- Start and end times to room class
 
 ### Changed
 
--
+- Add power data to NLPD entities
 
 ### Deprecated
 
@@ -20,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
--
+- deprecated code
 
 ### Fixed
 
@@ -68,7 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add NLUF device stub
 - Add TPSRS Somfy shutters
-
 
 ### Changed
 
@@ -128,11 +130,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - The following modules are deprecated and will be removed in pyatmo 8.0.0
-    - camera
-    - home_coach
-    - public_data
-    - thermostat
-    - weather_station
+  - camera
+  - home_coach
+  - public_data
+  - thermostat
+  - weather_station
 
 ## [7.0.0] - 2022-06-05
 
@@ -152,11 +154,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - The following modules are deprecated and will be removed in pyatmo 8.0.0
-    - camera
-    - home_coach
-    - public_data
-    - thermostat
-    - weather_station
+  - camera
+  - home_coach
+  - public_data
+  - thermostat
+  - weather_station
 
 ### Removed
 

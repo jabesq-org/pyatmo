@@ -34,6 +34,8 @@ class Room(NetatmoBase):
     therm_setpoint_temperature: float | None = None
     therm_setpoint_mode: str | None = None
     therm_measured_temperature: float | None = None
+    therm_setpoint_start_time: int | None = None
+    therm_setpoint_end_time: int | None = None
 
     def __init__(
         self,
@@ -92,6 +94,8 @@ class Room(NetatmoBase):
         self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
+        self.therm_setpoint_start_time = raw_data.get("therm_setpoint_start_time")
+        self.therm_setpoint_end_time = raw_data.get("therm_setpoint_end_time")
 
     async def async_therm_manual(
         self,

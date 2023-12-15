@@ -92,6 +92,7 @@ class DeviceType(str, Enum):
     BNFC = "BNFC"  # fan coil
     BNTR = "BNTR"  # radiator
     BNIL = "BNIL"  # intelligent light
+    BNLD = "BNLD"  # dimmer light
 
     # Bubbendorf shutters
     NBG = "NBG"  # gateway
@@ -194,6 +195,8 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPD: DeviceCategory.switch,
     DeviceType.NLJ: DeviceCategory.shutter,
     DeviceType.BNIL: DeviceCategory.switch,
+    DeviceType.BNLD: DeviceCategory.dimmer,
+    DeviceType.NIS: DeviceCategory.siren,
 }
 
 
@@ -264,6 +267,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.BNFC: ("BTicino", "Fan coil"),
     DeviceType.BNTR: ("BTicino", "Module towel rail"),
     DeviceType.BNIL: ("BTicino", "Intelligent light"),
+    DeviceType.BNLD: ("BTicino", "Dimmer"),
     # Bubbendorf shutters
     DeviceType.NBG: ("Bubbendorf", "Gateway"),
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),

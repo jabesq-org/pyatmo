@@ -94,15 +94,6 @@ ignore = [
     "UP038", # Use `X | Y` in `isinstance` call instead of `(X, Y)`
 ]
 
-[tool.ruff.flake8-import-conventions.extend-aliases]
-voluptuous = "vol"
-"homeassistant.helpers.area_registry" = "ar"
-"homeassistant.helpers.config_validation" = "cv"
-"homeassistant.helpers.device_registry" = "dr"
-"homeassistant.helpers.entity_registry" = "er"
-"homeassistant.helpers.issue_registry" = "ir"
-"homeassistant.util.dt" = "dt_util"
-
 [tool.ruff.flake8-pytest-style]
 fixture-parentheses = false
 
@@ -111,7 +102,6 @@ fixture-parentheses = false
 
 [tool.ruff.isort]
 force-sort-within-sections = true
-known-first-party = ["homeassistant"]
 combine-as-imports = true
 split-on-trailing-comma = false
 

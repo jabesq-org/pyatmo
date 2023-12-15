@@ -19,7 +19,7 @@ def fix_id(raw_data: RawData) -> dict[str, Any]:
     for station in raw_data:
         if not isinstance(station, dict):
             continue
-        if "_id" not in station:
+        if station.get("_id") is None:
             continue
 
         station["_id"] = cast(dict, station)["_id"].replace(" ", "")

@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Deprecated
+
+-
+
+### Removed
+
+-
+
+### Fixed
+
+-
+
+### Security
+
+-
+
+## [8.0.0]
+
+### Added
+
 - Bticino IP scopes
 - Bticino dimmable light (BNLD)
 - Start and end times to room class
@@ -316,7 +342,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v7.5.0...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v8.0.0...HEAD
+[7.5.0]: https://github.com/jabesq/pyatmo/compare/v7.6.0...v8.0.0
+[7.5.0]: https://github.com/jabesq/pyatmo/compare/v7.5.0...v7.6.0
 [7.5.0]: https://github.com/jabesq/pyatmo/compare/v7.4.0...v7.5.0
 [7.4.0]: https://github.com/jabesq/pyatmo/compare/v7.3.0...v7.4.0
 [7.3.0]: https://github.com/jabesq/pyatmo/compare/v7.2.0...v7.3.0

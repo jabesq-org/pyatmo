@@ -47,7 +47,8 @@ class DeviceType(str, Enum):
     NLD = "NLD"  # Dimmer
     NLDD = "NLDD"  # Dimmer
     NLE = "NLE"  # Connected Ecometer
-    NLF = "NLF"  # 2 wire light switch
+    NLF = "NLF"  # Dimmer Light Switch
+    NLFE = "NLFE"  # Dimmer Light Switch Evolution
     NLFN = "NLFN"  # light switch with neutral
     NLG = "NLG"  # Gateway
     NLGS = "NLGS"  # Gateway standalone
@@ -172,6 +173,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLC: DeviceCategory.switch,
     DeviceType.NLFN: DeviceCategory.dimmer,
     DeviceType.NLF: DeviceCategory.dimmer,
+    DeviceType.NLFE: DeviceCategory.dimmer,
     DeviceType.BNS: DeviceCategory.climate,
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
@@ -231,6 +233,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLPM: ("Legrand", "Mobile plug"),
     DeviceType.NLPBS: ("Legrand", "British standard plugs"),
     DeviceType.NLF: ("Legrand", "2 wire light switch/dimmer"),
+    DeviceType.NLFE: ("Legrand", "2 wire light switch/dimmer evolution"),
     DeviceType.NLIS: ("Legrand", "Double switch"),
     DeviceType.NLFN: ("Legrand", "Light switch/dimmer with neutral"),
     DeviceType.NLM: ("Legrand", "Light micro module"),

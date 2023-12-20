@@ -136,8 +136,7 @@ async def test_async_weather_update(async_account):
     assert module.modules is None
     assert module.firmware_revision == 50
     assert module.rf_strength == 68
-    assert module.temperature == 9.4
-    assert module.humidity == 57
+    assert module.reachable is False
 
     module_id = "12:34:56:03:1b:e4"
     assert module_id in home.modules

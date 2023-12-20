@@ -62,7 +62,7 @@ class NLFN(Dimmer):
 
 
 class NLFE(Dimmer):
-    """Legrand On-Off dimmer switch."""
+    """Legrand On-Off dimmer switch evolution."""
 
 
 class NLM(Switch):

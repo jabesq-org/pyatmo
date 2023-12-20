@@ -8,7 +8,6 @@ dist/
 *.pyc
 .DS_Store
 
-archive/
 access.token
 cov.xml
 

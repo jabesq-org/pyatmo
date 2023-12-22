@@ -35,6 +35,13 @@ def default(key: str, val: Any) -> Any:
     return lambda x, _: x.get(key, val)
 
 
+def deduplicate(data: str) -> str:
+    """Remove duplicates from string."""
+    seen: set[str] = set()
+    seen_add = seen.add
+    return " ".join([x for x in data.split() if not (x in seen or seen_add(x))])
+
+
 class EntityBase:
     """Base class for Netatmo entities."""
 
@@ -62,7 +69,9 @@ class NetatmoBase(EntityBase, ABC):
             and self.bridge in self.home.modules
             and getattr(self, "device_category") == "weather"
         ):
-            self.name = f"{self.home.modules[self.bridge].name} {self.name}"
+            self.name = deduplicate(
+                f"{self.home.modules[self.bridge].name} {self.name}",
+            )
 
     def _update_attributes(self, raw_data: RawData) -> None:
         """Update attributes."""

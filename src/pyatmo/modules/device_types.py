@@ -88,7 +88,7 @@ class DeviceType(str, Enum):
     BNMS = "BNMS"  # motorized shade
     BNAS = "BNAS"  # automatic shutter
     BNAB = "BNAB"  # automatic blind
-    BNMH = "BNMH"  # automatic blind
+    BNMH = "BNMH"  # MyHome server
     BNTH = "BNTH"  # thermostat
     BNFC = "BNFC"  # fan coil
     BNTR = "BNTR"  # radiator

@@ -35,6 +35,14 @@ def default(key: str, val: Any) -> Any:
     return lambda x, _: x.get(key, val)
 
 
+def update_name(name: str, pre_fix: str) -> str:
+    """Remove duplicates from string."""
+
+    if name.startswith(pre_fix):
+        return name
+    return f"{pre_fix} {name}"
+
+
 class EntityBase:
     """Base class for Netatmo entities."""
 
@@ -62,7 +70,7 @@ class NetatmoBase(EntityBase, ABC):
             and self.bridge in self.home.modules
             and getattr(self, "device_category") == "weather"
         ):
-            self.name = f"{self.home.modules[self.bridge].name} {self.name}"
+            self.name = update_name(self.name, self.home.modules[self.bridge].name)
 
     def _update_attributes(self, raw_data: RawData) -> None:
         """Update attributes."""

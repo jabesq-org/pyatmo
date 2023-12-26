@@ -25,38 +25,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Duplicates in entity names (https://github.com/home-assistant/core/issues/88792)
-- Add shutter capabilities to BNAB, BNAS and BNMS (https://github.com/home-assistant/core/issues/106392)
+-
 
 ### Security
 
 -
+
+## [8.0.2]
+
+### Fixed
+
+- Duplicates in entity names (https://github.com/home-assistant/core/issues/88792)
+- Add shutter capabilities to BNAB, BNAS and BNMS (https://github.com/home-assistant/core/issues/106392)
+
 
 ## [8.0.1]
 
 ### Added
 
 - NLFE Legrand dimmer switch evolution
-
-### Changed
-
--
-
-### Deprecated
-
--
-
-### Removed
-
--
-
-### Fixed
-
--
-
-### Security
-
--
 
 ## [8.0.0]
 
@@ -70,21 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add power data to NLPD entities
 
-### Deprecated
-
--
-
 ### Removed
 
 - deprecated code
-
-### Fixed
-
--
-
-### Security
-
--
 
 ## [7.6.0]
 
@@ -369,7 +344,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v8.0.1...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v8.0.2...HEAD
+[8.0.2]: https://github.com/jabesq/pyatmo/compare/v8.0.1...v8.0.2
 [8.0.1]: https://github.com/jabesq/pyatmo/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/jabesq/pyatmo/compare/v7.6.0...v8.0.0
 [7.6.0]: https://github.com/jabesq/pyatmo/compare/v7.5.0...v7.6.0

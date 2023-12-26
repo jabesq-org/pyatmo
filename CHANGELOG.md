@@ -38,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicates in entity names (https://github.com/home-assistant/core/issues/88792)
 - Add shutter capabilities to BNAB, BNAS and BNMS (https://github.com/home-assistant/core/issues/106392)
 
-
 ## [8.0.1]
 
 ### Added

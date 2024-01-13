@@ -70,7 +70,7 @@ class Home:
         }
         self.events = {}
 
-    def get_module(self, module) -> Module:
+    def get_module(self, module: dict) -> Module:
         """Return module."""
 
         try:

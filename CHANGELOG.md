@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- 
 
 ### Changed
 
@@ -25,11 +25,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- 
 
 ### Security
 
 -
+
+## [8.0.3]
+
+### Added
+
+- Add NLLF centralized ventilation controller
+
+### Fixed
+
+- Add BNSC switch capability
 
 ## [8.0.2]
 
@@ -343,7 +353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v8.0.2...HEAD
+[unreleased]: https://github.com/jabesq/pyatmo/compare/v8.0.3...HEAD
+[8.0.3]: https://github.com/jabesq/pyatmo/compare/v8.0.2...v8.0.3
 [8.0.2]: https://github.com/jabesq/pyatmo/compare/v8.0.1...v8.0.2
 [8.0.1]: https://github.com/jabesq/pyatmo/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/jabesq/pyatmo/compare/v7.6.0...v8.0.0

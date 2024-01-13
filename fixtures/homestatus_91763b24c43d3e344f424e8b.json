@@ -317,6 +317,16 @@
           "power": 0,
           "reachable": true,
           "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b1",
+          "type": "NLLF",
+          "firmware_revision": 60,
+          "last_seen": 1657086949,
+          "power": 11,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40",
+          "fan_speed": 1
         }
       ],
       "rooms": [

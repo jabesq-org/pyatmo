@@ -24,8 +24,8 @@ class BNEU(Module):
     """BTicino external unit."""
 
 
-class BNCS(Module):
-    """BTicino camera."""
+class BNCS(Switch):
+    """Bticino module Controlled Socket."""
 
 
 class BNXM(Module):

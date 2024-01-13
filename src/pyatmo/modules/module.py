@@ -372,6 +372,33 @@ class SwitchMixin(EntityBase):
         return await self.async_set_switch(False)
 
 
+class FanSpeedMixin(EntityBase):
+    """Mixin for fan speed data."""
+
+    def __init__(self, home: Home, module: ModuleT):
+        """Initialize fan speed mixin."""
+
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.fan_speed: int | None = None
+
+    async def async_set_fan_speed(self, speed: int) -> bool:
+        """Set fan speed."""
+
+        json_fan_speed = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    # fan speed is clamped between 1 and 2
+                    # since only NLLF is such a device
+                    # and it can only supports fan_speed 1 or 2
+                    "fan_speed": max(min(2, speed), 1),
+                    "bridge": self.bridge,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_fan_speed)
+
+
 class ShutterMixin(EntityBase):
     """Mixin for shutter data."""
 
@@ -729,6 +756,12 @@ class Dimmer(DimmableMixin, Switch):
 
 class Shutter(FirmwareMixin, ShutterMixin, Module):
     """Class to represent a Netatmo shutter."""
+
+    ...
+
+
+class Fan(FirmwareMixin, FanSpeedMixin, PowerMixin, Module):
+    """Class to represent a Netatmo ventilation device."""
 
     ...
 

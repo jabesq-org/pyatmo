@@ -1,4 +1,4 @@
-"""Define tests for climate module."""
+"""Define tests for weaather module."""
 
 import pyatmo
 from pyatmo import DeviceType

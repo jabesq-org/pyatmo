@@ -55,7 +55,7 @@ from .legrand import (
     Z3L,
     NLunknown,
 )
-from .module import Camera, Dimmer, Module, Shutter, Switch
+from .module import Camera, Dimmer, Fan, Module, Shutter, Switch
 from .netatmo import (
     NCO,
     NDB,
@@ -101,6 +101,7 @@ __all__ = [
     "Camera",
     "Dimmer",
     "EBU",
+    "Fan",
     "Location",
     "Module",
     "NACamDoorTag",

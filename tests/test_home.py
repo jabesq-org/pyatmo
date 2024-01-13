@@ -1,4 +1,4 @@
-"""Define tests for climate module."""
+"""Define tests for home module."""
 import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch
@@ -26,7 +26,7 @@ async def test_async_home(async_home):
         DeviceType.NBO,
     }
     assert len(async_home.rooms) == 8
-    assert len(async_home.modules) == 37
+    assert len(async_home.modules) == 38
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"

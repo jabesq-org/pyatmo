@@ -1,4 +1,4 @@
-"""Define tests for climate module."""
+"""Define tests for shutter module."""
 import json
 from unittest.mock import AsyncMock, patch
 

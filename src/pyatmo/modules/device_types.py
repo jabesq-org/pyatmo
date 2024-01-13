@@ -141,6 +141,7 @@ class DeviceCategory(str, Enum):
     meter = "meter"
     dimmer = "dimmer"
     opening = "opening"
+    fan = "fan"
 
     # pylint: enable=C0103
 
@@ -200,6 +201,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.BNLD: DeviceCategory.dimmer,
     DeviceType.NIS: DeviceCategory.siren,
     DeviceType.BNCS: DeviceCategory.switch,
+    DeviceType.NLLF: DeviceCategory.fan,
 }
 
 
@@ -239,6 +241,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLFN: ("Legrand", "Light switch/dimmer with neutral"),
     DeviceType.NLM: ("Legrand", "Light micro module"),
     DeviceType.NLL: ("Legrand", "Italian light switch with neutral"),
+    DeviceType.NLLF: ("Legrand", "Centralized ventilation device"),
     DeviceType.NLV: ("Legrand/BTicino", "Shutters"),
     DeviceType.NLLV: ("Legrand/BTicino", "Shutters"),
     DeviceType.NLLM: ("Legrand/BTicino", "Shutters"),

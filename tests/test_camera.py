@@ -1,4 +1,4 @@
-"""Define tests for climate module."""
+"""Define tests for camera module."""
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -35,6 +35,8 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 3002000
     assert module.firmware_name == "3.2.0"
     assert module.monitoring is True
+    assert module.alim_status == 2
+    assert module.is_local is False
     assert module.floodlight == "auto"
 
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:

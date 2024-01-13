@@ -1,4 +1,4 @@
-"""Define shared fixtures."""
+"""Define shared test helpers."""
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 from __future__ import annotations
 

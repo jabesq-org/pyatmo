@@ -8,6 +8,7 @@ from pyatmo.modules.module import (
     ContactorMixin,
     Dimmer,
     EnergyMixin,
+    Fan,
     FirmwareMixin,
     HistoryMixin,
     Module,
@@ -133,8 +134,8 @@ class NLUO(Dimmer):
     """Legrand NLUO device stub."""
 
 
-class NLLF(Module):
-    """Legrand NLLF device stub."""
+class NLLF(Fan):
+    """Legrand NLLF fan/ventilation device."""
 
 
 class NLunknown(Module):

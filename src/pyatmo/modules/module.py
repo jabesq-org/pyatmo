@@ -758,7 +758,7 @@ class Camera(
         await self.async_update_camera_urls()
 
 
-class Switch(FirmwareMixin, PowerMixin, SwitchMixin, Module):
+class Switch(FirmwareMixin, HistoryMixin, EnergyMixin, PowerMixin, SwitchMixin, Module):
     """Class to represent a Netatmo switch."""
 
     ...

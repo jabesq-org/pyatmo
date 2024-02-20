@@ -34,11 +34,11 @@ class NLT(FirmwareMixin, BatteryMixin, Module):
     """Legrand global remote control."""
 
 
-class NLP(Switch, HistoryMixin, PowerMixin, OffloadMixin, Module):
+class NLP(Switch, OffloadMixin):
     """Legrand plug."""
 
 
-class NLPM(Switch):
+class NLPM(Switch, OffloadMixin):
     """Legrand mobile plug."""
 
 
@@ -46,7 +46,7 @@ class NLPO(ContactorMixin, OffloadMixin, Switch):
     """Legrand contactor."""
 
 
-class NLPT(Switch):
+class NLPT(Switch, OffloadMixin):
     """Legrand latching relay/teleruptor."""
 
 
@@ -78,7 +78,7 @@ class NLD(Dimmer):
     """Legrand Double On/Off dimmer remote."""
 
 
-class NLL(FirmwareMixin, EnergyMixin, WifiMixin, SwitchMixin, Module):
+class NLL(Switch, WifiMixin):
     """Legrand / BTicino italian light switch with neutral."""
 
 
@@ -102,11 +102,11 @@ class NLE(FirmwareMixin, HistoryMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino connected ecometer."""
 
 
-class NLPS(FirmwareMixin, PowerMixin, EnergyMixin, Module):
+class NLPS(FirmwareMixin, HistoryMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
 
-class NLC(FirmwareMixin, SwitchMixin, HistoryMixin, PowerMixin, OffloadMixin, Module):
+class NLC(Switch, OffloadMixin):
     """Legrand / BTicino cable outlet."""
 
 
@@ -114,7 +114,7 @@ class NLDD(FirmwareMixin, Module):
     """Legrand NLDD dimmer remote control."""
 
 
-class NLUP(FirmwareMixin, PowerMixin, SwitchMixin, Module):
+class NLUP(Switch):
     """Legrand NLUP Power outlet."""
 
 
@@ -134,7 +134,7 @@ class NLUO(Dimmer):
     """Legrand NLUO device stub."""
 
 
-class NLLF(Fan):
+class NLLF(Fan, EnergyMixin, PowerMixin, HistoryMixin):
     """Legrand NLLF fan/ventilation device."""
 
 
@@ -158,7 +158,7 @@ class NLTS(Module):
     """NLTS motion sensor."""
 
 
-class NLPD(FirmwareMixin, SwitchMixin, EnergyMixin, PowerMixin, Module):
+class NLPD(Switch, OffloadMixin):
     """NLPD dry contact."""
 
 

@@ -1,7 +1,7 @@
 """Module to represent a Netatmo module."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -285,16 +285,6 @@ class ApplianceTypeMixin(EntityBase):
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.appliance_type: str | None = None
-
-
-class EnergyMixin(EntityBase):
-    """Mixin for energy data."""
-
-    def __init__(self, home: Home, module: ModuleT):
-        """Initialize energy mixin."""
-
-        super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.sum_energy_elec: int | None = None
 
 
 class PowerMixin(EntityBase):
@@ -582,7 +572,7 @@ class MonitoringMixin(EntityBase):
         return await self.async_set_monitoring_state("off")
 
 
-class HistoryMixin(EntityBase):
+class EnergyHistoryMixin(EntityBase):
     """Mixin for history data."""
 
     def __init__(self, home: Home, module: ModuleT):
@@ -591,19 +581,47 @@ class HistoryMixin(EntityBase):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.historical_data: list[dict[str, Any]] | None = None
         self.start_time: int | None = None
+        self.end_time: int | None = None
         self.interval: MeasureInterval | None = None
+        self.sum_energy_elec: int | None = None
+
+    async def async_update_current_day_energy_measures(self) -> None:
+        end = datetime.now()
+        end_time = int(end.timestamp())
+
+        #go at the begining of the current day
+        start_time = datetime(end.year, end.month, end.day) + timedelta(seconds=1)
+        start_time = int(start_time.timestamp())
+
+        if self.end_time is not None:
+            prev_end = datetime.fromtimestamp(self.end_time)
+            if prev_end.day != end.day:
+                #we are in a "change of day" ask as a measure: reset the energy sum and that's all
+                self.end_time = end_time
+                self.start_time = start_time
+                self.historical_data = []
+                self.sum_energy_elec = 0
+                return
+
+        await self.async_update_measures(start_time=start_time, end_time=end_time)
+
 
     async def async_update_measures(
         self,
         start_time: int | None = None,
+        end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
-        days: int = 7,
+        days: int = 7
     ) -> None:
         """Update historical data."""
 
-        end_time = int(datetime.now().timestamp())
+        if end_time is None:
+            end_time = int(datetime.now().timestamp())
+
         if start_time is None:
-            start_time = end_time - days * 24 * 60 * 60
+            end = datetime.fromtimestamp(end_time)
+            start_time = end - timedelta(days=days)
+            start_time = int(start_time.timestamp())
 
         data_points = self.home.energy_endpoints
         raw_datas = []
@@ -626,7 +644,6 @@ class HistoryMixin(EntityBase):
             raw_datas.append(await resp.json())
 
         self.historical_data = []
-        self.historical_data_per_data_point = {data_point : [] for data_point in data_points}
 
         raw_datas = [raw_data["body"] for raw_data in raw_datas]
 
@@ -637,8 +654,7 @@ class HistoryMixin(EntityBase):
 
 
         interval_sec = int(data["step_time"])
-        interval_min = interval_sec // 60
-        self.start_time = int(data["beg_time"])
+
 
 
         if len(raw_datas) > 1:
@@ -658,10 +674,14 @@ class HistoryMixin(EntityBase):
                     if beg_times[b] != len(rg["value"]):
                         raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, value size mismatch mismatch")
 
-
+        self.sum_energy_elec = 0
+        self.end_time = end_time
+        self.start_time = int(data["beg_time"])
 
         for i_step, step_0 in enumerate(raw_datas[0]):
             start_time = int(step_0["beg_time"])
+            interval_sec = int(step_0["step_time"])
+            interval_min = interval_sec // 60
             for i_value in range(len(step_0["value"])):
                 end_time = start_time + interval_sec
                 tot_val = 0
@@ -670,7 +690,7 @@ class HistoryMixin(EntityBase):
                     val = int(raw_data[i_step]["value"][i_value][0])
                     tot_val += val
                     vals.append(val)
-
+                    self.sum_energy_elec += val
                 self.historical_data.append(
                     {
                         "duration": interval_min,
@@ -758,7 +778,7 @@ class Camera(
         await self.async_update_camera_urls()
 
 
-class Switch(FirmwareMixin, HistoryMixin, EnergyMixin, PowerMixin, SwitchMixin, Module):
+class Switch(FirmwareMixin, EnergyHistoryMixin, PowerMixin, SwitchMixin, Module):
     """Class to represent a Netatmo switch."""
 
     ...

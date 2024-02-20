@@ -1,6 +1,7 @@
 """Common constants."""
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any
 
 ERRORS: dict[int, str] = {
@@ -101,3 +102,36 @@ ACCESSORY_WIND_ANGLE_TYPE = "wind_angle"
 ACCESSORY_WIND_TIME_TYPE = "wind_timeutc"
 ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
 ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
+
+SCHEDULE_TYPE_THERM = "therm"
+SCHEDULE_TYPE_EVENT = "event"
+SCHEDULE_TYPE_ELECTRICITY = "electricity"
+SCHEDULE_TYPE_COOLING = "cooling"
+
+
+class MeasureType(Enum):
+    """Measure type."""
+
+    BOILERON = "boileron"
+    BOILEROFF = "boileroff"
+    SUM_BOILER_ON = "sum_boiler_on"
+    SUM_BOILER_OFF = "sum_boiler_off"
+    SUM_ENERGY_ELEC = "sum_energy_elec"
+    SUM_ENERGY_ELEC_BASIC = "sum_energy_elec$0"
+    SUM_ENERGY_ELEC_PEAK = "sum_energy_elec$1"
+    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_elec$2"
+    SUM_ENERGY_PRICE = "sum_energy_price"
+    SUM_ENERGY_PRICE_BASIC = "sum_energy_price$0"
+    SUM_ENERGY_PRICE_PEAK = "sum_energy_price$1"
+    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_price$2"
+
+
+class MeasureInterval(Enum):
+    """Measure interval."""
+
+    HALF_HOUR = "30min"
+    HOUR = "1hour"
+    THREE_HOURS = "3hours"
+    DAY = "1day"
+    WEEK = "1week"
+    MONTH = "1month"

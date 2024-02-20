@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import Enum
 import logging
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
 
-from pyatmo.const import GETMEASURE_ENDPOINT, RawData
-from pyatmo.exceptions import ApiError
+from pyatmo.const import GETMEASURE_ENDPOINT, RawData, MeasureInterval
+from pyatmo.exceptions import ApiError, InvalidHistoryFromAPI
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
 
@@ -583,34 +582,6 @@ class MonitoringMixin(EntityBase):
         return await self.async_set_monitoring_state("off")
 
 
-class MeasureInterval(Enum):
-    """Measure interval."""
-
-    HALF_HOUR = "30min"
-    HOUR = "1hour"
-    THREE_HOURS = "3hours"
-    DAY = "1day"
-    WEEK = "1week"
-    MONTH = "1month"
-
-
-class MeasureType(Enum):
-    """Measure type."""
-
-    BOILERON = "boileron"
-    BOILEROFF = "boileroff"
-    SUM_BOILER_ON = "sum_boiler_on"
-    SUM_BOILER_OFF = "sum_boiler_off"
-    SUM_ENERGY_ELEC = "sum_energy_elec"
-    SUM_ENERGY_ELEC_BASIC = "sum_energy_elec$0"
-    SUM_ENERGY_ELEC_PEAK = "sum_energy_elec$1"
-    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_elec$2"
-    SUM_ENERGY_PRICE = "sum_energy_price"
-    SUM_ENERGY_PRICE_BASIC = "sum_energy_price$0"
-    SUM_ENERGY_PRICE_PEAK = "sum_energy_price$1"
-    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_price$2"
-
-
 class HistoryMixin(EntityBase):
     """Mixin for history data."""
 
@@ -634,41 +605,86 @@ class HistoryMixin(EntityBase):
         if start_time is None:
             start_time = end_time - days * 24 * 60 * 60
 
-        data_point = MeasureType.SUM_ENERGY_ELEC_BASIC.value
-        params = {
-            "device_id": self.bridge,
-            "module_id": self.entity_id,
-            "scale": interval.value,
-            "type": data_point,
-            "date_begin": start_time,
-            "date_end": end_time,
-        }
+        data_points = self.home.energy_endpoints
+        raw_datas = []
 
-        resp = await self.home.auth.async_post_api_request(
-            endpoint=GETMEASURE_ENDPOINT,
-            params=params,
-        )
-        raw_data = await resp.json()
+        for data_point in data_points:
 
-        data = raw_data["body"][0]
-        interval_sec = int(data["step_time"])
-        interval_min = interval_sec // 60
+            params = {
+                "device_id": self.bridge,
+                "module_id": self.entity_id,
+                "scale": interval.value,
+                "type": data_point,
+                "date_begin": start_time,
+                "date_end": end_time,
+            }
+
+            resp = await self.home.auth.async_post_api_request(
+                endpoint=GETMEASURE_ENDPOINT,
+                params=params,
+            )
+            raw_datas.append(await resp.json())
 
         self.historical_data = []
-        self.start_time = int(data["beg_time"])
-        start_time = self.start_time
-        for value in data["value"]:
-            end_time = start_time + interval_sec
-            self.historical_data.append(
-                {
-                    "duration": interval_min,
-                    "startTime": f"{datetime.fromtimestamp(start_time + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                    "endTime": f"{datetime.fromtimestamp(end_time, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                    "Wh": value[0],
-                },
-            )
+        self.historical_data_per_data_point = {data_point : [] for data_point in data_points}
 
-            start_time = end_time
+        raw_datas = [raw_data["body"] for raw_data in raw_datas]
+
+        data = raw_datas[0][0]
+
+        if len(data) == 0:
+            raise InvalidHistoryFromAPI(f"No energy historical data from {data_points[0]}")
+
+
+        interval_sec = int(data["step_time"])
+        interval_min = interval_sec // 60
+        self.start_time = int(data["beg_time"])
+
+
+        if len(raw_datas) > 1:
+            #check that all data are well aligned and compatible
+            beg_times = {}
+
+            for rg in raw_datas[0]:
+                beg_times[(int(rg["beg_time"]))] = len(rg["value"])
+
+            for raw_data in raw_datas:
+                for rg in raw_data:
+                    if int(rg["step_time"]) != interval_sec:
+                        raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, step_time mismatch")
+                    b = int(rg["beg_time"])
+                    if b not in beg_times:
+                        raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, beg_time mismatch")
+                    if beg_times[b] != len(rg["value"]):
+                        raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, value size mismatch mismatch")
+
+
+
+        for i_step, step_0 in enumerate(raw_datas[0]):
+            start_time = int(step_0["beg_time"])
+            for i_value in range(len(step_0["value"])):
+                end_time = start_time + interval_sec
+                tot_val = 0
+                vals = []
+                for raw_data in raw_datas:
+                    val = int(raw_data[i_step]["value"][i_value][0])
+                    tot_val += val
+                    vals.append(val)
+
+                self.historical_data.append(
+                    {
+                        "duration": interval_min,
+                        "startTime": f"{datetime.fromtimestamp(start_time + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "endTime": f"{datetime.fromtimestamp(end_time, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "Wh": tot_val,
+                        "allWh" : vals,
+                        "startTimeUnix": start_time,
+                        "endTimeUnix": end_time
+
+                    },
+                )
+
+                start_time = end_time
 
 
 class Module(NetatmoBase):

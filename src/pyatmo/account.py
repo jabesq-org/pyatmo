@@ -15,11 +15,11 @@ from pyatmo.const import (
     GETSTATIONDATA_ENDPOINT,
     HOME,
     SETSTATE_ENDPOINT,
-    RawData,
+    RawData, MeasureInterval,
 )
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
-from pyatmo.modules.module import MeasureInterval, Module
+from pyatmo.modules.module import Module
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth

@@ -16,14 +16,14 @@ from pyatmo.const import (
     SETTHERMMODE_ENDPOINT,
     SWITCHHOMESCHEDULE_ENDPOINT,
     SYNCHOMESCHEDULE_ENDPOINT,
-    RawData,
+    RawData, SCHEDULE_TYPE_THERM, SCHEDULE_TYPE_ELECTRICITY, MeasureType,
 )
 from pyatmo.event import Event
 from pyatmo.exceptions import InvalidSchedule, InvalidState, NoSchedule
 from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
-from pyatmo.schedule import Schedule
+from pyatmo.schedule import Schedule, schedule_factory, ThermSchedule
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -39,9 +39,11 @@ class Home:
     name: str
     rooms: dict[str, Room]
     modules: dict[str, Module]
-    schedules: dict[str, Schedule]
+    schedules: dict[str, ThermSchedule] #for compatibility should diseappear
+    all_schedules: dict[dict[str, str, Schedule]]
     persons: dict[str, Person]
     events: dict[str, Event]
+    energy_endpoints: list[str]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: RawData) -> None:
         """Initialize a Netatmo home instance."""
@@ -61,14 +63,37 @@ class Home:
             )
             for room in raw_data.get("rooms", [])
         }
-        self.schedules = {
-            s["id"]: Schedule(home=self, raw_data=s)
-            for s in raw_data.get(SCHEDULES, [])
-        }
+        self._handle_schedules(raw_data.get(SCHEDULES, []))
         self.persons = {
             s["id"]: Person(home=self, raw_data=s) for s in raw_data.get("persons", [])
         }
         self.events = {}
+
+    def _handle_schedules(self, raw_data):
+
+        schedules = {}
+
+        for s in raw_data:
+            #strange but Energy plan are stored in schedules, we should handle this one differently
+            sched, type = schedule_factory(home=self, raw_data=s)
+            if type not in schedules:
+                schedules[type] = {}
+            schedules[type][s["id"]] = sched
+
+        self.schedules = schedules.get(SCHEDULE_TYPE_THERM, {})
+        self.all_schedules = schedules
+
+        nrj_schedule = next(iter(schedules.get(SCHEDULE_TYPE_ELECTRICITY, {}).values()), None)
+
+        type_tariff = None
+        if nrj_schedule is not None:
+            type_tariff = nrj_schedule.tariff_option
+
+        self.energy_endpoints = {"basic": [MeasureType.SUM_ENERGY_ELEC_BASIC.value],
+                                 "peak_and_off_peak": [MeasureType.SUM_ENERGY_ELEC_PEAK.value, MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value]
+                                 }.get(type_tariff, [MeasureType.SUM_ENERGY_ELEC.value])
+
+
 
     def get_module(self, module: dict) -> Module:
         """Return module."""
@@ -119,10 +144,7 @@ class Home:
         for room in self.rooms.keys() - {m["id"] for m in raw_rooms}:
             self.rooms.pop(room)
 
-        self.schedules = {
-            s["id"]: Schedule(home=self, raw_data=s)
-            for s in raw_data.get(SCHEDULES, [])
-        }
+        self._handle_schedules(raw_data.get(SCHEDULES, []))
 
     async def update(self, raw_data: RawData) -> None:
         """Update home with the latest data."""
@@ -156,18 +178,28 @@ class Home:
                     ],
                 )
 
-    def get_selected_schedule(self) -> Schedule | None:
+    def get_selected_schedule(self, type :str = None) -> Schedule | None:
         """Return selected schedule for given home."""
+        if type is None:
+            type = SCHEDULE_TYPE_THERM
+
+        schedules = self.all_schedules.get(type, {})
 
         return next(
-            (schedule for schedule in self.schedules.values() if schedule.selected),
+            (schedule for schedule in schedules.values() if schedule.selected),
             None,
         )
 
+    def get_selected_temperature_schedule(self) -> ThermSchedule | None:
+        return self.get_selected_schedule(type=SCHEDULE_TYPE_THERM)
+
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""
+        for schedules in self.all_schedules.values():
+            if schedule_id in schedules:
+                return True
 
-        return schedule_id in self.schedules
+        return False
 
     def has_otm(self) -> bool:
         """Check if any room has an OTM device."""
@@ -177,14 +209,14 @@ class Home:
     def get_hg_temp(self) -> float | None:
         """Return frost guard temperature value for given home."""
 
-        if (schedule := self.get_selected_schedule()) is None:
+        if (schedule := self.get_selected_temperature_schedule()) is None:
             return None
         return schedule.hg_temp
 
     def get_away_temp(self) -> float | None:
         """Return configured away temperature value for given home."""
 
-        if (schedule := self.get_selected_schedule()) is None:
+        if (schedule := self.get_selected_temperature_schedule()) is None:
             return None
         return schedule.away_temp
 
@@ -276,7 +308,7 @@ class Home:
     ) -> None:
         """Set the scheduled room temperature for the given schedule ID."""
 
-        selected_schedule = self.get_selected_schedule()
+        selected_schedule = self.get_selected_temperature_schedule()
 
         if selected_schedule is None:
             raise NoSchedule("Could not determine selected schedule.")

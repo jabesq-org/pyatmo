@@ -160,15 +160,21 @@ async def test_historical_data_retrieval(async_account):
     await async_account.async_update_measures(home_id=home_id, module_id=module_id)
     assert module.historical_data[0] == {
         "Wh": 197,
+        "allWh": [197],
         "duration": 60,
         "startTime": "2022-02-05T08:29:50Z",
         "endTime": "2022-02-05T09:29:49Z",
+        "endTimeUnix": 1644053389,
+        "startTimeUnix": 1644049789
     }
     assert module.historical_data[-1] == {
         "Wh": 259,
+        'allWh': [259],
         "duration": 60,
         "startTime": "2022-02-12T07:29:50Z",
+        "startTimeUnix": 1644650989,
         "endTime": "2022-02-12T08:29:49Z",
+        "endTimeUnix": 1644654589,
     }
     assert len(module.historical_data) == 168
 

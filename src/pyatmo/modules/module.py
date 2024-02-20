@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 import logging
+from operator import itemgetter
+from time import time
 from typing import TYPE_CHECKING, Any, LiteralString
 
 from aiohttp import ClientConnectorError
@@ -12,14 +14,17 @@ from aiohttp import ClientConnectorError
 from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
-from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
+from pyatmo.modules.device_types import (
+    DEVICE_CATEGORY_MAP,
+    ApplianceType,
+    DeviceCategory,
+    DeviceType,
+)
 
 if TYPE_CHECKING:
     from pyatmo.event import Event
     from pyatmo.home import Home
 
-from operator import itemgetter
-from time import time
 
 LOG = logging.getLogger(__name__)
 
@@ -46,6 +51,7 @@ ATTRIBUTE_FILTER = {
     "features",
     "history_features",
     "history_features_values",
+    "appliance_type",
 }
 
 
@@ -298,11 +304,17 @@ class DimmableMixin(EntityBase):
 class ApplianceTypeMixin(EntityBase):
     """Mixin for appliance type data."""
 
+    device_category: DeviceCategory | None
+    appliance_type: ApplianceType | None
+
     def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize appliance type mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.appliance_type: str | None = None
+        self.appliance_type: ApplianceType | None = module.get(
+            "appliance_type",
+            ApplianceType.unknown,
+        )
 
 
 class PowerMixin(EntityBase):
@@ -1142,7 +1154,14 @@ class Camera(
         await self.async_update_camera_urls()
 
 
-class Switch(FirmwareMixin, EnergyHistoryMixin, PowerMixin, SwitchMixin, Module):
+class Switch(
+    FirmwareMixin,
+    EnergyHistoryMixin,
+    PowerMixin,
+    SwitchMixin,
+    ApplianceTypeMixin,
+    Module,
+):
     """Class to represent a Netatmo switch."""
 
 

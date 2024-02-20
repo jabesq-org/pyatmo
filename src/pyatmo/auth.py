@@ -76,11 +76,7 @@ class AbstractAsyncAuth(ABC):
             if resp.headers.get("content-type") == "image/jpeg":
                 return resp_content
 
-        msg = (
-            f"{resp.status} - "
-            f"invalid content-type in response"
-            f"when accessing '{url}'"
-        )
+        msg = f"{resp.status} - invalid content-type in response when accessing '{url}'"
         raise ApiError(
             msg,
         )
@@ -176,6 +172,7 @@ class AbstractAsyncAuth(ABC):
                 raise ApiErrorThrottling(
                     message,
                 )
+
             raise ApiError(
                 message,
             )

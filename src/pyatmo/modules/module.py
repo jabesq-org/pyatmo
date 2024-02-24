@@ -585,27 +585,7 @@ class EnergyHistoryMixin(EntityBase):
         self.interval: MeasureInterval | None = None
         self.sum_energy_elec: int | None = None
 
-    async def async_update_current_day_energy_measures(self) -> None:
-        end = datetime.now()
-        end_time = int(end.timestamp())
-
-        #go at the begining of the current day
-        start_time = datetime(end.year, end.month, end.day) + timedelta(seconds=1)
-        start_time = int(start_time.timestamp())
-
-        if self.end_time is not None:
-            prev_end = datetime.fromtimestamp(self.end_time)
-            if prev_end.day != end.day:
-                #we are in a "change of day" ask as a measure: reset the energy sum and that's all
-                self.end_time = end_time
-                self.start_time = start_time
-                self.historical_data = []
-                self.sum_energy_elec = 0
-                return
-
-        await self.async_update_measures(start_time=start_time, end_time=end_time)
-
-
+    
     async def async_update_measures(
         self,
         start_time: int | None = None,

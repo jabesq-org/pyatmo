@@ -585,6 +585,11 @@ class EnergyHistoryMixin(EntityBase):
         self.interval: MeasureInterval | None = None
         self.sum_energy_elec: int | None = None
 
+    def reset_measures(self):
+        self.historical_data = []
+        self.sum_energy_elec = 0
+        
+
     
     async def async_update_measures(
         self,

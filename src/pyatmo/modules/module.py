@@ -586,6 +586,8 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec: int | None = None
 
     def reset_measures(self):
+        self.start_time = None
+        self.end_time = None
         self.historical_data = []
         self.sum_energy_elec = 0
         

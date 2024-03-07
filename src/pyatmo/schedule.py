@@ -24,6 +24,7 @@ class Schedule(NetatmoBase):
     default: bool
     type: str
     timetable: list[TimetableEntry]
+    zones: list[Zone]
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize a Netatmo schedule instance."""
@@ -39,9 +40,20 @@ class Schedule(NetatmoBase):
 
 
 
+@dataclass
+class ScheduleWithRealZones(Schedule):
+    """Class to represent a Netatmo schedule."""
+
+    zones: list[Zone]
+
+    def __init__(self, home: Home, raw_data: RawData) -> None:
+        """Initialize a Netatmo schedule instance."""
+        super().__init__(home, raw_data)
+        self.zones = [Zone(home, r) for r in raw_data.get("zones", [])]
+
 
 @dataclass
-class ThermSchedule(Schedule):
+class ThermSchedule(ScheduleWithRealZones):
     """Class to represent a Netatmo Temperature schedule."""
 
     away_temp: float | None
@@ -63,7 +75,6 @@ class CoolingSchedule(ThermSchedule):
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(home, raw_data)
-        self.hg_temp = raw_data.get("hg_temp")
         self.cooling_away_temp = self.away_temp = raw_data.get("cooling_away_temp", self.away_temp)
 
 @dataclass
@@ -74,6 +85,7 @@ class ElectricitySchedule(Schedule):
     tariff_option: str
     power_threshold: int | 6
     contract_power_unit: str #kVA or KW
+    zones: list[ZoneElectricity]
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(home, raw_data)
@@ -81,6 +93,7 @@ class ElectricitySchedule(Schedule):
         self.tariff_option = raw_data.get("tariff_option", None)
         self.power_threshold = raw_data.get("power_threshold", 6)
         self.contract_power_unit = raw_data.get("power_threshold", "kVA")
+        self.zones = [ZoneElectricity(home, r) for r in raw_data.get("zones", [])]
 
 
 
@@ -156,6 +169,7 @@ class Zone(NetatmoBase):
     rooms: list[Room]
     modules: list[ModuleSchedule]
 
+
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize a Netatmo schedule's zone instance."""
         super().__init__(raw_data)
@@ -170,6 +184,20 @@ class Zone(NetatmoBase):
         self.rooms = [room_factory(home, r) for r in raw_data.get("rooms", [])]
         self.modules = [ModuleSchedule(home, m) for m in raw_data.get("modules", [])]
 
+
+@dataclass
+class ZoneElectricity(NetatmoBase):
+    """Class to represent a Netatmo schedule's zone."""
+
+    price: float
+    price_type: str
+
+    def __init__(self, home: Home, raw_data: RawData) -> None:
+        """Initialize a Netatmo schedule's zone instance."""
+        super().__init__(raw_data)
+        self.home = home
+        self.price = raw_data.get("price", 0.0)
+        self.price_type = raw_data.get("price_type", "off_peak")
 
 
 def schedule_factory(home: Home, raw_data: RawData) -> (Schedule, str):

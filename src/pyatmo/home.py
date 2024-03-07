@@ -16,7 +16,7 @@ from pyatmo.const import (
     SETTHERMMODE_ENDPOINT,
     SWITCHHOMESCHEDULE_ENDPOINT,
     SYNCHOMESCHEDULE_ENDPOINT,
-    RawData, SCHEDULE_TYPE_THERM, SCHEDULE_TYPE_ELECTRICITY, MeasureType,
+    RawData, SCHEDULE_TYPE_THERM, SCHEDULE_TYPE_ELECTRICITY, MeasureType, ENERGY_ELEC_PEAK_IDX, ENERGY_ELEC_OFF_IDX,
 )
 from pyatmo.event import Event
 from pyatmo.exceptions import InvalidSchedule, InvalidState, NoSchedule
@@ -44,6 +44,7 @@ class Home:
     persons: dict[str, Person]
     events: dict[str, Event]
     energy_endpoints: list[str]
+    energy_schedule: list[int]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: RawData) -> None:
         """Initialize a Netatmo home instance."""
@@ -85,13 +86,47 @@ class Home:
 
         nrj_schedule = next(iter(schedules.get(SCHEDULE_TYPE_ELECTRICITY, {}).values()), None)
 
-        type_tariff = None
+        self.energy_schedule_vals = []
+        self.energy_endpoints =  [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
         if nrj_schedule is not None:
             type_tariff = nrj_schedule.tariff_option
+            zones = nrj_schedule.zones
 
-        self.energy_endpoints = {"basic": [MeasureType.SUM_ENERGY_ELEC_BASIC.value],
-                                 "peak_and_off_peak": [MeasureType.SUM_ENERGY_ELEC_PEAK.value, MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value]
-                                 }.get(type_tariff, [MeasureType.SUM_ENERGY_ELEC.value])
+            if type_tariff == "peak_and_off_peak" and len(zones) >= 2:
+
+
+
+                self.energy_endpoints = [None, None]
+
+                self.energy_endpoints[ENERGY_ELEC_PEAK_IDX] = MeasureType.SUM_ENERGY_ELEC_PEAK.value
+                self.energy_endpoints[ENERGY_ELEC_OFF_IDX] = MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value
+
+                if zones[0].price_type == "peak":
+                    peak_id = zones[0].entity_id
+                    off_peak_id = zones[1].entity_id
+
+                else:
+                    peak_id = zones[1].entity_id
+                    off_peak_id = zones[0].entity_id
+
+                timetable = nrj_schedule.timetable
+
+                #timetable are daily for electricity type, and sorted from begining to end
+                for t in timetable:
+
+                    time = t.m_offset*60 #m_offset is in minute from the begininng of the day
+                    if len(self.energy_schedule_vals) == 0:
+                        time = 0
+
+                    pos_to_add = ENERGY_ELEC_OFF_IDX
+                    if t.zone_id == peak_id:
+                        pos_to_add = ENERGY_ELEC_PEAK_IDX
+
+                    self.energy_schedule_vals.append((time,pos_to_add))
+
+
+            else:
+                self.energy_endpoints = [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
 
 
 

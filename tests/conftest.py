@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pyatmo
 import pytest
 
-from .common import fake_post_request
+from .common import fake_post_request, fake_post_request_multi
 
 
 @contextmanager
@@ -41,5 +41,30 @@ async def async_account(async_auth):
 async def async_home(async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    yield async_account.homes[home_id]
+
+
+
+@pytest.fixture(scope="function")
+async def async_account_multi(async_auth):
+    """AsyncAccount fixture."""
+    account = pyatmo.AsyncAccount(async_auth)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        fake_post_request_multi,
+    ), patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+        fake_post_request_multi,
+    ):
+        await account.async_update_topology()
+        yield account
+
+
+@pytest.fixture(scope="function")
+async def async_home_multi(async_account_multi):
+    """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
+    home_id = "aaaaaaaaaaabbbbbbbbbbccc"
     await async_account.async_update_status(home_id)
     yield async_account.homes[home_id]

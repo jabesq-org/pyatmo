@@ -1,13 +1,15 @@
 """Module to represent a Netatmo module."""
 from __future__ import annotations
 
+import copy
 from datetime import datetime, timezone, timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
 
-from pyatmo.const import GETMEASURE_ENDPOINT, RawData, MeasureInterval
+from pyatmo.const import GETMEASURE_ENDPOINT, RawData, MeasureInterval, ENERGY_ELEC_PEAK_IDX, \
+    MEASURE_INTERVAL_TO_SECONDS
 from pyatmo.exceptions import ApiError, InvalidHistoryFromAPI
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -15,6 +17,10 @@ from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, Dev
 if TYPE_CHECKING:
     from pyatmo.event import Event
     from pyatmo.home import Home
+
+
+import bisect
+from operator import itemgetter
 
 LOG = logging.getLogger(__name__)
 
@@ -584,6 +590,8 @@ class EnergyHistoryMixin(EntityBase):
         self.end_time: int | None = None
         self.interval: MeasureInterval | None = None
         self.sum_energy_elec: int | None = None
+        self.sum_energy_elec_peak: int | None = None
+        self.sum_energy_elec_off_peak: int | None = None
 
     def reset_measures(self):
         self.start_time = None
@@ -592,13 +600,13 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         
 
-    
+
     async def async_update_measures(
         self,
         start_time: int | None = None,
         end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
-        days: int = 7
+        days: int = 7,
     ) -> None:
         """Update historical data."""
 
@@ -609,6 +617,16 @@ class EnergyHistoryMixin(EntityBase):
             end = datetime.fromtimestamp(end_time)
             start_time = end - timedelta(days=days)
             start_time = int(start_time.timestamp())
+
+
+        #the legrand/netatmo handling of start and endtime is very peculiar
+        #for 30mn/1h/3h intervals : in fact the starts is asked_start + intervals/2 ! yes so shift of 15mn, 30mn and 1h30
+        #for 1day : start is ALWAYS 12am (half day) of the first day of the range
+        #for 1week : it will be half week ALWAYS, ie on a thursday at 12am (half day)
+        if interval in {MeasureInterval.HALF_HOUR, MeasureInterval.HOUR, MeasureInterval.THREE_HOURS}:
+            start_time -= MEASURE_INTERVAL_TO_SECONDS.get(interval, 0)//2
+
+
 
         data_points = self.home.energy_endpoints
         raw_datas = []
@@ -628,70 +646,148 @@ class EnergyHistoryMixin(EntityBase):
                 endpoint=GETMEASURE_ENDPOINT,
                 params=params,
             )
-            raw_datas.append(await resp.json())
+
+            rw_dt = await resp.json()
+            rw_dt = rw_dt.get("body")
+
+            if rw_dt is None:
+                raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
+
+            if len(rw_dt) == 0:
+                raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
+
+            raw_datas.append(rw_dt)
+
+
+
+        hist_good_vals = []
+        energy_schedule_vals = []
+
+        peak_off_peak_mode = False
+        if len(raw_datas) > 1 and len(self.home.energy_schedule_vals) > 0:
+            peak_off_peak_mode = True
+
+        if peak_off_peak_mode:
+            max_interval_sec = 0
+            for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
+                for values_lot in values_lots:
+                    max_interval_sec = max(max_interval_sec, int(values_lot["step_time"]))
+
+
+            biggest_day_interval = (max_interval_sec)//(3600*24) + 1
+
+            energy_schedule_vals = copy.copy(self.home.energy_schedule_vals)
+
+            if energy_schedule_vals[-1][0] < max_interval_sec + (3600*24):
+                if energy_schedule_vals[0][1] == energy_schedule_vals[-1][1]:
+                    #it means the last one continue in the first one the next day
+                    energy_schedule_vals_next = energy_schedule_vals[1:]
+                else:
+                    energy_schedule_vals_next = copy.copy(self.home.energy_schedule_vals)
+
+                for d in range(0, biggest_day_interval):
+                    next_day_extension = [ (offset + ((d+1)*24*3600), mode) for offset,mode in energy_schedule_vals_next]
+                    energy_schedule_vals.extend(next_day_extension)
+
+
+        for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
+            for values_lot in values_lots:
+                start_lot_time = int(values_lot["beg_time"])
+                interval_sec = int(values_lot["step_time"])
+                cur_start_time = start_lot_time
+                for val_arr in values_lot.get("value",[]):
+                    val = val_arr[0]
+
+                    cur_end_time = cur_start_time + interval_sec
+                    next_start_time = cur_end_time
+
+                    if peak_off_peak_mode:
+
+                        d_srt = datetime.fromtimestamp(cur_start_time)
+                        #offset from start of the day
+                        day_origin = int(datetime(d_srt.year, d_srt.month, d_srt.day).timestamp())
+                        srt_beg = cur_start_time - day_origin
+
+                        #now check if srt_beg is in a schedule span of the right type
+                        idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg)
+
+
+                        if self.home.energy_schedule_vals[idx_start][1] == cur_energy_peak_or_off_peak_mode:
+                            #adapt the end time if needed as the next one is, by construction not cur_pos hence not compatible!
+                            idx_end = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg + interval_sec)
+                            if energy_schedule_vals[idx_end][1] != cur_energy_peak_or_off_peak_mode:
+                                cur_end_time = energy_schedule_vals[idx_end][0] + day_origin
+                        else:
+                            #we are NOT in a proper schedule time for this time span ... jump to the next one... meaning it is the next day!
+                            if idx_start == len(energy_schedule_vals) - 1:
+                                #should never append with the performed day extension above
+                                raise InvalidHistoryFromAPI(f"bad formed energy history data or schedule data")
+                            else:
+                                #by construction of the energy schedule the next one should be of opposite mode
+                                if energy_schedule_vals[idx_start + 1][1] != cur_energy_peak_or_off_peak_mode:
+                                    raise InvalidHistoryFromAPI(f"bad formed energy schedule data")
+
+                                start_time_to_get_closer = energy_schedule_vals[idx_start+1][0]
+                                diff_t = start_time_to_get_closer - srt_beg
+                                m_diff =  diff_t % interval_sec
+                                cur_start_time = day_origin + start_time_to_get_closer - m_diff
+                                idx_end = self._get_proper_in_schedule_index(energy_schedule_vals, start_time_to_get_closer - m_diff + interval_sec)
+
+                                if energy_schedule_vals[idx_end][1] != cur_energy_peak_or_off_peak_mode:
+                                    cur_end_time = energy_schedule_vals[idx_end][0] + day_origin
+                                else:
+                                    cur_end_time = cur_start_time + interval_sec
+
+                                next_start_time = cur_start_time + interval_sec
+
+
+                    hist_good_vals.append((cur_start_time, val, cur_end_time, cur_energy_peak_or_off_peak_mode))
+                    cur_start_time = next_start_time
+
+
+        hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
 
         self.historical_data = []
 
-        raw_datas = [raw_data["body"] for raw_data in raw_datas]
-
-        data = raw_datas[0][0]
-
-        if len(data) == 0:
-            raise InvalidHistoryFromAPI(f"No energy historical data from {data_points[0]}")
-
-
-        interval_sec = int(data["step_time"])
-
-
-
-        if len(raw_datas) > 1:
-            #check that all data are well aligned and compatible
-            beg_times = {}
-
-            for rg in raw_datas[0]:
-                beg_times[(int(rg["beg_time"]))] = len(rg["value"])
-
-            for raw_data in raw_datas:
-                for rg in raw_data:
-                    if int(rg["step_time"]) != interval_sec:
-                        raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, step_time mismatch")
-                    b = int(rg["beg_time"])
-                    if b not in beg_times:
-                        raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, beg_time mismatch")
-                    if beg_times[b] != len(rg["value"]):
-                        raise InvalidHistoryFromAPI(f"Invalid energy historical data from {data_points}, value size mismatch mismatch")
-
         self.sum_energy_elec = 0
+        self.sum_energy_elec_peak = 0
+        self.sum_energy_elec_off_peak = 0
         self.end_time = end_time
-        self.start_time = int(data["beg_time"])
 
-        for i_step, step_0 in enumerate(raw_datas[0]):
-            start_time = int(step_0["beg_time"])
-            interval_sec = int(step_0["step_time"])
-            interval_min = interval_sec // 60
-            for i_value in range(len(step_0["value"])):
-                end_time = start_time + interval_sec
-                tot_val = 0
-                vals = []
-                for raw_data in raw_datas:
-                    val = int(raw_data[i_step]["value"][i_value][0])
-                    tot_val += val
-                    vals.append(val)
-                    self.sum_energy_elec += val
-                self.historical_data.append(
-                    {
-                        "duration": interval_min,
-                        "startTime": f"{datetime.fromtimestamp(start_time + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                        "endTime": f"{datetime.fromtimestamp(end_time, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                        "Wh": tot_val,
-                        "allWh" : vals,
-                        "startTimeUnix": start_time,
-                        "endTimeUnix": end_time
+        for cur_start_time, val, cur_end_time, cur_energy_peak_or_off_peak_mode in hist_good_vals:
 
-                    },
-                )
+            self.sum_energy_elec += val
 
-                start_time = end_time
+            if peak_off_peak_mode:
+                mode = "off_peak"
+                if cur_energy_peak_or_off_peak_mode == ENERGY_ELEC_PEAK_IDX:
+                    self.sum_energy_elec_peak += val
+                    mode = "peak"
+                else:
+                    self.sum_energy_elec_off_peak += val
+            else:
+                mode = "standard"
+
+            self.historical_data.append(
+                {
+                    "duration": (cur_end_time - cur_start_time)//60,
+                    "startTime": f"{datetime.fromtimestamp(cur_start_time + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                    "endTime": f"{datetime.fromtimestamp(cur_end_time, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                    "Wh": val,
+                    "energyMode": mode,
+                    "startTimeUnix": cur_start_time,
+                    "endTimeUnix": cur_end_time
+
+                },
+            )
+
+    def _get_proper_in_schedule_index(self, energy_schedule_vals, srt_beg):
+        idx = bisect.bisect_left(energy_schedule_vals, srt_beg, key=itemgetter(0))
+        if idx >= len(energy_schedule_vals):
+            idx = len(energy_schedule_vals) - 1
+        elif energy_schedule_vals[idx][0] > srt_beg:  # if strict equal idx is the good one
+            idx = max(0, idx - 1)
+        return idx
 
 
 class Module(NetatmoBase):

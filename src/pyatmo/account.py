@@ -106,11 +106,13 @@ class AsyncAccount:
         start_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
+        end_time: int | None = None
     ) -> None:
         """Retrieve measures data from /getmeasure."""
 
         await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
             start_time=start_time,
+            end_time=end_time,
             interval=interval,
             days=days,
         )

@@ -1,6 +1,7 @@
 """Support for a Netatmo account."""
 from __future__ import annotations
 
+import copy
 import logging
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -30,11 +31,14 @@ LOG = logging.getLogger(__name__)
 class AsyncAccount:
     """Async class of a Netatmo account."""
 
-    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
+    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True, support_only_homes: list | None = None) -> None:
         """Initialize the Netatmo account."""
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
+        self.support_only_homes = support_only_homes
+        self.all_account_homes: dict[str, Home] = {}
+        self.additional_public_homes: dict[str, Home] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -48,14 +52,41 @@ class AsyncAccount:
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
 
+    def update_supported_homes(self, support_only_homes: list | None = None):
+
+        self.support_only_homes = support_only_homes
+        if support_only_homes is None or len(support_only_homes) == 0:
+            self.homes = copy.copy(self.all_account_homes)
+        else:
+            self.homes = {}
+            for h_id in support_only_homes:
+                h = self.all_account_homes.get(h_id)
+                if h is not None:
+                    self.homes[h_id] = h
+
+        if len(self.homes) == 0:
+            self.support_only_homes = None
+            self.homes = copy.copy(self.all_account_homes)
+
+        self.homes.update(self.additional_public_homes)
+
+
     def process_topology(self) -> None:
         """Process topology information from /homesdata."""
 
         for home in self.raw_data["homes"]:
-            if (home_id := home["id"]) in self.homes:
-                self.homes[home_id].update_topology(home)
+            if (home_id := home["id"]) in self.all_account_homes:
+                self.all_account_homes[home_id].update_topology(home)
             else:
-                self.homes[home_id] = Home(self.auth, raw_data=home)
+                self.all_account_homes[home_id] = Home(self.auth, raw_data=home)
+
+        self.update_supported_homes(self.support_only_homes)
+
+    def find_from_all_homes(self, home_id):
+        home = self.all_account_homes.get(home_id)
+        if home is None:
+            home = self.additional_public_homes.get(home_id)
+        return home
 
     async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""
@@ -76,7 +107,7 @@ class AsyncAccount:
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data(await resp.json(), HOME)
-        await self.homes[home_id].update(raw_data)
+        await self.all_account_homes[home_id].update(raw_data)
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
@@ -85,7 +116,7 @@ class AsyncAccount:
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data(await resp.json(), HOME)
-        await self.homes[home_id].update(raw_data)
+        await self.all_account_homes[home_id].update(raw_data)
 
     async def async_update_weather_stations(self) -> None:
         """Retrieve status data from /getstationsdata."""
@@ -110,7 +141,7 @@ class AsyncAccount:
     ) -> None:
         """Retrieve measures data from /getmeasure."""
 
-        await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
+        await getattr(self.find_from_all_homes(home_id).modules[module_id], "async_update_measures")(
             start_time=start_time,
             end_time=end_time,
             interval=interval,
@@ -199,7 +230,9 @@ class AsyncAccount:
                 "home_id",
                 self.find_home_of_device(device_data),
             ):
-                if home_id not in self.homes:
+                home = self.find_from_all_homes(home_id)
+
+                if home is None:
                     modules_data = []
                     for module_data in device_data.get("modules", []):
                         module_data["home_id"] = home_id
@@ -208,7 +241,7 @@ class AsyncAccount:
                         modules_data.append(normalize_weather_attributes(module_data))
                     modules_data.append(normalize_weather_attributes(device_data))
 
-                    self.homes[home_id] = Home(
+                    home = Home(
                         self.auth,
                         raw_data={
                             "id": home_id,
@@ -216,11 +249,15 @@ class AsyncAccount:
                             "modules": modules_data,
                         },
                     )
-                await self.homes[home_id].update(
+
+                    self.additional_public_homes[home_id] = home
+                await home.update(
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
                 LOG.debug("No home %s found.", home_id)
+
+            self.update_supported_homes(self.support_only_homes)
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id
@@ -255,14 +292,15 @@ class AsyncAccount:
 
     def find_home_of_device(self, device_data: dict[str, Any]) -> str | None:
         """Find home_id of device."""
-        return next(
-            (
-                home_id
-                for home_id, home in self.homes.items()
-                if device_data["_id"] in home.modules
-            ),
-            None,
-        )
+        for home_id, home in self.all_account_homes.items():
+            if device_data["_id"] in home.modules:
+                return home_id
+
+        for home_id, home in self.additional_public_homes.items():
+            if device_data["_id"] in home.modules:
+                return home_id
+
+        return None
 
 
 ATTRIBUTES_TO_FIX = {

@@ -626,7 +626,7 @@ class EnergyHistoryMixin(EntityBase):
         #in fact in the case for all intervals the reported dates are "the middle" of the ranges
         delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0)//2
 
-
+        num_calls = 0
 
         data_points = self.home.energy_endpoints
         raw_datas = []
@@ -658,7 +658,7 @@ class EnergyHistoryMixin(EntityBase):
             if len(rw_dt) == 0:
                 LOG.debug("Empty Energy Response %s %s", self.name,rw_dt_f)
                 raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
-
+            num_calls +=1
             raw_datas.append(rw_dt)
 
 
@@ -768,6 +768,7 @@ class EnergyHistoryMixin(EntityBase):
             )
 
         LOG.debug("=> Succes in energty update %s", self.name)
+        return num_calls
 
     def _get_proper_in_schedule_index(self, energy_schedule_vals, srt_beg):
         idx = bisect.bisect_left(energy_schedule_vals, srt_beg, key=itemgetter(0))

@@ -655,9 +655,6 @@ class EnergyHistoryMixin(EntityBase):
                 LOG.debug("Bad Energy Response for %s, %s", self.name,rw_dt_f)
                 raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
 
-            if len(rw_dt) == 0:
-                LOG.debug("Empty Energy Response %s %s", self.name,rw_dt_f)
-                raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
             num_calls +=1
             raw_datas.append(rw_dt)
 

@@ -619,12 +619,14 @@ class EnergyHistoryMixin(EntityBase):
             start_time = int(start_time.timestamp())
 
 
+        delta_range = 0
         #the legrand/netatmo handling of start and endtime is very peculiar
         #for 30mn/1h/3h intervals : in fact the starts is asked_start + intervals/2 ! yes so shift of 15mn, 30mn and 1h30
         #for 1day : start is ALWAYS 12am (half day) of the first day of the range
         #for 1week : it will be half week ALWAYS, ie on a thursday at 12am (half day)
-        if interval in {MeasureInterval.HALF_HOUR, MeasureInterval.HOUR, MeasureInterval.THREE_HOURS}:
-            start_time -= MEASURE_INTERVAL_TO_SECONDS.get(interval, 0)//2
+
+        #in fact in the case for all intervals the reported dates are "the middle" of the ranges
+        delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0)//2
 
 
 
@@ -641,6 +643,7 @@ class EnergyHistoryMixin(EntityBase):
                 "date_begin": start_time,
                 "date_end": end_time,
             }
+
 
             resp = await self.home.auth.async_post_api_request(
                 endpoint=GETMEASURE_ENDPOINT,
@@ -698,8 +701,6 @@ class EnergyHistoryMixin(EntityBase):
                 for val_arr in values_lot.get("value",[]):
                     val = val_arr[0]
 
-                    cur_end_time = cur_start_time + interval_sec
-                    next_start_time = cur_end_time
 
                     if peak_off_peak_mode:
 
@@ -711,13 +712,8 @@ class EnergyHistoryMixin(EntityBase):
                         #now check if srt_beg is in a schedule span of the right type
                         idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg)
 
+                        if self.home.energy_schedule_vals[idx_start][1] != cur_energy_peak_or_off_peak_mode:
 
-                        if self.home.energy_schedule_vals[idx_start][1] == cur_energy_peak_or_off_peak_mode:
-                            #adapt the end time if needed as the next one is, by construction not cur_pos hence not compatible!
-                            idx_end = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg + interval_sec)
-                            if energy_schedule_vals[idx_end][1] != cur_energy_peak_or_off_peak_mode:
-                                cur_end_time = energy_schedule_vals[idx_end][0] + day_origin
-                        else:
                             #we are NOT in a proper schedule time for this time span ... jump to the next one... meaning it is the next day!
                             if idx_start == len(energy_schedule_vals) - 1:
                                 #should never append with the performed day extension above
@@ -729,20 +725,10 @@ class EnergyHistoryMixin(EntityBase):
 
                                 start_time_to_get_closer = energy_schedule_vals[idx_start+1][0]
                                 diff_t = start_time_to_get_closer - srt_beg
-                                m_diff =  diff_t % interval_sec
-                                cur_start_time = day_origin + start_time_to_get_closer - m_diff
-                                idx_end = self._get_proper_in_schedule_index(energy_schedule_vals, start_time_to_get_closer - m_diff + interval_sec)
+                                cur_start_time = day_origin + srt_beg + (diff_t//interval_sec + 1)*interval_sec
 
-                                if energy_schedule_vals[idx_end][1] != cur_energy_peak_or_off_peak_mode:
-                                    cur_end_time = energy_schedule_vals[idx_end][0] + day_origin
-                                else:
-                                    cur_end_time = cur_start_time + interval_sec
-
-                                next_start_time = cur_start_time + interval_sec
-
-
-                    hist_good_vals.append((cur_start_time, val, cur_end_time, cur_energy_peak_or_off_peak_mode))
-                    cur_start_time = next_start_time
+                    hist_good_vals.append((cur_start_time, val, cur_energy_peak_or_off_peak_mode))
+                    cur_start_time = cur_start_time + interval_sec
 
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
@@ -754,7 +740,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak = 0
         self.end_time = end_time
 
-        for cur_start_time, val, cur_end_time, cur_energy_peak_or_off_peak_mode in hist_good_vals:
+        for cur_start_time, val, cur_energy_peak_or_off_peak_mode in hist_good_vals:
 
             self.sum_energy_elec += val
 
@@ -770,13 +756,13 @@ class EnergyHistoryMixin(EntityBase):
 
             self.historical_data.append(
                 {
-                    "duration": (cur_end_time - cur_start_time)//60,
-                    "startTime": f"{datetime.fromtimestamp(cur_start_time + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                    "endTime": f"{datetime.fromtimestamp(cur_end_time, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                    "duration": (2*delta_range)//60,
+                    "startTime": f"{datetime.fromtimestamp(cur_start_time - delta_range + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                    "endTime": f"{datetime.fromtimestamp(cur_start_time + delta_range, tz=timezone.utc).isoformat().split('+')[0]}Z",
                     "Wh": val,
                     "energyMode": mode,
-                    "startTimeUnix": cur_start_time,
-                    "endTimeUnix": cur_end_time
+                    "startTimeUnix": cur_start_time - delta_range,
+                    "endTimeUnix": cur_start_time + delta_range
 
                 },
             )

@@ -35,24 +35,9 @@ async def test_historical_data_retrieval(async_account):
     assert module.device_type == DeviceType.NLPC
 
     await async_account.async_update_measures(home_id=home_id, module_id=module_id)
-    assert module.historical_data[0] == {
-        "Wh": 197,
-        "duration": 60,
-        "startTime": "2022-02-05T08:29:50Z",
-        "endTime": "2022-02-05T09:29:49Z",
-        "endTimeUnix": 1644053389,
-        "startTimeUnix": 1644049789,
-        "energyMode": "standard"
-    }
-    assert module.historical_data[-1] == {
-        "Wh": 259,
-        "duration": 60,
-        "startTime": "2022-02-12T07:29:50Z",
-        "startTimeUnix": 1644650989,
-        "endTime": "2022-02-12T08:29:49Z",
-        "endTimeUnix": 1644654589,
-        "energyMode": "standard"
-    }
+    #changed teh reference here as start and stop data was not calculated in the spirit of the netatmo api where their time data is in the fact representing the "middle" of the range and not the begining
+    assert module.historical_data[0] == {'Wh': 197, 'duration': 60, 'endTime': '2022-02-05T08:59:49Z', 'endTimeUnix': 1644051589, 'energyMode': 'standard', 'startTime': '2022-02-05T07:59:50Z', 'startTimeUnix': 1644047989}
+    assert module.historical_data[-1] == {'Wh': 259, 'duration': 60, 'endTime': '2022-02-12T07:59:49Z', 'endTimeUnix': 1644652789, 'energyMode': 'standard', 'startTime': '2022-02-12T06:59:50Z', 'startTimeUnix': 1644649189}
     assert len(module.historical_data) == 168
 
 
@@ -68,17 +53,18 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     module = home.modules[module_id]
     assert module.device_type == DeviceType.NLC
 
-    strt = 1709421900 #1709421000+15*60
+    strt = 1709421000
+    end_time = 1709679599
     await async_account_multi.async_update_measures(home_id=home_id,
                                                     module_id=module_id,
                                                     interval=MeasureInterval.HALF_HOUR,
                                                     start_time=strt,
-                                                    end_time=1709679599
+                                                    end_time=end_time
                                                     )
 
 
-    assert module.historical_data[0] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-02T23:55:00Z', 'endTimeUnix': 1709423700, 'energyMode': 'peak', 'startTime': '2024-03-02T23:25:01Z', 'startTimeUnix': strt}
-    assert module.historical_data[-1] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-05T20:55:00Z', 'endTimeUnix': 1709672100, 'energyMode': 'peak', 'startTime': '2024-03-05T20:25:01Z', 'startTimeUnix': 1709670300}
+    assert module.historical_data[0] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-02T23:40:00Z', 'endTimeUnix': 1709422800, 'energyMode': 'peak', 'startTime': '2024-03-02T23:10:01Z', 'startTimeUnix': 1709421000}
+    assert module.historical_data[-1] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-05T23:10:00Z', 'endTimeUnix': 1709680200, 'energyMode': 'peak', 'startTime': '2024-03-05T22:40:01Z', 'startTimeUnix': 1709678400}
     assert len(module.historical_data) == 134
 
     assert module.sum_energy_elec == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak

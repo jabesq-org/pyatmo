@@ -17,7 +17,7 @@ from pyatmo.modules.module import (
     ShutterMixin,
     Switch,
     SwitchMixin,
-    WifiMixin,
+    WifiMixin, DimmableMixin,
 )
 
 LOG = logging.getLogger(__name__)
@@ -29,8 +29,8 @@ class NLG(FirmwareMixin, OffloadMixin, WifiMixin, Module):
     """Legrand gateway."""
 
 
-class NLT(FirmwareMixin, BatteryMixin, Module):
-    """Legrand global remote control."""
+class NLT(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
+    """Legrand global remote control...but also wireless switch, like NLD"""
 
 
 class NLP(Switch, OffloadMixin):
@@ -73,8 +73,8 @@ class NLIS(Switch):
     """Legrand double switch."""
 
 
-class NLD(Dimmer):
-    """Legrand Double On/Off dimmer remote."""
+class NLD(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
+    """Legrand Double On/Off dimmer remote. Wireless 2 button switch light"""
 
 
 class NLL(Switch, WifiMixin):

@@ -618,8 +618,6 @@ class EnergyHistoryMixin(EntityBase):
             start_time = end - timedelta(days=days)
             start_time = int(start_time.timestamp())
 
-
-        delta_range = 0
         #the legrand/netatmo handling of start and endtime is very peculiar
         #for 30mn/1h/3h intervals : in fact the starts is asked_start + intervals/2 ! yes so shift of 15mn, 30mn and 1h30
         #for 1day : start is ALWAYS 12am (half day) of the first day of the range
@@ -650,13 +648,15 @@ class EnergyHistoryMixin(EntityBase):
                 params=params,
             )
 
-            rw_dt = await resp.json()
-            rw_dt = rw_dt.get("body")
+            rw_dt_f = await resp.json()
+            rw_dt = rw_dt_f.get("body")
 
             if rw_dt is None:
+                LOG.debug("Bad Energy Response for %s, %s", self.name,rw_dt_f)
                 raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
 
             if len(rw_dt) == 0:
+                LOG.debug("Empty Energy Response %s %s", self.name,rw_dt_f)
                 raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
 
             raw_datas.append(rw_dt)
@@ -766,6 +766,8 @@ class EnergyHistoryMixin(EntityBase):
 
                 },
             )
+
+        LOG.debug("=> Succes in energty update %s", self.name)
 
     def _get_proper_in_schedule_index(self, energy_schedule_vals, srt_beg):
         idx = bisect.bisect_left(energy_schedule_vals, srt_beg, key=itemgetter(0))

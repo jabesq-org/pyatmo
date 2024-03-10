@@ -606,7 +606,7 @@ class EnergyHistoryMixin(EntityBase):
             msg,
                   self.name,
                   datetime.fromtimestamp(start_time),
-                  datetime.fromtimestamp(end_time)), start_time, end_time, body
+                  datetime.fromtimestamp(end_time), start_time, end_time, body)
 
     async def async_update_measures(
         self,
@@ -637,6 +637,8 @@ class EnergyHistoryMixin(EntityBase):
 
         data_points = self.home.energy_endpoints
         raw_datas = []
+
+        LOG.debug("INFO: doing async_update_measures for %", self.name)
 
         for data_point in data_points:
 
@@ -678,11 +680,19 @@ class EnergyHistoryMixin(EntityBase):
         if len(raw_datas) > 1 and len(self.home.energy_schedule_vals) > 0:
             peak_off_peak_mode = True
 
+        interval_sec = 2 * delta_range
+
         if peak_off_peak_mode:
-            max_interval_sec = 0
+            max_interval_sec = interval_sec
             for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
                 for values_lot in values_lots:
-                    max_interval_sec = max(max_interval_sec, int(values_lot["step_time"]))
+                    try:
+                        max_interval_sec = max(max_interval_sec, int(values_lot["step_time"]))
+                    except:
+                        self._log_energy_error(start_time, end_time,
+                                               msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}",
+                                               body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                        # maybe we continue with default step time? or do we have an error?
 
 
             biggest_day_interval = (max_interval_sec)//(3600*24) + 1
@@ -700,7 +710,7 @@ class EnergyHistoryMixin(EntityBase):
                     next_day_extension = [ (offset + ((d+1)*24*3600), mode) for offset,mode in energy_schedule_vals_next]
                     energy_schedule_vals.extend(next_day_extension)
 
-        interval_sec = 2*delta_range
+
 
         for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
             for values_lot in values_lots:

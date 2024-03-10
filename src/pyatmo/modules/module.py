@@ -10,7 +10,7 @@ from aiohttp import ClientConnectorError
 
 from pyatmo.const import GETMEASURE_ENDPOINT, RawData, MeasureInterval, ENERGY_ELEC_PEAK_IDX, \
     MEASURE_INTERVAL_TO_SECONDS
-from pyatmo.exceptions import ApiError, InvalidHistoryFromAPI
+from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
 
@@ -599,7 +599,14 @@ class EnergyHistoryMixin(EntityBase):
         self.historical_data = []
         self.sum_energy_elec = 0
         
-
+    def _log_energy_error(self, start_time, end_time, msg=None, body=None):
+        if body is None:
+            body = "NO BODY"
+        LOG.debug("!!!!!!!!! ENERGY error %s %s %s %s",
+            msg,
+                  self.name,
+                  datetime.fromtimestamp(start_time),
+                  datetime.fromtimestamp(end_time)), start_time, end_time, body
 
     async def async_update_measures(
         self,
@@ -607,7 +614,7 @@ class EnergyHistoryMixin(EntityBase):
         end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
-    ) -> None:
+    ) -> int | None:
         """Update historical data."""
 
         if end_time is None:
@@ -652,8 +659,12 @@ class EnergyHistoryMixin(EntityBase):
             rw_dt = rw_dt_f.get("body")
 
             if rw_dt is None:
-                LOG.debug("Bad Energy Response for %s, %s", self.name,rw_dt_f)
-                raise InvalidHistoryFromAPI(f"No energy historical data from {data_point}")
+                self._log_energy_error(start_time, end_time, msg=f"direct from {data_point}", body=rw_dt_f)
+                raise ApiError(
+                    f"Energy badly formed resp: {rw_dt_f} - "
+                    f"module: {self.name} - "
+                    f"when accessing '{data_point}'"
+                )
 
             num_calls +=1
             raw_datas.append(rw_dt)
@@ -689,11 +700,28 @@ class EnergyHistoryMixin(EntityBase):
                     next_day_extension = [ (offset + ((d+1)*24*3600), mode) for offset,mode in energy_schedule_vals_next]
                     energy_schedule_vals.extend(next_day_extension)
 
+        interval_sec = 2*delta_range
 
         for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
             for values_lot in values_lots:
-                start_lot_time = int(values_lot["beg_time"])
-                interval_sec = int(values_lot["step_time"])
+                try:
+                    start_lot_time = int(values_lot["beg_time"])
+                except:
+                    self._log_energy_error(start_time, end_time,
+                                           msg=f"beg_time missing {data_points[cur_energy_peak_or_off_peak_mode]}",
+                                           body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                    raise ApiError(
+                        f"Energy badly formed resp beg_time missing: {raw_datas[cur_energy_peak_or_off_peak_mode]} - "
+                        f"module: {self.name} - "
+                        f"when accessing '{data_points[cur_energy_peak_or_off_peak_mode]}'"
+                    )
+
+                try:
+                    interval_sec = int(values_lot["step_time"])
+                except:
+                    self._log_energy_error(start_time, end_time, msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}", body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                    #maybe we contineu with default step time?
+
                 cur_start_time = start_lot_time
                 for val_arr in values_lot.get("value",[]):
                     val = val_arr[0]
@@ -714,11 +742,20 @@ class EnergyHistoryMixin(EntityBase):
                             #we are NOT in a proper schedule time for this time span ... jump to the next one... meaning it is the next day!
                             if idx_start == len(energy_schedule_vals) - 1:
                                 #should never append with the performed day extension above
-                                raise InvalidHistoryFromAPI(f"bad formed energy history data or schedule data")
+                                self._log_energy_error(start_time, end_time,
+                                                       msg=f"bad idx missing {data_points[cur_energy_peak_or_off_peak_mode]}",
+                                                       body=raw_datas[cur_energy_peak_or_off_peak_mode])
+
+                                return 0
                             else:
                                 #by construction of the energy schedule the next one should be of opposite mode
                                 if energy_schedule_vals[idx_start + 1][1] != cur_energy_peak_or_off_peak_mode:
-                                    raise InvalidHistoryFromAPI(f"bad formed energy schedule data")
+                                    self._log_energy_error(start_time, end_time,
+                                                           msg=f"bad schedule {data_points[cur_energy_peak_or_off_peak_mode]}",
+                                                           body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                                    return 0
+
+
 
                                 start_time_to_get_closer = energy_schedule_vals[idx_start+1][0]
                                 diff_t = start_time_to_get_closer - srt_beg
@@ -764,7 +801,7 @@ class EnergyHistoryMixin(EntityBase):
                 },
             )
 
-        LOG.debug("=> Succes in energty update %s", self.name)
+        LOG.debug("=> Success in energyy update %s", self.name)
         return num_calls
 
     def _get_proper_in_schedule_index(self, energy_schedule_vals, srt_beg):

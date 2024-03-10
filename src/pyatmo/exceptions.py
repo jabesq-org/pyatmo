@@ -41,9 +41,3 @@ class InvalidState(Exception):
     """Raised when an invalid state is encountered."""
 
     pass
-
-
-class InvalidHistoryFromAPI(Exception):
-    """Raised when an invalid state is encountered."""
-
-    pass

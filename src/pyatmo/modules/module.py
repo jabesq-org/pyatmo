@@ -638,7 +638,7 @@ class EnergyHistoryMixin(EntityBase):
         data_points = self.home.energy_endpoints
         raw_datas = []
 
-        LOG.debug("INFO: doing async_update_measures for %", self.name)
+        LOG.debug("INFO: doing async_update_measures for %s", self.name)
 
         for data_point in data_points:
 

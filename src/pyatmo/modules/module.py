@@ -625,6 +625,13 @@ class EnergyHistoryMixin(EntityBase):
             start_time = end - timedelta(days=days)
             start_time = int(start_time.timestamp())
 
+
+        prev_start_time = self.start_time
+        prev_end_time = self.end_time
+
+        self.start_time = start_time
+        self.end_time = end_time
+
         #the legrand/netatmo handling of start and endtime is very peculiar
         #for 30mn/1h/3h intervals : in fact the starts is asked_start + intervals/2 ! yes so shift of 15mn, 30mn and 1h30
         #for 1day : start is ALWAYS 12am (half day) of the first day of the range
@@ -779,11 +786,14 @@ class EnergyHistoryMixin(EntityBase):
 
         self.historical_data = []
 
+        prev_sum_energy_elec = self.sum_energy_elec
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
         self.end_time = end_time
 
+        computed_start = 0
+        computed_end = 0
         for cur_start_time, val, cur_energy_peak_or_off_peak_mode in hist_good_vals:
 
             self.sum_energy_elec += val
@@ -798,6 +808,11 @@ class EnergyHistoryMixin(EntityBase):
             else:
                 mode = "standard"
 
+            if computed_start == 0:
+                computed_start = cur_start_time - delta_range
+            computed_end = cur_start_time + delta_range
+
+
             self.historical_data.append(
                 {
                     "duration": (2*delta_range)//60,
@@ -811,7 +826,14 @@ class EnergyHistoryMixin(EntityBase):
                 },
             )
 
-        LOG.debug("=> Success in energyy update %s", self.name)
+        LOG.debug("=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f", self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec, prev_sum_energy_elec)
+        if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
+            LOG.debug(
+                ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f",
+                self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
+                datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
+                prev_sum_energy_elec)
+
         return num_calls
 
     def _get_proper_in_schedule_index(self, energy_schedule_vals, srt_beg):

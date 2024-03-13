@@ -100,7 +100,7 @@ class AsyncAccount:
 
         self.process_topology()
 
-    async def async_update_status(self, home_id: str | None) -> None:
+    async def async_update_status(self, home_id: str | None = None) -> int:
         """Retrieve status data from /homestatus."""
 
         if home_id is None:
@@ -108,7 +108,7 @@ class AsyncAccount:
             homes = self.homes
         else:
             homes = [home_id]
-
+        num_calls = 0
         for h_id in homes:
             resp = await self.auth.async_post_api_request(
                 endpoint=GETHOMESTATUS_ENDPOINT,
@@ -116,6 +116,9 @@ class AsyncAccount:
             )
             raw_data = extract_raw_data(await resp.json(), HOME)
             await self.all_account_homes[h_id].update(raw_data)
+            num_calls += 1
+
+        return num_calls
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""

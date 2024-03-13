@@ -740,6 +740,7 @@ class EnergyHistoryMixin(EntityBase):
                     interval_sec = int(values_lot["step_time"])
                 except:
                     self._log_energy_error(start_time, end_time, msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}", body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                    interval_sec = 2*delta_range
                     #maybe we contineu with default step time?
 
                 cur_start_time = start_lot_time
@@ -755,7 +756,7 @@ class EnergyHistoryMixin(EntityBase):
                         srt_beg = cur_start_time - day_origin
 
                         #now check if srt_beg is in a schedule span of the right type
-                        idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg)
+                        idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg - interval_sec//2)
 
                         if self.home.energy_schedule_vals[idx_start][1] != cur_energy_peak_or_off_peak_mode:
 
@@ -829,8 +830,10 @@ class EnergyHistoryMixin(EntityBase):
                 },
             )
 
-        LOG.debug("=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f", self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec, prev_sum_energy_elec)
-        if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
+        if prev_sum_energy_elec is None:
+            prev_sum_energy_elec = "NOTHING"
+        LOG.debug("=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%s", self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec, prev_sum_energy_elec)
+        if prev_sum_energy_elec is not None and prev_sum_energy_elec !=  "NOTHING" and prev_sum_energy_elec > self.sum_energy_elec:
             LOG.debug(
                 ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f prev_start: %s, prev_end %s",
                 self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),

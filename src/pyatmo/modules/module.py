@@ -648,7 +648,7 @@ class EnergyHistoryMixin(EntityBase):
         data_points = self.home.energy_endpoints
         raw_datas = []
 
-        LOG.debug("INFO: doing async_update_measures for %s", self.name)
+        #LOG.debug("INFO: doing async_update_measures for %s", self.name)
 
         for data_point in data_points:
 
@@ -830,15 +830,19 @@ class EnergyHistoryMixin(EntityBase):
                 },
             )
 
-        if prev_sum_energy_elec is None:
-            prev_sum_energy_elec = "NOTHING"
-        LOG.debug("=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%s", self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec, prev_sum_energy_elec)
-        if prev_sum_energy_elec is not None and prev_sum_energy_elec !=  "NOTHING" and prev_sum_energy_elec > self.sum_energy_elec:
+
+        if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
             LOG.debug(
                 ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f prev_start: %s, prev_end %s",
                 self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
                 datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
                 prev_sum_energy_elec, datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
+        else:
+            LOG.debug(
+                "=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%s",
+                self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
+                datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
+                prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
 
         return num_calls
 

@@ -598,6 +598,9 @@ class EnergyHistoryMixin(EntityBase):
         self.end_time = None
         self.historical_data = []
         self.sum_energy_elec = 0
+        self.sum_energy_elec_peak = 0
+        self.sum_energy_elec_off_peak = 0
+
         
     def _log_energy_error(self, start_time, end_time, msg=None, body=None):
         if body is None:
@@ -829,10 +832,10 @@ class EnergyHistoryMixin(EntityBase):
         LOG.debug("=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f", self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec, prev_sum_energy_elec)
         if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
             LOG.debug(
-                ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f",
+                ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f prev_start: %s, prev_end %s",
                 self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
                 datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
-                prev_sum_energy_elec)
+                prev_sum_energy_elec, datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
 
         return num_calls
 

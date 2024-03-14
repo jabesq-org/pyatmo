@@ -88,8 +88,8 @@ class AsyncAccount:
             home = self.additional_public_homes.get(home_id)
         return home
 
-    async def async_update_topology(self) -> None:
-        """Retrieve topology data from /homesdata."""
+    async def async_update_topology(self) -> int:
+        """Retrieve topology data from /homesdata. Returns the number of performed API calls"""
 
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
@@ -100,8 +100,10 @@ class AsyncAccount:
 
         self.process_topology()
 
+        return 1
+
     async def async_update_status(self, home_id: str | None = None) -> int:
-        """Retrieve status data from /homestatus."""
+        """Retrieve status data from /homestatus. Returns the number of performed API calls"""
 
         if home_id is None:
             self.update_supported_homes(self.support_only_homes)
@@ -120,8 +122,8 @@ class AsyncAccount:
 
         return num_calls
 
-    async def async_update_events(self, home_id: str) -> None:
-        """Retrieve events from /getevents."""
+    async def async_update_events(self, home_id: str) -> int:
+        """Retrieve events from /getevents. Returns the number of performed API calls"""
         resp = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
@@ -129,17 +131,22 @@ class AsyncAccount:
         raw_data = extract_raw_data(await resp.json(), HOME)
         await self.all_account_homes[home_id].update(raw_data)
 
-    async def async_update_weather_stations(self) -> None:
-        """Retrieve status data from /getstationsdata."""
+        return 1
+
+    async def async_update_weather_stations(self) -> int:
+        """Retrieve status data from /getstationsdata. Returns the number of performed API calls"""
         params = {"get_favorites": ("true" if self.favorite_stations else "false")}
         await self._async_update_data(
             GETSTATIONDATA_ENDPOINT,
             params=params,
         )
+        return 1
 
-    async def async_update_air_care(self) -> None:
-        """Retrieve status data from /gethomecoachsdata."""
+    async def async_update_air_care(self) -> int:
+        """Retrieve status data from /gethomecoachsdata. Returns the number of performed API calls"""
         await self._async_update_data(GETHOMECOACHDATA_ENDPOINT)
+
+        return 1
 
     async def async_update_measures(
         self,
@@ -149,15 +156,16 @@ class AsyncAccount:
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
         end_time: int | None = None
-    ) -> None:
-        """Retrieve measures data from /getmeasure."""
+    ) -> int:
+        """Retrieve measures data from /getmeasure. Returns the number of performed API calls"""
 
-        await getattr(self.find_from_all_homes(home_id).modules[module_id], "async_update_measures")(
+        num_calls = await getattr(self.find_from_all_homes(home_id).modules[module_id], "async_update_measures")(
             start_time=start_time,
             end_time=end_time,
             interval=interval,
             days=days,
         )
+        return num_calls
 
     def register_public_weather_area(
         self,
@@ -182,8 +190,8 @@ class AsyncAccount:
         )
         return area_id
 
-    async def async_update_public_weather(self, area_id: str) -> None:
-        """Retrieve status data from /getpublicdata."""
+    async def async_update_public_weather(self, area_id: str) -> int:
+        """Retrieve status data from /getpublicdata. Returns the number of performed API calls"""
         params = {
             "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
             "lon_ne": self.public_weather_areas[area_id].location.lon_ne,
@@ -200,6 +208,8 @@ class AsyncAccount:
             area_id=area_id,
         )
 
+        return 1
+
     async def _async_update_data(
         self,
         endpoint: str,
@@ -212,8 +222,8 @@ class AsyncAccount:
         raw_data = extract_raw_data(await resp.json(), tag)
         await self.update_devices(raw_data, area_id)
 
-    async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:
-        """Modify device state by passing JSON specific to the device."""
+    async def async_set_state(self, home_id: str, data: dict[str, Any]) -> int:
+        """Modify device state by passing JSON specific to the device. Returns the number of performed API calls"""
         LOG.debug("Setting state: %s", data)
 
         post_params = {
@@ -229,6 +239,7 @@ class AsyncAccount:
             params=post_params,
         )
         LOG.debug("Response: %s", resp)
+        return 1
 
     async def update_devices(
         self,

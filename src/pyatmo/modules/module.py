@@ -611,6 +611,9 @@ class EnergyHistoryMixin(EntityBase):
                   datetime.fromtimestamp(start_time),
                   datetime.fromtimestamp(end_time), start_time, end_time, body)
 
+    def update_measures_num_calls(self):
+        return 2
+
     async def async_update_measures(
         self,
         start_time: int | None = None,
@@ -699,10 +702,10 @@ class EnergyHistoryMixin(EntityBase):
                     try:
                         max_interval_sec = max(max_interval_sec, int(values_lot["step_time"]))
                     except:
-                        self._log_energy_error(start_time, end_time,
-                                               msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}",
-                                               body=raw_datas[cur_energy_peak_or_off_peak_mode])
-                        # maybe we continue with default step time? or do we have an error?
+                        if len(values_lot.get("value", [])) > 1:
+                            self._log_energy_error(start_time, end_time,
+                                                   msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}",
+                                                   body=raw_datas[cur_energy_peak_or_off_peak_mode])
 
 
             biggest_day_interval = (max_interval_sec)//(3600*24) + 1
@@ -739,9 +742,10 @@ class EnergyHistoryMixin(EntityBase):
                 try:
                     interval_sec = int(values_lot["step_time"])
                 except:
-                    self._log_energy_error(start_time, end_time, msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}", body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                    if len(values_lot.get("value", [])) > 1:
+                        self._log_energy_error(start_time, end_time, msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}", body=raw_datas[cur_energy_peak_or_off_peak_mode])
                     interval_sec = 2*delta_range
-                    #maybe we contineu with default step time?
+
 
                 cur_start_time = start_lot_time
                 for val_arr in values_lot.get("value",[]):

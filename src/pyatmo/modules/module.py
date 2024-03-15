@@ -757,14 +757,15 @@ class EnergyHistoryMixin(EntityBase):
                         #offset from start of the day
                         day_origin = int(datetime(d_srt.year, d_srt.month, d_srt.day).timestamp())
                         srt_beg = cur_start_time - day_origin
+                        srt_mid = srt_beg + interval_sec//2
 
                         #now check if srt_beg is in a schedule span of the right type
-                        idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg)
+                        idx_limit = self._get_proper_in_schedule_index(energy_schedule_vals, srt_mid)
 
-                        if self.home.energy_schedule_vals[idx_start][1] != cur_energy_peak_or_off_peak_mode:
+                        if self.home.energy_schedule_vals[idx_limit][1] != cur_energy_peak_or_off_peak_mode:
 
                             #we are NOT in a proper schedule time for this time span ... jump to the next one... meaning it is the next day!
-                            if idx_start == len(energy_schedule_vals) - 1:
+                            if idx_limit == len(energy_schedule_vals) - 1:
                                 #should never append with the performed day extension above
                                 self._log_energy_error(start_time, end_time,
                                                        msg=f"bad idx missing {data_points[cur_energy_peak_or_off_peak_mode]}",
@@ -773,7 +774,7 @@ class EnergyHistoryMixin(EntityBase):
                                 return 0
                             else:
                                 #by construction of the energy schedule the next one should be of opposite mode
-                                if energy_schedule_vals[idx_start + 1][1] != cur_energy_peak_or_off_peak_mode:
+                                if energy_schedule_vals[idx_limit + 1][1] != cur_energy_peak_or_off_peak_mode:
                                     self._log_energy_error(start_time, end_time,
                                                            msg=f"bad schedule {data_points[cur_energy_peak_or_off_peak_mode]}",
                                                            body=raw_datas[cur_energy_peak_or_off_peak_mode])
@@ -781,20 +782,15 @@ class EnergyHistoryMixin(EntityBase):
 
 
 
-                                start_time_to_get_closer = energy_schedule_vals[idx_start+1][0]
-                                diff_t = start_time_to_get_closer - srt_beg
-                                cur_start_time = day_origin + srt_beg + (diff_t//interval_sec)*interval_sec
+                                start_time_to_get_closer = energy_schedule_vals[idx_limit+1][0]
+                                diff_t = start_time_to_get_closer - srt_mid
+                                cur_start_time = day_origin + srt_beg + (diff_t//interval_sec + 1)*interval_sec
 
                     hist_good_vals.append((cur_start_time, val, cur_energy_peak_or_off_peak_mode))
                     cur_start_time = cur_start_time + interval_sec
 
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
-
-
-
-
-
 
         self.historical_data = []
 

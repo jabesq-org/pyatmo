@@ -594,8 +594,6 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak: int | None = None
 
     def reset_measures(self):
-        self.start_time = None
-        self.end_time = None
         self.historical_data = []
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
@@ -792,61 +790,74 @@ class EnergyHistoryMixin(EntityBase):
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
 
+
+
+
+
+
         self.historical_data = []
 
         prev_sum_energy_elec = self.sum_energy_elec
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
-        self.end_time = end_time
 
-        computed_start = 0
-        computed_end = 0
-        for cur_start_time, val, cur_energy_peak_or_off_peak_mode in hist_good_vals:
-
-            self.sum_energy_elec += val
-
-            if peak_off_peak_mode:
-                mode = "off_peak"
-                if cur_energy_peak_or_off_peak_mode == ENERGY_ELEC_PEAK_IDX:
-                    self.sum_energy_elec_peak += val
-                    mode = "peak"
-                else:
-                    self.sum_energy_elec_off_peak += val
-            else:
-                mode = "standard"
-
-            if computed_start == 0:
-                computed_start = cur_start_time - delta_range
-            computed_end = cur_start_time + delta_range
-
-
-            self.historical_data.append(
-                {
-                    "duration": (2*delta_range)//60,
-                    "startTime": f"{datetime.fromtimestamp(cur_start_time - delta_range + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                    "endTime": f"{datetime.fromtimestamp(cur_start_time + delta_range, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                    "Wh": val,
-                    "energyMode": mode,
-                    "startTimeUnix": cur_start_time - delta_range,
-                    "endTimeUnix": cur_start_time + delta_range
-
-                },
-            )
-
-
-        if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
+        if len(hist_good_vals) == 0:
+            #nothing has been updated or changed it can nearly be seen as an error, but teh api is answering correctly
+            #so we probably have to reset to 0 anyway as it means there were no exisitng historical data for this time range
             LOG.debug(
-                ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f prev_start: %s, prev_end %s",
+                "=> NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
                 self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
-                datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
-                prev_sum_energy_elec, datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
-        else:
-            LOG.debug(
-                "=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%s",
-                self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
-                datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
+        else:
+
+            computed_start = 0
+            computed_end = 0
+            for cur_start_time, val, cur_energy_peak_or_off_peak_mode in hist_good_vals:
+
+                self.sum_energy_elec += val
+
+                if peak_off_peak_mode:
+                    mode = "off_peak"
+                    if cur_energy_peak_or_off_peak_mode == ENERGY_ELEC_PEAK_IDX:
+                        self.sum_energy_elec_peak += val
+                        mode = "peak"
+                    else:
+                        self.sum_energy_elec_off_peak += val
+                else:
+                    mode = "standard"
+
+                if computed_start == 0:
+                    computed_start = cur_start_time - delta_range
+                computed_end = cur_start_time + delta_range
+
+
+                self.historical_data.append(
+                    {
+                        "duration": (2*delta_range)//60,
+                        "startTime": f"{datetime.fromtimestamp(cur_start_time - delta_range + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "endTime": f"{datetime.fromtimestamp(cur_start_time + delta_range, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "Wh": val,
+                        "energyMode": mode,
+                        "startTimeUnix": cur_start_time - delta_range,
+                        "endTimeUnix": cur_start_time + delta_range
+
+                    },
+                )
+
+
+            if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
+                LOG.debug(
+                    ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f prev_start: %s, prev_end %s",
+                    self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
+                    datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
+                    prev_sum_energy_elec, datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
+            else:
+                LOG.debug(
+                    "=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%s",
+                    self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
+                    datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
+                    prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
 
         return num_calls
 

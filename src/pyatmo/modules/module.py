@@ -745,7 +745,8 @@ class EnergyHistoryMixin(EntityBase):
                     interval_sec = 2*delta_range
 
 
-                cur_start_time = start_lot_time
+                #align the start on the begining of the segment
+                cur_start_time = start_lot_time - interval_sec//2
                 for val_arr in values_lot.get("value",[]):
                     val = val_arr[0]
 
@@ -758,7 +759,7 @@ class EnergyHistoryMixin(EntityBase):
                         srt_beg = cur_start_time - day_origin
 
                         #now check if srt_beg is in a schedule span of the right type
-                        idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg - interval_sec//2)
+                        idx_start = self._get_proper_in_schedule_index(energy_schedule_vals, srt_beg)
 
                         if self.home.energy_schedule_vals[idx_start][1] != cur_energy_peak_or_off_peak_mode:
 
@@ -782,7 +783,7 @@ class EnergyHistoryMixin(EntityBase):
 
                                 start_time_to_get_closer = energy_schedule_vals[idx_start+1][0]
                                 diff_t = start_time_to_get_closer - srt_beg
-                                cur_start_time = day_origin + srt_beg + (diff_t//interval_sec + 1)*interval_sec
+                                cur_start_time = day_origin + srt_beg + (diff_t//interval_sec)*interval_sec
 
                     hist_good_vals.append((cur_start_time, val, cur_energy_peak_or_off_peak_mode))
                     cur_start_time = cur_start_time + interval_sec
@@ -827,20 +828,24 @@ class EnergyHistoryMixin(EntityBase):
                 else:
                     mode = "standard"
 
+
+                c_start = cur_start_time
+                c_end = cur_start_time + 2*delta_range
+
                 if computed_start == 0:
-                    computed_start = cur_start_time - delta_range
-                computed_end = cur_start_time + delta_range
+                    computed_start = c_start
+                computed_end = c_end
 
 
                 self.historical_data.append(
                     {
                         "duration": (2*delta_range)//60,
-                        "startTime": f"{datetime.fromtimestamp(cur_start_time - delta_range + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                        "endTime": f"{datetime.fromtimestamp(cur_start_time + delta_range, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "startTime": f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "endTime": f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z",
                         "Wh": val,
                         "energyMode": mode,
-                        "startTimeUnix": cur_start_time - delta_range,
-                        "endTimeUnix": cur_start_time + delta_range
+                        "startTimeUnix": c_start,
+                        "endTimeUnix": c_end
 
                     },
                 )

@@ -786,7 +786,7 @@ class EnergyHistoryMixin(EntityBase):
                                 diff_t = start_time_to_get_closer - srt_mid
                                 cur_start_time = day_origin + srt_beg + (diff_t//interval_sec + 1)*interval_sec
 
-                    hist_good_vals.append((cur_start_time, val, cur_energy_peak_or_off_peak_mode))
+                    hist_good_vals.append((cur_start_time, int(val), cur_energy_peak_or_off_peak_mode))
                     cur_start_time = cur_start_time + interval_sec
 
 
@@ -855,7 +855,7 @@ class EnergyHistoryMixin(EntityBase):
                     prev_sum_energy_elec, datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
             else:
                 LOG.debug(
-                    "=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%s",
+                    "=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%s prev_sum=%s",
                     self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
                     datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
                     prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")

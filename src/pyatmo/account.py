@@ -167,6 +167,15 @@ class AsyncAccount:
         )
         return num_calls
 
+    def get_current_energy_sum(self):
+        sum = 0
+        for h_id, home in self.homes.items():
+            for m_id, module in home.modules.items():
+                v = getattr(module, "sum_energy_elec", None)
+                if v is not None:
+                    sum += v
+        return sum
+
     def register_public_weather_area(
         self,
         lat_ne: str,

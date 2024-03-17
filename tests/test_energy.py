@@ -112,3 +112,8 @@ async def test_historical_data_retrieval_multi_2(async_account_multi):
     assert module.sum_energy_elec == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
     assert module.sum_energy_elec_off_peak == 780
     assert module.sum_energy_elec_peak == 890
+
+
+    sum = async_account_multi.get_current_energy_sum()
+
+    assert module.sum_energy_elec == sum

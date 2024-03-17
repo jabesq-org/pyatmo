@@ -54,7 +54,6 @@ class AsyncAccount:
 
     def update_supported_homes(self, support_only_homes: list | None = None):
 
-        self.support_only_homes = support_only_homes
         if support_only_homes is None or len(support_only_homes) == 0:
             self.homes = copy.copy(self.all_account_homes)
         else:
@@ -65,8 +64,9 @@ class AsyncAccount:
                     self.homes[h_id] = h
 
         if len(self.homes) == 0:
-            self.support_only_homes = None
             self.homes = copy.copy(self.all_account_homes)
+
+        self.support_only_homes = [h_id for h_id in self.homes]
 
         self.homes.update(self.additional_public_homes)
 

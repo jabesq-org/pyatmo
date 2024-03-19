@@ -610,7 +610,10 @@ class EnergyHistoryMixin(EntityBase):
                   datetime.fromtimestamp(end_time), start_time, end_time, body)
 
     def update_measures_num_calls(self):
-        return 2
+        try:
+            return len(self.home.energy_endpoints)
+        except:
+            return 1
 
     async def async_update_measures(
         self,

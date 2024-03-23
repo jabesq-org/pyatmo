@@ -88,6 +88,42 @@ class AbstractAsyncAuth(ABC):
             timeout=timeout,
         )
 
+    async def async_get_api_request(
+        self,
+        endpoint: str,
+        base_url: str | None = None,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
+    ) -> ClientResponse:
+        """Wrap async post requests."""
+
+        return await self.async_get_request(
+            url=(base_url or self.base_url) + endpoint,
+            params=params,
+            timeout=timeout,
+        )
+
+    async def async_get_request(
+        self,
+        url: str,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
+    ) -> ClientResponse:
+        """Wrap async post requests."""
+
+        access_token = await self.get_access_token()
+        headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+
+        req_args = self.prepare_request_get_arguments(params)
+
+        async with self.websession.get(
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
+        ) as resp:
+            return await self.process_response(resp, url)
+
     async def async_post_request(
         self,
         url: str,
@@ -117,6 +153,21 @@ class AbstractAsyncAuth(ABC):
             raise ApiError(f"Access token failure: {err}") from err
 
     def prepare_request_arguments(self, params):
+        """Prepare request arguments."""
+        req_args = {"data": params if params is not None else {}}
+
+        if "params" in req_args["data"]:
+            req_args["params"] = req_args["data"]["params"]
+            req_args["data"].pop("params")
+
+        if "json" in req_args["data"]:
+            req_args["json"] = req_args["data"]["json"]
+            req_args.pop("data")
+
+        return req_args
+
+    def prepare_request_get_arguments(self, params):
+        return params
         """Prepare request arguments."""
         req_args = {"data": params if params is not None else {}}
 

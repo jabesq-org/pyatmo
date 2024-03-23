@@ -45,6 +45,7 @@ SETSTATE_ENDPOINT = "api/setstate"
 GETHOMECOACHDATA_ENDPOINT = "api/gethomecoachsdata"
 
 GETMEASURE_ENDPOINT = "api/getmeasure"
+GETHOMEMEASURE_ENDPOINT = "api/gethomemeasure"
 GETSTATIONDATA_ENDPOINT = "api/getstationsdata"
 
 GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"

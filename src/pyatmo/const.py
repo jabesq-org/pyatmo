@@ -121,13 +121,13 @@ class MeasureType(Enum):
     SUM_BOILER_ON = "sum_boiler_on"
     SUM_BOILER_OFF = "sum_boiler_off"
     SUM_ENERGY_ELEC = "sum_energy_elec"
-    SUM_ENERGY_ELEC_BASIC = "sum_energy_elec$0"
-    SUM_ENERGY_ELEC_PEAK = "sum_energy_elec$1"
-    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_elec$2"
+    SUM_ENERGY_ELEC_BASIC = "sum_energy_buy_from_grid$0"
+    SUM_ENERGY_ELEC_PEAK = "sum_energy_buy_from_grid$1"
+    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_buy_from_grid$2"
     SUM_ENERGY_PRICE = "sum_energy_price"
-    SUM_ENERGY_PRICE_BASIC = "sum_energy_price$0"
-    SUM_ENERGY_PRICE_PEAK = "sum_energy_price$1"
-    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_price$2"
+    SUM_ENERGY_PRICE_BASIC = "sum_energy_buy_from_grid_price$0"
+    SUM_ENERGY_PRICE_PEAK = "sum_energy_buy_from_grid_price$1"
+    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_buy_from_grid_price$2"
 
 
 class MeasureInterval(Enum):

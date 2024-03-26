@@ -1,4 +1,5 @@
 """Module to represent a Netatmo module."""
+
 from __future__ import annotations
 
 import copy

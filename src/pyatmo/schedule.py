@@ -1,4 +1,5 @@
 """Module to represent a Netatmo schedule."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

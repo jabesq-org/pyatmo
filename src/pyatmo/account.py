@@ -1,4 +1,5 @@
 """Support for a Netatmo account."""
+
 from __future__ import annotations
 
 import copy

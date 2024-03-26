@@ -1,4 +1,5 @@
 """Module to represent Smarther modules."""
+
 from __future__ import annotations
 
 import logging

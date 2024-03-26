@@ -301,6 +301,7 @@ class PowerMixin(EntityBase):
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.power: int | None = None
+        self.history_features.add("power")
 
 
 class EventMixin(EntityBase):

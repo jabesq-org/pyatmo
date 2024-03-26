@@ -1,10 +1,12 @@
 """Base class for Netatmo entities."""
 from __future__ import annotations
 
+import bisect
 from abc import ABC
 from collections.abc import Iterable
 from dataclasses import dataclass
 import logging
+from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import RawData
@@ -13,6 +15,8 @@ from pyatmo.modules.device_types import DeviceType
 if TYPE_CHECKING:
     from pyatmo.event import EventTypes
     from pyatmo.home import Home
+
+from time import time
 
 LOG = logging.getLogger(__name__)
 
@@ -49,7 +53,10 @@ class EntityBase:
     entity_id: str
     home: Home
     bridge: str | None
+    history_features: set[str] = set()
 
+
+MAX_HISTORY_TIME_S = 24*2*3600 #2 days of dynamic historical data stored
 
 class NetatmoBase(EntityBase, ABC):
     """Base class for Netatmo entities."""
@@ -59,6 +66,7 @@ class NetatmoBase(EntityBase, ABC):
 
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", f"Unknown {self.entity_id}")
+        self.history_features_values: dict[str,[int,int]] | {} = {}
 
     def update_topology(self, raw_data: RawData) -> None:
         """Update topology."""
@@ -79,6 +87,54 @@ class NetatmoBase(EntityBase, ABC):
             key: NETATMO_ATTRIBUTES_MAP.get(key, default(key, val))(raw_data, val)
             for key, val in self.__dict__.items()
         }
+
+        now = int(time())
+        for hist_feature in self.history_features:
+            if hist_feature in self.__dict__:
+                hist_f = self.history_features_values.get(hist_feature, None)
+                if hist_f is None:
+                    hist_f = []
+                    self.history_features_values[hist_feature] = hist_f
+                val = getattr(self, hist_feature)
+                if not hist_f or hist_f[-1][0] <= now:
+                    hist_f.append((now, val))
+                else:
+                    i = bisect.bisect_left(hist_f, now, key=itemgetter(0))
+
+                    if i < len(hist_f):
+                        if hist_f[i][0] == now:
+                            hist_f[i] = (now, val)
+                            i = None
+
+                    if i is not None:
+                        hist_f.insert(i, (now,val))
+
+                #keep timing history to a maximum representative time
+                while len(hist_f) > 0 and now - hist_f[0][0] > MAX_HISTORY_TIME_S:
+                    hist_f.pop(0)
+
+                LOG.debug(">>>>>> Features History : %s : %s", hist_feature, hist_f)
+
+
+    def get_history_data(self, type:str, from_ts: int, to_ts: int | None=None):
+
+        hist_f = self.history_features_values.get(type, [])
+
+        if not hist_f:
+            return []
+
+        in_s = bisect.bisect_left(hist_f, from_ts, key=itemgetter(0))
+
+        if to_ts is None:
+            out_s = len(hist_f)
+        else:
+            out_s = bisect.bisect_right(hist_f, from_ts, key=itemgetter(0))
+
+        return self.history_features_values[in_s, out_s]
+
+
+
+
 
 
 @dataclass

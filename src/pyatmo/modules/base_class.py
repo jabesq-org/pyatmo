@@ -132,7 +132,7 @@ class NetatmoBase(EntityBase, ABC):
         else:
             out_s = bisect.bisect_right(hist_f, from_ts, key=itemgetter(0))
 
-        return self.history_features_values[in_s, out_s]
+        return hist_f[in_s:out_s]
 
 
 

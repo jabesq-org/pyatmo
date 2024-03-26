@@ -96,6 +96,8 @@ class NetatmoBase(EntityBase, ABC):
                     hist_f = []
                     self.history_features_values[hist_feature] = hist_f
                 val = getattr(self, hist_feature)
+                if val is None:
+                    continue
                 if not hist_f or hist_f[-1][0] <= now:
                     hist_f.append((now, val))
                 else:

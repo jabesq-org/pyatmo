@@ -593,8 +593,12 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec: int | None = None
         self.sum_energy_elec_peak: int | None = None
         self.sum_energy_elec_off_peak: int | None = None
+        self.last_computed_start: int | None = None
+        self.last_computed_end: int | None = None
+        self.in_reset: bool| False = False
 
     def reset_measures(self):
+        self.in_reset = True
         self.historical_data = []
         self.last_computed_start = None
         self.last_computed_end = None
@@ -806,6 +810,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak = 0
         self.last_computed_start = None
         self.last_computed_end = None
+        self.in_reset = False
 
         if len(hist_good_vals) == 0:
             #nothing has been updated or changed it can nearly be seen as an error, but teh api is answering correctly

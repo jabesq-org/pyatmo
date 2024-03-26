@@ -131,7 +131,7 @@ class NetatmoBase(EntityBase, ABC):
         if to_ts is None:
             out_s = len(hist_f)
         else:
-            out_s = bisect.bisect_right(hist_f, from_ts, key=itemgetter(0))
+            out_s = bisect.bisect_right(hist_f, to_ts, key=itemgetter(0))
 
         return hist_f[in_s:out_s]
 

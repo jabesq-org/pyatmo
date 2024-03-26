@@ -1,4 +1,5 @@
 """Module to represent a Netatmo home."""
+
 from __future__ import annotations
 
 import logging

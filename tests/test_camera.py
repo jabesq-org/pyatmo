@@ -1,4 +1,5 @@
 """Define tests for camera module."""
+
 import json
 from unittest.mock import AsyncMock, patch
 

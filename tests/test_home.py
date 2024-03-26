@@ -1,4 +1,5 @@
 """Define tests for home module."""
+
 import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch

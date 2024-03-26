@@ -1,4 +1,5 @@
 """Module to represent a Netatmo person."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

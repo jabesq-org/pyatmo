@@ -1,5 +1,4 @@
 """Define tests for home module."""
-
 import json
 from unittest.mock import AsyncMock, patch
 

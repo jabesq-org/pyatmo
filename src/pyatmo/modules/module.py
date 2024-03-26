@@ -808,13 +808,14 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
-        self.last_computed_start = None
-        self.last_computed_end = None
+        self.last_computed_start = start_time
+        self.last_computed_end = start_time  # no data at all : we know nothing for the end : best guess .. it is the start
         self.in_reset = False
 
         if len(hist_good_vals) == 0:
-            #nothing has been updated or changed it can nearly be seen as an error, but teh api is answering correctly
+            #nothing has been updated or changed it can nearly be seen as an error, but the api is answering correctly
             #so we probably have to reset to 0 anyway as it means there were no exisitng historical data for this time range
+
             LOG.debug(
                 "=> NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
                 self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),

@@ -115,7 +115,7 @@ class NetatmoBase(EntityBase, ABC):
                 while len(hist_f) > 0 and now - hist_f[0][0] > MAX_HISTORY_TIME_S:
                     hist_f.pop(0)
 
-                LOG.debug(">>>>>> Features History : %s : %s", hist_feature, hist_f)
+                #LOG.debug(">>>>>> Features History : %s : %s", hist_feature, hist_f)
 
 
     def get_history_data(self, type:str, from_ts: int, to_ts: int | None=None):

@@ -169,7 +169,7 @@ class AsyncAccount:
         )
         return num_calls
 
-    def get_current_energy_sum(self, excluded_modules:set[str] | None = None):
+    def get_current_energy_sum(self, power_adapted: bool = True, to_ts: int | float | None =None, excluded_modules:set[str] | None = None):
         sum = 0
         is_in_reset = False
 
@@ -186,9 +186,13 @@ class AsyncAccount:
                     if module.in_reset:
                         is_in_reset = True
                         break
-                    v = module.sum_energy_elec
+                    if power_adapted:
+                        v, delta_energy = module.get_sum_energy_elec_power_adapted(to_ts=to_ts)
+                    else:
+                        delta_energy = 0
+                        v = module.sum_energy_elec
                     if v is not None:
-                        sum += v
+                        sum += v + delta_energy
         if is_in_reset:
             return 0
 

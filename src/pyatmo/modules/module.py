@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 import bisect
 from operator import itemgetter
+from time import time
 
 LOG = logging.getLogger(__name__)
 
@@ -608,6 +609,45 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
+
+
+    def get_sum_energy_elec_power_adapted(self, to_ts: int | float | None = None):
+
+        v = self.sum_energy_elec
+
+        if v is None:
+            return None, 0
+
+        delta_energy = 0
+
+        if self.in_reset is False:
+
+            if to_ts is None:
+                to_ts = time()
+
+            from_ts = self.last_computed_end
+
+            if from_ts is not None and from_ts < to_ts and isinstance(self, PowerMixin) and isinstance(self, NetatmoBase):
+
+                power_data = self.get_history_data("power", from_ts=from_ts, to_ts=to_ts)
+
+                if len(power_data) > 1:
+
+                    #compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption as we don't want to artifically go up the previous one (except in rare exceptions like reset, 0 , etc)
+
+                    for i in range(len(power_data) - 1):
+
+                        dt_h = float(power_data[i+1][0] - power_data[i][0])/3600.0
+
+                        dP_W = abs(float(power_data[i+1][1] - power_data[i][1]))
+
+                        dNrj_Wh = dt_h*( min(power_data[i+1][1], power_data[i][1]) + 0.5*dP_W)
+
+                        delta_energy += dNrj_Wh
+
+
+        return v, delta_energy
+
 
         
     def _log_energy_error(self, start_time, end_time, msg=None, body=None):

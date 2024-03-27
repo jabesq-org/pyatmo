@@ -46,6 +46,8 @@ ATTRIBUTE_FILTER = {
     "device_category",
     "device_type",
     "features",
+    "history_features",
+    "history_features_values"
 }
 
 

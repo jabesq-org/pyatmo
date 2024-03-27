@@ -54,7 +54,8 @@ class EntityBase:
     entity_id: str
     home: Home
     bridge: str | None
-    history_features: set[str] = set()
+    history_features: set[str]
+    history_features_values: dict[str, [int, int]] | {}
 
 
 MAX_HISTORY_TIME_S = 24*2*3600 #2 days of dynamic historical data stored
@@ -67,7 +68,9 @@ class NetatmoBase(EntityBase, ABC):
 
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", f"Unknown {self.entity_id}")
-        self.history_features_values: dict[str,[int,int]] | {} = {}
+        self.history_features_values = {}
+        self.history_features = set()
+
 
     def update_topology(self, raw_data: RawData) -> None:
         """Update topology."""
@@ -100,17 +103,17 @@ class NetatmoBase(EntityBase, ABC):
                 if val is None:
                     continue
                 if not hist_f or hist_f[-1][0] <= now:
-                    hist_f.append((now, val))
+                    hist_f.append((now, val, self.entity_id))
                 else:
                     i = bisect.bisect_left(hist_f, now, key=itemgetter(0))
 
                     if i < len(hist_f):
                         if hist_f[i][0] == now:
-                            hist_f[i] = (now, val)
+                            hist_f[i] = (now, val, self.entity_id)
                             i = None
 
                     if i is not None:
-                        hist_f.insert(i, (now,val))
+                        hist_f.insert(i, (now,val, self.entity_id))
 
                 #keep timing history to a maximum representative time
                 while len(hist_f) > 0 and now - hist_f[0][0] > MAX_HISTORY_TIME_S:

@@ -7,6 +7,7 @@ import time_machine
 import datetime as dt
 
 from pyatmo.const import MeasureInterval
+from pyatmo.modules.module import EnergyHistoryMixin
 
 
 # pylint: disable=F6401
@@ -66,6 +67,7 @@ async def test_historical_data_retrieval_multi(async_account_multi):
                                                     end_time=end_time
                                                     )
 
+    assert isinstance(module, EnergyHistoryMixin)
 
     assert module.historical_data[0] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-02T23:40:00Z', 'endTimeUnix': 1709422800, 'energyMode': 'peak', 'startTime': '2024-03-02T23:10:01Z', 'startTimeUnix': 1709421000}
     assert module.historical_data[-1] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-05T23:10:00Z', 'endTimeUnix': 1709680200, 'energyMode': 'peak', 'startTime': '2024-03-05T22:40:01Z', 'startTimeUnix': 1709678400}
@@ -74,6 +76,10 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     assert module.sum_energy_elec == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
     assert module.sum_energy_elec_off_peak == 11219
     assert module.sum_energy_elec_peak == 31282
+
+    assert module.sum_energy_elec == async_account_multi.get_current_energy_sum()
+    assert async_account_multi.get_current_energy_sum(excluded_modules={module_id}) == 0
+
 
 
 

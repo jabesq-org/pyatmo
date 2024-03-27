@@ -22,6 +22,7 @@ from pyatmo.const import (
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Module
+from pyatmo.modules.module import EnergyHistoryMixin
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -168,13 +169,29 @@ class AsyncAccount:
         )
         return num_calls
 
-    def get_current_energy_sum(self):
+    def get_current_energy_sum(self, excluded_modules:set[str] | None = None):
         sum = 0
+        is_in_reset = False
+
+        if excluded_modules is None:
+            excluded_modules = set()
+
         for h_id, home in self.homes.items():
+            if is_in_reset:
+                break
             for m_id, module in home.modules.items():
-                v = getattr(module, "sum_energy_elec", None)
-                if v is not None:
-                    sum += v
+                if m_id in excluded_modules:
+                    continue
+                if isinstance(module, EnergyHistoryMixin):
+                    if module.in_reset:
+                        is_in_reset = True
+                        break
+                    v = module.sum_energy_elec
+                    if v is not None:
+                        sum += v
+        if is_in_reset:
+            return 0
+
         return sum
 
     def register_public_weather_area(

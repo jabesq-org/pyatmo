@@ -193,6 +193,8 @@ class AsyncAccount:
                         v = module.sum_energy_elec
                     if v is not None:
                         sum += v + delta_energy
+                    else:
+                        return None, False
         if is_in_reset:
             return 0, is_in_reset
 

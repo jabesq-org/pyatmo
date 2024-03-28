@@ -194,9 +194,9 @@ class AsyncAccount:
                     if v is not None:
                         sum += v + delta_energy
         if is_in_reset:
-            return 0
+            return 0, is_in_reset
 
-        return sum
+        return sum, is_in_reset
 
     def register_public_weather_area(
         self,

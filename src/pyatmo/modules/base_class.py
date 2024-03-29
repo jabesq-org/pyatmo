@@ -56,9 +56,12 @@ class EntityBase:
     bridge: str | None
     history_features: set[str]
     history_features_values: dict[str, [int, int]] | {}
+    name: str | None
 
 
-MAX_HISTORY_TIME_S = 24*2*3600 #2 days of dynamic historical data stored
+# 2 days of dynamic historical data stored
+MAX_HISTORY_TIME_S = 24*2*3600
+
 
 class NetatmoBase(EntityBase, ABC):
     """Base class for Netatmo entities."""
@@ -70,7 +73,6 @@ class NetatmoBase(EntityBase, ABC):
         self.name = raw_data.get("name", f"Unknown {self.entity_id}")
         self.history_features_values = {}
         self.history_features = set()
-
 
     def update_topology(self, raw_data: RawData) -> None:
         """Update topology."""
@@ -113,18 +115,15 @@ class NetatmoBase(EntityBase, ABC):
                             i = None
 
                     if i is not None:
-                        hist_f.insert(i, (now,val, self.entity_id))
+                        hist_f.insert(i, (now, val, self.entity_id))
 
-                #keep timing history to a maximum representative time
+                # keep timing history to a maximum representative time
                 while len(hist_f) > 0 and now - hist_f[0][0] > MAX_HISTORY_TIME_S:
                     hist_f.pop(0)
 
-                #LOG.debug(">>>>>> Features History : %s : %s", hist_feature, hist_f)
+    def get_history_data(self, feature: str, from_ts: int, to_ts: int | None = None):
 
-
-    def get_history_data(self, type:str, from_ts: int, to_ts: int | None=None):
-
-        hist_f = self.history_features_values.get(type, [])
+        hist_f = self.history_features_values.get(feature, [])
 
         if not hist_f:
             return []
@@ -137,10 +136,6 @@ class NetatmoBase(EntityBase, ABC):
             out_s = bisect.bisect_right(hist_f, to_ts, key=itemgetter(0))
 
         return hist_f[in_s:out_s]
-
-
-
-
 
 
 @dataclass

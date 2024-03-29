@@ -36,6 +36,7 @@ class ApiError(Exception):
 
     pass
 
+
 class ApiErrorThrottling(ApiError):
     """Raised when an API error is encountered."""
 

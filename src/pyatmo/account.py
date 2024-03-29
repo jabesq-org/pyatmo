@@ -33,7 +33,10 @@ LOG = logging.getLogger(__name__)
 class AsyncAccount:
     """Async class of a Netatmo account."""
 
-    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True, support_only_homes: list | None = None) -> None:
+    def __init__(self,
+                 auth: AbstractAsyncAuth,
+                 favorite_stations: bool = True,
+                 support_only_homes: list | None = None) -> None:
         """Initialize the Netatmo account."""
 
         self.auth: AbstractAsyncAuth = auth
@@ -71,7 +74,6 @@ class AsyncAccount:
         self.support_only_homes = [h_id for h_id in self.homes]
 
         self.homes.update(self.additional_public_homes)
-
 
     def process_topology(self) -> None:
         """Process topology information from /homesdata."""
@@ -169,8 +171,13 @@ class AsyncAccount:
         )
         return num_calls
 
-    def get_current_energy_sum(self, power_adapted: bool = True, to_ts: int | float | None =None, excluded_modules:set[str] | None = None):
-        sum = 0
+    def get_current_energy_sum(self,
+                               power_adapted: bool = True,
+                               to_ts: int | float | None = None,
+                               excluded_modules: set[str] | None = None,
+                               ok_if_none: bool = False):
+
+        energy_sum = 0
         is_in_reset = False
 
         if excluded_modules is None:
@@ -192,13 +199,13 @@ class AsyncAccount:
                         delta_energy = 0
                         v = module.sum_energy_elec
                     if v is not None:
-                        sum += v + delta_energy
-                    else:
+                        energy_sum += v + delta_energy
+                    elif ok_if_none is False:
                         return None, False
         if is_in_reset:
             return 0, is_in_reset
 
-        return sum, is_in_reset
+        return energy_sum, is_in_reset
 
     def register_public_weather_area(
         self,

@@ -169,18 +169,6 @@ class AbstractAsyncAuth(ABC):
 
     def prepare_request_get_arguments(self, params):
         return params
-        """Prepare request arguments."""
-        req_args = {"data": params if params is not None else {}}
-
-        if "params" in req_args["data"]:
-            req_args["params"] = req_args["data"]["params"]
-            req_args["data"].pop("params")
-
-        if "json" in req_args["data"]:
-            req_args["json"] = req_args["data"]["json"]
-            req_args.pop("data")
-
-        return req_args
 
     async def process_response(self, resp, url):
         """Process response."""
@@ -198,7 +186,8 @@ class AbstractAsyncAuth(ABC):
         try:
             resp_json = await resp.json()
 
-            message = f"{resp_status} - {ERRORS.get(resp_status, '')} - {resp_json['error']['message']} ({resp_json['error']['code']}) when accessing '{url}'"
+            message = (f"{resp_status} - {ERRORS.get(resp_status, '')} - {resp_json['error']['message']} "
+                       f"({resp_json['error']['code']}) when accessing '{url}'")
 
             if resp_status == 403 and resp_json['error']['code'] == 26:
                 raise ApiErrorThrottling(message, )

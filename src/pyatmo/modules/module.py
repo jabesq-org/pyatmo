@@ -451,7 +451,6 @@ class CameraMixin(EntityBase):
         self.local_url: str | None = None
         self.is_local: bool | None = None
         self.alim_status: int | None = None
-        self.device_type: DeviceType
 
     async def async_get_live_snapshot(self) -> bytes | None:
         """Fetch live camera image."""
@@ -469,7 +468,7 @@ class CameraMixin(EntityBase):
     async def async_update_camera_urls(self) -> None:
         """Update and validate the camera urls."""
 
-        if self.device_type == "NDB":
+        if isinstance(self, Module) and self.device_type == "NDB":
             self.is_local = None
 
         if self.vpn_url and self.is_local:
@@ -583,6 +582,15 @@ class MonitoringMixin(EntityBase):
         return await self.async_set_monitoring_state("off")
 
 
+def _get_proper_in_schedule_index(energy_schedule_vals, srt_beg):
+    idx = bisect.bisect_left(energy_schedule_vals, srt_beg, key=itemgetter(0))
+    if idx >= len(energy_schedule_vals):
+        idx = len(energy_schedule_vals) - 1
+    elif energy_schedule_vals[idx][0] > srt_beg:  # if strict equal idx is the good one
+        idx = max(0, idx - 1)
+    return idx
+
+
 class EnergyHistoryMixin(EntityBase):
     """Mixin for history data."""
 
@@ -599,7 +607,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak: int | None = None
         self.last_computed_start: int | None = None
         self.last_computed_end: int | None = None
-        self.in_reset: bool| False = False
+        self.in_reset: bool | False = False
 
     def reset_measures(self):
         self.in_reset = True
@@ -609,7 +617,6 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
-
 
     def get_sum_energy_elec_power_adapted(self, to_ts: int | float | None = None):
 
@@ -627,43 +634,41 @@ class EnergyHistoryMixin(EntityBase):
 
             from_ts = self.last_computed_end
 
-            if from_ts is not None and from_ts < to_ts and isinstance(self, PowerMixin) and isinstance(self, NetatmoBase):
+            if (from_ts is not None and from_ts < to_ts and
+                    isinstance(self, PowerMixin) and isinstance(self, NetatmoBase)):
 
                 power_data = self.get_history_data("power", from_ts=from_ts, to_ts=to_ts)
 
                 if len(power_data) > 1:
 
-                    #compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption as we don't want to artifically go up the previous one (except in rare exceptions like reset, 0 , etc)
+                    # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
+                    # as we don't want to artifically go up the previous one
+                    # (except in rare exceptions like reset, 0 , etc)
 
                     for i in range(len(power_data) - 1):
 
                         dt_h = float(power_data[i+1][0] - power_data[i][0])/3600.0
 
-                        dP_W = abs(float(power_data[i+1][1] - power_data[i][1]))
+                        d_p_w = abs(float(power_data[i+1][1] - power_data[i][1]))
 
-                        dNrj_Wh = dt_h*( min(power_data[i+1][1], power_data[i][1]) + 0.5*dP_W)
+                        d_nrj_wh = dt_h*(min(power_data[i+1][1], power_data[i][1]) + 0.5*d_p_w)
 
-                        delta_energy += dNrj_Wh
-
+                        delta_energy += d_nrj_wh
 
         return v, delta_energy
 
-
-        
     def _log_energy_error(self, start_time, end_time, msg=None, body=None):
         if body is None:
             body = "NO BODY"
-        LOG.debug("!!!!!!!!! ENERGY error %s %s %s %s",
-            msg,
-                  self.name,
-                  datetime.fromtimestamp(start_time),
-                  datetime.fromtimestamp(end_time), start_time, end_time, body)
+        LOG.debug("ENERGY collection error %s %s %s %s", msg, self.name,
+                  datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), start_time, end_time, body)
 
     def update_measures_num_calls(self):
-        try:
-            return len(self.home.energy_endpoints)
-        except:
+
+        if not self.home.energy_endpoints:
             return 1
+        else:
+            return len(self.home.energy_endpoints)
 
     async def async_update_measures(
         self,
@@ -682,27 +687,25 @@ class EnergyHistoryMixin(EntityBase):
             start_time = end - timedelta(days=days)
             start_time = int(start_time.timestamp())
 
-
         prev_start_time = self.start_time
         prev_end_time = self.end_time
 
         self.start_time = start_time
         self.end_time = end_time
 
-        #the legrand/netatmo handling of start and endtime is very peculiar
-        #for 30mn/1h/3h intervals : in fact the starts is asked_start + intervals/2 ! yes so shift of 15mn, 30mn and 1h30
-        #for 1day : start is ALWAYS 12am (half day) of the first day of the range
-        #for 1week : it will be half week ALWAYS, ie on a thursday at 12am (half day)
+        # the legrand/netatmo handling of start and endtime is very peculiar
+        # for 30mn/1h/3h intervals : in fact the starts is asked_start + intervals/2 !
+        # => so shift of 15mn, 30mn and 1h30
+        # for 1day : start is ALWAYS 12am (half day) of the first day of the range
+        # for 1week : it will be half week ALWAYS, ie on a thursday at 12am (half day)
+        # in fact in the case for all intervals the reported dates are "the middle" of the ranges
 
-        #in fact in the case for all intervals the reported dates are "the middle" of the ranges
         delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0)//2
 
         num_calls = 0
 
         data_points = self.home.energy_endpoints
         raw_datas = []
-
-        #LOG.debug("INFO: doing async_update_measures for %s", self.name)
 
         for data_point in data_points:
 
@@ -714,7 +717,6 @@ class EnergyHistoryMixin(EntityBase):
                 "date_begin": start_time,
                 "date_end": end_time,
             }
-
 
             resp = await self.home.auth.async_post_api_request(
                 endpoint=GETMEASURE_ENDPOINT,
@@ -732,10 +734,8 @@ class EnergyHistoryMixin(EntityBase):
                     f"when accessing '{data_point}'"
                 )
 
-            num_calls +=1
+            num_calls += 1
             raw_datas.append(rw_dt)
-
-
 
         hist_good_vals = []
         energy_schedule_vals = []
@@ -748,100 +748,99 @@ class EnergyHistoryMixin(EntityBase):
 
         if peak_off_peak_mode:
             max_interval_sec = interval_sec
-            for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
+            for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
                 for values_lot in values_lots:
-                    try:
-                        max_interval_sec = max(max_interval_sec, int(values_lot["step_time"]))
-                    except:
+                    local_step_time = values_lot.get("step_time")
+
+                    if local_step_time is None:
                         if len(values_lot.get("value", [])) > 1:
                             self._log_energy_error(start_time, end_time,
-                                                   msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}",
-                                                   body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                                                   msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
+                                                   body=raw_datas[cur_peak_or_off_peak_mode])
+                    else:
+                        local_step_time = int(local_step_time)
+                        max_interval_sec = max(max_interval_sec, local_step_time)
 
-
-            biggest_day_interval = (max_interval_sec)//(3600*24) + 1
+            biggest_day_interval = max_interval_sec//(3600*24) + 1
 
             energy_schedule_vals = copy.copy(self.home.energy_schedule_vals)
 
             if energy_schedule_vals[-1][0] < max_interval_sec + (3600*24):
                 if energy_schedule_vals[0][1] == energy_schedule_vals[-1][1]:
-                    #it means the last one continue in the first one the next day
+                    # it means the last one continue in the first one the next day
                     energy_schedule_vals_next = energy_schedule_vals[1:]
                 else:
                     energy_schedule_vals_next = copy.copy(self.home.energy_schedule_vals)
 
                 for d in range(0, biggest_day_interval):
-                    next_day_extension = [ (offset + ((d+1)*24*3600), mode) for offset,mode in energy_schedule_vals_next]
-                    energy_schedule_vals.extend(next_day_extension)
+                    next_day_extend = [(offset + ((d+1)*24*3600), mode) for offset, mode in energy_schedule_vals_next]
+                    energy_schedule_vals.extend(next_day_extend)
 
-
-
-        for cur_energy_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
+        for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
             for values_lot in values_lots:
                 try:
                     start_lot_time = int(values_lot["beg_time"])
-                except:
+                except Exception:
                     self._log_energy_error(start_time, end_time,
-                                           msg=f"beg_time missing {data_points[cur_energy_peak_or_off_peak_mode]}",
-                                           body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                                           msg=f"beg_time missing {data_points[cur_peak_or_off_peak_mode]}",
+                                           body=raw_datas[cur_peak_or_off_peak_mode])
                     raise ApiError(
-                        f"Energy badly formed resp beg_time missing: {raw_datas[cur_energy_peak_or_off_peak_mode]} - "
+                        f"Energy badly formed resp beg_time missing: {raw_datas[cur_peak_or_off_peak_mode]} - "
                         f"module: {self.name} - "
-                        f"when accessing '{data_points[cur_energy_peak_or_off_peak_mode]}'"
+                        f"when accessing '{data_points[cur_peak_or_off_peak_mode]}'"
                     )
 
-                try:
-                    interval_sec = int(values_lot["step_time"])
-                except:
+                interval_sec = values_lot.get("step_time")
+                if interval_sec is None:
                     if len(values_lot.get("value", [])) > 1:
-                        self._log_energy_error(start_time, end_time, msg=f"step_time missing {data_points[cur_energy_peak_or_off_peak_mode]}", body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                        self._log_energy_error(start_time, end_time,
+                                               msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
+                                               body=raw_datas[cur_peak_or_off_peak_mode])
                     interval_sec = 2*delta_range
+                else:
+                    interval_sec = int(interval_sec)
 
-
-                #align the start on the begining of the segment
+                # align the start on the begining of the segment
                 cur_start_time = start_lot_time - interval_sec//2
-                for val_arr in values_lot.get("value",[]):
+                for val_arr in values_lot.get("value", []):
                     val = val_arr[0]
-
 
                     if peak_off_peak_mode:
 
                         d_srt = datetime.fromtimestamp(cur_start_time)
-                        #offset from start of the day
+                        # offset from start of the day
                         day_origin = int(datetime(d_srt.year, d_srt.month, d_srt.day).timestamp())
                         srt_beg = cur_start_time - day_origin
                         srt_mid = srt_beg + interval_sec//2
 
-                        #now check if srt_beg is in a schedule span of the right type
-                        idx_limit = self._get_proper_in_schedule_index(energy_schedule_vals, srt_mid)
+                        # now check if srt_beg is in a schedule span of the right type
+                        idx_limit = _get_proper_in_schedule_index(energy_schedule_vals, srt_mid)
 
-                        if self.home.energy_schedule_vals[idx_limit][1] != cur_energy_peak_or_off_peak_mode:
+                        if self.home.energy_schedule_vals[idx_limit][1] != cur_peak_or_off_peak_mode:
 
-                            #we are NOT in a proper schedule time for this time span ... jump to the next one... meaning it is the next day!
+                            # we are NOT in a proper schedule time for this time span ...
+                            # jump to the next one... meaning it is the next day!
                             if idx_limit == len(energy_schedule_vals) - 1:
-                                #should never append with the performed day extension above
+                                # should never append with the performed day extension above
                                 self._log_energy_error(start_time, end_time,
-                                                       msg=f"bad idx missing {data_points[cur_energy_peak_or_off_peak_mode]}",
-                                                       body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                                                       msg=f"bad idx missing {data_points[cur_peak_or_off_peak_mode]}",
+                                                       body=raw_datas[cur_peak_or_off_peak_mode])
 
                                 return 0
                             else:
-                                #by construction of the energy schedule the next one should be of opposite mode
-                                if energy_schedule_vals[idx_limit + 1][1] != cur_energy_peak_or_off_peak_mode:
+                                # by construction of the energy schedule the next one should be of opposite mode
+                                if energy_schedule_vals[idx_limit + 1][1] != cur_peak_or_off_peak_mode:
                                     self._log_energy_error(start_time, end_time,
-                                                           msg=f"bad schedule {data_points[cur_energy_peak_or_off_peak_mode]}",
-                                                           body=raw_datas[cur_energy_peak_or_off_peak_mode])
+                                                           msg=f"bad schedule {data_points[cur_peak_or_off_peak_mode]}",
+                                                           body=raw_datas[cur_peak_or_off_peak_mode])
                                     return 0
-
-
 
                                 start_time_to_get_closer = energy_schedule_vals[idx_limit+1][0]
                                 diff_t = start_time_to_get_closer - srt_mid
                                 cur_start_time = day_origin + srt_beg + (diff_t//interval_sec + 1)*interval_sec
 
-                    hist_good_vals.append((cur_start_time, int(val), cur_energy_peak_or_off_peak_mode))
+                    hist_good_vals.append((cur_start_time, int(val), cur_peak_or_off_peak_mode))
                     cur_start_time = cur_start_time + interval_sec
-
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
 
@@ -852,12 +851,13 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
         self.last_computed_start = start_time
-        self.last_computed_end = start_time  # no data at all : we know nothing for the end : best guess .. it is the start
+        self.last_computed_end = start_time  # no data at all: we know nothing for the end: best guess, it is the start
         self.in_reset = False
 
         if len(hist_good_vals) == 0:
-            #nothing has been updated or changed it can nearly be seen as an error, but the api is answering correctly
-            #so we probably have to reset to 0 anyway as it means there were no exisitng historical data for this time range
+            # nothing has been updated or changed it can nearly be seen as an error, but the api is answering correctly
+            # so we probably have to reset to 0 anyway as it means there were no exisitng
+            # historical data for this time range
 
             LOG.debug(
                 "=> NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
@@ -867,20 +867,19 @@ class EnergyHistoryMixin(EntityBase):
 
             computed_start = 0
             computed_end = 0
-            for cur_start_time, val, cur_energy_peak_or_off_peak_mode in hist_good_vals:
+            for cur_start_time, val, cur_peak_or_off_peak_mode in hist_good_vals:
 
                 self.sum_energy_elec += val
 
                 if peak_off_peak_mode:
                     mode = "off_peak"
-                    if cur_energy_peak_or_off_peak_mode == ENERGY_ELEC_PEAK_IDX:
+                    if cur_peak_or_off_peak_mode == ENERGY_ELEC_PEAK_IDX:
                         self.sum_energy_elec_peak += val
                         mode = "peak"
                     else:
                         self.sum_energy_elec_off_peak += val
                 else:
                     mode = "standard"
-
 
                 c_start = cur_start_time
                 c_end = cur_start_time + 2*delta_range
@@ -889,12 +888,13 @@ class EnergyHistoryMixin(EntityBase):
                     computed_start = c_start
                 computed_end = c_end
 
-
+                start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z"
+                end_time_string = f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z"
                 self.historical_data.append(
                     {
                         "duration": (2*delta_range)//60,
-                        "startTime": f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z",
-                        "endTime": f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z",
+                        "startTime": start_time_string,
+                        "endTime": end_time_string,
                         "Wh": val,
                         "energyMode": mode,
                         "startTimeUnix": c_start,
@@ -903,16 +903,21 @@ class EnergyHistoryMixin(EntityBase):
                     },
                 )
 
-
             if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
+                msg = ("ENERGY GOING DOWN %s from: %s to %s "
+                       "computed_start: %s, computed_end: %s, "
+                       "sum=%f prev_sum=%f prev_start: %s, prev_end %s")
                 LOG.debug(
-                    ">>>>>>>>>> ENERGY GOING DOWN %s from: %s to %s computed_start: %s, computed_end: %s , sum=%f prev_sum=%f prev_start: %s, prev_end %s",
+                    msg,
                     self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
                     datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
-                    prev_sum_energy_elec, datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
+                    prev_sum_energy_elec,
+                    datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
             else:
+                msg = ("Success in energy update %s from: %s to %s "
+                       "computed_start: %s, computed_end: %s , sum=%s prev_sum=%s")
                 LOG.debug(
-                    "=> Success in energy update %s from: %s to %s computed_start: %s, computed_end: %s , sum=%s prev_sum=%s",
+                    msg,
                     self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
                     datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
                     prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
@@ -921,14 +926,6 @@ class EnergyHistoryMixin(EntityBase):
             self.last_computed_end = computed_end
 
         return num_calls
-
-    def _get_proper_in_schedule_index(self, energy_schedule_vals, srt_beg):
-        idx = bisect.bisect_left(energy_schedule_vals, srt_beg, key=itemgetter(0))
-        if idx >= len(energy_schedule_vals):
-            idx = len(energy_schedule_vals) - 1
-        elif energy_schedule_vals[idx][0] > srt_beg:  # if strict equal idx is the good one
-            idx = max(0, idx - 1)
-        return idx
 
 
 class Module(NetatmoBase):

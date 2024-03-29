@@ -40,8 +40,8 @@ class Home:
     name: str
     rooms: dict[str, Room]
     modules: dict[str, Module]
-    schedules: dict[str, ThermSchedule] #for compatibility should diseappear
-    all_schedules: dict[dict[str, str, Schedule]]
+    schedules: dict[str, ThermSchedule]  # for compatibility should diseappear
+    all_schedules: dict[dict[str, str, Schedule]] | {}
     persons: dict[str, Person]
     events: dict[str, Event]
     energy_endpoints: list[str]
@@ -76,11 +76,11 @@ class Home:
         schedules = {}
 
         for s in raw_data:
-            #strange but Energy plan are stored in schedules, we should handle this one differently
-            sched, type = schedule_factory(home=self, raw_data=s)
-            if type not in schedules:
-                schedules[type] = {}
-            schedules[type][s["id"]] = sched
+            # strange but Energy plan are stored in schedules, we should handle this one differently
+            sched, schedule_type = schedule_factory(home=self, raw_data=s)
+            if schedule_type not in schedules:
+                schedules[schedule_type] = {}
+            schedules[schedule_type][s["id"]] = sched
 
         self.schedules = schedules.get(SCHEDULE_TYPE_THERM, {})
         self.all_schedules = schedules
@@ -88,14 +88,14 @@ class Home:
         nrj_schedule = next(iter(schedules.get(SCHEDULE_TYPE_ELECTRICITY, {}).values()), None)
 
         self.energy_schedule_vals = []
-        self.energy_endpoints =  [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
+        self.energy_endpoints = [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
         if nrj_schedule is not None:
+
+            # Tariff option (basic = always the same price, peak_and_off_peak = peak & off peak hours)
             type_tariff = nrj_schedule.tariff_option
             zones = nrj_schedule.zones
 
             if type_tariff == "peak_and_off_peak" and len(zones) >= 2:
-
-
 
                 self.energy_endpoints = [None, None]
 
@@ -104,18 +104,15 @@ class Home:
 
                 if zones[0].price_type == "peak":
                     peak_id = zones[0].entity_id
-                    off_peak_id = zones[1].entity_id
-
                 else:
                     peak_id = zones[1].entity_id
-                    off_peak_id = zones[0].entity_id
 
                 timetable = nrj_schedule.timetable
 
-                #timetable are daily for electricity type, and sorted from begining to end
+                # timetable are daily for electricity type, and sorted from begining to end
                 for t in timetable:
 
-                    time = t.m_offset*60 #m_offset is in minute from the begininng of the day
+                    time = t.m_offset*60  # m_offset is in minute from the begininng of the day
                     if len(self.energy_schedule_vals) == 0:
                         time = 0
 
@@ -123,13 +120,10 @@ class Home:
                     if t.zone_id == peak_id:
                         pos_to_add = ENERGY_ELEC_PEAK_IDX
 
-                    self.energy_schedule_vals.append((time,pos_to_add))
-
+                    self.energy_schedule_vals.append((time, pos_to_add))
 
             else:
                 self.energy_endpoints = [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
-
-
 
     def get_module(self, module: dict) -> Module:
         """Return module."""
@@ -214,12 +208,12 @@ class Home:
                     ],
                 )
 
-    def get_selected_schedule(self, type :str = None) -> Schedule | None:
+    def get_selected_schedule(self, schedule_type: str = None) -> Schedule | None:
         """Return selected schedule for given home."""
-        if type is None:
-            type = SCHEDULE_TYPE_THERM
+        if schedule_type is None:
+            schedule_type = SCHEDULE_TYPE_THERM
 
-        schedules = self.all_schedules.get(type, {})
+        schedules = self.all_schedules.get(schedule_type, {})
 
         return next(
             (schedule for schedule in schedules.values() if schedule.selected),
@@ -227,7 +221,7 @@ class Home:
         )
 
     def get_selected_temperature_schedule(self) -> ThermSchedule | None:
-        return self.get_selected_schedule(type=SCHEDULE_TYPE_THERM)
+        return self.get_selected_schedule(schedule_type=SCHEDULE_TYPE_THERM)
 
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""

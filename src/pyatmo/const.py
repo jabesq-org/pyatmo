@@ -114,6 +114,7 @@ SCHEDULE_TYPE_COOLING = "cooling"
 ENERGY_ELEC_PEAK_IDX = 0
 ENERGY_ELEC_OFF_IDX = 1
 
+
 class MeasureType(Enum):
     """Measure type."""
 
@@ -141,9 +142,10 @@ class MeasureInterval(Enum):
     WEEK = "1week"
     MONTH = "1month"
 
-MEASURE_INTERVAL_TO_SECONDS = {MeasureInterval.HALF_HOUR:1800,
-                               MeasureInterval.HOUR:3600,
-                               MeasureInterval.THREE_HOURS:10800,
-                               MeasureInterval.DAY:86400,
-                               MeasureInterval.WEEK:604800,
-                               MeasureInterval.MONTH:2592000}
+
+MEASURE_INTERVAL_TO_SECONDS = {MeasureInterval.HALF_HOUR: 1800,
+                               MeasureInterval.HOUR: 3600,
+                               MeasureInterval.THREE_HOURS: 10800,
+                               MeasureInterval.DAY: 86400,
+                               MeasureInterval.WEEK: 604800,
+                               MeasureInterval.MONTH: 2592000}

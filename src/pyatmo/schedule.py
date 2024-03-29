@@ -40,7 +40,6 @@ class Schedule(NetatmoBase):
         self.zones = [Zone(home, r) for r in raw_data.get("zones", [])]
 
 
-
 @dataclass
 class ScheduleWithRealZones(Schedule):
     """Class to represent a Netatmo schedule."""
@@ -66,7 +65,6 @@ class ThermSchedule(ScheduleWithRealZones):
         self.away_temp = raw_data.get("away_temp")
 
 
-
 @dataclass
 class CoolingSchedule(ThermSchedule):
     """Class to represent a Netatmo Cooling schedule."""
@@ -78,6 +76,7 @@ class CoolingSchedule(ThermSchedule):
         super().__init__(home, raw_data)
         self.cooling_away_temp = self.away_temp = raw_data.get("cooling_away_temp", self.away_temp)
 
+
 @dataclass
 class ElectricitySchedule(Schedule):
     """Class to represent a Netatmo Energy Plan schedule."""
@@ -85,18 +84,17 @@ class ElectricitySchedule(Schedule):
     tariff: str
     tariff_option: str
     power_threshold: int | 6
-    contract_power_unit: str #kVA or KW
+    contract_power_unit: str  # kVA or KW
     zones: list[ZoneElectricity]
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(home, raw_data)
         self.tariff = raw_data.get("tariff", "custom")
-        self.tariff_option = raw_data.get("tariff_option", None)
+        # Tariff option (basic = always the same price, peak_and_off_peak = peak & off peak hours)
+        self.tariff_option = raw_data.get("tariff_option", "basic")
         self.power_threshold = raw_data.get("power_threshold", 6)
         self.contract_power_unit = raw_data.get("power_threshold", "kVA")
         self.zones = [ZoneElectricity(home, r) for r in raw_data.get("zones", [])]
-
-
 
 
 @dataclass
@@ -105,6 +103,7 @@ class EventSchedule(Schedule):
 
     timetable_sunrise: list[TimetableEventEntry]
     timetable_sunset: list[TimetableEventEntry]
+
     def __init__(self, home: Home, raw_data: RawData) -> None:
         super().__init__(home, raw_data)
         self.timetable_sunrise = [
@@ -113,6 +112,7 @@ class EventSchedule(Schedule):
         self.timetable_sunset = [
             TimetableEventEntry(home, r) for r in raw_data.get("timetable_sunset", [])
         ]
+
 
 @dataclass
 class TimetableEntry:
@@ -136,6 +136,7 @@ class TimetableEventEntry:
     zone_id: int | None
     day: int | 1
     twilight_offset: int | 0
+
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize a Netatmo schedule's timetable entry instance."""
         self.home = home
@@ -144,13 +145,12 @@ class TimetableEventEntry:
         self.twilight_offset = raw_data.get("twilight_offset", 0)
 
 
-
 class ModuleSchedule(NetatmoBase):
 
-    on: bool
-    target_position: int
-    fan_speed: int
-    brightness: int
+    on: bool | None
+    target_position: int | None
+    fan_speed: int | None
+    brightness: int | None
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize a Netatmo schedule's zone instance."""
@@ -170,15 +170,14 @@ class Zone(NetatmoBase):
     rooms: list[Room]
     modules: list[ModuleSchedule]
 
-
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize a Netatmo schedule's zone instance."""
         super().__init__(raw_data)
         self.home = home
         self.type = raw_data.get("type", 0)
 
-        def room_factory(home: Home, room_raw_data: RawData):
-            room = Room(home, room_raw_data, {})
+        def room_factory(room_home: Home, room_raw_data: RawData):
+            room = Room(room_home, room_raw_data, {})
             room.update(room_raw_data)
             return room
 
@@ -202,7 +201,9 @@ class ZoneElectricity(NetatmoBase):
 
 
 def schedule_factory(home: Home, raw_data: RawData) -> (Schedule, str):
-    type = raw_data.get("type", "custom")
-    cls =  {SCHEDULE_TYPE_THERM: ThermSchedule, SCHEDULE_TYPE_EVENT: EventSchedule, SCHEDULE_TYPE_ELECTRICITY: ElectricitySchedule, SCHEDULE_TYPE_COOLING: CoolingSchedule}.get(type, Schedule)
-    return cls(home, raw_data), type
-
+    schedule_type = raw_data.get("type", "custom")
+    cls = {SCHEDULE_TYPE_THERM: ThermSchedule,
+           SCHEDULE_TYPE_EVENT: EventSchedule,
+           SCHEDULE_TYPE_ELECTRICITY: ElectricitySchedule,
+           SCHEDULE_TYPE_COOLING: CoolingSchedule}.get(schedule_type, Schedule)
+    return cls(home, raw_data), schedule_type

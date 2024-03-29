@@ -54,9 +54,6 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     module = home.modules[module_id]
     assert module.device_type == DeviceType.NLC
 
-    strt =  1709421000
-    end_time = 1709679599
-
     strt = int(dt.datetime.fromisoformat("2024-03-03 00:10:00").timestamp())
     end_time = int(dt.datetime.fromisoformat("2024-03-05 23:59:59").timestamp())
 
@@ -66,7 +63,6 @@ async def test_historical_data_retrieval_multi(async_account_multi):
                                                     start_time=strt,
                                                     end_time=end_time
                                                     )
-
     assert isinstance(module, EnergyHistoryMixin)
 
     assert module.historical_data[0] == {'Wh': 0, 'duration': 30, 'endTime': '2024-03-02T23:40:00Z', 'endTimeUnix': 1709422800, 'energyMode': 'peak', 'startTime': '2024-03-02T23:10:01Z', 'startTimeUnix': 1709421000}
@@ -77,8 +73,8 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     assert module.sum_energy_elec_off_peak == 11219
     assert module.sum_energy_elec_peak == 31282
 
-    assert module.sum_energy_elec == async_account_multi.get_current_energy_sum()
-    assert async_account_multi.get_current_energy_sum(excluded_modules={module_id}) == 0
+    assert module.sum_energy_elec == async_account_multi.get_current_energy_sum(ok_if_none = True)[0]
+    assert async_account_multi.get_current_energy_sum(excluded_modules={module_id}, ok_if_none = True)[0] == 0
 
 
 
@@ -120,6 +116,6 @@ async def test_historical_data_retrieval_multi_2(async_account_multi):
     assert module.sum_energy_elec_peak == 890
 
 
-    sum = async_account_multi.get_current_energy_sum()
+    sum, _ = async_account_multi.get_current_energy_sum(ok_if_none = True)
 
     assert module.sum_energy_elec == sum

@@ -41,6 +41,7 @@ ATTRIBUTE_FILTER = {
     "device_category",
     "device_type",
     "features",
+    "appliance_type",
 }
 
 
@@ -286,7 +287,7 @@ class ApplianceTypeMixin(EntityBase):
         """Initialize appliance type mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.appliance_type: str | None = None
+        self.appliance_type: str | None = module.get("appliance_type", None)
 
 
 class EnergyMixin(EntityBase):

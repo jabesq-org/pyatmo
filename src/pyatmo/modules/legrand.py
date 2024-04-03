@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import (
+    ApplianceTypeMixin,
     BatteryMixin,
     ContactorMixin,
     Dimmer,
@@ -35,19 +36,19 @@ class NLT(FirmwareMixin, BatteryMixin, Module):
     """Legrand global remote control."""
 
 
-class NLP(Switch, HistoryMixin, PowerMixin, OffloadMixin, Module):
+class NLP(Switch, HistoryMixin, PowerMixin, OffloadMixin, ApplianceTypeMixin, Module):
     """Legrand plug."""
 
 
-class NLPM(Switch):
+class NLPM(Switch, ApplianceTypeMixin):
     """Legrand mobile plug."""
 
 
-class NLPO(ContactorMixin, OffloadMixin, Switch):
+class NLPO(ContactorMixin, OffloadMixin, ApplianceTypeMixin, Switch):
     """Legrand contactor."""
 
 
-class NLPT(Switch):
+class NLPT(Switch, ApplianceTypeMixin):
     """Legrand latching relay/teleruptor."""
 
 
@@ -107,7 +108,15 @@ class NLPS(FirmwareMixin, PowerMixin, EnergyMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
 
-class NLC(FirmwareMixin, SwitchMixin, HistoryMixin, PowerMixin, OffloadMixin, Module):
+class NLC(
+    FirmwareMixin,
+    SwitchMixin,
+    HistoryMixin,
+    PowerMixin,
+    OffloadMixin,
+    ApplianceTypeMixin,
+    Module,
+):
     """Legrand / BTicino cable outlet."""
 
 
@@ -159,7 +168,9 @@ class NLTS(Module):
     """NLTS motion sensor."""
 
 
-class NLPD(FirmwareMixin, SwitchMixin, EnergyMixin, PowerMixin, Module):
+class NLPD(
+    FirmwareMixin, SwitchMixin, EnergyMixin, PowerMixin, ApplianceTypeMixin, Module
+):
     """NLPD dry contact."""
 
 

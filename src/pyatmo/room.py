@@ -34,6 +34,7 @@ class Room(NetatmoBase):
     reachable: bool | None = None
     therm_setpoint_temperature: float | None = None
     therm_setpoint_mode: str | None = None
+    therm_setpoint_fp: str | None = None
     therm_measured_temperature: float | None = None
     therm_setpoint_start_time: int | None = None
     therm_setpoint_end_time: int | None = None
@@ -71,10 +72,14 @@ class Room(NetatmoBase):
     def evaluate_device_type(self) -> None:
         """Evaluate the device type of the room."""
 
+        has_radiator = False
+
         for module in self.modules.values():
             self.device_types.add(module.device_type)
             if module.device_category is not None:
                 self.features.add(module.device_category.name)
+            if module.device_type == "NLC" and module.appliance_type == "radiator":
+                has_radiator = True
 
         if "OTM" in self.device_types:
             self.climate_type = DeviceType.OTM
@@ -85,6 +90,8 @@ class Room(NetatmoBase):
         elif "BNS" in self.device_types:
             self.climate_type = DeviceType.BNS
             self.features.add("humidity")
+        elif "NLC" in self.device_types and has_radiator:
+            self.climate_type = DeviceType.NLC
 
     def update(self, raw_data: RawData) -> None:
         """Update room data."""
@@ -94,6 +101,7 @@ class Room(NetatmoBase):
         self.reachable = raw_data.get("reachable")
         self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
+        self.therm_setpoint_fp = raw_data.get("therm_setpoint_fp")
         self.therm_setpoint_temperature = raw_data.get("therm_setpoint_temperature")
         self.therm_setpoint_start_time = raw_data.get("therm_setpoint_start_time")
         self.therm_setpoint_end_time = raw_data.get("therm_setpoint_end_time")
@@ -101,11 +109,12 @@ class Room(NetatmoBase):
     async def async_therm_manual(
         self,
         temp: float | None = None,
+        fp: str | None = None,
         end_time: int | None = None,
     ) -> None:
         """Set room temperature set point to manual."""
 
-        await self.async_therm_set(MANUAL, temp, end_time)
+        await self.async_therm_set(MANUAL, temp, fp, end_time)
 
     async def async_therm_home(self, end_time: int | None = None) -> None:
         """Set room temperature set point to home."""
@@ -121,6 +130,7 @@ class Room(NetatmoBase):
         self,
         mode: str,
         temp: float | None = None,
+        fp: str | None = None,
         end_time: int | None = None,
     ) -> None:
         """Set room temperature set point."""
@@ -133,12 +143,13 @@ class Room(NetatmoBase):
             await self._async_set_thermpoint(mode, temp, end_time)
 
         else:
-            await self._async_therm_set(mode, temp, end_time)
+            await self._async_therm_set(mode, temp, fp, end_time)
 
     async def _async_therm_set(
         self,
         mode: str,
         temp: float | None = None,
+        fp: str | None = None,
         end_time: int | None = None,
     ) -> bool:
         """Set room temperature set point (OTM)."""
@@ -157,6 +168,9 @@ class Room(NetatmoBase):
 
         if end_time:
             json_therm_set["rooms"][0]["therm_setpoint_end_time"] = end_time
+
+        if fp:
+            json_therm_set["rooms"][0]["therm_setpoint_fp"] = fp
 
         return await self.home.async_set_state(json_therm_set)
 

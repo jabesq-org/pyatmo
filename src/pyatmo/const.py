@@ -88,6 +88,8 @@ FROSTGUARD = "hg"
 SCHEDULES = "schedules"
 EVENTS = "events"
 
+COMFORT = "comfort"
+AWAY = "away"
 
 STATION_TEMPERATURE_TYPE = "temperature"
 STATION_PRESSURE_TYPE = "pressure"

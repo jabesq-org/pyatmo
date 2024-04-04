@@ -605,15 +605,13 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec: int | None = None
         self.sum_energy_elec_peak: int | None = None
         self.sum_energy_elec_off_peak: int | None = None
-        self.last_computed_start: int | None = None
-        self.last_computed_end: int | None = None
+        self._last_energy_from_API_end_for_power_adjustment_calculus: int | None = None
         self.in_reset: bool | False = False
 
     def reset_measures(self):
         self.in_reset = True
         self.historical_data = []
-        self.last_computed_start = None
-        self.last_computed_end = None
+        self._last_energy_from_API_end_for_power_adjustment_calculus = None
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
@@ -632,7 +630,7 @@ class EnergyHistoryMixin(EntityBase):
             if to_ts is None:
                 to_ts = time()
 
-            from_ts = self.last_computed_end
+            from_ts = self._last_energy_from_API_end_for_power_adjustment_calculus
 
             if (from_ts is not None and from_ts < to_ts and
                     isinstance(self, PowerMixin) and isinstance(self, NetatmoBase)):
@@ -850,8 +848,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
-        self.last_computed_start = start_time
-        self.last_computed_end = start_time  # no data at all: we know nothing for the end: best guess, it is the start
+        self._last_energy_from_API_end_for_power_adjustment_calculus = start_time  # no data at all: we know nothing for the end: best guess, it is the start
         self.in_reset = False
 
         if len(hist_good_vals) == 0:
@@ -867,6 +864,7 @@ class EnergyHistoryMixin(EntityBase):
 
             computed_start = 0
             computed_end = 0
+            computed_end_for_calculus = 0
             for cur_start_time, val, cur_peak_or_off_peak_mode in hist_good_vals:
 
                 self.sum_energy_elec += val
@@ -887,6 +885,7 @@ class EnergyHistoryMixin(EntityBase):
                 if computed_start == 0:
                     computed_start = c_start
                 computed_end = c_end
+                computed_end_for_calculus = c_end - delta_range #it seems the energy value effectively stops at those mid values
 
                 start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z"
                 end_time_string = f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z"
@@ -922,8 +921,7 @@ class EnergyHistoryMixin(EntityBase):
                     datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
                     prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
 
-            self.last_computed_start = computed_start
-            self.last_computed_end = computed_end
+            self._last_energy_from_API_end_for_power_adjustment_calculus = computed_end_for_calculus
 
         return num_calls
 

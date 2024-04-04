@@ -175,7 +175,8 @@ class AsyncAccount:
                                power_adapted: bool = True,
                                to_ts: int | float | None = None,
                                excluded_modules: set[str] | None = None,
-                               ok_if_none: bool = False):
+                               ok_if_none: bool = False,
+                               conservative: bool = False):
 
         energy_sum = 0
         is_in_reset = False
@@ -194,7 +195,7 @@ class AsyncAccount:
                         is_in_reset = True
                         break
                     if power_adapted:
-                        v, delta_energy = module.get_sum_energy_elec_power_adapted(to_ts=to_ts)
+                        v, delta_energy = module.get_sum_energy_elec_power_adapted(to_ts=to_ts, conservative=conservative)
                     else:
                         delta_energy = 0
                         v = module.sum_energy_elec

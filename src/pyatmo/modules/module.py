@@ -616,7 +616,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
 
-    def get_sum_energy_elec_power_adapted(self, to_ts: int | float | None = None):
+    def get_sum_energy_elec_power_adapted(self, to_ts: int | float | None = None, conservative: bool = False):
 
         v = self.sum_energy_elec
 
@@ -647,9 +647,12 @@ class EnergyHistoryMixin(EntityBase):
 
                         dt_h = float(power_data[i+1][0] - power_data[i][0])/3600.0
 
-                        d_p_w = abs(float(power_data[i+1][1] - power_data[i][1]))
+                        if conservative:
+                            d_p_w = 0
+                        else:
+                            d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
 
-                        d_nrj_wh = dt_h*(min(power_data[i+1][1], power_data[i][1]) + 0.5*d_p_w)
+                        d_nrj_wh = dt_h*(min(power_data[i + 1][1], power_data[i][1]) + 0.5*d_p_w)
 
                         delta_energy += d_nrj_wh
 

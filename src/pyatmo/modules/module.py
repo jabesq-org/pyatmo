@@ -888,7 +888,7 @@ class EnergyHistoryMixin(EntityBase):
                 if computed_start == 0:
                     computed_start = c_start
                 computed_end = c_end
-                computed_end_for_calculus = c_end - delta_range #it seems the energy value effectively stops at those mid values
+                computed_end_for_calculus = c_end # - delta_range #not sure, revert ... it seems the energy value effectively stops at those mid values
 
                 start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z"
                 end_time_string = f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z"

@@ -185,23 +185,23 @@ class Home:
 
         data = raw_data["home"]
 
-        num_updated_modules = 0
+        has_an_update = False
         for module in data.get("modules", []):
-            num_updated_modules += 1
+            has_an_update = True
             if module["id"] not in self.modules:
                 self.update_topology({"modules": [module]})
             await self.modules[module["id"]].update(module)
 
-        num_updated_rooms = 0
         for room in data.get("rooms", []):
-            num_updated_rooms += 1
+            has_an_update = True
             self.rooms[room["id"]].update(room)
 
         self.events = {
             s["id"]: Event(home_id=self.entity_id, raw_data=s)
             for s in data.get(EVENTS, [])
         }
-        num_events = len(self.events)
+        if len(self.events) > 0:
+            has_an_update = True
 
         has_one_module_reachable = False
         for module in self.modules.values():
@@ -218,7 +218,7 @@ class Home:
                     ],
                 )
 
-        if num_errors > 0 and has_one_module_reachable  is False and num_updated_modules == 0 and  num_updated_rooms == 0 and num_events == 0:
+        if num_errors > 0 and has_one_module_reachable  is False and has_an_update is False:
             return False
 
         return True

@@ -43,6 +43,12 @@ class ApiErrorThrottling(ApiError):
     pass
 
 
+class ApiHomeReachabilityError(ApiError):
+    """Raised when an API error is encountered."""
+
+    pass
+
+
 class InvalidState(Exception):
     """Raised when an invalid state is encountered."""
 

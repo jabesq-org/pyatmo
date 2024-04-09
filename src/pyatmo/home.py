@@ -176,27 +176,37 @@ class Home:
 
         self._handle_schedules(raw_data.get(SCHEDULES, []))
 
-    async def update(self, raw_data: RawData) -> None:
+    async def update(self, raw_data: RawData) -> bool:
         """Update home with the latest data."""
-
+        num_errors = 0
         for module in raw_data.get("errors", []):
+            num_errors += 1
             await self.modules[module["id"]].update({})
 
         data = raw_data["home"]
 
+        num_updated_modules = 0
         for module in data.get("modules", []):
+            num_updated_modules += 1
             if module["id"] not in self.modules:
                 self.update_topology({"modules": [module]})
             await self.modules[module["id"]].update(module)
 
+        num_updated_rooms = 0
         for room in data.get("rooms", []):
+            num_updated_rooms += 1
             self.rooms[room["id"]].update(room)
 
         self.events = {
             s["id"]: Event(home_id=self.entity_id, raw_data=s)
             for s in data.get(EVENTS, [])
         }
+        num_events = len(self.events)
+
+        has_one_module_reachable = False
         for module in self.modules.values():
+            if module.reachable:
+                has_one_module_reachable = True
             if hasattr(module, "events"):
                 setattr(
                     module,
@@ -207,6 +217,16 @@ class Home:
                         if getattr(event, "module_id") == module.entity_id
                     ],
                 )
+
+        if num_errors > 0 and has_one_module_reachable  is False and num_updated_modules == 0 and  num_updated_rooms == 0 and num_events == 0:
+            return False
+
+        return True
+
+
+
+
+
 
     def get_selected_schedule(self, schedule_type: str = None) -> Schedule | None:
         """Return selected schedule for given home."""

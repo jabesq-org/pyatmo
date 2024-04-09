@@ -1,6 +1,6 @@
 """Define tests for energy module."""
 
-from pyatmo import DeviceType
+from pyatmo import DeviceType, ApiHomeReachabilityError
 import pytest
 
 import time_machine
@@ -9,6 +9,14 @@ import datetime as dt
 from pyatmo.const import MeasureInterval
 from pyatmo.modules.module import EnergyHistoryMixin
 
+
+import json
+from unittest.mock import AsyncMock, patch
+
+from pyatmo import DeviceType, NoSchedule
+import pytest
+
+from tests.common import MockResponse, fake_post_request
 
 # pylint: disable=F6401
 
@@ -119,3 +127,26 @@ async def test_historical_data_retrieval_multi_2(async_account_multi):
     sum, _ = async_account_multi.get_current_energy_sum(ok_if_none = True)
 
     assert module.sum_energy_elec == sum
+
+async def test_disconnected_main_bridge(async_account_multi):
+    """Test retrieval of historical measurements."""
+    home_id = "aaaaaaaaaaabbbbbbbbbbccc"
+
+    with open(
+        "fixtures/home_multi_status_error_disconnected.json",
+        encoding="utf-8",
+    ) as json_file:
+        home_status_fixture = json.load(json_file)
+    mock_home_status_resp = MockResponse(home_status_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=mock_home_status_resp),
+    ) as mock_request:
+        try:
+            await async_account_multi.async_update_status(home_id)
+        except ApiHomeReachabilityError:
+            pass # expected error
+        else:
+            assert False
+

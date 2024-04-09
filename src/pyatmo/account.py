@@ -19,6 +19,7 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     RawData, MeasureInterval,
 )
+from pyatmo.exceptions import ApiHomeReachabilityError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Module
@@ -115,14 +116,20 @@ class AsyncAccount:
         else:
             homes = [home_id]
         num_calls = 0
+        all_homes_ok = True
         for h_id in homes:
             resp = await self.auth.async_post_api_request(
                 endpoint=GETHOMESTATUS_ENDPOINT,
                 params={"home_id": h_id},
             )
             raw_data = extract_raw_data(await resp.json(), HOME)
-            await self.all_account_homes[h_id].update(raw_data)
+            is_correct_update = await self.all_account_homes[h_id].update(raw_data)
+            if not is_correct_update:
+                all_homes_ok = False
             num_calls += 1
+
+        if all_homes_ok is False:
+            raise ApiHomeReachabilityError("No Home update could be performed, all modules unreachable and not updated", )
 
         return num_calls
 

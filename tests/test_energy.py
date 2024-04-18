@@ -81,8 +81,6 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     assert module.sum_energy_elec_off_peak == 11219
     assert module.sum_energy_elec_peak == 31282
 
-    assert module.sum_energy_elec == async_account_multi.get_current_energy_sum(ok_if_none = True)[0]
-    assert async_account_multi.get_current_energy_sum(excluded_modules={module_id}, ok_if_none = True)[0] == 0
 
 
 
@@ -122,11 +120,6 @@ async def test_historical_data_retrieval_multi_2(async_account_multi):
     assert module.sum_energy_elec == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
     assert module.sum_energy_elec_off_peak == 780
     assert module.sum_energy_elec_peak == 890
-
-
-    sum, _ = async_account_multi.get_current_energy_sum(ok_if_none = True)
-
-    assert module.sum_energy_elec == sum
 
 async def test_disconnected_main_bridge(async_account_multi):
     """Test retrieval of historical measurements."""

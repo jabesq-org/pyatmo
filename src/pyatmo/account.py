@@ -178,43 +178,6 @@ class AsyncAccount:
         )
         return num_calls
 
-    def get_current_energy_sum(self,
-                               power_adapted: bool = True,
-                               to_ts: int | float | None = None,
-                               excluded_modules: set[str] | None = None,
-                               ok_if_none: bool = False,
-                               conservative: bool = False):
-
-        energy_sum = 0
-        is_in_reset = False
-
-        if excluded_modules is None:
-            excluded_modules = set()
-
-        for h_id, home in self.homes.items():
-            if is_in_reset:
-                break
-            for m_id, module in home.modules.items():
-                if m_id in excluded_modules:
-                    continue
-                if isinstance(module, EnergyHistoryMixin):
-                    if module.in_reset:
-                        is_in_reset = True
-                        break
-                    if power_adapted:
-                        v, delta_energy = module.get_sum_energy_elec_power_adapted(to_ts=to_ts, conservative=conservative)
-                    else:
-                        delta_energy = 0
-                        v = module.sum_energy_elec
-                    if v is not None:
-                        energy_sum += v + delta_energy
-                    elif ok_if_none is False:
-                        return None, False
-        if is_in_reset:
-            return 0, is_in_reset
-
-        return energy_sum, is_in_reset
-
     def register_public_weather_area(
         self,
         lat_ne: str,

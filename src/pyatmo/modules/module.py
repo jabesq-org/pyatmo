@@ -744,7 +744,7 @@ class EnergyHistoryMixin(EntityBase):
             # historical data for this time range
 
             LOG.debug(
-                "=> NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
+                "NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
                 self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
         else:

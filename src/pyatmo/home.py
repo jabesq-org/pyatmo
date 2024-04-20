@@ -40,7 +40,7 @@ class Home:
     name: str
     rooms: dict[str, Room]
     modules: dict[str, Module]
-    schedules: dict[str, ThermSchedule]  # for compatibility should diseappear
+    schedules: dict[str, Schedule]  # for compatibility should diseappear
     all_schedules: dict[dict[str, str, Schedule]] | {}
     persons: dict[str, Person]
     events: dict[str, Event]
@@ -75,14 +75,16 @@ class Home:
 
         schedules = {}
 
+        self.schedules = {}
+
         for s in raw_data:
             # strange but Energy plan are stored in schedules, we should handle this one differently
             sched, schedule_type = schedule_factory(home=self, raw_data=s)
             if schedule_type not in schedules:
                 schedules[schedule_type] = {}
             schedules[schedule_type][s["id"]] = sched
+            self.schedules[s["id"]] = sched
 
-        self.schedules = schedules.get(SCHEDULE_TYPE_THERM, {})
         self.all_schedules = schedules
 
         nrj_schedule = next(iter(schedules.get(SCHEDULE_TYPE_ELECTRICITY, {}).values()), None)

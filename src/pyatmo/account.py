@@ -23,7 +23,6 @@ from pyatmo.exceptions import ApiHomeReachabilityError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Module
-from pyatmo.modules.module import EnergyHistoryMixin
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -87,12 +86,6 @@ class AsyncAccount:
 
         self.update_supported_homes(self.support_only_homes)
 
-    def find_from_all_homes(self, home_id):
-        home = self.all_account_homes.get(home_id)
-        if home is None:
-            home = self.additional_public_homes.get(home_id)
-        return home
-
     async def async_update_topology(self) -> int:
         """Retrieve topology data from /homesdata. Returns the number of performed API calls"""
 
@@ -123,7 +116,7 @@ class AsyncAccount:
                 params={"home_id": h_id},
             )
             raw_data = extract_raw_data(await resp.json(), HOME)
-            is_correct_update = await self.all_account_homes[h_id].update(raw_data)
+            is_correct_update = await self.homes[h_id].update(raw_data)
             if not is_correct_update:
                 all_homes_ok = False
             num_calls += 1
@@ -140,7 +133,7 @@ class AsyncAccount:
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data(await resp.json(), HOME)
-        await self.all_account_homes[home_id].update(raw_data)
+        await self.homes[home_id].update(raw_data)
 
         return 1
 
@@ -170,7 +163,7 @@ class AsyncAccount:
     ) -> int:
         """Retrieve measures data from /getmeasure. Returns the number of performed API calls"""
 
-        num_calls = await getattr(self.find_from_all_homes(home_id).modules[module_id], "async_update_measures")(
+        num_calls = await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
             start_time=start_time,
             end_time=end_time,
             interval=interval,
@@ -263,9 +256,7 @@ class AsyncAccount:
                 "home_id",
                 self.find_home_of_device(device_data),
             ):
-                home = self.find_from_all_homes(home_id)
-
-                if home is None:
+                if home_id not in self.homes:
                     modules_data = []
                     for module_data in device_data.get("modules", []):
                         module_data["home_id"] = home_id
@@ -274,7 +265,7 @@ class AsyncAccount:
                         modules_data.append(normalize_weather_attributes(module_data))
                     modules_data.append(normalize_weather_attributes(device_data))
 
-                    home = Home(
+                    self.additional_public_homes[home_id] = Home(
                         self.auth,
                         raw_data={
                             "id": home_id,
@@ -282,15 +273,13 @@ class AsyncAccount:
                             "modules": modules_data,
                         },
                     )
+                    self.update_supported_homes(self.support_only_homes)
 
-                    self.additional_public_homes[home_id] = home
-                await home.update(
+                await self.homes[home_id].update(
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
                 LOG.debug("No home %s found.", home_id)
-
-            self.update_supported_homes(self.support_only_homes)
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id
@@ -325,15 +314,14 @@ class AsyncAccount:
 
     def find_home_of_device(self, device_data: dict[str, Any]) -> str | None:
         """Find home_id of device."""
-        for home_id, home in self.all_account_homes.items():
-            if device_data["_id"] in home.modules:
-                return home_id
-
-        for home_id, home in self.additional_public_homes.items():
-            if device_data["_id"] in home.modules:
-                return home_id
-
-        return None
+        return next(
+            (
+                home_id
+                for home_id, home in self.homes.items()
+                if device_data["_id"] in home.modules
+            ),
+            None,
+        )
 
 
 ATTRIBUTES_TO_FIX = {

@@ -175,6 +175,11 @@ class Home:
 
         return any("OTM" in room.device_types for room in self.rooms.values())
 
+    def has_bns(self) -> bool:
+        """Check if any room has a BNS device."""
+
+        return any("BNS" in room.device_types for room in self.rooms.values())
+
     def get_hg_temp(self) -> float | None:
         """Return frost guard temperature value for given home."""
 

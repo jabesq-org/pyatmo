@@ -59,6 +59,7 @@ class AsyncAccount:
         )
 
     def update_supported_homes(self, support_only_homes: list | None = None):
+        """Update the exposed/supported homes."""
 
         if support_only_homes is None or len(support_only_homes) == 0:
             self.homes = copy.copy(self.all_account_homes)
@@ -72,7 +73,7 @@ class AsyncAccount:
         if len(self.homes) == 0:
             self.homes = copy.copy(self.all_account_homes)
 
-        self.support_only_homes = [h_id for h_id in self.homes]
+        self.support_only_homes = list(self.homes)
 
         self.homes.update(self.additional_public_homes)
 
@@ -88,7 +89,7 @@ class AsyncAccount:
         self.update_supported_homes(self.support_only_homes)
 
     async def async_update_topology(self) -> int:
-        """Retrieve topology data from /homesdata. Returns the number of performed API calls"""
+        """Retrieve topology data from /homesdata. Returns the number of performed API calls."""
 
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
@@ -102,7 +103,7 @@ class AsyncAccount:
         return 1
 
     async def async_update_status(self, home_id: str | None = None) -> int:
-        """Retrieve status data from /homestatus. Returns the number of performed API calls"""
+        """Retrieve status data from /homestatus. Returns the number of performed API calls."""
 
         if home_id is None:
             self.update_supported_homes(self.support_only_homes)
@@ -129,7 +130,7 @@ class AsyncAccount:
         return num_calls
 
     async def async_update_events(self, home_id: str) -> int:
-        """Retrieve events from /getevents. Returns the number of performed API calls"""
+        """Retrieve events from /getevents. Returns the number of performed API calls."""
         resp = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
@@ -140,7 +141,7 @@ class AsyncAccount:
         return 1
 
     async def async_update_weather_stations(self) -> int:
-        """Retrieve status data from /getstationsdata. Returns the number of performed API calls"""
+        """Retrieve status data from /getstationsdata. Returns the number of performed API calls."""
         params = {"get_favorites": ("true" if self.favorite_stations else "false")}
         await self._async_update_data(
             GETSTATIONDATA_ENDPOINT,
@@ -149,7 +150,7 @@ class AsyncAccount:
         return 1
 
     async def async_update_air_care(self) -> int:
-        """Retrieve status data from /gethomecoachsdata. Returns the number of performed API calls"""
+        """Retrieve status data from /gethomecoachsdata. Returns the number of performed API calls."""
         await self._async_update_data(GETHOMECOACHDATA_ENDPOINT)
 
         return 1
@@ -163,7 +164,7 @@ class AsyncAccount:
             days: int = 7,
             end_time: int | None = None
     ) -> int:
-        """Retrieve measures data from /getmeasure. Returns the number of performed API calls"""
+        """Retrieve measures data from /getmeasure. Returns the number of performed API calls."""
 
         num_calls = await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
             start_time=start_time,
@@ -197,7 +198,7 @@ class AsyncAccount:
         return area_id
 
     async def async_update_public_weather(self, area_id: str) -> int:
-        """Retrieve status data from /getpublicdata. Returns the number of performed API calls"""
+        """Retrieve status data from /getpublicdata. Returns the number of performed API calls."""
         params = {
             "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
             "lon_ne": self.public_weather_areas[area_id].location.lon_ne,
@@ -229,7 +230,7 @@ class AsyncAccount:
         await self.update_devices(raw_data, area_id)
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> int:
-        """Modify device state by passing JSON specific to the device. Returns the number of performed API calls"""
+        """Modify device state by passing JSON specific to the device. Returns the number of performed API calls."""
         LOG.debug("Setting state: %s", data)
 
         post_params = {

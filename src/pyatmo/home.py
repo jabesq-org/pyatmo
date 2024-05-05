@@ -243,6 +243,8 @@ class Home:
         )
 
     def get_selected_temperature_schedule(self) -> ThermSchedule | None:
+        """Return selected temperature schedule for given home."""
+
         return self.get_selected_schedule(schedule_type=SCHEDULE_TYPE_THERM)
 
     def is_valid_schedule(self, schedule_id: str) -> bool:

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import bisect
-import logging
 from abc import ABC
+import bisect
 from collections.abc import Iterable
 from dataclasses import dataclass
+import logging
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
@@ -121,6 +121,7 @@ class NetatmoBase(EntityBase, ABC):
                     hist_f.pop(0)
 
     def get_history_data(self, feature: str, from_ts: int, to_ts: int | None = None):
+        """Retrieve historical data."""
 
         hist_f = self.history_features_values.get(feature, [])
 

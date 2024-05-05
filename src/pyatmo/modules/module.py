@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import copy
-import logging
 from datetime import datetime, timedelta, timezone
+import logging
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
@@ -613,6 +613,7 @@ class EnergyHistoryMixin(EntityBase):
         self.in_reset: bool | False = False
 
     def reset_measures(self):
+        """Reset energy measures."""
         self.in_reset = True
         self.historical_data = []
         self._last_energy_from_API_end_for_power_adjustment_calculus = None
@@ -621,6 +622,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak = 0
 
     def compute_rieman_sum(self, power_data, conservative: bool = False):
+        """Compute energy from power with a rieman sum."""
 
         delta_energy = 0
         if len(power_data) > 1:
@@ -649,7 +651,7 @@ class EnergyHistoryMixin(EntityBase):
     def get_sum_energy_elec_power_adapted(
             self, to_ts: int | float | None = None, conservative: bool = False
     ):
-
+        """Compute proper energy value with adaptation from power."""
         v = self.sum_energy_elec
 
         if v is None:
@@ -673,8 +675,8 @@ class EnergyHistoryMixin(EntityBase):
                 power_data = self.get_history_data(
                     "power", from_ts=from_ts, to_ts=to_ts
                 )
-
-                delta_energy = self.compute_rieman_sum(power_data, conservative)
+                if isinstance(self, EnergyHistoryMixin): #well to please the linter....
+                    delta_energy = self.compute_rieman_sum(power_data, conservative)
 
         return v, delta_energy
 
@@ -682,7 +684,7 @@ class EnergyHistoryMixin(EntityBase):
         if body is None:
             body = "NO BODY"
         LOG.debug(
-            "ENERGY collection error %s %s %s %s",
+            "ENERGY collection error %s %s %s %s %s %s %s",
             msg,
             self.name,
             datetime.fromtimestamp(start_time),
@@ -693,6 +695,7 @@ class EnergyHistoryMixin(EntityBase):
         )
 
     def update_measures_num_calls(self):
+        """Get number of possible endpoint calls."""
 
         if not self.home.energy_endpoints:
             return 1
@@ -902,7 +905,7 @@ class EnergyHistoryMixin(EntityBase):
                         f"Energy badly formed resp beg_time missing: {raw_datas[cur_peak_or_off_peak_mode]} - "
                         f"module: {self.name} - "
                         f"when accessing '{data_points[cur_peak_or_off_peak_mode]}'"
-                    )
+                    ) from None
 
                 interval_sec = values_lot.get("step_time")
                 if interval_sec is None:

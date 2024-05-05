@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
-import logging
 from abc import ABC, abstractmethod
+import asyncio
 from json import JSONDecodeError
+import logging
 from typing import Any
 
 from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError
@@ -168,6 +168,7 @@ class AbstractAsyncAuth(ABC):
         return req_args
 
     def prepare_request_get_arguments(self, params):
+        """Prepare get request arguments."""
         return params
 
     async def process_response(self, resp, url):

@@ -39,10 +39,10 @@ class Room(NetatmoBase):
     therm_setpoint_end_time: int | None = None
 
     def __init__(
-        self,
-        home: Home,
-        room: dict[str, Any],
-        all_modules: dict[str, Module],
+            self,
+            home: Home,
+            room: dict[str, Any],
+            all_modules: dict[str, Module],
     ) -> None:
         """Initialize a Netatmo room instance."""
 
@@ -99,9 +99,9 @@ class Room(NetatmoBase):
         self.therm_setpoint_end_time = raw_data.get("therm_setpoint_end_time")
 
     async def async_therm_manual(
-        self,
-        temp: float | None = None,
-        end_time: int | None = None,
+            self,
+            temp: float | None = None,
+            end_time: int | None = None,
     ) -> None:
         """Set room temperature set point to manual."""
 
@@ -118,17 +118,17 @@ class Room(NetatmoBase):
         await self.async_therm_set(FROSTGUARD, end_time=end_time)
 
     async def async_therm_set(
-        self,
-        mode: str,
-        temp: float | None = None,
-        end_time: int | None = None,
+            self,
+            mode: str,
+            temp: float | None = None,
+            end_time: int | None = None,
     ) -> None:
         """Set room temperature set point."""
 
         mode = MODE_MAP.get(mode, mode)
 
         if "NATherm1" in self.device_types or (
-            "NRV" in self.device_types and not self.home.has_otm()
+                "NRV" in self.device_types and not self.home.has_otm()
         ):
             await self._async_set_thermpoint(mode, temp, end_time)
 
@@ -136,10 +136,10 @@ class Room(NetatmoBase):
             await self._async_therm_set(mode, temp, end_time)
 
     async def _async_therm_set(
-        self,
-        mode: str,
-        temp: float | None = None,
-        end_time: int | None = None,
+            self,
+            mode: str,
+            temp: float | None = None,
+            end_time: int | None = None,
     ) -> bool:
         """Set room temperature set point (OTM)."""
 
@@ -161,10 +161,10 @@ class Room(NetatmoBase):
         return await self.home.async_set_state(json_therm_set)
 
     async def _async_set_thermpoint(
-        self,
-        mode: str,
-        temp: float | None = None,
-        end_time: int | None = None,
+            self,
+            mode: str,
+            temp: float | None = None,
+            end_time: int | None = None,
     ) -> None:
         """Set room temperature set point (NRV, NATherm1)."""
 

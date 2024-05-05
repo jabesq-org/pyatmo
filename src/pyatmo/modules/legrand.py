@@ -7,10 +7,11 @@ import logging
 from pyatmo.modules.module import (
     BatteryMixin,
     ContactorMixin,
+    DimmableMixin,
     Dimmer,
+    EnergyHistoryMixin,
     Fan,
     FirmwareMixin,
-    EnergyHistoryMixin,
     Module,
     OffloadMixin,
     PowerMixin,
@@ -18,10 +19,11 @@ from pyatmo.modules.module import (
     ShutterMixin,
     Switch,
     SwitchMixin,
-    WifiMixin, DimmableMixin,
+    WifiMixin,
 )
 
 LOG = logging.getLogger(__name__)
+
 
 # pylint: disable=R0901
 

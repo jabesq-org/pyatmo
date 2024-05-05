@@ -21,7 +21,6 @@ from time import time
 
 LOG = logging.getLogger(__name__)
 
-
 NETATMO_ATTRIBUTES_MAP = {
     "entity_id": lambda x, y: x.get("id", y),
     "modules": lambda x, y: x.get("modules_bridged", y),
@@ -60,7 +59,7 @@ class EntityBase:
 
 
 # 2 days of dynamic historical data stored
-MAX_HISTORY_TIME_S = 24*2*3600
+MAX_HISTORY_TIME_S = 24 * 2 * 3600
 
 
 class NetatmoBase(EntityBase, ABC):
@@ -80,9 +79,9 @@ class NetatmoBase(EntityBase, ABC):
         self._update_attributes(raw_data)
 
         if (
-            self.bridge
-            and self.bridge in self.home.modules
-            and getattr(self, "device_category") == "weather"
+                self.bridge
+                and self.bridge in self.home.modules
+                and getattr(self, "device_category") == "weather"
         ):
             self.name = update_name(self.name, self.home.modules[self.bridge].name)
 
@@ -169,8 +168,8 @@ class Place:
     location: Location | None
 
     def __init__(
-        self,
-        data: dict[str, Any],
+            self,
+            data: dict[str, Any],
     ) -> None:
         """Initialize self."""
 

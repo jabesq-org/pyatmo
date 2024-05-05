@@ -7,6 +7,7 @@ from enum import Enum
 
 LOG = logging.getLogger(__name__)
 
+
 # pylint: disable=W0613
 
 
@@ -204,7 +205,6 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.BNCS: DeviceCategory.switch,
     DeviceType.NLLF: DeviceCategory.fan,
 }
-
 
 DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     # Netatmo Climate/Energy

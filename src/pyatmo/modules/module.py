@@ -4,17 +4,17 @@ from __future__ import annotations
 
 import copy
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
 
 from pyatmo.const import (
-    GETMEASURE_ENDPOINT,
-    RawData,
-    MeasureInterval,
     ENERGY_ELEC_PEAK_IDX,
+    GETMEASURE_ENDPOINT,
     MEASURE_INTERVAL_TO_SECONDS,
+    MeasureInterval,
+    RawData,
 )
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
@@ -23,7 +23,6 @@ from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, Dev
 if TYPE_CHECKING:
     from pyatmo.event import Event
     from pyatmo.home import Home
-
 
 import bisect
 from operator import itemgetter
@@ -640,7 +639,7 @@ class EnergyHistoryMixin(EntityBase):
                     d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
 
                 d_nrj_wh = dt_h * (
-                    min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
+                        min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
                 )
 
                 delta_energy += d_nrj_wh
@@ -648,7 +647,7 @@ class EnergyHistoryMixin(EntityBase):
         return delta_energy
 
     def get_sum_energy_elec_power_adapted(
-        self, to_ts: int | float | None = None, conservative: bool = False
+            self, to_ts: int | float | None = None, conservative: bool = False
     ):
 
         v = self.sum_energy_elec
@@ -666,12 +665,11 @@ class EnergyHistoryMixin(EntityBase):
             from_ts = self._last_energy_from_API_end_for_power_adjustment_calculus
 
             if (
-                from_ts is not None
-                and from_ts < to_ts
-                and isinstance(self, PowerMixin)
-                and isinstance(self, NetatmoBase)
+                    from_ts is not None
+                    and from_ts < to_ts
+                    and isinstance(self, PowerMixin)
+                    and isinstance(self, NetatmoBase)
             ):
-
                 power_data = self.get_history_data(
                     "power", from_ts=from_ts, to_ts=to_ts
                 )
@@ -702,11 +700,11 @@ class EnergyHistoryMixin(EntityBase):
             return len(self.home.energy_endpoints)
 
     async def async_update_measures(
-        self,
-        start_time: int | None = None,
-        end_time: int | None = None,
-        interval: MeasureInterval = MeasureInterval.HOUR,
-        days: int = 7,
+            self,
+            start_time: int | None = None,
+            end_time: int | None = None,
+            interval: MeasureInterval = MeasureInterval.HOUR,
+            days: int = 7,
     ) -> int | None:
         """Update historical data."""
 
@@ -790,15 +788,15 @@ class EnergyHistoryMixin(EntityBase):
         return num_calls
 
     async def _prepare_exported_historical_data(
-        self,
-        start_time,
-        end_time,
-        delta_range,
-        hist_good_vals,
-        prev_end_time,
-        prev_start_time,
-        prev_sum_energy_elec,
-        peak_off_peak_mode,
+            self,
+            start_time,
+            end_time,
+            delta_range,
+            hist_good_vals,
+            prev_end_time,
+            prev_start_time,
+            prev_sum_energy_elec,
+            peak_off_peak_mode,
     ):
         computed_start = 0
         computed_end = 0
@@ -839,8 +837,8 @@ class EnergyHistoryMixin(EntityBase):
                 },
             )
         if (
-            prev_sum_energy_elec is not None
-            and prev_sum_energy_elec > self.sum_energy_elec
+                prev_sum_energy_elec is not None
+                and prev_sum_energy_elec > self.sum_energy_elec
         ):
             msg = (
                 "ENERGY GOING DOWN %s from: %s to %s "
@@ -879,14 +877,14 @@ class EnergyHistoryMixin(EntityBase):
         )
 
     async def _get_aligned_energy_values_and_mode(
-        self,
-        start_time,
-        end_time,
-        delta_range,
-        energy_schedule_vals,
-        peak_off_peak_mode,
-        raw_datas,
-        data_points,
+            self,
+            start_time,
+            end_time,
+            delta_range,
+            energy_schedule_vals,
+            peak_off_peak_mode,
+            raw_datas,
+            data_points,
     ):
         hist_good_vals = []
         for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
@@ -940,8 +938,8 @@ class EnergyHistoryMixin(EntityBase):
                         )
 
                         if (
-                            self.home.energy_schedule_vals[idx_limit][1]
-                            != cur_peak_or_off_peak_mode
+                                self.home.energy_schedule_vals[idx_limit][1]
+                                != cur_peak_or_off_peak_mode
                         ):
 
                             # we are NOT in a proper schedule time for this time span ...
@@ -963,8 +961,8 @@ class EnergyHistoryMixin(EntityBase):
                             else:
                                 # by construction of the energy schedule the next one should be of opposite mode
                                 if (
-                                    energy_schedule_vals[idx_limit + 1][1]
-                                    != cur_peak_or_off_peak_mode
+                                        energy_schedule_vals[idx_limit + 1][1]
+                                        != cur_peak_or_off_peak_mode
                                 ):
                                     self._log_energy_error(
                                         start_time,
@@ -980,12 +978,12 @@ class EnergyHistoryMixin(EntityBase):
 
                                 start_time_to_get_closer = energy_schedule_vals[
                                     idx_limit + 1
-                                ][0]
+                                    ][0]
                                 diff_t = start_time_to_get_closer - srt_mid
                                 cur_start_time = (
-                                    day_origin
-                                    + srt_beg
-                                    + (diff_t // interval_sec + 1) * interval_sec
+                                        day_origin
+                                        + srt_beg
+                                        + (diff_t // interval_sec + 1) * interval_sec
                                 )
 
                     hist_good_vals.append(
@@ -997,7 +995,7 @@ class EnergyHistoryMixin(EntityBase):
         return hist_good_vals
 
     async def _compute_proper_energy_schedule_offsets(
-        self, start_time, end_time, interval_sec, raw_datas, data_points
+            self, start_time, end_time, interval_sec, raw_datas, data_points
     ):
         max_interval_sec = interval_sec
         for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
@@ -1168,6 +1166,5 @@ class Fan(FirmwareMixin, FanSpeedMixin, PowerMixin, Module):
     """Class to represent a Netatmo ventilation device."""
 
     ...
-
 
 # pylint: enable=too-many-ancestors

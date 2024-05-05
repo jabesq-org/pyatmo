@@ -6,8 +6,13 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pyatmo.const import RawData, SCHEDULE_TYPE_THERM, SCHEDULE_TYPE_EVENT, SCHEDULE_TYPE_ELECTRICITY, \
-    SCHEDULE_TYPE_COOLING
+from pyatmo.const import (
+    SCHEDULE_TYPE_COOLING,
+    SCHEDULE_TYPE_ELECTRICITY,
+    SCHEDULE_TYPE_EVENT,
+    SCHEDULE_TYPE_THERM,
+    RawData,
+)
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.room import Room
 
@@ -146,7 +151,6 @@ class TimetableEventEntry:
 
 
 class ModuleSchedule(NetatmoBase):
-
     on: bool | None
     target_position: int | None
     fan_speed: int | None

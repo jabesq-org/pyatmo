@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import copy
-from datetime import datetime, timezone, timedelta
 import logging
+from datetime import datetime, timezone, timedelta
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
 
-from pyatmo.const import GETMEASURE_ENDPOINT, RawData, MeasureInterval, ENERGY_ELEC_PEAK_IDX, \
-    MEASURE_INTERVAL_TO_SECONDS
+from pyatmo.const import (
+    GETMEASURE_ENDPOINT,
+    RawData,
+    MeasureInterval,
+    ENERGY_ELEC_PEAK_IDX,
+    MEASURE_INTERVAL_TO_SECONDS,
+)
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -48,7 +53,7 @@ ATTRIBUTE_FILTER = {
     "device_type",
     "features",
     "history_features",
-    "history_features_values"
+    "history_features_values",
 }
 
 
@@ -616,9 +621,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
 
-
-
-    def compute_rieman_sum(self, power_data,  conservative: bool = False):
+    def compute_rieman_sum(self, power_data, conservative: bool = False):
 
         delta_energy = 0
         if len(power_data) > 1:
@@ -636,13 +639,17 @@ class EnergyHistoryMixin(EntityBase):
                 else:
                     d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
 
-                d_nrj_wh = dt_h * (min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w)
+                d_nrj_wh = dt_h * (
+                    min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
+                )
 
                 delta_energy += d_nrj_wh
 
         return delta_energy
 
-    def get_sum_energy_elec_power_adapted(self, to_ts: int | float | None = None, conservative: bool = False):
+    def get_sum_energy_elec_power_adapted(
+        self, to_ts: int | float | None = None, conservative: bool = False
+    ):
 
         v = self.sum_energy_elec
 
@@ -658,9 +665,16 @@ class EnergyHistoryMixin(EntityBase):
 
             from_ts = self._last_energy_from_API_end_for_power_adjustment_calculus
 
-            if (from_ts is not None and from_ts < to_ts  and isinstance(self, PowerMixin) and isinstance(self, NetatmoBase)) :
+            if (
+                from_ts is not None
+                and from_ts < to_ts
+                and isinstance(self, PowerMixin)
+                and isinstance(self, NetatmoBase)
+            ):
 
-                power_data = self.get_history_data("power", from_ts=from_ts, to_ts=to_ts)
+                power_data = self.get_history_data(
+                    "power", from_ts=from_ts, to_ts=to_ts
+                )
 
                 delta_energy = self.compute_rieman_sum(power_data, conservative)
 
@@ -669,8 +683,16 @@ class EnergyHistoryMixin(EntityBase):
     def _log_energy_error(self, start_time, end_time, msg=None, body=None):
         if body is None:
             body = "NO BODY"
-        LOG.debug("ENERGY collection error %s %s %s %s", msg, self.name,
-                  datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time), start_time, end_time, body)
+        LOG.debug(
+            "ENERGY collection error %s %s %s %s",
+            msg,
+            self.name,
+            datetime.fromtimestamp(start_time),
+            datetime.fromtimestamp(end_time),
+            start_time,
+            end_time,
+            body,
+        )
 
     def update_measures_num_calls(self):
 
@@ -709,26 +731,28 @@ class EnergyHistoryMixin(EntityBase):
         # for 1week : it will be half week ALWAYS, ie on a thursday at 12am (half day)
         # in fact in the case for all intervals the reported dates are "the middle" of the ranges
 
-        delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0)//2
+        delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0) // 2
 
-        data_points, num_calls, raw_datas, peak_off_peak_mode = await self._energy_API_calls(start_time, end_time, interval)
+        data_points, num_calls, raw_datas, peak_off_peak_mode = (
+            await self._energy_API_calls(start_time, end_time, interval)
+        )
 
         energy_schedule_vals = []
 
         if peak_off_peak_mode:
-            energy_schedule_vals = await self._compute_proper_energy_schedule_offsets(start_time,
-                                                                                      end_time,
-                                                                                      2 * delta_range,
-                                                                                      raw_datas,
-                                                                                      data_points)
+            energy_schedule_vals = await self._compute_proper_energy_schedule_offsets(
+                start_time, end_time, 2 * delta_range, raw_datas, data_points
+            )
 
-        hist_good_vals = await self._get_aligned_energy_values_and_mode(start_time,
-                                                                        end_time,
-                                                                        delta_range,
-                                                                        energy_schedule_vals,
-                                                                        peak_off_peak_mode,
-                                                                        raw_datas,
-                                                                        data_points)
+        hist_good_vals = await self._get_aligned_energy_values_and_mode(
+            start_time,
+            end_time,
+            delta_range,
+            energy_schedule_vals,
+            peak_off_peak_mode,
+            raw_datas,
+            data_points,
+        )
 
         self.historical_data = []
         prev_sum_energy_elec = self.sum_energy_elec
@@ -745,30 +769,37 @@ class EnergyHistoryMixin(EntityBase):
 
             LOG.debug(
                 "NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
-                self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
-                prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
+                self.name,
+                datetime.fromtimestamp(start_time),
+                datetime.fromtimestamp(end_time),
+                prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
+            )
         else:
 
-            await self._prepare_exported_historical_data(start_time,
-                                                         end_time,
-                                                         delta_range,
-                                                         hist_good_vals,
-                                                         prev_end_time,
-                                                         prev_start_time,
-                                                         prev_sum_energy_elec,
-                                                         peak_off_peak_mode)
+            await self._prepare_exported_historical_data(
+                start_time,
+                end_time,
+                delta_range,
+                hist_good_vals,
+                prev_end_time,
+                prev_start_time,
+                prev_sum_energy_elec,
+                peak_off_peak_mode,
+            )
 
         return num_calls
 
-    async def _prepare_exported_historical_data(self,
-                                                start_time,
-                                                end_time,
-                                                delta_range,
-                                                hist_good_vals,
-                                                prev_end_time,
-                                                prev_start_time,
-                                                prev_sum_energy_elec,
-                                                peak_off_peak_mode):
+    async def _prepare_exported_historical_data(
+        self,
+        start_time,
+        end_time,
+        delta_range,
+        hist_good_vals,
+        prev_end_time,
+        prev_start_time,
+        prev_sum_energy_elec,
+        peak_off_peak_mode,
+    ):
         computed_start = 0
         computed_end = 0
         computed_end_for_calculus = 0
@@ -804,41 +835,71 @@ class EnergyHistoryMixin(EntityBase):
                     "Wh": val,
                     "energyMode": mode,
                     "startTimeUnix": c_start,
-                    "endTimeUnix": c_end
-
+                    "endTimeUnix": c_end,
                 },
             )
-        if prev_sum_energy_elec is not None and prev_sum_energy_elec > self.sum_energy_elec:
-            msg = ("ENERGY GOING DOWN %s from: %s to %s "
-                   "computed_start: %s, computed_end: %s, "
-                   "sum=%f prev_sum=%f prev_start: %s, prev_end %s")
+        if (
+            prev_sum_energy_elec is not None
+            and prev_sum_energy_elec > self.sum_energy_elec
+        ):
+            msg = (
+                "ENERGY GOING DOWN %s from: %s to %s "
+                "computed_start: %s, computed_end: %s, "
+                "sum=%f prev_sum=%f prev_start: %s, prev_end %s"
+            )
             LOG.debug(
                 msg,
-                self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
-                datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
+                self.name,
+                datetime.fromtimestamp(start_time),
+                datetime.fromtimestamp(end_time),
+                datetime.fromtimestamp(computed_start),
+                datetime.fromtimestamp(computed_end),
+                self.sum_energy_elec,
                 prev_sum_energy_elec,
-                datetime.fromtimestamp(prev_start_time), datetime.fromtimestamp(prev_end_time))
+                datetime.fromtimestamp(prev_start_time),
+                datetime.fromtimestamp(prev_end_time),
+            )
         else:
-            msg = ("Success in energy update %s from: %s to %s "
-                   "computed_start: %s, computed_end: %s , sum=%s prev_sum=%s")
+            msg = (
+                "Success in energy update %s from: %s to %s "
+                "computed_start: %s, computed_end: %s , sum=%s prev_sum=%s"
+            )
             LOG.debug(
                 msg,
-                self.name, datetime.fromtimestamp(start_time), datetime.fromtimestamp(end_time),
-                datetime.fromtimestamp(computed_start), datetime.fromtimestamp(computed_end), self.sum_energy_elec,
-                prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING")
-        self._last_energy_from_API_end_for_power_adjustment_calculus = computed_end_for_calculus
+                self.name,
+                datetime.fromtimestamp(start_time),
+                datetime.fromtimestamp(end_time),
+                datetime.fromtimestamp(computed_start),
+                datetime.fromtimestamp(computed_end),
+                self.sum_energy_elec,
+                prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
+            )
+        self._last_energy_from_API_end_for_power_adjustment_calculus = (
+            computed_end_for_calculus
+        )
 
-    async def _get_aligned_energy_values_and_mode(self, start_time, end_time, delta_range, energy_schedule_vals,
-                                                  peak_off_peak_mode, raw_datas, data_points):
+    async def _get_aligned_energy_values_and_mode(
+        self,
+        start_time,
+        end_time,
+        delta_range,
+        energy_schedule_vals,
+        peak_off_peak_mode,
+        raw_datas,
+        data_points,
+    ):
         hist_good_vals = []
         for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
             for values_lot in values_lots:
                 try:
                     start_lot_time = int(values_lot["beg_time"])
                 except Exception:
-                    self._log_energy_error(start_time, end_time,
-                                           msg=f"beg_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                                           body=raw_datas[cur_peak_or_off_peak_mode])
+                    self._log_energy_error(
+                        start_time,
+                        end_time,
+                        msg=f"beg_time missing {data_points[cur_peak_or_off_peak_mode]}",
+                        body=raw_datas[cur_peak_or_off_peak_mode],
+                    )
                     raise ApiError(
                         f"Energy badly formed resp beg_time missing: {raw_datas[cur_peak_or_off_peak_mode]} - "
                         f"module: {self.name} - "
@@ -848,9 +909,12 @@ class EnergyHistoryMixin(EntityBase):
                 interval_sec = values_lot.get("step_time")
                 if interval_sec is None:
                     if len(values_lot.get("value", [])) > 1:
-                        self._log_energy_error(start_time, end_time,
-                                               msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                                               body=raw_datas[cur_peak_or_off_peak_mode])
+                        self._log_energy_error(
+                            start_time,
+                            end_time,
+                            msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
+                            body=raw_datas[cur_peak_or_off_peak_mode],
+                        )
                     interval_sec = 2 * delta_range
                 else:
                     interval_sec = int(interval_sec)
@@ -864,22 +928,32 @@ class EnergyHistoryMixin(EntityBase):
 
                         d_srt = datetime.fromtimestamp(cur_start_time)
                         # offset from start of the day
-                        day_origin = int(datetime(d_srt.year, d_srt.month, d_srt.day).timestamp())
+                        day_origin = int(
+                            datetime(d_srt.year, d_srt.month, d_srt.day).timestamp()
+                        )
                         srt_beg = cur_start_time - day_origin
                         srt_mid = srt_beg + interval_sec // 2
 
                         # now check if srt_beg is in a schedule span of the right type
-                        idx_limit = _get_proper_in_schedule_index(energy_schedule_vals, srt_mid)
+                        idx_limit = _get_proper_in_schedule_index(
+                            energy_schedule_vals, srt_mid
+                        )
 
-                        if self.home.energy_schedule_vals[idx_limit][1] != cur_peak_or_off_peak_mode:
+                        if (
+                            self.home.energy_schedule_vals[idx_limit][1]
+                            != cur_peak_or_off_peak_mode
+                        ):
 
                             # we are NOT in a proper schedule time for this time span ...
                             # jump to the next one... meaning it is the next day!
                             if idx_limit == len(energy_schedule_vals) - 1:
                                 # should never append with the performed day extension above
-                                self._log_energy_error(start_time, end_time,
-                                                       msg=f"bad idx missing {data_points[cur_peak_or_off_peak_mode]}",
-                                                       body=raw_datas[cur_peak_or_off_peak_mode])
+                                self._log_energy_error(
+                                    start_time,
+                                    end_time,
+                                    msg=f"bad idx missing {data_points[cur_peak_or_off_peak_mode]}",
+                                    body=raw_datas[cur_peak_or_off_peak_mode],
+                                )
 
                                 raise ApiError(
                                     f"Energy badly formed bad schedule idx in vals: {raw_datas[cur_peak_or_off_peak_mode]} - "
@@ -888,27 +962,43 @@ class EnergyHistoryMixin(EntityBase):
                                 )
                             else:
                                 # by construction of the energy schedule the next one should be of opposite mode
-                                if energy_schedule_vals[idx_limit + 1][1] != cur_peak_or_off_peak_mode:
-                                    self._log_energy_error(start_time, end_time,
-                                                           msg=f"bad schedule {data_points[cur_peak_or_off_peak_mode]}",
-                                                           body=raw_datas[cur_peak_or_off_peak_mode])
+                                if (
+                                    energy_schedule_vals[idx_limit + 1][1]
+                                    != cur_peak_or_off_peak_mode
+                                ):
+                                    self._log_energy_error(
+                                        start_time,
+                                        end_time,
+                                        msg=f"bad schedule {data_points[cur_peak_or_off_peak_mode]}",
+                                        body=raw_datas[cur_peak_or_off_peak_mode],
+                                    )
                                     raise ApiError(
                                         f"Energy badly formed bad schedule: {raw_datas[cur_peak_or_off_peak_mode]} - "
                                         f"module: {self.name} - "
                                         f"when accessing '{data_points[cur_peak_or_off_peak_mode]}'"
                                     )
 
-                                start_time_to_get_closer = energy_schedule_vals[idx_limit + 1][0]
+                                start_time_to_get_closer = energy_schedule_vals[
+                                    idx_limit + 1
+                                ][0]
                                 diff_t = start_time_to_get_closer - srt_mid
-                                cur_start_time = day_origin + srt_beg + (diff_t // interval_sec + 1) * interval_sec
+                                cur_start_time = (
+                                    day_origin
+                                    + srt_beg
+                                    + (diff_t // interval_sec + 1) * interval_sec
+                                )
 
-                    hist_good_vals.append((cur_start_time, int(val), cur_peak_or_off_peak_mode))
+                    hist_good_vals.append(
+                        (cur_start_time, int(val), cur_peak_or_off_peak_mode)
+                    )
                     cur_start_time = cur_start_time + interval_sec
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
         return hist_good_vals
 
-    async def _compute_proper_energy_schedule_offsets(self, start_time, end_time, interval_sec, raw_datas, data_points):
+    async def _compute_proper_energy_schedule_offsets(
+        self, start_time, end_time, interval_sec, raw_datas, data_points
+    ):
         max_interval_sec = interval_sec
         for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
             for values_lot in values_lots:
@@ -916,9 +1006,12 @@ class EnergyHistoryMixin(EntityBase):
 
                 if local_step_time is None:
                     if len(values_lot.get("value", [])) > 1:
-                        self._log_energy_error(start_time, end_time,
-                                               msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                                               body=raw_datas[cur_peak_or_off_peak_mode])
+                        self._log_energy_error(
+                            start_time,
+                            end_time,
+                            msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
+                            body=raw_datas[cur_peak_or_off_peak_mode],
+                        )
                 else:
                     local_step_time = int(local_step_time)
                     max_interval_sec = max(max_interval_sec, local_step_time)
@@ -932,7 +1025,10 @@ class EnergyHistoryMixin(EntityBase):
                 energy_schedule_vals_next = copy.copy(self.home.energy_schedule_vals)
 
             for d in range(0, biggest_day_interval):
-                next_day_extend = [(offset + ((d + 1) * 24 * 3600), mode) for offset, mode in energy_schedule_vals_next]
+                next_day_extend = [
+                    (offset + ((d + 1) * 24 * 3600), mode)
+                    for offset, mode in energy_schedule_vals_next
+                ]
                 energy_schedule_vals.extend(next_day_extend)
         return energy_schedule_vals
 
@@ -960,7 +1056,9 @@ class EnergyHistoryMixin(EntityBase):
             rw_dt = rw_dt_f.get("body")
 
             if rw_dt is None:
-                self._log_energy_error(start_time, end_time, msg=f"direct from {data_point}", body=rw_dt_f)
+                self._log_energy_error(
+                    start_time, end_time, msg=f"direct from {data_point}", body=rw_dt_f
+                )
                 raise ApiError(
                     f"Energy badly formed resp: {rw_dt_f} - "
                     f"module: {self.name} - "
@@ -970,11 +1068,9 @@ class EnergyHistoryMixin(EntityBase):
             num_calls += 1
             raw_datas.append(rw_dt)
 
-
         peak_off_peak_mode = False
         if len(raw_datas) > 1 and len(self.home.energy_schedule_vals) > 0:
             peak_off_peak_mode = True
-
 
         return data_points, num_calls, raw_datas, peak_off_peak_mode
 

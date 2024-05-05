@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import bisect
+import logging
 from abc import ABC
 from collections.abc import Iterable
 from dataclasses import dataclass
-import logging
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 

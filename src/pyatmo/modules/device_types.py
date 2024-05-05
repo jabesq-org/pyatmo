@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from enum import Enum
 import logging
+from enum import Enum
 
 LOG = logging.getLogger(__name__)
 

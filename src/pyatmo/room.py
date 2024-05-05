@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import FROSTGUARD, HOME, MANUAL, SETROOMTHERMPOINT_ENDPOINT, RawData

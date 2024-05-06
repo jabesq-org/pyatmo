@@ -81,7 +81,9 @@ class CoolingSchedule(ThermSchedule):
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize CoolingSchedule."""
         super().__init__(home, raw_data)
-        self.cooling_away_temp = self.away_temp = raw_data.get("cooling_away_temp", self.away_temp)
+        self.cooling_away_temp = self.away_temp = raw_data.get(
+            "cooling_away_temp", self.away_temp
+        )
 
 
 @dataclass
@@ -214,8 +216,10 @@ def schedule_factory(home: Home, raw_data: RawData) -> (Schedule, str):
     """Create proper schedules."""
 
     schedule_type = raw_data.get("type", "custom")
-    cls = {SCHEDULE_TYPE_THERM: ThermSchedule,
-           SCHEDULE_TYPE_EVENT: EventSchedule,
-           SCHEDULE_TYPE_ELECTRICITY: ElectricitySchedule,
-           SCHEDULE_TYPE_COOLING: CoolingSchedule}.get(schedule_type, Schedule)
+    cls = {
+        SCHEDULE_TYPE_THERM: ThermSchedule,
+        SCHEDULE_TYPE_EVENT: EventSchedule,
+        SCHEDULE_TYPE_ELECTRICITY: ElectricitySchedule,
+        SCHEDULE_TYPE_COOLING: CoolingSchedule,
+    }.get(schedule_type, Schedule)
     return cls(home, raw_data), schedule_type

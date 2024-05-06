@@ -187,13 +187,19 @@ class AbstractAsyncAuth(ABC):
         try:
             resp_json = await resp.json()
 
-            message = (f"{resp_status} - {ERRORS.get(resp_status, '')} - {resp_json['error']['message']} "
-                       f"({resp_json['error']['code']}) when accessing '{url}'")
+            message = (
+                f"{resp_status} - {ERRORS.get(resp_status, '')} - {resp_json['error']['message']} "
+                f"({resp_json['error']['code']}) when accessing '{url}'"
+            )
 
             if resp_status == 403 and resp_json["error"]["code"] == 26:
-                raise ApiErrorThrottling(message, )
+                raise ApiErrorThrottling(
+                    message,
+                )
             else:
-                raise ApiError(message, )
+                raise ApiError(
+                    message,
+                )
 
         except (JSONDecodeError, ContentTypeError) as exc:
             raise ApiError(

@@ -46,11 +46,12 @@ async def async_home(async_account):
     yield async_account.homes[home_id]
 
 
-
 @pytest.fixture(scope="function")
 async def async_account_multi(async_auth):
     """AsyncAccount fixture."""
-    account = pyatmo.AsyncAccount(async_auth, support_only_homes=["aaaaaaaaaaabbbbbbbbbbccc"])
+    account = pyatmo.AsyncAccount(
+        async_auth, support_only_homes=["aaaaaaaaaaabbbbbbbbbbccc"]
+    )
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",

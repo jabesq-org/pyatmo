@@ -40,12 +40,24 @@ async def test_historical_data_retrieval(async_account):
 
     await async_account.async_update_measures(home_id=home_id, module_id=module_id)
     # changed teh reference here as start and stop data was not calculated in the spirit of the netatmo api where their time data is in the fact representing the "middle" of the range and not the begining
-    assert module.historical_data[0] == {"Wh": 197, "duration": 60, "endTime": "2022-02-05T08:59:49Z",
-                                         "endTimeUnix": 1644051589, "energyMode": "standard",
-                                         "startTime": "2022-02-05T07:59:50Z", "startTimeUnix": 1644047989}
-    assert module.historical_data[-1] == {"Wh": 259, "duration": 60, "endTime": "2022-02-12T07:59:49Z",
-                                          "endTimeUnix": 1644652789, "energyMode": "standard",
-                                          "startTime": "2022-02-12T06:59:50Z", "startTimeUnix": 1644649189}
+    assert module.historical_data[0] == {
+        "Wh": 197,
+        "duration": 60,
+        "endTime": "2022-02-05T08:59:49Z",
+        "endTimeUnix": 1644051589,
+        "energyMode": "standard",
+        "startTime": "2022-02-05T07:59:50Z",
+        "startTimeUnix": 1644047989,
+    }
+    assert module.historical_data[-1] == {
+        "Wh": 259,
+        "duration": 60,
+        "endTime": "2022-02-12T07:59:49Z",
+        "endTimeUnix": 1644652789,
+        "energyMode": "standard",
+        "startTime": "2022-02-12T06:59:50Z",
+        "startTimeUnix": 1644649189,
+    }
     assert len(module.historical_data) == 168
 
 
@@ -63,23 +75,39 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     strt = int(dt.datetime.fromisoformat("2024-03-03 00:10:00").timestamp())
     end_time = int(dt.datetime.fromisoformat("2024-03-05 23:59:59").timestamp())
 
-    await async_account_multi.async_update_measures(home_id=home_id,
-                                                    module_id=module_id,
-                                                    interval=MeasureInterval.HALF_HOUR,
-                                                    start_time=strt,
-                                                    end_time=end_time
-                                                    )
+    await async_account_multi.async_update_measures(
+        home_id=home_id,
+        module_id=module_id,
+        interval=MeasureInterval.HALF_HOUR,
+        start_time=strt,
+        end_time=end_time,
+    )
     assert isinstance(module, EnergyHistoryMixin)
 
-    assert module.historical_data[0] == {"Wh": 0, "duration": 30, "endTime": "2024-03-02T23:40:00Z",
-                                         "endTimeUnix": 1709422800, "energyMode": "peak",
-                                         "startTime": "2024-03-02T23:10:01Z", "startTimeUnix": 1709421000}
-    assert module.historical_data[-1] == {"Wh": 0, "duration": 30, "endTime": "2024-03-05T23:10:00Z",
-                                          "endTimeUnix": 1709680200, "energyMode": "peak",
-                                          "startTime": "2024-03-05T22:40:01Z", "startTimeUnix": 1709678400}
+    assert module.historical_data[0] == {
+        "Wh": 0,
+        "duration": 30,
+        "endTime": "2024-03-02T23:40:00Z",
+        "endTimeUnix": 1709422800,
+        "energyMode": "peak",
+        "startTime": "2024-03-02T23:10:01Z",
+        "startTimeUnix": 1709421000,
+    }
+    assert module.historical_data[-1] == {
+        "Wh": 0,
+        "duration": 30,
+        "endTime": "2024-03-05T23:10:00Z",
+        "endTimeUnix": 1709680200,
+        "energyMode": "peak",
+        "startTime": "2024-03-05T22:40:01Z",
+        "startTimeUnix": 1709678400,
+    }
     assert len(module.historical_data) == 134
 
-    assert module.sum_energy_elec == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
+    assert (
+        module.sum_energy_elec
+        == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
+    )
     assert module.sum_energy_elec_off_peak == 11219
     assert module.sum_energy_elec_peak == 31282
 
@@ -98,22 +126,38 @@ async def test_historical_data_retrieval_multi_2(async_account_multi):
     strt = int(dt.datetime.fromisoformat("2024-03-15 00:29:51").timestamp())
     end = int(dt.datetime.fromisoformat("2024-03-15 13:45:24").timestamp())
 
-    await async_account_multi.async_update_measures(home_id=home_id,
-                                                    module_id=module_id,
-                                                    interval=MeasureInterval.HALF_HOUR,
-                                                    start_time=strt,
-                                                    end_time=end
-                                                    )
+    await async_account_multi.async_update_measures(
+        home_id=home_id,
+        module_id=module_id,
+        interval=MeasureInterval.HALF_HOUR,
+        start_time=strt,
+        end_time=end,
+    )
 
-    assert module.historical_data[0] == {"Wh": 0, "duration": 30, "endTime": "2024-03-14T23:59:51Z",
-                                         "endTimeUnix": 1710460791, "energyMode": "peak",
-                                         "startTime": "2024-03-14T23:29:52Z", "startTimeUnix": 1710458991}
-    assert module.historical_data[-1] == {"Wh": 0, "duration": 30, "endTime": "2024-03-15T12:59:51Z",
-                                          "endTimeUnix": 1710507591, "energyMode": "peak",
-                                          "startTime": "2024-03-15T12:29:52Z", "startTimeUnix": 1710505791}
+    assert module.historical_data[0] == {
+        "Wh": 0,
+        "duration": 30,
+        "endTime": "2024-03-14T23:59:51Z",
+        "endTimeUnix": 1710460791,
+        "energyMode": "peak",
+        "startTime": "2024-03-14T23:29:52Z",
+        "startTimeUnix": 1710458991,
+    }
+    assert module.historical_data[-1] == {
+        "Wh": 0,
+        "duration": 30,
+        "endTime": "2024-03-15T12:59:51Z",
+        "endTimeUnix": 1710507591,
+        "energyMode": "peak",
+        "startTime": "2024-03-15T12:29:52Z",
+        "startTimeUnix": 1710505791,
+    }
     assert len(module.historical_data) == 26
 
-    assert module.sum_energy_elec == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
+    assert (
+        module.sum_energy_elec
+        == module.sum_energy_elec_peak + module.sum_energy_elec_off_peak
+    )
     assert module.sum_energy_elec_off_peak == 780
     assert module.sum_energy_elec_peak == 890
 
@@ -123,15 +167,15 @@ async def test_disconnected_main_bridge(async_account_multi):
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
 
     with open(
-            "fixtures/home_multi_status_error_disconnected.json",
-            encoding="utf-8",
+        "fixtures/home_multi_status_error_disconnected.json",
+        encoding="utf-8",
     ) as json_file:
         home_status_fixture = json.load(json_file)
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
-            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-            AsyncMock(return_value=mock_home_status_resp),
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=mock_home_status_resp),
     ) as mock_request:
         try:
             await async_account_multi.async_update_status(home_id)

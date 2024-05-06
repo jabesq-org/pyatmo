@@ -145,7 +145,6 @@ async def test_home_event_update(async_account):
     assert events[1].event_type == "connection"
 
 
-
 def test_device_types_missing():
     """Test handling of missing device types."""
 

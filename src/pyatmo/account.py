@@ -35,10 +35,10 @@ class AsyncAccount:
     """Async class of a Netatmo account."""
 
     def __init__(
-            self,
-            auth: AbstractAsyncAuth,
-            favorite_stations: bool = True,
-            support_only_homes: list | None = None,
+        self,
+        auth: AbstractAsyncAuth,
+        favorite_stations: bool = True,
+        support_only_homes: list | None = None,
     ) -> None:
         """Initialize the Netatmo account."""
 
@@ -53,14 +53,12 @@ class AsyncAccount:
         self.public_weather_areas: dict[str, modules.PublicWeatherArea] = {}
         self.modules: dict[str, Module] = {}
 
-
     def __repr__(self) -> str:
         """Return the representation."""
 
         return (
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
-
 
     def update_supported_homes(self, support_only_homes: list | None = None):
         """Update the exposed/supported homes."""
@@ -81,7 +79,6 @@ class AsyncAccount:
 
         self.homes.update(self.additional_public_homes)
 
-
     def process_topology(self) -> None:
         """Process topology information from /homesdata."""
 
@@ -92,7 +89,6 @@ class AsyncAccount:
                 self.all_account_homes[home_id] = Home(self.auth, raw_data=home)
 
         self.update_supported_homes(self.support_only_homes)
-
 
     async def async_update_topology(self) -> int:
         """Retrieve topology data from /homesdata. Returns the number of performed API calls."""
@@ -107,7 +103,6 @@ class AsyncAccount:
         self.process_topology()
 
         return 1
-
 
     async def async_update_status(self, home_id: str | None = None) -> int:
         """Retrieve status data from /homestatus. Returns the number of performed API calls."""
@@ -137,7 +132,6 @@ class AsyncAccount:
 
         return num_calls
 
-
     async def async_update_events(self, home_id: str) -> int:
         """Retrieve events from /getevents. Returns the number of performed API calls."""
         resp = await self.auth.async_post_api_request(
@@ -149,7 +143,6 @@ class AsyncAccount:
 
         return 1
 
-
     async def async_update_weather_stations(self) -> int:
         """Retrieve status data from /getstationsdata. Returns the number of performed API calls."""
         params = {"get_favorites": ("true" if self.favorite_stations else "false")}
@@ -159,22 +152,20 @@ class AsyncAccount:
         )
         return 1
 
-
     async def async_update_air_care(self) -> int:
         """Retrieve status data from /gethomecoachsdata. Returns the number of performed API calls."""
         await self._async_update_data(GETHOMECOACHDATA_ENDPOINT)
 
         return 1
 
-
     async def async_update_measures(
-            self,
-            home_id: str,
-            module_id: str,
-            start_time: int | None = None,
-            interval: MeasureInterval = MeasureInterval.HOUR,
-            days: int = 7,
-            end_time: int | None = None,
+        self,
+        home_id: str,
+        module_id: str,
+        start_time: int | None = None,
+        interval: MeasureInterval = MeasureInterval.HOUR,
+        days: int = 7,
+        end_time: int | None = None,
     ) -> int:
         """Retrieve measures data from /getmeasure. Returns the number of performed API calls."""
 
@@ -188,17 +179,16 @@ class AsyncAccount:
         )
         return num_calls
 
-
     def register_public_weather_area(
-            self,
-            lat_ne: str,
-            lon_ne: str,
-            lat_sw: str,
-            lon_sw: str,
-            required_data_type: str | None = None,
-            filtering: bool = False,
-            *,
-            area_id: str = str(uuid4()),
+        self,
+        lat_ne: str,
+        lon_ne: str,
+        lat_sw: str,
+        lon_sw: str,
+        required_data_type: str | None = None,
+        filtering: bool = False,
+        *,
+        area_id: str = str(uuid4()),
     ) -> str:
         """Register public weather area to monitor."""
 
@@ -211,7 +201,6 @@ class AsyncAccount:
             filtering,
         )
         return area_id
-
 
     async def async_update_public_weather(self, area_id: str) -> int:
         """Retrieve status data from /getpublicdata. Returns the number of performed API calls."""
@@ -233,19 +222,17 @@ class AsyncAccount:
 
         return 1
 
-
     async def _async_update_data(
-            self,
-            endpoint: str,
-            params: dict[str, Any] | None = None,
-            tag: str = "devices",
-            area_id: str | None = None,
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+        tag: str = "devices",
+        area_id: str | None = None,
     ) -> None:
         """Retrieve status data from <endpoint>."""
         resp = await self.auth.async_post_api_request(endpoint=endpoint, params=params)
         raw_data = extract_raw_data(await resp.json(), tag)
         await self.update_devices(raw_data, area_id)
-
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> int:
         """Modify device state by passing JSON specific to the device. Returns the number of performed API calls."""
@@ -266,17 +253,16 @@ class AsyncAccount:
         LOG.debug("Response: %s", resp)
         return 1
 
-
     async def update_devices(
-            self,
-            raw_data: RawData,
-            area_id: str | None = None,
+        self,
+        raw_data: RawData,
+        area_id: str | None = None,
     ) -> None:
         """Update device states."""
         for device_data in raw_data.get("devices", {}):
             if home_id := device_data.get(
-                    "home_id",
-                    self.find_home_of_device(device_data),
+                "home_id",
+                self.find_home_of_device(device_data),
             ):
                 if home_id not in self.homes:
                     modules_data = []
@@ -308,8 +294,8 @@ class AsyncAccount:
                 await self.update_devices({"devices": [module_data]})
 
             if (
-                    device_data["type"] == "NHC"
-                    or self.find_home_of_device(device_data) is None
+                device_data["type"] == "NHC"
+                or self.find_home_of_device(device_data) is None
             ):
                 device_data["name"] = device_data.get(
                     "station_name",
@@ -333,7 +319,6 @@ class AsyncAccount:
 
         if area_id is not None:
             self.public_weather_areas[area_id].update(raw_data)
-
 
     def find_home_of_device(self, device_data: dict[str, Any]) -> str | None:
         """Find home_id of device."""

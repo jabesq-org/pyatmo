@@ -7,8 +7,8 @@ import asyncio
 from pyatmo.const import MeasureInterval
 
 
-
 MY_TOKEN_FROM_NETATMO = "MY_TOKEN"
+
 
 class MyAuth(AbstractAsyncAuth):
 
@@ -30,24 +30,21 @@ async def main():
 
     await account.async_update_status(home_id=home_id)
 
-    strt = 1709766000 + 10*60#1709421000+15*60
-    end = 1709852400+10*60
-    await account.async_update_measures(home_id=home_id,
-                                                    module_id=module_id,
-                                                    interval=MeasureInterval.HALF_HOUR,
-                                                    start_time=strt,
-                                                    end_time=end
-                                                    )
-
+    strt = 1709766000 + 10 * 60  # 1709421000+15*60
+    end = 1709852400 + 10 * 60
+    await account.async_update_measures(
+        home_id=home_id,
+        module_id=module_id,
+        interval=MeasureInterval.HALF_HOUR,
+        start_time=strt,
+        end_time=end,
+    )
 
     print(account)
 
 
-
 if __name__ == "__main__":
 
-    topology  = asyncio.run(main())
+    topology = asyncio.run(main())
 
     print(topology)
-
-

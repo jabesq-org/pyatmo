@@ -26,9 +26,9 @@ class AbstractAsyncAuth(ABC):
     """Abstract class to make authenticated requests."""
 
     def __init__(
-            self,
-            websession: ClientSession,
-            base_url: str = DEFAULT_BASE_URL,
+        self,
+        websession: ClientSession,
+        base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         """Initialize the auth."""
 
@@ -40,11 +40,11 @@ class AbstractAsyncAuth(ABC):
         """Return a valid access token."""
 
     async def async_get_image(
-            self,
-            endpoint: str,
-            base_url: str | None = None,
-            params: dict[str, Any] | None = None,
-            timeout: int = 5,
+        self,
+        endpoint: str,
+        base_url: str | None = None,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
     ) -> bytes:
         """Wrap async get requests."""
 
@@ -58,10 +58,10 @@ class AbstractAsyncAuth(ABC):
 
         url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
-                url,
-                **req_args,  # type: ignore
-                headers=headers,
-                timeout=timeout,
+            url,
+            **req_args,  # type: ignore
+            headers=headers,
+            timeout=timeout,
         ) as resp:
             resp_content = await resp.read()
 
@@ -75,11 +75,11 @@ class AbstractAsyncAuth(ABC):
         )
 
     async def async_post_api_request(
-            self,
-            endpoint: str,
-            base_url: str | None = None,
-            params: dict[str, Any] | None = None,
-            timeout: int = 5,
+        self,
+        endpoint: str,
+        base_url: str | None = None,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
@@ -90,11 +90,11 @@ class AbstractAsyncAuth(ABC):
         )
 
     async def async_get_api_request(
-            self,
-            endpoint: str,
-            base_url: str | None = None,
-            params: dict[str, Any] | None = None,
-            timeout: int = 5,
+        self,
+        endpoint: str,
+        base_url: str | None = None,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
@@ -105,10 +105,10 @@ class AbstractAsyncAuth(ABC):
         )
 
     async def async_get_request(
-            self,
-            url: str,
-            params: dict[str, Any] | None = None,
-            timeout: int = 5,
+        self,
+        url: str,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
@@ -118,18 +118,18 @@ class AbstractAsyncAuth(ABC):
         req_args = self.prepare_request_get_arguments(params)
 
         async with self.websession.get(
-                url,
-                **req_args,
-                headers=headers,
-                timeout=timeout,
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
         ) as resp:
             return await self.process_response(resp, url)
 
     async def async_post_request(
-            self,
-            url: str,
-            params: dict[str, Any] | None = None,
-            timeout: int = 5,
+        self,
+        url: str,
+        params: dict[str, Any] | None = None,
+        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
@@ -139,10 +139,10 @@ class AbstractAsyncAuth(ABC):
         req_args = self.prepare_request_arguments(params)
 
         async with self.websession.post(
-                url,
-                **req_args,
-                headers=headers,
-                timeout=timeout,
+            url,
+            **req_args,
+            headers=headers,
+            timeout=timeout,
         ) as resp:
             return await self.process_response(resp, url)
 

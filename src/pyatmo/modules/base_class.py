@@ -79,9 +79,9 @@ class NetatmoBase(EntityBase, ABC):
         self._update_attributes(raw_data)
 
         if (
-                self.bridge
-                and self.bridge in self.home.modules
-                and getattr(self, "device_category") == "weather"
+            self.bridge
+            and self.bridge in self.home.modules
+            and getattr(self, "device_category") == "weather"
         ):
             self.name = update_name(self.name, self.home.modules[self.bridge].name)
 
@@ -169,8 +169,8 @@ class Place:
     location: Location | None
 
     def __init__(
-            self,
-            data: dict[str, Any],
+        self,
+        data: dict[str, Any],
     ) -> None:
         """Initialize self."""
 

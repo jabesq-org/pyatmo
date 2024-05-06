@@ -126,7 +126,7 @@ class Home:
                 for t in timetable:
 
                     time = (
-                            t.m_offset * 60
+                        t.m_offset * 60
                     )  # m_offset is in minute from the begininng of the day
                     if len(self.energy_schedule_vals) == 0:
                         time = 0
@@ -234,9 +234,9 @@ class Home:
                 )
 
         if (
-                num_errors > 0
-                and has_one_module_reachable is False
-                and has_an_update is False
+            num_errors > 0
+            and has_one_module_reachable is False
+            and has_an_update is False
         ):
             return False
 
@@ -287,10 +287,10 @@ class Home:
         return schedule.away_temp
 
     async def async_set_thermmode(
-            self,
-            mode: str,
-            end_time: int | None = None,
-            schedule_id: str | None = None,
+        self,
+        mode: str,
+        end_time: int | None = None,
+        schedule_id: str | None = None,
     ) -> bool:
         """Set thermotat mode."""
         if schedule_id is not None and not self.is_valid_schedule(schedule_id):
@@ -341,8 +341,8 @@ class Home:
         return (await resp.json()).get("status") == "ok"
 
     async def async_set_persons_home(
-            self,
-            person_ids: list[str] | None = None,
+        self,
+        person_ids: list[str] | None = None,
     ) -> ClientResponse:
         """Mark persons as home."""
         post_params: dict[str, Any] = {"home_id": self.entity_id}
@@ -354,8 +354,8 @@ class Home:
         )
 
     async def async_set_persons_away(
-            self,
-            person_id: str | None = None,
+        self,
+        person_id: str | None = None,
     ) -> ClientResponse:
         """Mark a person as away or set the whole home to being empty."""
 
@@ -368,9 +368,9 @@ class Home:
         )
 
     async def async_set_schedule_temperatures(
-            self,
-            zone_id: int,
-            temps: dict[str, int],
+        self,
+        zone_id: int,
+        temps: dict[str, int],
     ) -> None:
         """Set the scheduled room temperature for the given schedule ID."""
 
@@ -418,9 +418,9 @@ class Home:
         await self.async_sync_schedule(selected_schedule.entity_id, schedule)
 
     async def async_sync_schedule(
-            self,
-            schedule_id: str,
-            schedule: dict[str, Any],
+        self,
+        schedule_id: str,
+        schedule: dict[str, Any],
     ) -> None:
         """Modify an existing schedule."""
         if not is_valid_schedule(schedule):

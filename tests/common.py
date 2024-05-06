@@ -67,7 +67,7 @@ async def fake_post_request(*args, **kwargs):
         )
 
     else:
-        postfix =  kwargs.get("POSTFIX", None)
+        postfix = kwargs.get("POSTFIX", None)
         if postfix is not None:
             payload = json.loads(load_fixture(f"{endpoint}_{postfix}.json"))
         else:

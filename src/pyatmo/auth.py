@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
-import logging
 from abc import ABC, abstractmethod
+import asyncio
 from json import JSONDecodeError
+import logging
 from typing import Any
 
 from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError

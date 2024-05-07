@@ -85,6 +85,8 @@ class Room(NetatmoBase):
         elif "BNS" in self.device_types:
             self.climate_type = DeviceType.BNS
             self.features.add("humidity")
+        elif "BNTH" in self.device_types:
+            self.climate_type = DeviceType.BNTH
 
     def update(self, raw_data: RawData) -> None:
         """Update room data."""

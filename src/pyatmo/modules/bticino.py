@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import logging
 
-from pyatmo.modules.module import Dimmer, Module, Shutter, Switch
+from pyatmo.modules.module import (
+    DimmableMixin,
+    Module,
+    Shutter,
+    ShutterMixin,
+    Switch,
+    SwitchMixin,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -37,7 +44,7 @@ class BNMS(Shutter):
     """BTicino motorized shade."""
 
 
-class BNAS(Shutter):
+class BNAS(ShutterMixin, Module):
     """BTicino automatic shutter."""
 
 
@@ -61,9 +68,9 @@ class BNTR(Module):
     """BTicino radiator thermostat."""
 
 
-class BNIL(Switch):
-    """BTicino itelligent light."""
+class BNIL(SwitchMixin, Module):
+    """BTicino intelligent light."""
 
 
-class BNLD(Dimmer):
+class BNLD(DimmableMixin, SwitchMixin, Module):
     """BTicino dimmer light."""

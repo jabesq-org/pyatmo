@@ -27,6 +27,7 @@ NETATMO_ATTRIBUTES_MAP = {
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
     "battery_level": lambda x, y: x.get("battery_vp", x.get("battery_level")),
     "place": lambda x, _: Place(x.get("place")),
+    "target_position__step": lambda x, _: x.get("target_position:step"),
 }
 
 

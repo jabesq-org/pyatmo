@@ -409,6 +409,7 @@ class ShutterMixin(EntityBase):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.current_position: int | None = None
         self.target_position: int | None = None
+        self.target_position__step: int | None = None
 
     async def async_set_target_position(self, target_position: int) -> bool:
         """Set shutter to target position."""

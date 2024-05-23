@@ -413,11 +413,15 @@ class ShutterMixin(EntityBase):
     async def async_set_target_position(self, target_position: int) -> bool:
         """Set shutter to target position."""
 
+        # in case of a too low value, we default to stop and not the preferred position
+        if target_position < -2:
+            target_position = -1
+
         json_roller_shutter = {
             "modules": [
                 {
                     "id": self.entity_id,
-                    "target_position": max(min(100, target_position), -1),
+                    "target_position": min(100, target_position),
                     "bridge": self.bridge,
                 },
             ],
@@ -438,6 +442,11 @@ class ShutterMixin(EntityBase):
         """Stop shutter."""
 
         return await self.async_set_target_position(-1)
+
+    async def async_preferred_position(self) -> bool:
+        """Move shutter to preferred position."""
+
+        return await self.async_set_target_position(-2)
 
 
 class CameraMixin(EntityBase):

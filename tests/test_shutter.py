@@ -84,6 +84,12 @@ async def test_async_shutters(async_home):
             endpoint="api/setstate",
         )
 
+        assert await module.async_preferred_position()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(-2),
+            endpoint="api/setstate",
+        )
+
         assert await module.async_set_target_position(47)
         mock_resp.assert_awaited_with(
             params=gen_json_data(47),

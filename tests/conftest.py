@@ -60,7 +60,9 @@ async def async_account_multi(async_auth):
         "pyatmo.auth.AbstractAsyncAuth.async_post_request",
         fake_post_request_multi,
     ):
-        await account.async_update_topology(disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"])
+        await account.async_update_topology(
+            disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"]
+        )
         yield account
 
 

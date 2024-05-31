@@ -62,7 +62,9 @@ class AsyncAccount:
             else:
                 self.homes[home_id] = Home(self.auth, raw_data=home)
 
-    async def async_update_topology(self, disabled_homes_ids: list[str] | None = None) -> int:
+    async def async_update_topology(
+            self, disabled_homes_ids: list[str] | None = None
+    ) -> int:
         """Retrieve topology data from /homesdata."""
 
         resp = await self.auth.async_post_api_request(
@@ -136,7 +138,7 @@ class AsyncAccount:
         start_time: int | None = None,
         end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
-        days: int = 7
+        days: int = 7,
     ) -> int:
         """Retrieve measures data from /getmeasure. Returns the number of performed API calls."""
 

@@ -63,7 +63,7 @@ class AsyncAccount:
                 self.homes[home_id] = Home(self.auth, raw_data=home)
 
     async def async_update_topology(
-            self, disabled_homes_ids: list[str] | None = None
+        self, disabled_homes_ids: list[str] | None = None
     ) -> int:
         """Retrieve topology data from /homesdata."""
 

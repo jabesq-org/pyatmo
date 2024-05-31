@@ -49,9 +49,7 @@ async def async_home(async_account):
 @pytest.fixture(scope="function")
 async def async_account_multi(async_auth):
     """AsyncAccount fixture."""
-    account = pyatmo.AsyncAccount(
-        async_auth
-    )
+    account = pyatmo.AsyncAccount(async_auth)
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",

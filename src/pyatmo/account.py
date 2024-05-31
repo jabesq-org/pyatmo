@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import logging
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -34,19 +33,11 @@ LOG = logging.getLogger(__name__)
 class AsyncAccount:
     """Async class of a Netatmo account."""
 
-    def __init__(
-        self,
-        auth: AbstractAsyncAuth,
-        favorite_stations: bool = True,
-        support_only_homes: list | None = None,
-    ) -> None:
+    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
         """Initialize the Netatmo account."""
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
-        self.support_only_homes = support_only_homes
-        self.all_account_homes: dict[str, Home] = {}
-        self.additional_public_homes: dict[str, Home] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -60,38 +51,19 @@ class AsyncAccount:
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
 
-    def update_supported_homes(self, support_only_homes: list | None = None):
-        """Update the exposed/supported homes."""
-
-        if support_only_homes is None or len(support_only_homes) == 0:
-            self.homes = copy.copy(self.all_account_homes)
-        else:
-            self.homes = {}
-            for h_id in support_only_homes:
-                h = self.all_account_homes.get(h_id)
-                if h is not None:
-                    self.homes[h_id] = h
-
-        if len(self.homes) == 0:
-            self.homes = copy.copy(self.all_account_homes)
-
-        self.support_only_homes = list(self.homes)
-
-        self.homes.update(self.additional_public_homes)
-
-    def process_topology(self) -> None:
+    def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
         """Process topology information from /homesdata."""
 
         for home in self.raw_data["homes"]:
-            if (home_id := home["id"]) in self.all_account_homes:
-                self.all_account_homes[home_id].update_topology(home)
+            if disabled_homes_ids and home["id"] in disabled_homes_ids:
+                continue
+            if (home_id := home["id"]) in self.homes:
+                self.homes[home_id].update_topology(home)
             else:
-                self.all_account_homes[home_id] = Home(self.auth, raw_data=home)
+                self.homes[home_id] = Home(self.auth, raw_data=home)
 
-        self.update_supported_homes(self.support_only_homes)
-
-    async def async_update_topology(self) -> int:
-        """Retrieve topology data from /homesdata. Returns the number of performed API calls."""
+    async def async_update_topology(self, disabled_homes_ids: list[str] | None = None) -> int:
+        """Retrieve topology data from /homesdata."""
 
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
@@ -100,7 +72,7 @@ class AsyncAccount:
 
         self.user = self.raw_data.get("user", {}).get("email")
 
-        self.process_topology()
+        self.process_topology(disabled_homes_ids=disabled_homes_ids)
 
         return 1
 
@@ -108,7 +80,6 @@ class AsyncAccount:
         """Retrieve status data from /homestatus. Returns the number of performed API calls."""
 
         if home_id is None:
-            self.update_supported_homes(self.support_only_homes)
             homes = self.homes
         else:
             homes = [home_id]
@@ -163,9 +134,9 @@ class AsyncAccount:
         home_id: str,
         module_id: str,
         start_time: int | None = None,
-        interval: MeasureInterval = MeasureInterval.HOUR,
-        days: int = 7,
         end_time: int | None = None,
+        interval: MeasureInterval = MeasureInterval.HOUR,
+        days: int = 7
     ) -> int:
         """Retrieve measures data from /getmeasure. Returns the number of performed API calls."""
 
@@ -273,7 +244,7 @@ class AsyncAccount:
                         modules_data.append(normalize_weather_attributes(module_data))
                     modules_data.append(normalize_weather_attributes(device_data))
 
-                    self.additional_public_homes[home_id] = Home(
+                    self.homes[home_id] = Home(
                         self.auth,
                         raw_data={
                             "id": home_id,
@@ -281,8 +252,6 @@ class AsyncAccount:
                             "modules": modules_data,
                         },
                     )
-                    self.update_supported_homes(self.support_only_homes)
-
                 await self.homes[home_id].update(
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )

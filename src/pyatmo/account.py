@@ -38,6 +38,7 @@ class AsyncAccount:
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
+        self.all_account_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -55,9 +56,17 @@ class AsyncAccount:
         """Process topology information from /homesdata."""
 
         for home in self.raw_data["homes"]:
-            if disabled_homes_ids and home["id"] in disabled_homes_ids:
+
+            home_id  = home.get("id", "Unknown")
+            home_name = home.get("name", "Unknown")
+            self.all_account_homes_id[home_id] = home_name
+
+            if disabled_homes_ids and home_id in disabled_homes_ids:
+                if home_id in self.homes:
+                    del self.homes[home_id]
                 continue
-            if (home_id := home["id"]) in self.homes:
+
+            if home_id in self.homes:
                 self.homes[home_id].update_topology(home)
             else:
                 self.homes[home_id] = Home(self.auth, raw_data=home)

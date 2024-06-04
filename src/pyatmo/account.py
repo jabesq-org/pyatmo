@@ -57,7 +57,7 @@ class AsyncAccount:
 
         for home in self.raw_data["homes"]:
 
-            home_id  = home.get("id", "Unknown")
+            home_id = home.get("id", "Unknown")
             home_name = home.get("name", "Unknown")
             self.all_account_homes_id[home_id] = home_name
 

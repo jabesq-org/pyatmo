@@ -403,6 +403,11 @@ class FanSpeedMixin(EntityBase):
 class ShutterMixin(EntityBase):
     """Mixin for shutter data."""
 
+    __open_position = 100
+    __close_position = 0
+    __stop_position = -1
+    __preferred_position = -2
+
     def __init__(self, home: Home, module: ModuleT):
         """Initialize shutter mixin."""
 
@@ -414,11 +419,16 @@ class ShutterMixin(EntityBase):
     async def async_set_target_position(self, target_position: int) -> bool:
         """Set shutter to target position."""
 
+        # in case of a too low value, we default to stop and not the preferred position
+        # We check against __preferred_position that is the lower known value
+        if target_position < self.__preferred_position:
+            target_position = self.__stop_position
+
         json_roller_shutter = {
             "modules": [
                 {
                     "id": self.entity_id,
-                    "target_position": max(min(100, target_position), -1),
+                    "target_position": min(self.__open_position, target_position),
                     "bridge": self.bridge,
                 },
             ],
@@ -428,17 +438,22 @@ class ShutterMixin(EntityBase):
     async def async_open(self) -> bool:
         """Open shutter."""
 
-        return await self.async_set_target_position(100)
+        return await self.async_set_target_position(self.__open_position)
 
     async def async_close(self) -> bool:
         """Close shutter."""
 
-        return await self.async_set_target_position(0)
+        return await self.async_set_target_position(self.__close_position)
 
     async def async_stop(self) -> bool:
         """Stop shutter."""
 
-        return await self.async_set_target_position(-1)
+        return await self.async_set_target_position(self.__stop_position)
+
+    async def async_move_to_preferred_position(self) -> bool:
+        """Move shutter to preferred position."""
+
+        return await self.async_set_target_position(self.__preferred_position)
 
 
 class CameraMixin(EntityBase):

@@ -128,6 +128,9 @@ class MeasureType(Enum):
     SUM_ENERGY_PRICE_BASIC = "sum_energy_buy_from_grid_price$0"
     SUM_ENERGY_PRICE_PEAK = "sum_energy_buy_from_grid_price$1"
     SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_buy_from_grid_price$2"
+    SUM_ENERGY_ELEC_BASIC_OLD = "sum_energy_elec$0"
+    SUM_ENERGY_ELEC_PEAK_OLD = "sum_energy_elec$1"
+    SUM_ENERGY_ELEC_OFF_PEAK_OLD = "sum_energy_elec$2"
 
 
 class MeasureInterval(Enum):

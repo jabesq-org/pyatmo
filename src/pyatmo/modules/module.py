@@ -641,7 +641,7 @@ class EnergyHistoryMixin(EntityBase):
         """Compute energy from power with a rieman sum."""
 
         delta_energy = 0
-        if len(power_data) > 1:
+        if power_data and len(power_data) > 1:
 
             # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
             # as we don't want to artifically go up the previous one
@@ -1054,6 +1054,13 @@ class EnergyHistoryMixin(EntityBase):
     async def _energy_API_calls(self, start_time, end_time, interval):
         num_calls = 0
         data_points = self.home.energy_endpoints
+
+        # when the bridge is a connected meter, use old endpoints
+        bridge_module = self.home.modules.get(self.bridge)
+        if bridge_module:
+            if bridge_module.device_type == DeviceType.NLE:
+                data_points =self.home.energy_endpoints_old
+
         raw_datas = []
         for data_point in data_points:
 
@@ -1125,6 +1132,19 @@ class Module(NetatmoBase):
 
         self.update_topology(raw_data)
         self.update_features()
+
+        # If we have an NLE as a bridge all its bridged modules will have to be reachable
+        if self.device_type == DeviceType.NLE:
+            # if there is a bridge it means it is a leaf
+            if self.bridge:
+                bridge_module = self.home.modules.get(self.bridge)
+                if bridge_module:
+                    if bridge_module.device_type == DeviceType.NLE:
+                        self.reachable = True
+            elif self.modules:
+              # this NLE is a bridge itself : make it not available
+              self.reachable = False
+
 
         if not self.reachable and self.modules:
             # Update bridged modules and associated rooms

@@ -98,6 +98,7 @@ class Home:
 
         self.energy_schedule_vals = []
         self.energy_endpoints = [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
+        self.energy_endpoints_old = [MeasureType.SUM_ENERGY_ELEC_BASIC_OLD.value]
         if nrj_schedule is not None:
 
             # Tariff option (basic = always the same price, peak_and_off_peak = peak & off peak hours)
@@ -107,12 +108,20 @@ class Home:
             if type_tariff == "peak_and_off_peak" and len(zones) >= 2:
 
                 self.energy_endpoints = [None, None]
+                self.energy_endpoints_old = [None, None]
 
                 self.energy_endpoints[ENERGY_ELEC_PEAK_IDX] = (
                     MeasureType.SUM_ENERGY_ELEC_PEAK.value
                 )
                 self.energy_endpoints[ENERGY_ELEC_OFF_IDX] = (
                     MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value
+                )
+
+                self.energy_endpoints_old[ENERGY_ELEC_PEAK_IDX] = (
+                    MeasureType.SUM_ENERGY_ELEC_PEAK_OLD.value
+                )
+                self.energy_endpoints_old[ENERGY_ELEC_OFF_IDX] = (
+                    MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_OLD.value
                 )
 
                 if zones[0].price_type == "peak":
@@ -139,6 +148,7 @@ class Home:
 
             else:
                 self.energy_endpoints = [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
+                self.energy_endpoints_old = [MeasureType.SUM_ENERGY_ELEC_BASIC_OLD.value]
 
     def get_module(self, module: dict) -> Module:
         """Return module."""

@@ -141,6 +141,10 @@ class Home:
         for room in data.get("rooms", []):
             self.rooms[room["id"]].update(room)
 
+        for person_status in data.get("persons", []):
+            if person := self.persons.get(person_status["id"]):
+                person.update(person_status)
+
         self.events = {
             s["id"]: Event(home_id=self.entity_id, raw_data=s)
             for s in data.get(EVENTS, [])

@@ -1150,7 +1150,6 @@ class Module(NetatmoBase):
                 # this NLE is a bridge itself : make it not available
                 self.reachable = False
 
-
         if not self.reachable and self.modules:
             # Update bridged modules and associated rooms
             for module_id in self.modules:

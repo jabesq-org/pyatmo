@@ -100,8 +100,8 @@ class NLPC(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand / BTicino connected energy meter."""
 
 
-class NLE(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
-    """Legrand / BTicino connected ecometer."""
+class NLE(FirmwareMixin, EnergyHistoryMixin, Module):
+    """Legrand / BTicino connected ecometer. no power supported for the NLE (in the home status API)"""
 
 
 class NLPS(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):

@@ -98,7 +98,9 @@ class Home:
 
         self.energy_schedule_vals = []
         self.energy_endpoints = [MeasureType.SUM_ENERGY_ELEC_BASIC.value]
-        self.energy_endpoints_old = [MeasureType.SUM_ENERGY_ELEC_BASIC_OLD.value]
+        self.energy_endpoints_old = [
+            MeasureType.SUM_ENERGY_ELEC_BASIC_OLD.value
+        ]
         if nrj_schedule is not None:
 
             # Tariff option (basic = always the same price, peak_and_off_peak = peak & off peak hours)

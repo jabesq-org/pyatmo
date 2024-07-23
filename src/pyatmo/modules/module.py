@@ -778,7 +778,10 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
-        self._last_energy_from_API_end_for_power_adjustment_calculus = start_time  # no data at all: we know nothing for the end: best guess, it is the start
+
+        # no data at all: we know nothing for the end: best guess, it is the start
+        self._last_energy_from_API_end_for_power_adjustment_calculus = start_time
+
         self.in_reset = False
 
         if len(hist_good_vals) == 0:
@@ -842,7 +845,9 @@ class EnergyHistoryMixin(EntityBase):
             if computed_start == 0:
                 computed_start = c_start
             computed_end = c_end
-            computed_end_for_calculus = c_end  # - delta_range #not sure, revert ... it seems the energy value effectively stops at those mid values
+
+            # - delta_range not sure, revert ... it seems the energy value effectively stops at those mid values
+            computed_end_for_calculus = c_end  # - delta_range
 
             start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z"
             end_time_string = f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z"
@@ -908,7 +913,7 @@ class EnergyHistoryMixin(EntityBase):
         data_points,
     ):
         hist_good_vals = []
-        for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
+        for cur_peak_off_peak_mode, values_lots in enumerate(raw_datas):
             for values_lot in values_lots:
                 try:
                     start_lot_time = int(values_lot["beg_time"])
@@ -916,13 +921,13 @@ class EnergyHistoryMixin(EntityBase):
                     self._log_energy_error(
                         start_time,
                         end_time,
-                        msg=f"beg_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                        body=raw_datas[cur_peak_or_off_peak_mode],
+                        msg=f"beg_time missing {data_points[cur_peak_off_peak_mode]}",
+                        body=raw_datas[cur_peak_off_peak_mode],
                     )
                     raise ApiError(
-                        f"Energy badly formed resp beg_time missing: {raw_datas[cur_peak_or_off_peak_mode]} - "
+                        f"Energy badly formed resp beg_time missing: {raw_datas[cur_peak_off_peak_mode]} - "
                         f"module: {self.name} - "
-                        f"when accessing '{data_points[cur_peak_or_off_peak_mode]}'"
+                        f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
                     ) from None
 
                 interval_sec = values_lot.get("step_time")
@@ -931,8 +936,8 @@ class EnergyHistoryMixin(EntityBase):
                         self._log_energy_error(
                             start_time,
                             end_time,
-                            msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                            body=raw_datas[cur_peak_or_off_peak_mode],
+                            msg=f"step_time missing {data_points[cur_peak_off_peak_mode]}",
+                            body=raw_datas[cur_peak_off_peak_mode],
                         )
                     interval_sec = 2 * delta_range
                 else:
@@ -960,7 +965,7 @@ class EnergyHistoryMixin(EntityBase):
 
                         if (
                             self.home.energy_schedule_vals[idx_limit][1]
-                            != cur_peak_or_off_peak_mode
+                            != cur_peak_off_peak_mode
                         ):
 
                             # we are NOT in a proper schedule time for this time span ...
@@ -970,31 +975,31 @@ class EnergyHistoryMixin(EntityBase):
                                 self._log_energy_error(
                                     start_time,
                                     end_time,
-                                    msg=f"bad idx missing {data_points[cur_peak_or_off_peak_mode]}",
-                                    body=raw_datas[cur_peak_or_off_peak_mode],
+                                    msg=f"bad idx missing {data_points[cur_peak_off_peak_mode]}",
+                                    body=raw_datas[cur_peak_off_peak_mode],
                                 )
 
                                 raise ApiError(
-                                    f"Energy badly formed bad schedule idx in vals: {raw_datas[cur_peak_or_off_peak_mode]} - "
-                                    f"module: {self.name} - "
-                                    f"when accessing '{data_points[cur_peak_or_off_peak_mode]}'"
+                                    f"Energy badly formed bad schedule idx in vals: {raw_datas[cur_peak_off_peak_mode]}"
+                                    f" - module: {self.name} - "
+                                    f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
                                 )
                             else:
                                 # by construction of the energy schedule the next one should be of opposite mode
                                 if (
                                     energy_schedule_vals[idx_limit + 1][1]
-                                    != cur_peak_or_off_peak_mode
+                                    != cur_peak_off_peak_mode
                                 ):
                                     self._log_energy_error(
                                         start_time,
                                         end_time,
-                                        msg=f"bad schedule {data_points[cur_peak_or_off_peak_mode]}",
-                                        body=raw_datas[cur_peak_or_off_peak_mode],
+                                        msg=f"bad schedule {data_points[cur_peak_off_peak_mode]}",
+                                        body=raw_datas[cur_peak_off_peak_mode],
                                     )
                                     raise ApiError(
-                                        f"Energy badly formed bad schedule: {raw_datas[cur_peak_or_off_peak_mode]} - "
+                                        f"Energy badly formed bad schedule: {raw_datas[cur_peak_off_peak_mode]} - "
                                         f"module: {self.name} - "
-                                        f"when accessing '{data_points[cur_peak_or_off_peak_mode]}'"
+                                        f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
                                     )
 
                                 start_time_to_get_closer = energy_schedule_vals[
@@ -1008,7 +1013,7 @@ class EnergyHistoryMixin(EntityBase):
                                 )
 
                     hist_good_vals.append(
-                        (cur_start_time, int(val), cur_peak_or_off_peak_mode)
+                        (cur_start_time, int(val), cur_peak_off_peak_mode)
                     )
                     cur_start_time = cur_start_time + interval_sec
 
@@ -1059,7 +1064,7 @@ class EnergyHistoryMixin(EntityBase):
         bridge_module = self.home.modules.get(self.bridge)
         if bridge_module:
             if bridge_module.device_type == DeviceType.NLE:
-                data_points =self.home.energy_endpoints_old
+                data_points = self.home.energy_endpoints_old
 
         raw_datas = []
         for data_point in data_points:
@@ -1142,8 +1147,8 @@ class Module(NetatmoBase):
                     if bridge_module.device_type == DeviceType.NLE:
                         self.reachable = True
             elif self.modules:
-              # this NLE is a bridge itself : make it not available
-              self.reachable = False
+                # this NLE is a bridge itself : make it not available
+                self.reachable = False
 
 
         if not self.reachable and self.modules:

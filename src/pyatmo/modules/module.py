@@ -922,10 +922,10 @@ class EnergyHistoryMixin(EntityBase):
                         start_time,
                         end_time,
                         msg=f"beg_time missing {data_points[cur_peak_off_peak_mode]}",
-                        body=raw_datas[cur_peak_off_peak_mode],
+                        body=values_lots,
                     )
                     raise ApiError(
-                        f"Energy badly formed resp beg_time missing: {raw_datas[cur_peak_off_peak_mode]} - "
+                        f"Energy badly formed resp beg_time missing: {values_lots} - "
                         f"module: {self.name} - "
                         f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
                     ) from None
@@ -937,7 +937,7 @@ class EnergyHistoryMixin(EntityBase):
                             start_time,
                             end_time,
                             msg=f"step_time missing {data_points[cur_peak_off_peak_mode]}",
-                            body=raw_datas[cur_peak_off_peak_mode],
+                            body=values_lots,
                         )
                     interval_sec = 2 * delta_range
                 else:
@@ -976,12 +976,12 @@ class EnergyHistoryMixin(EntityBase):
                                     start_time,
                                     end_time,
                                     msg=f"bad idx missing {data_points[cur_peak_off_peak_mode]}",
-                                    body=raw_datas[cur_peak_off_peak_mode],
+                                    body=values_lots,
                                 )
 
                                 raise ApiError(
-                                    f"Energy badly formed bad schedule idx in vals: {raw_datas[cur_peak_off_peak_mode]}"
-                                    f" - module: {self.name} - "
+                                    f"Energy badly formed bad schedule idx in vals: {values_lots} - "
+                                    f"module: {self.name} - "
                                     f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
                                 )
                             else:
@@ -994,10 +994,10 @@ class EnergyHistoryMixin(EntityBase):
                                         start_time,
                                         end_time,
                                         msg=f"bad schedule {data_points[cur_peak_off_peak_mode]}",
-                                        body=raw_datas[cur_peak_off_peak_mode],
+                                        body=values_lots,
                                     )
                                     raise ApiError(
-                                        f"Energy badly formed bad schedule: {raw_datas[cur_peak_off_peak_mode]} - "
+                                        f"Energy badly formed bad schedule: {values_lots} - "
                                         f"module: {self.name} - "
                                         f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
                                     )
@@ -1034,7 +1034,7 @@ class EnergyHistoryMixin(EntityBase):
                             start_time,
                             end_time,
                             msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                            body=raw_datas[cur_peak_or_off_peak_mode],
+                            body=values_lots,
                         )
                 else:
                     local_step_time = int(local_step_time)

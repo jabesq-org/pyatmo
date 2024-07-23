@@ -173,10 +173,7 @@ class Home:
         raw_modules = raw_data.get("modules", [])
         for module in raw_modules:
             if (module_id := module["id"]) not in self.modules:
-                self.modules[module_id] = getattr(modules, module["type"])(
-                    home=self,
-                    module=module,
-                )
+                self.modules[module_id] = self.get_module(module)
             else:
                 self.modules[module_id].update_topology(module)
 

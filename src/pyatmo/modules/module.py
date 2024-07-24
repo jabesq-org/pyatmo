@@ -909,11 +909,10 @@ class EnergyHistoryMixin(EntityBase):
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
 
-
         self._achor_for_power_adjustment = computed_end_for_calculus
 
     async def _get_aligned_energy_values_and_mode(
-            self, start_time, end_time, delta_range, raw_data
+        self, start_time, end_time, delta_range, raw_data
     ):
         hist_good_vals = []
         values_lots = raw_data
@@ -1002,7 +1001,6 @@ class EnergyHistoryMixin(EntityBase):
         raw_data = rw_dt
 
         return filters, raw_data
-
 
 
 class EnergyHistoryLegacyMixin(EnergyHistoryMixin):

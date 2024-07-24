@@ -10,6 +10,7 @@ from pyatmo.modules.module import (
     DimmableMixin,
     Dimmer,
     EnergyHistoryMixin,
+    EnergyHistoryLegacyMixin,
     Fan,
     FirmwareMixin,
     Module,
@@ -20,7 +21,6 @@ from pyatmo.modules.module import (
     Switch,
     SwitchMixin,
     WifiMixin,
-    EnergyHistoryLegacyMixin,
 )
 
 LOG = logging.getLogger(__name__)

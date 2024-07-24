@@ -62,7 +62,6 @@ async def test_historical_data_retrieval(async_account):
     assert len(module.historical_data) == 168
 
 
-
 @time_machine.travel(dt.datetime(2024, 7, 24, 22, 00, 10))
 @pytest.mark.asyncio
 async def test_historical_data_retrieval_multi(async_account_multi):

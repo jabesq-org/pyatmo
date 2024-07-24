@@ -99,25 +99,25 @@ async def test_historical_data_retrieval_multi(async_account_multi):
         "startTimeUnix": 1721772000,
     }
     assert module.historical_data[17] == {
-        'Wh': 710,
-        'WhPerModes': [498, 212],
-        'duration': 30,
-        'endTime': '2024-07-24T07:00:00Z',
-        'endTimeUnix': 1721804400,
-        'energyMode': ['basic', 'peak'],
-        'startTime': '2024-07-24T06:30:01Z',
-        'startTimeUnix': 1721802600
+        "Wh": 710,
+        "WhPerModes": [498, 212],
+        "duration": 30,
+        "endTime": "2024-07-24T07:00:00Z",
+        "endTimeUnix": 1721804400,
+        "energyMode": ["basic", "peak"],
+        "startTime": "2024-07-24T06:30:01Z",
+        "startTimeUnix": 1721802600
     }
 
     assert module.historical_data[-1] == {
-        'Wh': 16,
-        'WhPerModes': [16],
-        'duration': 30,
-        'endTime': '2024-07-24T17:30:00Z',
-        'endTimeUnix': 1721842200,
-        'energyMode': ['peak'],
-        'startTime': '2024-07-24T17:00:01Z',
-        'startTimeUnix': 1721840400
+        "Wh": 16,
+        "WhPerModes": [16],
+        "duration": 30,
+        "endTime": "2024-07-24T17:30:00Z",
+        "endTimeUnix": 1721842200,
+        "energyMode": ["peak"],
+        "startTime": "2024-07-24T17:00:01Z",
+        "startTimeUnix": 1721840400
     }
 
     assert len(module.historical_data) == 39

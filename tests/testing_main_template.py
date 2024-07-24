@@ -1,7 +1,6 @@
 import pyatmo
-import aiohttp
 from pyatmo.auth import AbstractAsyncAuth
-from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError
+from aiohttp import ClientSession
 import asyncio
 
 from pyatmo.modules.module import MeasureInterval

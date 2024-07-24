@@ -25,7 +25,6 @@ from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
 from pyatmo.schedule import Schedule
-from pyatmo.modules.module import MeasureType
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth

@@ -627,10 +627,6 @@ class MeasureType(Enum):
     SUM_ENERGY_ELEC_PEAK_OLD = "sum_energy_elec$1"
     SUM_ENERGY_ELEC_OFF_PEAK_OLD = "sum_energy_elec$2"
 
-
-
-
-
 MEASURE_INTERVAL_TO_SECONDS = {
     MeasureInterval.HALF_HOUR: 1800,
     MeasureInterval.HOUR: 3600,
@@ -646,7 +642,7 @@ ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
 class EnergyHistoryMixin(EntityBase):
-    """Mixin for history data."""
+    """Mixin for Energy history data."""
 
     def __init__(self, home: Home, module: ModuleT):
         """Initialize history mixin."""
@@ -659,7 +655,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec: int | None = None
         self.sum_energy_elec_peak: int | None = None
         self.sum_energy_elec_off_peak: int | None = None
-        self._last_energy_from_API_end_for_power_adjustment_calculus: int | None = None
+        self._achor_for_power_adjustment: int | None = None
         self.in_reset: bool | False = False
 
     def reset_measures(self, start_power_time, in_reset=True):
@@ -667,9 +663,9 @@ class EnergyHistoryMixin(EntityBase):
         self.in_reset = in_reset
         self.historical_data = []
         if start_power_time is None:
-            self._last_energy_from_API_end_for_power_adjustment_calculus = start_power_time
+            self._achor_for_power_adjustment = start_power_time
         else:
-            self._last_energy_from_API_end_for_power_adjustment_calculus = int(start_power_time.timestamp())
+            self._achor_for_power_adjustment = int(start_power_time.timestamp())
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
@@ -717,7 +713,7 @@ class EnergyHistoryMixin(EntityBase):
             if to_ts is None:
                 to_ts = int(time())
 
-            from_ts = self._last_energy_from_API_end_for_power_adjustment_calculus
+            from_ts = self._achor_for_power_adjustment
 
             if (
                 from_ts is not None
@@ -784,10 +780,7 @@ class EnergyHistoryMixin(EntityBase):
         filters, raw_data = await self._energy_API_calls(start_time, end_time, interval)
 
         hist_good_vals = await self._get_aligned_energy_values_and_mode(
-            start_time,
-            end_time,
-            delta_range,
-            raw_data
+            start_time, end_time, delta_range, raw_data
         )
 
         self.historical_data = []
@@ -797,7 +790,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak = 0
 
         # no data at all: we know nothing for the end: best guess, it is the start
-        self._last_energy_from_API_end_for_power_adjustment_calculus = start_time
+        self._achor_for_power_adjustment = start_time
 
         self.in_reset = False
 
@@ -822,7 +815,7 @@ class EnergyHistoryMixin(EntityBase):
                 hist_good_vals,
                 prev_end_time,
                 prev_start_time,
-                prev_sum_energy_elec
+                prev_sum_energy_elec,
             )
 
 
@@ -834,7 +827,7 @@ class EnergyHistoryMixin(EntityBase):
         hist_good_vals,
         prev_end_time,
         prev_start_time,
-        prev_sum_energy_elec
+        prev_sum_energy_elec,
     ):
         computed_start = 0
         computed_end = 0
@@ -915,17 +908,11 @@ class EnergyHistoryMixin(EntityBase):
                 self.sum_energy_elec,
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
-        self._last_energy_from_API_end_for_power_adjustment_calculus = (
+        self._achor_for_power_adjustment = (
             computed_end_for_calculus
         )
 
-    async def _get_aligned_energy_values_and_mode(
-        self,
-        start_time,
-        end_time,
-        delta_range,
-        raw_data
-    ):
+    async def _get_aligned_energy_values_and_mode(self, start_time, end_time, delta_range, raw_data):
         hist_good_vals = []
         values_lots = raw_data
 
@@ -936,7 +923,7 @@ class EnergyHistoryMixin(EntityBase):
                 self._log_energy_error(
                     start_time,
                     end_time,
-                    msg=f"beg_time missing",
+                    msg="beg_time missing",
                     body=values_lots,
                 )
                 raise ApiError(
@@ -950,7 +937,7 @@ class EnergyHistoryMixin(EntityBase):
                     self._log_energy_error(
                         start_time,
                         end_time,
-                        msg=f"step_time missing",
+                        msg="step_time missing",
                         body=values_lots,
                     )
                 interval_sec = 2 * delta_range
@@ -970,20 +957,18 @@ class EnergyHistoryMixin(EntityBase):
                     else:
                         vals.append(None)
 
-                hist_good_vals.append(
-                    (cur_start_time, val, vals)
-                )
+                hist_good_vals.append((cur_start_time, val, vals))
                 cur_start_time = cur_start_time + interval_sec
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
         return hist_good_vals
 
-    def get_energy_filers(self):
+    def _get_energy_filers(self):
         return ENERGY_FILTERS
 
     async def _energy_API_calls(self, start_time, end_time, interval):
 
-        filters = self.get_energy_filers()
+        filters = self._get_energy_filers()
 
         params = {
             "device_id": self.bridge,
@@ -1016,8 +1001,10 @@ class EnergyHistoryMixin(EntityBase):
 
         return filters, raw_data
 
+
 class EnergyHistoryLegacyMixin(EnergyHistoryMixin):
-    def get_energy_filers(self):
+    """Mixin for Energy history data. Using legacy APis (used for NLE)"""
+    def _get_energy_filers(self):
         return ENERGY_FILTERS_LEGACY
 
 

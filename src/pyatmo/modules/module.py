@@ -666,7 +666,10 @@ class EnergyHistoryMixin(EntityBase):
         """Reset energy measures."""
         self.in_reset = in_reset
         self.historical_data = []
-        self._last_energy_from_API_end_for_power_adjustment_calculus = start_power_time
+        if start_power_time is None:
+            self._last_energy_from_API_end_for_power_adjustment_calculus = start_power_time
+        else:
+            self._last_energy_from_API_end_for_power_adjustment_calculus = int(start_power_time.timestamp())
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
@@ -712,7 +715,7 @@ class EnergyHistoryMixin(EntityBase):
         if self.in_reset is False:
 
             if to_ts is None:
-                to_ts = time()
+                to_ts = int(time())
 
             from_ts = self._last_energy_from_API_end_for_power_adjustment_calculus
 

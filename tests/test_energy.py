@@ -106,7 +106,7 @@ async def test_historical_data_retrieval_multi(async_account_multi):
         "endTimeUnix": 1721804400,
         "energyMode": ["basic", "peak"],
         "startTime": "2024-07-24T06:30:01Z",
-        "startTimeUnix": 1721802600
+        "startTimeUnix": 1721802600,
     }
 
     assert module.historical_data[-1] == {
@@ -117,13 +117,14 @@ async def test_historical_data_retrieval_multi(async_account_multi):
         "endTimeUnix": 1721842200,
         "energyMode": ["peak"],
         "startTime": "2024-07-24T17:00:01Z",
-        "startTimeUnix": 1721840400
+        "startTimeUnix": 1721840400,
     }
 
     assert len(module.historical_data) == 39
     assert module.sum_energy_elec == 17547
     assert module.sum_energy_elec_off_peak == 4290
     assert module.sum_energy_elec_peak == 10177
+
 
 async def test_disconnected_main_bridge(async_account_multi):
     """Test retrieval of historical measurements."""

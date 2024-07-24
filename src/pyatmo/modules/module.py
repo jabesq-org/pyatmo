@@ -627,6 +627,7 @@ class MeasureType(Enum):
     SUM_ENERGY_ELEC_PEAK_OLD = "sum_energy_elec$1"
     SUM_ENERGY_ELEC_OFF_PEAK_OLD = "sum_energy_elec$2"
 
+
 MEASURE_INTERVAL_TO_SECONDS = {
     MeasureInterval.HALF_HOUR: 1800,
     MeasureInterval.HOUR: 3600,
@@ -818,7 +819,6 @@ class EnergyHistoryMixin(EntityBase):
                 prev_sum_energy_elec,
             )
 
-
     async def _prepare_exported_historical_data(
         self,
         start_time,
@@ -908,11 +908,13 @@ class EnergyHistoryMixin(EntityBase):
                 self.sum_energy_elec,
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
-        self._achor_for_power_adjustment = (
-            computed_end_for_calculus
-        )
 
-    async def _get_aligned_energy_values_and_mode(self, start_time, end_time, delta_range, raw_data):
+
+        self._achor_for_power_adjustment = computed_end_for_calculus
+
+    async def _get_aligned_energy_values_and_mode(
+            self, start_time, end_time, delta_range, raw_data
+    ):
         hist_good_vals = []
         values_lots = raw_data
 
@@ -1002,8 +1004,10 @@ class EnergyHistoryMixin(EntityBase):
         return filters, raw_data
 
 
+
 class EnergyHistoryLegacyMixin(EnergyHistoryMixin):
-    """Mixin for Energy history data. Using legacy APis (used for NLE)"""
+    """Mixin for Energy history data, Using legacy APis (used for NLE)."""
+
     def _get_energy_filers(self):
         return ENERGY_FILTERS_LEGACY
 

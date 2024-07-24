@@ -33,6 +33,7 @@ def fix_id(raw_data: RawData) -> dict[str, Any]:
 
 def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
     """Extract raw data from server response."""
+    raw_data = {}
 
     if tag == "body":
         return {"public": resp["body"], "errors": []}

@@ -2,20 +2,14 @@
 
 from __future__ import annotations
 
-import copy
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 import logging
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError
 
-from pyatmo.const import (
-    ENERGY_ELEC_PEAK_IDX,
-    GETMEASURE_ENDPOINT,
-    MEASURE_INTERVAL_TO_SECONDS,
-    MeasureInterval,
-    RawData,
-)
+from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -24,7 +18,6 @@ if TYPE_CHECKING:
     from pyatmo.event import Event
     from pyatmo.home import Home
 
-import bisect
 from operator import itemgetter
 from time import time
 
@@ -471,6 +464,7 @@ class CameraMixin(EntityBase):
         self.local_url: str | None = None
         self.is_local: bool | None = None
         self.alim_status: int | None = None
+        self.device_type: DeviceType
 
     async def async_get_live_snapshot(self) -> bytes | None:
         """Fetch live camera image."""
@@ -488,7 +482,7 @@ class CameraMixin(EntityBase):
     async def async_update_camera_urls(self) -> None:
         """Update and validate the camera urls."""
 
-        if isinstance(self, Module) and self.device_type == "NDB":
+        if self.device_type == "NDB":
             self.is_local = None
 
         if self.vpn_url and self.is_local:
@@ -602,13 +596,53 @@ class MonitoringMixin(EntityBase):
         return await self.async_set_monitoring_state("off")
 
 
-def _get_proper_in_schedule_index(energy_schedule_vals, srt_beg):
-    idx = bisect.bisect_left(energy_schedule_vals, srt_beg, key=itemgetter(0))
-    if idx >= len(energy_schedule_vals):
-        idx = len(energy_schedule_vals) - 1
-    elif energy_schedule_vals[idx][0] > srt_beg:  # if strict equal idx is the good one
-        idx = max(0, idx - 1)
-    return idx
+class MeasureInterval(Enum):
+    """Measure interval."""
+
+    HALF_HOUR = "30min"
+    HOUR = "1hour"
+    THREE_HOURS = "3hours"
+    DAY = "1day"
+    WEEK = "1week"
+    MONTH = "1month"
+
+
+class MeasureType(Enum):
+    """Measure type."""
+
+    BOILERON = "boileron"
+    BOILEROFF = "boileroff"
+    SUM_BOILER_ON = "sum_boiler_on"
+    SUM_BOILER_OFF = "sum_boiler_off"
+    SUM_ENERGY_ELEC = "sum_energy_buy_from_grid"
+    SUM_ENERGY_ELEC_BASIC = "sum_energy_buy_from_grid$0"
+    SUM_ENERGY_ELEC_PEAK = "sum_energy_buy_from_grid$1"
+    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_buy_from_grid$2"
+    SUM_ENERGY_PRICE = "sum_energy_buy_from_grid_price"
+    SUM_ENERGY_PRICE_BASIC = "sum_energy_buy_from_grid_price$0"
+    SUM_ENERGY_PRICE_PEAK = "sum_energy_buy_from_grid_price$1"
+    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_buy_from_grid_price$2"
+    SUM_ENERGY_ELEC_OLD = "sum_energy_elec"
+    SUM_ENERGY_ELEC_BASIC_OLD = "sum_energy_elec$0"
+    SUM_ENERGY_ELEC_PEAK_OLD = "sum_energy_elec$1"
+    SUM_ENERGY_ELEC_OFF_PEAK_OLD = "sum_energy_elec$2"
+
+
+
+
+
+MEASURE_INTERVAL_TO_SECONDS = {
+    MeasureInterval.HALF_HOUR: 1800,
+    MeasureInterval.HOUR: 3600,
+    MeasureInterval.THREE_HOURS: 10800,
+    MeasureInterval.DAY: 86400,
+    MeasureInterval.WEEK: 604800,
+    MeasureInterval.MONTH: 2592000,
+}
+
+ENERGY_FILTERS = f"{MeasureType.SUM_ENERGY_ELEC.value},{MeasureType.SUM_ENERGY_ELEC_BASIC.value},{MeasureType.SUM_ENERGY_ELEC_PEAK.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value}"
+ENERGY_FILTERS_LEGACY = f"{MeasureType.SUM_ENERGY_ELEC_OLD.value},{MeasureType.SUM_ENERGY_ELEC_BASIC_OLD.value},{MeasureType.SUM_ENERGY_ELEC_PEAK_OLD.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_OLD.value}"
+ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
 class EnergyHistoryMixin(EntityBase):
@@ -712,21 +746,13 @@ class EnergyHistoryMixin(EntityBase):
             body,
         )
 
-    def update_measures_num_calls(self):
-        """Get number of possible endpoint calls."""
-
-        if not self.home.energy_endpoints:
-            return 1
-        else:
-            return len(self.home.energy_endpoints)
-
     async def async_update_measures(
         self,
         start_time: int | None = None,
         end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
-    ) -> int | None:
+    ) -> None:
         """Update historical data."""
 
         if end_time is None:
@@ -752,25 +778,13 @@ class EnergyHistoryMixin(EntityBase):
 
         delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0) // 2
 
-        data_points, num_calls, raw_datas, peak_off_peak_mode = (
-            await self._energy_API_calls(start_time, end_time, interval)
-        )
-
-        energy_schedule_vals = []
-
-        if peak_off_peak_mode:
-            energy_schedule_vals = await self._compute_proper_energy_schedule_offsets(
-                start_time, end_time, 2 * delta_range, raw_datas, data_points
-            )
+        filters, raw_data = await self._energy_API_calls(start_time, end_time, interval)
 
         hist_good_vals = await self._get_aligned_energy_values_and_mode(
             start_time,
             end_time,
             delta_range,
-            energy_schedule_vals,
-            peak_off_peak_mode,
-            raw_datas,
-            data_points,
+            raw_data
         )
 
         self.historical_data = []
@@ -805,11 +819,9 @@ class EnergyHistoryMixin(EntityBase):
                 hist_good_vals,
                 prev_end_time,
                 prev_start_time,
-                prev_sum_energy_elec,
-                peak_off_peak_mode,
+                prev_sum_energy_elec
             )
 
-        return num_calls
 
     async def _prepare_exported_historical_data(
         self,
@@ -819,25 +831,26 @@ class EnergyHistoryMixin(EntityBase):
         hist_good_vals,
         prev_end_time,
         prev_start_time,
-        prev_sum_energy_elec,
-        peak_off_peak_mode,
+        prev_sum_energy_elec
     ):
         computed_start = 0
         computed_end = 0
         computed_end_for_calculus = 0
-        for cur_start_time, val, cur_peak_or_off_peak_mode in hist_good_vals:
+        for cur_start_time, val, vals in hist_good_vals:
 
             self.sum_energy_elec += val
 
-            if peak_off_peak_mode:
-                mode = "off_peak"
-                if cur_peak_or_off_peak_mode == ENERGY_ELEC_PEAK_IDX:
-                    self.sum_energy_elec_peak += val
-                    mode = "peak"
-                else:
-                    self.sum_energy_elec_off_peak += val
-            else:
-                mode = "standard"
+            modes = []
+            val_modes = []
+
+            for i, v in enumerate(vals):
+                if v is not None:
+                    modes.append(ENERGY_FILTERS_MODES[i])
+                    val_modes.append(v)
+                    if ENERGY_FILTERS_MODES[i] == "off_peak":
+                        self.sum_energy_elec_off_peak += v
+                    elif ENERGY_FILTERS_MODES[i] == "peak":
+                        self.sum_energy_elec_peak += v
 
             c_start = cur_start_time
             c_end = cur_start_time + 2 * delta_range
@@ -857,7 +870,8 @@ class EnergyHistoryMixin(EntityBase):
                     "startTime": start_time_string,
                     "endTime": end_time_string,
                     "Wh": val,
-                    "energyMode": mode,
+                    "energyMode": modes,
+                    "WhPerModes": val_modes,
                     "startTimeUnix": c_start,
                     "endTimeUnix": c_end,
                 },
@@ -907,203 +921,101 @@ class EnergyHistoryMixin(EntityBase):
         start_time,
         end_time,
         delta_range,
-        energy_schedule_vals,
-        peak_off_peak_mode,
-        raw_datas,
-        data_points,
+        raw_data
     ):
         hist_good_vals = []
-        for cur_peak_off_peak_mode, values_lots in enumerate(raw_datas):
-            for values_lot in values_lots:
-                try:
-                    start_lot_time = int(values_lot["beg_time"])
-                except Exception:
+        values_lots = raw_data
+
+        for values_lot in values_lots:
+            try:
+                start_lot_time = int(values_lot["beg_time"])
+            except Exception:
+                self._log_energy_error(
+                    start_time,
+                    end_time,
+                    msg=f"beg_time missing",
+                    body=values_lots,
+                )
+                raise ApiError(
+                    f"Energy badly formed resp beg_time missing: {values_lots} - "
+                    f"module: {self.name}"
+                ) from None
+
+            interval_sec = values_lot.get("step_time")
+            if interval_sec is None:
+                if len(values_lot.get("value", [])) > 1:
                     self._log_energy_error(
                         start_time,
                         end_time,
-                        msg=f"beg_time missing {data_points[cur_peak_off_peak_mode]}",
+                        msg=f"step_time missing",
                         body=values_lots,
                     )
-                    raise ApiError(
-                        f"Energy badly formed resp beg_time missing: {values_lots} - "
-                        f"module: {self.name} - "
-                        f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
-                    ) from None
+                interval_sec = 2 * delta_range
+            else:
+                interval_sec = int(interval_sec)
 
-                interval_sec = values_lot.get("step_time")
-                if interval_sec is None:
-                    if len(values_lot.get("value", [])) > 1:
-                        self._log_energy_error(
-                            start_time,
-                            end_time,
-                            msg=f"step_time missing {data_points[cur_peak_off_peak_mode]}",
-                            body=values_lots,
-                        )
-                    interval_sec = 2 * delta_range
-                else:
-                    interval_sec = int(interval_sec)
+            # align the start on the begining of the segment
+            cur_start_time = start_lot_time - interval_sec // 2
+            for val_arr in values_lot.get("value", []):
+                vals = []
+                val = 0
+                for v in val_arr:
+                    if v is not None:
+                        v = int(v)
+                        val += v
+                        vals.append(v)
+                    else:
+                        vals.append(None)
 
-                # align the start on the begining of the segment
-                cur_start_time = start_lot_time - interval_sec // 2
-                for val_arr in values_lot.get("value", []):
-                    val = val_arr[0]
-
-                    if peak_off_peak_mode:
-
-                        d_srt = datetime.fromtimestamp(cur_start_time)
-                        # offset from start of the day
-                        day_origin = int(
-                            datetime(d_srt.year, d_srt.month, d_srt.day).timestamp()
-                        )
-                        srt_beg = cur_start_time - day_origin
-                        srt_mid = srt_beg + interval_sec // 2
-
-                        # now check if srt_beg is in a schedule span of the right type
-                        idx_limit = _get_proper_in_schedule_index(
-                            energy_schedule_vals, srt_mid
-                        )
-
-                        if (
-                            self.home.energy_schedule_vals[idx_limit][1]
-                            != cur_peak_off_peak_mode
-                        ):
-
-                            # we are NOT in a proper schedule time for this time span ...
-                            # jump to the next one... meaning it is the next day!
-                            if idx_limit == len(energy_schedule_vals) - 1:
-                                # should never append with the performed day extension above
-                                self._log_energy_error(
-                                    start_time,
-                                    end_time,
-                                    msg=f"bad idx missing {data_points[cur_peak_off_peak_mode]}",
-                                    body=values_lots,
-                                )
-
-                                raise ApiError(
-                                    f"Energy badly formed bad schedule idx in vals: {values_lots} - "
-                                    f"module: {self.name} - "
-                                    f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
-                                )
-                            else:
-                                # by construction of the energy schedule the next one should be of opposite mode
-                                if (
-                                    energy_schedule_vals[idx_limit + 1][1]
-                                    != cur_peak_off_peak_mode
-                                ):
-                                    self._log_energy_error(
-                                        start_time,
-                                        end_time,
-                                        msg=f"bad schedule {data_points[cur_peak_off_peak_mode]}",
-                                        body=values_lots,
-                                    )
-                                    raise ApiError(
-                                        f"Energy badly formed bad schedule: {values_lots} - "
-                                        f"module: {self.name} - "
-                                        f"when accessing '{data_points[cur_peak_off_peak_mode]}'"
-                                    )
-
-                                start_time_to_get_closer = energy_schedule_vals[
-                                    idx_limit + 1
-                                ][0]
-                                diff_t = start_time_to_get_closer - srt_mid
-                                cur_start_time = (
-                                    day_origin
-                                    + srt_beg
-                                    + (diff_t // interval_sec + 1) * interval_sec
-                                )
-
-                    hist_good_vals.append(
-                        (cur_start_time, int(val), cur_peak_off_peak_mode)
-                    )
-                    cur_start_time = cur_start_time + interval_sec
+                hist_good_vals.append(
+                    (cur_start_time, val, vals)
+                )
+                cur_start_time = cur_start_time + interval_sec
 
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
         return hist_good_vals
 
-    async def _compute_proper_energy_schedule_offsets(
-        self, start_time, end_time, interval_sec, raw_datas, data_points
-    ):
-        max_interval_sec = interval_sec
-        for cur_peak_or_off_peak_mode, values_lots in enumerate(raw_datas):
-            for values_lot in values_lots:
-                local_step_time = values_lot.get("step_time")
-
-                if local_step_time is None:
-                    if len(values_lot.get("value", [])) > 1:
-                        self._log_energy_error(
-                            start_time,
-                            end_time,
-                            msg=f"step_time missing {data_points[cur_peak_or_off_peak_mode]}",
-                            body=values_lots,
-                        )
-                else:
-                    local_step_time = int(local_step_time)
-                    max_interval_sec = max(max_interval_sec, local_step_time)
-        biggest_day_interval = max_interval_sec // (3600 * 24) + 1
-        energy_schedule_vals = copy.copy(self.home.energy_schedule_vals)
-        if energy_schedule_vals[-1][0] < max_interval_sec + (3600 * 24):
-            if energy_schedule_vals[0][1] == energy_schedule_vals[-1][1]:
-                # it means the last one continue in the first one the next day
-                energy_schedule_vals_next = energy_schedule_vals[1:]
-            else:
-                energy_schedule_vals_next = copy.copy(self.home.energy_schedule_vals)
-
-            for d in range(0, biggest_day_interval):
-                next_day_extend = [
-                    (offset + ((d + 1) * 24 * 3600), mode)
-                    for offset, mode in energy_schedule_vals_next
-                ]
-                energy_schedule_vals.extend(next_day_extend)
-        return energy_schedule_vals
-
     async def _energy_API_calls(self, start_time, end_time, interval):
-        num_calls = 0
-        data_points = self.home.energy_endpoints
+
+        filters = ENERGY_FILTERS
 
         # when the bridge is a connected meter, use old endpoints
         bridge_module = self.home.modules.get(self.bridge)
+
         if bridge_module:
             if bridge_module.device_type == DeviceType.NLE:
-                data_points = self.home.energy_endpoints_old
+                filters = ENERGY_FILTERS_LEGACY
 
-        raw_datas = []
-        for data_point in data_points:
+        params = {
+            "device_id": self.bridge,
+            "module_id": self.entity_id,
+            "scale": interval.value,
+            "type": filters,
+            "date_begin": start_time,
+            "date_end": end_time,
+        }
 
-            params = {
-                "device_id": self.bridge,
-                "module_id": self.entity_id,
-                "scale": interval.value,
-                "type": data_point,
-                "date_begin": start_time,
-                "date_end": end_time,
-            }
+        resp = await self.home.auth.async_post_api_request(
+            endpoint=GETMEASURE_ENDPOINT,
+            params=params,
+        )
 
-            resp = await self.home.auth.async_post_api_request(
-                endpoint=GETMEASURE_ENDPOINT,
-                params=params,
+        rw_dt_f = await resp.json()
+        rw_dt = rw_dt_f.get("body")
+
+        if rw_dt is None:
+            self._log_energy_error(
+                start_time, end_time, msg=f"direct from {filters}", body=rw_dt_f
+            )
+            raise ApiError(
+                f"Energy badly formed resp: {rw_dt_f} - "
+                f"module: {self.name} - "
+                f"when accessing '{filters}'"
             )
 
-            rw_dt_f = await resp.json()
-            rw_dt = rw_dt_f.get("body")
+        raw_data = rw_dt
 
-            if rw_dt is None:
-                self._log_energy_error(
-                    start_time, end_time, msg=f"direct from {data_point}", body=rw_dt_f
-                )
-                raise ApiError(
-                    f"Energy badly formed resp: {rw_dt_f} - "
-                    f"module: {self.name} - "
-                    f"when accessing '{data_point}'"
-                )
-
-            num_calls += 1
-            raw_datas.append(rw_dt)
-
-        peak_off_peak_mode = False
-        if len(raw_datas) > 1 and len(self.home.energy_schedule_vals) > 0:
-            peak_off_peak_mode = True
-
-        return data_points, num_calls, raw_datas, peak_off_peak_mode
+        return filters, raw_data
 
 
 class Module(NetatmoBase):
@@ -1142,10 +1054,7 @@ class Module(NetatmoBase):
         if self.device_type == DeviceType.NLE:
             # if there is a bridge it means it is a leaf
             if self.bridge:
-                bridge_module = self.home.modules.get(self.bridge)
-                if bridge_module:
-                    if bridge_module.device_type == DeviceType.NLE:
-                        self.reachable = True
+                self.reachable = True
             elif self.modules:
                 # this NLE is a bridge itself : make it not available
                 self.reachable = False

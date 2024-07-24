@@ -43,7 +43,6 @@ from pyatmo.modules.module import (
 
 LOG = logging.getLogger(__name__)
 
-
 # pylint: disable=R0901
 
 

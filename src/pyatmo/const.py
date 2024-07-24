@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from enum import Enum
 from typing import Any
 
 ERRORS: dict[int, str] = {
@@ -46,7 +45,6 @@ SETSTATE_ENDPOINT = "api/setstate"
 GETHOMECOACHDATA_ENDPOINT = "api/gethomecoachsdata"
 
 GETMEASURE_ENDPOINT = "api/getmeasure"
-GETHOMEMEASURE_ENDPOINT = "api/gethomemeasure"
 GETSTATIONDATA_ENDPOINT = "api/getstationsdata"
 
 GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
@@ -90,6 +88,7 @@ FROSTGUARD = "hg"
 SCHEDULES = "schedules"
 EVENTS = "events"
 
+
 STATION_TEMPERATURE_TYPE = "temperature"
 STATION_PRESSURE_TYPE = "pressure"
 STATION_HUMIDITY_TYPE = "humidity"
@@ -108,47 +107,3 @@ SCHEDULE_TYPE_THERM = "therm"
 SCHEDULE_TYPE_EVENT = "event"
 SCHEDULE_TYPE_ELECTRICITY = "electricity"
 SCHEDULE_TYPE_COOLING = "cooling"
-
-ENERGY_ELEC_PEAK_IDX = 0
-ENERGY_ELEC_OFF_IDX = 1
-
-
-class MeasureType(Enum):
-    """Measure type."""
-
-    BOILERON = "boileron"
-    BOILEROFF = "boileroff"
-    SUM_BOILER_ON = "sum_boiler_on"
-    SUM_BOILER_OFF = "sum_boiler_off"
-    SUM_ENERGY_ELEC = "sum_energy_buy_from_grid"
-    SUM_ENERGY_ELEC_BASIC = "sum_energy_buy_from_grid$0"
-    SUM_ENERGY_ELEC_PEAK = "sum_energy_buy_from_grid$1"
-    SUM_ENERGY_ELEC_OFF_PEAK = "sum_energy_buy_from_grid$2"
-    SUM_ENERGY_PRICE = "sum_energy_buy_from_grid_price"
-    SUM_ENERGY_PRICE_BASIC = "sum_energy_buy_from_grid_price$0"
-    SUM_ENERGY_PRICE_PEAK = "sum_energy_buy_from_grid_price$1"
-    SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_buy_from_grid_price$2"
-    SUM_ENERGY_ELEC_BASIC_OLD = "sum_energy_elec$0"
-    SUM_ENERGY_ELEC_PEAK_OLD = "sum_energy_elec$1"
-    SUM_ENERGY_ELEC_OFF_PEAK_OLD = "sum_energy_elec$2"
-
-
-class MeasureInterval(Enum):
-    """Measure interval."""
-
-    HALF_HOUR = "30min"
-    HOUR = "1hour"
-    THREE_HOURS = "3hours"
-    DAY = "1day"
-    WEEK = "1week"
-    MONTH = "1month"
-
-
-MEASURE_INTERVAL_TO_SECONDS = {
-    MeasureInterval.HALF_HOUR: 1800,
-    MeasureInterval.HOUR: 3600,
-    MeasureInterval.THREE_HOURS: 10800,
-    MeasureInterval.DAY: 86400,
-    MeasureInterval.WEEK: 604800,
-    MeasureInterval.MONTH: 2592000,
-}

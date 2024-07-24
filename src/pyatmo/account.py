@@ -16,13 +16,12 @@ from pyatmo.const import (
     GETSTATIONDATA_ENDPOINT,
     HOME,
     SETSTATE_ENDPOINT,
-    MeasureInterval,
     RawData,
 )
 from pyatmo.exceptions import ApiHomeReachabilityError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
-from pyatmo.modules.module import Module
+from pyatmo.modules.module import MeasureInterval, Module
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -73,7 +72,7 @@ class AsyncAccount:
 
     async def async_update_topology(
         self, disabled_homes_ids: list[str] | None = None
-    ) -> int:
+    ) -> None:
         """Retrieve topology data from /homesdata."""
 
         resp = await self.auth.async_post_api_request(
@@ -85,37 +84,21 @@ class AsyncAccount:
 
         self.process_topology(disabled_homes_ids=disabled_homes_ids)
 
-        return 1
-
-    async def async_update_status(self, home_id: str | None = None) -> int:
-        """Retrieve status data from /homestatus. Returns the number of performed API calls."""
-
-        if home_id is None:
-            homes = self.homes
-        else:
-            homes = [home_id]
-        num_calls = 0
-        all_homes_ok = True
-        for h_id in homes:
-            resp = await self.auth.async_post_api_request(
-                endpoint=GETHOMESTATUS_ENDPOINT,
-                params={"home_id": h_id},
-            )
-            raw_data = extract_raw_data(await resp.json(), HOME)
-            is_correct_update = await self.homes[h_id].update(raw_data)
-            if not is_correct_update:
-                all_homes_ok = False
-            num_calls += 1
-
-        if all_homes_ok is False:
+    async def async_update_status(self, home_id: str) -> None:
+        """Retrieve status data from /homestatus."""
+        resp = await self.auth.async_post_api_request(
+            endpoint=GETHOMESTATUS_ENDPOINT,
+            params={"home_id": home_id},
+        )
+        raw_data = extract_raw_data(await resp.json(), HOME)
+        is_correct_update = await self.homes[home_id].update(raw_data)
+        if is_correct_update is False:
             raise ApiHomeReachabilityError(
                 "No Home update could be performed, all modules unreachable and not updated",
             )
 
-        return num_calls
-
-    async def async_update_events(self, home_id: str) -> int:
-        """Retrieve events from /getevents. Returns the number of performed API calls."""
+    async def async_update_events(self, home_id: str) -> None:
+        """Retrieve events from /getevents."""
         resp = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
@@ -123,22 +106,17 @@ class AsyncAccount:
         raw_data = extract_raw_data(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data)
 
-        return 1
-
-    async def async_update_weather_stations(self) -> int:
-        """Retrieve status data from /getstationsdata. Returns the number of performed API calls."""
+    async def async_update_weather_stations(self) -> None:
+        """Retrieve status data from /getstationsdata."""
         params = {"get_favorites": ("true" if self.favorite_stations else "false")}
         await self._async_update_data(
             GETSTATIONDATA_ENDPOINT,
             params=params,
         )
-        return 1
 
-    async def async_update_air_care(self) -> int:
-        """Retrieve status data from /gethomecoachsdata. Returns the number of performed API calls."""
+    async def async_update_air_care(self) -> None:
+        """Retrieve status data from /gethomecoachsdata."""
         await self._async_update_data(GETHOMECOACHDATA_ENDPOINT)
-
-        return 1
 
     async def async_update_measures(
         self,
@@ -148,18 +126,15 @@ class AsyncAccount:
         end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
-    ) -> int:
-        """Retrieve measures data from /getmeasure. Returns the number of performed API calls."""
+    ) -> None:
+        """Retrieve measures data from /getmeasure."""
 
-        num_calls = await getattr(
-            self.homes[home_id].modules[module_id], "async_update_measures"
-        )(
+        await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
             start_time=start_time,
             end_time=end_time,
             interval=interval,
             days=days,
         )
-        return num_calls
 
     def register_public_weather_area(
         self,
@@ -184,8 +159,8 @@ class AsyncAccount:
         )
         return area_id
 
-    async def async_update_public_weather(self, area_id: str) -> int:
-        """Retrieve status data from /getpublicdata. Returns the number of performed API calls."""
+    async def async_update_public_weather(self, area_id: str) -> None:
+        """Retrieve status data from /getpublicdata."""
         params = {
             "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
             "lon_ne": self.public_weather_areas[area_id].location.lon_ne,
@@ -202,8 +177,6 @@ class AsyncAccount:
             area_id=area_id,
         )
 
-        return 1
-
     async def _async_update_data(
         self,
         endpoint: str,
@@ -216,8 +189,8 @@ class AsyncAccount:
         raw_data = extract_raw_data(await resp.json(), tag)
         await self.update_devices(raw_data, area_id)
 
-    async def async_set_state(self, home_id: str, data: dict[str, Any]) -> int:
-        """Modify device state by passing JSON specific to the device. Returns the number of performed API calls."""
+    async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:
+        """Modify device state by passing JSON specific to the device."""
         LOG.debug("Setting state: %s", data)
 
         post_params = {
@@ -233,7 +206,6 @@ class AsyncAccount:
             params=post_params,
         )
         LOG.debug("Response: %s", resp)
-        return 1
 
     async def update_devices(
         self,

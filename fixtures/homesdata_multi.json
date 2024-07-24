@@ -1050,12 +1050,11 @@
           },
           {
             "id": "98:76:54:32:10:00:00:69",
-            "type": "NLPO",
-            "name": "Filtration Piscine",
-            "setup_date": 1699136266,
+            "type": "NLPC",
+            "name": "Compteur Filtration Local Technique",
+            "setup_date": 1711797163,
             "room_id": "2754296835",
-            "bridge": "aa:aa:aa:aa:aa:aa",
-            "appliance_type": "other"
+            "bridge": "00:04:74:22:52:38"
           },
           {
             "id": "98:76:54:32:10:00:00:70",

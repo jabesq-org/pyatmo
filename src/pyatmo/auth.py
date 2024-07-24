@@ -89,42 +89,6 @@ class AbstractAsyncAuth(ABC):
             timeout=timeout,
         )
 
-    async def async_get_api_request(
-        self,
-        endpoint: str,
-        base_url: str | None = None,
-        params: dict[str, Any] | None = None,
-        timeout: int = 5,
-    ) -> ClientResponse:
-        """Wrap async post requests."""
-
-        return await self.async_get_request(
-            url=(base_url or self.base_url) + endpoint,
-            params=params,
-            timeout=timeout,
-        )
-
-    async def async_get_request(
-        self,
-        url: str,
-        params: dict[str, Any] | None = None,
-        timeout: int = 5,
-    ) -> ClientResponse:
-        """Wrap async post requests."""
-
-        access_token = await self.get_access_token()
-        headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
-
-        req_args = self.prepare_request_get_arguments(params)
-
-        async with self.websession.get(
-            url,
-            **req_args,
-            headers=headers,
-            timeout=timeout,
-        ) as resp:
-            return await self.process_response(resp, url)
-
     async def async_post_request(
         self,
         url: str,
@@ -167,10 +131,6 @@ class AbstractAsyncAuth(ABC):
 
         return req_args
 
-    def prepare_request_get_arguments(self, params):
-        """Prepare get request arguments."""
-        return params
-
     async def process_response(self, resp, url):
         """Process response."""
         resp_status = resp.status
@@ -188,8 +148,11 @@ class AbstractAsyncAuth(ABC):
             resp_json = await resp.json()
 
             message = (
-                f"{resp_status} - {ERRORS.get(resp_status, '')} - {resp_json['error']['message']} "
-                f"({resp_json['error']['code']}) when accessing '{url}'"
+                f"{resp_status} - "
+                f"{ERRORS.get(resp_status, '')} - "
+                f"{resp_json['error']['message']} "
+                f"({resp_json['error']['code']}) "
+                f"when accessing '{url}'",
             )
 
             if resp_status == 403 and resp_json["error"]["code"] == 26:

@@ -21,6 +21,7 @@ from time import time
 
 LOG = logging.getLogger(__name__)
 
+
 NETATMO_ATTRIBUTES_MAP = {
     "entity_id": lambda x, y: x.get("id", y),
     "modules": lambda x, y: x.get("modules_bridged", y),

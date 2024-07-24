@@ -4,8 +4,7 @@ from pyatmo.auth import AbstractAsyncAuth
 from aiohttp import ClientError, ClientResponse, ClientSession, ContentTypeError
 import asyncio
 
-from pyatmo.const import MeasureInterval
-
+from pyatmo.modules.module import MeasureInterval
 
 MY_TOKEN_FROM_NETATMO = "MY_TOKEN"
 

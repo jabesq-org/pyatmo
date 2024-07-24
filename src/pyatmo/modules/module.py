@@ -978,16 +978,12 @@ class EnergyHistoryMixin(EntityBase):
         hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
         return hist_good_vals
 
+    def get_energy_filers(self):
+        return ENERGY_FILTERS
+
     async def _energy_API_calls(self, start_time, end_time, interval):
 
-        filters = ENERGY_FILTERS
-
-        # when the bridge is a connected meter, use old endpoints
-        bridge_module = self.home.modules.get(self.bridge)
-
-        if bridge_module:
-            if bridge_module.device_type == DeviceType.NLE:
-                filters = ENERGY_FILTERS_LEGACY
+        filters = self.get_energy_filers()
 
         params = {
             "device_id": self.bridge,
@@ -1019,6 +1015,10 @@ class EnergyHistoryMixin(EntityBase):
         raw_data = rw_dt
 
         return filters, raw_data
+
+class EnergyHistoryLegacyMixin(EnergyHistoryMixin):
+    def get_energy_filers(self):
+        return ENERGY_FILTERS_LEGACY
 
 
 class Module(NetatmoBase):

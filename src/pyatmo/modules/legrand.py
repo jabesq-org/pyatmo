@@ -20,6 +20,7 @@ from pyatmo.modules.module import (
     Switch,
     SwitchMixin,
     WifiMixin,
+    EnergyHistoryLegacyMixin,
 )
 
 LOG = logging.getLogger(__name__)
@@ -99,7 +100,7 @@ class NLPC(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand / BTicino connected energy meter."""
 
 
-class NLE(FirmwareMixin, EnergyHistoryMixin, Module):
+class NLE(FirmwareMixin, EnergyHistoryLegacyMixin, Module):
     """Legrand / BTicino connected ecometer. no power supported for the NLE (in the home status API)."""
 
 

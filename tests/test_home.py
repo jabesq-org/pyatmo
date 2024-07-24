@@ -8,7 +8,6 @@ import pyatmo
 from pyatmo import DeviceType, NoDevice
 import pytest
 
-
 from tests.common import MockResponse
 
 # pylint: disable=F6401

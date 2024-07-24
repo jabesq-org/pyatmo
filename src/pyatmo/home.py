@@ -43,9 +43,6 @@ class Home:
     schedules: dict[str, Schedule]
     persons: dict[str, Person]
     events: dict[str, Event]
-    energy_filters: str
-    energy_filters_legacy: str
-    energy_filters_modes: list[str]
 
     def __init__(self, auth: AbstractAsyncAuth, raw_data: RawData) -> None:
         """Initialize a Netatmo home instance."""

@@ -622,10 +622,10 @@ class MeasureType(Enum):
     SUM_ENERGY_PRICE_BASIC = "sum_energy_buy_from_grid_price$0"
     SUM_ENERGY_PRICE_PEAK = "sum_energy_buy_from_grid_price$1"
     SUM_ENERGY_PRICE_OFF_PEAK = "sum_energy_buy_from_grid_price$2"
-    SUM_ENERGY_ELEC_OLD = "sum_energy_elec"
-    SUM_ENERGY_ELEC_BASIC_OLD = "sum_energy_elec$0"
-    SUM_ENERGY_ELEC_PEAK_OLD = "sum_energy_elec$1"
-    SUM_ENERGY_ELEC_OFF_PEAK_OLD = "sum_energy_elec$2"
+    SUM_ENERGY_ELEC_LEGACY = "sum_energy_elec"
+    SUM_ENERGY_ELEC_BASIC_LEGACY = "sum_energy_elec$0"
+    SUM_ENERGY_ELEC_PEAK_LEGACY = "sum_energy_elec$1"
+    SUM_ENERGY_ELEC_OFF_PEAK_LEGACY = "sum_energy_elec$2"
 
 
 MEASURE_INTERVAL_TO_SECONDS = {
@@ -638,7 +638,7 @@ MEASURE_INTERVAL_TO_SECONDS = {
 }
 
 ENERGY_FILTERS = f"{MeasureType.SUM_ENERGY_ELEC.value},{MeasureType.SUM_ENERGY_ELEC_BASIC.value},{MeasureType.SUM_ENERGY_ELEC_PEAK.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value}"
-ENERGY_FILTERS_LEGACY = f"{MeasureType.SUM_ENERGY_ELEC_OLD.value},{MeasureType.SUM_ENERGY_ELEC_BASIC_OLD.value},{MeasureType.SUM_ENERGY_ELEC_PEAK_OLD.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_OLD.value}"
+ENERGY_FILTERS_LEGACY = f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_BASIC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_PEAK_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_LEGACY.value}"
 ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
@@ -656,7 +656,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec: int | None = None
         self.sum_energy_elec_peak: int | None = None
         self.sum_energy_elec_off_peak: int | None = None
-        self._achor_for_power_adjustment: int | None = None
+        self._anchor_for_power_adjustment: int | None = None
         self.in_reset: bool | False = False
 
     def reset_measures(self, start_power_time, in_reset=True):
@@ -664,14 +664,14 @@ class EnergyHistoryMixin(EntityBase):
         self.in_reset = in_reset
         self.historical_data = []
         if start_power_time is None:
-            self._achor_for_power_adjustment = start_power_time
+            self._anchor_for_power_adjustment = start_power_time
         else:
-            self._achor_for_power_adjustment = int(start_power_time.timestamp())
+            self._anchor_for_power_adjustment = int(start_power_time.timestamp())
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
 
-    def compute_rieman_sum(self, power_data, conservative: bool = False):
+    def compute_riemann_sum(self, power_data, conservative: bool = False):
         """Compute energy from power with a rieman sum."""
 
         delta_energy = 0
@@ -709,12 +709,12 @@ class EnergyHistoryMixin(EntityBase):
 
         delta_energy = 0
 
-        if self.in_reset is False:
+        if not self.in_reset:
 
             if to_ts is None:
                 to_ts = int(time())
 
-            from_ts = self._achor_for_power_adjustment
+            from_ts = self._anchor_for_power_adjustment
 
             if (
                 from_ts is not None
@@ -728,7 +728,7 @@ class EnergyHistoryMixin(EntityBase):
                 if isinstance(
                     self, EnergyHistoryMixin
                 ):  # well to please the linter....
-                    delta_energy = self.compute_rieman_sum(power_data, conservative)
+                    delta_energy = self.compute_riemann_sum(power_data, conservative)
 
         return v, delta_energy
 
@@ -791,7 +791,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak = 0
 
         # no data at all: we know nothing for the end: best guess, it is the start
-        self._achor_for_power_adjustment = start_time
+        self._anchor_for_power_adjustment = start_time
 
         self.in_reset = False
 
@@ -909,7 +909,7 @@ class EnergyHistoryMixin(EntityBase):
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
 
-        self._achor_for_power_adjustment = computed_end_for_calculus
+        self._anchor_for_power_adjustment = computed_end_for_calculus
 
     async def _get_aligned_energy_values_and_mode(
         self, start_time, end_time, delta_range, raw_data

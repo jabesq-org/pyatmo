@@ -37,7 +37,7 @@ class AsyncAccount:
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
-        self.all_account_homes_id: dict[str, str] = {}
+        self.all_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -54,13 +54,16 @@ class AsyncAccount:
     def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
         """Process topology information from /homesdata."""
 
+        if disabled_homes_ids is None:
+            disabled_homes_ids = []
+
         for home in self.raw_data["homes"]:
 
             home_id = home.get("id", "Unknown")
             home_name = home.get("name", "Unknown")
-            self.all_account_homes_id[home_id] = home_name
+            self.all_homes_id[home_id] = home_name
 
-            if disabled_homes_ids and home_id in disabled_homes_ids:
+            if home_id in disabled_homes_ids:
                 if home_id in self.homes:
                     del self.homes[home_id]
                 continue

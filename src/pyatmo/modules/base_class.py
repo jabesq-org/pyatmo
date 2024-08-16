@@ -61,7 +61,7 @@ class EntityBase:
 
 
 # 2 days of dynamic historical data stored
-MAX_HISTORY_TIME_S = 24 * 2 * 3600
+MAX_HISTORY_TIME_FRAME = 24 * 2 * 3600
 
 
 class NetatmoBase(EntityBase, ABC):
@@ -98,29 +98,34 @@ class NetatmoBase(EntityBase, ABC):
         now = int(time())
         for hist_feature in self.history_features:
             if hist_feature in self.__dict__:
-                hist_f = self.history_features_values.get(hist_feature, None)
-                if hist_f is None:
-                    hist_f = []
-                    self.history_features_values[hist_feature] = hist_f
                 val = getattr(self, hist_feature)
                 if val is None:
                     continue
-                if not hist_f or hist_f[-1][0] <= now:
-                    hist_f.append((now, val, self.entity_id))
-                else:
-                    i = bisect.bisect_left(hist_f, now, key=itemgetter(0))
 
-                    if i < len(hist_f):
-                        if hist_f[i][0] == now:
-                            hist_f[i] = (now, val, self.entity_id)
-                            i = None
+                self.add_history_data(hist_feature, val, now)
 
-                    if i is not None:
-                        hist_f.insert(i, (now, val, self.entity_id))
 
-                # keep timing history to a maximum representative time
-                while len(hist_f) > 0 and now - hist_f[0][0] > MAX_HISTORY_TIME_S:
-                    hist_f.pop(0)
+    def add_history_data(self, feature: str, value, time: int) -> None:
+        """Add historical data at the given time."""
+
+        # get the feature values rolling buffer
+        hist_f = self.history_features_values.setdefault(feature, [])
+        if not hist_f or hist_f[-1][0] <= time:
+            hist_f.append((time, value, self.entity_id))
+        else:
+            i = bisect.bisect_left(hist_f, time, key=itemgetter(0))
+
+            if i < len(hist_f):
+                if hist_f[i][0] == time:
+                    hist_f[i] = (time, value, self.entity_id)
+                    i = None
+
+            if i is not None:
+                hist_f.insert(i, (time, value, self.entity_id))
+
+        # keep timing history to a maximum representative time
+        while len(hist_f) > 0 and hist_f[-1][0] - hist_f[0][0] > MAX_HISTORY_TIME_FRAME:
+            hist_f.pop(0)
 
     def get_history_data(self, feature: str, from_ts: int, to_ts: int | None = None):
         """Retrieve historical data."""

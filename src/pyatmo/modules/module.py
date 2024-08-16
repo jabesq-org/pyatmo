@@ -642,6 +642,34 @@ ENERGY_FILTERS_LEGACY = f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},{MeasureTyp
 ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
+def compute_riemann_sum(power_data : list[tuple[int, float]], conservative: bool = False):
+    """Compute energy from power with a rieman sum."""
+
+    delta_energy = 0
+    if power_data and len(power_data) > 1:
+
+        # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
+        # as we don't want to artifically go up the previous one
+        # (except in rare exceptions like reset, 0 , etc)
+
+        for i in range(len(power_data) - 1):
+
+            dt_h = float(power_data[i + 1][0] - power_data[i][0]) / 3600.0
+
+            if conservative:
+                d_p_w = 0
+            else:
+                d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
+
+            d_nrj_wh = dt_h * (
+                    min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
+            )
+
+            delta_energy += d_nrj_wh
+
+    return delta_energy
+
+
 class EnergyHistoryMixin(EntityBase):
     """Mixin for Energy history data."""
 
@@ -670,33 +698,6 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
         self.sum_energy_elec_off_peak = 0
-
-    def compute_riemann_sum(self, power_data, conservative: bool = False):
-        """Compute energy from power with a rieman sum."""
-
-        delta_energy = 0
-        if power_data and len(power_data) > 1:
-
-            # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
-            # as we don't want to artifically go up the previous one
-            # (except in rare exceptions like reset, 0 , etc)
-
-            for i in range(len(power_data) - 1):
-
-                dt_h = float(power_data[i + 1][0] - power_data[i][0]) / 3600.0
-
-                if conservative:
-                    d_p_w = 0
-                else:
-                    d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
-
-                d_nrj_wh = dt_h * (
-                    min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
-                )
-
-                delta_energy += d_nrj_wh
-
-        return delta_energy
 
     def get_sum_energy_elec_power_adapted(
         self, to_ts: int | float | None = None, conservative: bool = False
@@ -728,7 +729,7 @@ class EnergyHistoryMixin(EntityBase):
                 if isinstance(
                     self, EnergyHistoryMixin
                 ):  # well to please the linter....
-                    delta_energy = self.compute_riemann_sum(power_data, conservative)
+                    delta_energy = compute_riemann_sum(power_data, conservative)
 
         return v, delta_energy
 

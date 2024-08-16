@@ -18,7 +18,6 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     RawData,
 )
-from pyatmo.exceptions import ApiHomeReachabilityError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import MeasureInterval, Module

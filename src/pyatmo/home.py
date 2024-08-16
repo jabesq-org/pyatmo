@@ -20,7 +20,7 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.event import Event
-from pyatmo.exceptions import InvalidSchedule, InvalidState, NoSchedule
+from pyatmo.exceptions import InvalidSchedule, InvalidState, NoSchedule, ApiHomeReachabilityError
 from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
@@ -122,7 +122,7 @@ class Home:
             for s in raw_data.get(SCHEDULES, [])
         }
 
-    async def update(self, raw_data: RawData) -> bool:
+    async def update(self, raw_data: RawData, do_raise_for_reachability_error=False) -> None:
         """Update home with the latest data."""
         num_errors = 0
         for module in raw_data.get("errors", []):
@@ -164,14 +164,16 @@ class Home:
                     ],
                 )
 
-        if (
+        if (do_raise_for_reachability_error and
             num_errors > 0
             and has_one_module_reachable is False
             and has_an_update is False
         ):
-            return False
+            raise ApiHomeReachabilityError(
+                "No Home update could be performed, all modules unreachable and not updated",
+            )
 
-        return True
+
 
     def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""

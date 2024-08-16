@@ -94,11 +94,7 @@ class AsyncAccount:
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data(await resp.json(), HOME)
-        is_correct_update = await self.homes[home_id].update(raw_data)
-        if is_correct_update is False:
-            raise ApiHomeReachabilityError(
-                "No Home update could be performed, all modules unreachable and not updated",
-            )
+        await self.homes[home_id].update(raw_data, do_raise_for_reachability_error=True)
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""

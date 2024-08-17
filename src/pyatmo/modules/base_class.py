@@ -10,7 +10,7 @@ import logging
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
-from pyatmo.const import RawData
+from pyatmo.const import RawData, MAX_HISTORY_TIME_FRAME
 from pyatmo.modules.device_types import DeviceType
 
 if TYPE_CHECKING:
@@ -58,10 +58,6 @@ class EntityBase:
     history_features: set[str]
     history_features_values: dict[str, [int, int]] | {}
     name: str | None
-
-
-# 2 days of dynamic historical data stored
-MAX_HISTORY_TIME_FRAME = 24 * 2 * 3600
 
 
 class NetatmoBase(EntityBase, ABC):

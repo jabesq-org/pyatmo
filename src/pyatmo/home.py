@@ -124,9 +124,9 @@ class Home:
 
     async def update(self, raw_data: RawData, do_raise_for_reachability_error=False) -> None:
         """Update home with the latest data."""
-        num_errors = 0
+        has_error = False
         for module in raw_data.get("errors", []):
-            num_errors += 1
+            has_error = True
             await self.modules[module["id"]].update({})
 
         data = raw_data["home"]
@@ -164,8 +164,8 @@ class Home:
                     ],
                 )
 
-        if (do_raise_for_reachability_error and
-            num_errors > 0
+        if (do_raise_for_reachability_error
+            and has_error
             and has_one_module_reachable is False
             and has_an_update is False
         ):

@@ -39,6 +39,8 @@ async def test_async_home(async_home):
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.NOC
 
+    assert async_home.temperature_control_mode == "cooling"
+
 
 @pytest.mark.asyncio
 async def test_async_home_set_schedule(async_home):

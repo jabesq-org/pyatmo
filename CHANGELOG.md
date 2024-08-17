@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- Expose camera person status
+- Add NLE support
+- Add proper energy support
+- Add cooler support
+- Add BNS support
 
 ### Changed
 

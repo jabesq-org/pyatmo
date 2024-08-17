@@ -228,6 +228,16 @@ class BoilerMixin(EntityBase):
         self.boiler_status: bool | None = None
 
 
+class CoolerMixin(EntityBase):
+    """Mixin for cooler data."""
+
+    def __init__(self, home: Home, module: ModuleT):
+        """Initialize cooler mixin."""
+
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.cooler_status: bool | None = None
+
+
 class BatteryMixin(EntityBase):
     """Mixin for battery data."""
 
@@ -649,13 +659,11 @@ def compute_riemann_sum(
 
     delta_energy = 0
     if power_data and len(power_data) > 1:
-
         # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
         # as we don't want to artifically go up the previous one
         # (except in rare exceptions like reset, 0 , etc)
 
         for i in range(len(power_data) - 1):
-
             dt_h = float(power_data[i + 1][0] - power_data[i][0]) / 3600.0
 
             if conservative:
@@ -713,7 +721,6 @@ class EnergyHistoryMixin(EntityBase):
         delta_energy = 0
 
         if not self.in_reset:
-
             if to_ts is None:
                 to_ts = int(time())
 
@@ -811,7 +818,6 @@ class EnergyHistoryMixin(EntityBase):
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
         else:
-
             await self._prepare_exported_historical_data(
                 start_time,
                 end_time,
@@ -836,7 +842,6 @@ class EnergyHistoryMixin(EntityBase):
         computed_end = 0
         computed_end_for_calculus = 0
         for cur_start_time, val, vals in hist_good_vals:
-
             self.sum_energy_elec += val
 
             modes = []
@@ -971,7 +976,6 @@ class EnergyHistoryMixin(EntityBase):
         return ENERGY_FILTERS
 
     async def _energy_API_calls(self, start_time, end_time, interval):
-
         filters = self._get_energy_filers()
 
         params = {

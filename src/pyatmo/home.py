@@ -49,6 +49,11 @@ class Home:
     persons: dict[str, Person]
     events: dict[str, Event]
 
+    temperature_control_mode: str | None = None
+    therm_mode: str | None = None
+    therm_setpoint_default_duration: int | None = None
+    cooling_mode: str | None = None
+
     def __init__(self, auth: AbstractAsyncAuth, raw_data: RawData) -> None:
         """Initialize a Netatmo home instance."""
 
@@ -76,6 +81,13 @@ class Home:
         }
         self.events = {}
 
+        self.temperature_control_mode = raw_data.get("temperature_control_mode")
+        self.therm_mode = raw_data.get("therm_mode")
+        self.therm_setpoint_default_duration = raw_data.get(
+            "therm_setpoint_default_duration",
+        )
+        self.cooling_mode = raw_data.get("cooling_mode")
+
     def get_module(self, module: dict) -> Module:
         """Return module."""
 
@@ -97,6 +109,14 @@ class Home:
         self.name = raw_data.get("name", "Unknown")
 
         raw_modules = raw_data.get("modules", [])
+
+        self.temperature_control_mode = raw_data.get("temperature_control_mode")
+        self.therm_mode = raw_data.get("therm_mode")
+        self.therm_setpoint_default_duration = raw_data.get(
+            "therm_setpoint_default_duration",
+        )
+        self.cooling_mode = raw_data.get("cooling_mode")
+
         for module in raw_modules:
             if (module_id := module["id"]) not in self.modules:
                 self.modules[module_id] = self.get_module(module)

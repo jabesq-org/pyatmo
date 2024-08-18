@@ -176,7 +176,7 @@ class Home:
         return any("OTM" in room.device_types for room in self.rooms.values())
 
     def has_bns(self) -> bool:
-        """Check if any room has BNS device."""
+        """Check if any room has a BNS device."""
 
         return any("BNS" in room.device_types for room in self.rooms.values())
 

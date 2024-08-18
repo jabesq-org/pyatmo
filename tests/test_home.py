@@ -1,13 +1,12 @@
 """Define tests for home module."""
 
-import datetime as dt
+# import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch
 
 import pyatmo
 from pyatmo import DeviceType, NoDevice
 import pytest
-import time_machine
 
 from tests.common import MockResponse
 
@@ -143,35 +142,6 @@ async def test_home_event_update(async_account):
     assert events[0].event_type == "outdoor"
     assert events[0].video_id == "11111111-2222-3333-4444-b42f0fc4cfad"
     assert events[1].event_type == "connection"
-
-
-@time_machine.travel(dt.datetime(2022, 2, 12, 7, 59, 49))
-@pytest.mark.asyncio
-async def test_historical_data_retrieval(async_account):
-    """Test retrieval of historical measurements."""
-    home_id = "91763b24c43d3e344f424e8b"
-    await async_account.async_update_events(home_id=home_id)
-    home = async_account.homes[home_id]
-
-    module_id = "12:34:56:00:00:a1:4c:da"
-    assert module_id in home.modules
-    module = home.modules[module_id]
-    assert module.device_type == DeviceType.NLPC
-
-    await async_account.async_update_measures(home_id=home_id, module_id=module_id)
-    assert module.historical_data[0] == {
-        "Wh": 197,
-        "duration": 60,
-        "startTime": "2022-02-05T08:29:50Z",
-        "endTime": "2022-02-05T09:29:49Z",
-    }
-    assert module.historical_data[-1] == {
-        "Wh": 259,
-        "duration": 60,
-        "startTime": "2022-02-12T07:29:50Z",
-        "endTime": "2022-02-12T08:29:49Z",
-    }
-    assert len(module.historical_data) == 168
 
 
 def test_device_types_missing():

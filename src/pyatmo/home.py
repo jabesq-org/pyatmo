@@ -20,7 +20,12 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.event import Event
-from pyatmo.exceptions import InvalidSchedule, InvalidState, NoSchedule
+from pyatmo.exceptions import (
+    ApiHomeReachabilityError,
+    InvalidSchedule,
+    InvalidState,
+    NoSchedule,
+)
 from pyatmo.modules import Module
 from pyatmo.person import Person
 from pyatmo.room import Room
@@ -94,10 +99,7 @@ class Home:
         raw_modules = raw_data.get("modules", [])
         for module in raw_modules:
             if (module_id := module["id"]) not in self.modules:
-                self.modules[module_id] = getattr(modules, module["type"])(
-                    home=self,
-                    module=module,
-                )
+                self.modules[module_id] = self.get_module(module)
             else:
                 self.modules[module_id].update_topology(module)
 
@@ -125,27 +127,39 @@ class Home:
             for s in raw_data.get(SCHEDULES, [])
         }
 
-    async def update(self, raw_data: RawData) -> None:
+    async def update(
+        self, raw_data: RawData, do_raise_for_reachability_error=False
+    ) -> None:
         """Update home with the latest data."""
-
+        has_error = False
         for module in raw_data.get("errors", []):
+            has_error = True
             await self.modules[module["id"]].update({})
 
         data = raw_data["home"]
 
+        has_an_update = False
         for module in data.get("modules", []):
+            has_an_update = True
             if module["id"] not in self.modules:
                 self.update_topology({"modules": [module]})
             await self.modules[module["id"]].update(module)
 
         for room in data.get("rooms", []):
+            has_an_update = True
             self.rooms[room["id"]].update(room)
 
         self.events = {
             s["id"]: Event(home_id=self.entity_id, raw_data=s)
             for s in data.get(EVENTS, [])
         }
+        if len(self.events) > 0:
+            has_an_update = True
+
+        has_one_module_reachable = False
         for module in self.modules.values():
+            if module.reachable:
+                has_one_module_reachable = True
             if hasattr(module, "events"):
                 setattr(
                     module,
@@ -156,6 +170,16 @@ class Home:
                         if getattr(event, "module_id") == module.entity_id
                     ],
                 )
+
+        if (
+            do_raise_for_reachability_error
+            and has_error
+            and has_one_module_reachable is False
+            and has_an_update is False
+        ):
+            raise ApiHomeReachabilityError(
+                "No Home update could be performed, all modules unreachable and not updated",
+            )
 
     def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""

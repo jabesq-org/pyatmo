@@ -17,7 +17,7 @@ from pyatmo.const import (
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
-from pyatmo.exceptions import ApiError
+from pyatmo.exceptions import ApiError, ApiErrorThrottling
 
 LOG = logging.getLogger(__name__)
 
@@ -146,13 +146,23 @@ class AbstractAsyncAuth(ABC):
         """Handle error response."""
         try:
             resp_json = await resp.json()
-            raise ApiError(
+
+            message = (
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
                 f"{resp_json['error']['message']} "
                 f"({resp_json['error']['code']}) "
                 f"when accessing '{url}'",
             )
+
+            if resp_status == 403 and resp_json["error"]["code"] == 26:
+                raise ApiErrorThrottling(
+                    message,
+                )
+            else:
+                raise ApiError(
+                    message,
+                )
 
         except (JSONDecodeError, ContentTypeError) as exc:
             raise ApiError(

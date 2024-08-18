@@ -7,11 +7,12 @@ import logging
 from pyatmo.modules.module import (
     BatteryMixin,
     ContactorMixin,
+    DimmableMixin,
     Dimmer,
-    EnergyMixin,
+    EnergyHistoryLegacyMixin,
+    EnergyHistoryMixin,
     Fan,
     FirmwareMixin,
-    HistoryMixin,
     Module,
     OffloadMixin,
     PowerMixin,
@@ -31,15 +32,15 @@ class NLG(FirmwareMixin, OffloadMixin, WifiMixin, Module):
     """Legrand gateway."""
 
 
-class NLT(FirmwareMixin, BatteryMixin, Module):
-    """Legrand global remote control."""
+class NLT(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
+    """Legrand global remote control...but also wireless switch, like NLD."""
 
 
-class NLP(Switch, HistoryMixin, PowerMixin, OffloadMixin, Module):
+class NLP(Switch, OffloadMixin):
     """Legrand plug."""
 
 
-class NLPM(Switch):
+class NLPM(Switch, OffloadMixin):
     """Legrand mobile plug."""
 
 
@@ -47,7 +48,7 @@ class NLPO(ContactorMixin, OffloadMixin, Switch):
     """Legrand contactor."""
 
 
-class NLPT(Switch):
+class NLPT(Switch, OffloadMixin):
     """Legrand latching relay/teleruptor."""
 
 
@@ -75,11 +76,11 @@ class NLIS(Switch):
     """Legrand double switch."""
 
 
-class NLD(Dimmer):
-    """Legrand Double On/Off dimmer remote."""
+class NLD(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
+    """Legrand Double On/Off dimmer remote. Wireless 2 button switch light."""
 
 
-class NLL(FirmwareMixin, EnergyMixin, WifiMixin, SwitchMixin, Module):
+class NLL(Switch, WifiMixin):
     """Legrand / BTicino italian light switch with neutral."""
 
 
@@ -95,19 +96,19 @@ class NLLM(FirmwareMixin, RfMixin, ShutterMixin, Module):
     """Legrand / BTicino shutters."""
 
 
-class NLPC(FirmwareMixin, HistoryMixin, PowerMixin, EnergyMixin, Module):
+class NLPC(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand / BTicino connected energy meter."""
 
 
-class NLE(FirmwareMixin, HistoryMixin, PowerMixin, EnergyMixin, Module):
-    """Legrand / BTicino connected ecometer."""
+class NLE(FirmwareMixin, EnergyHistoryLegacyMixin, Module):
+    """Legrand / BTicino connected ecometer. no power supported for the NLE (in the home status API)."""
 
 
-class NLPS(FirmwareMixin, PowerMixin, EnergyMixin, Module):
+class NLPS(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
 
-class NLC(FirmwareMixin, SwitchMixin, HistoryMixin, PowerMixin, OffloadMixin, Module):
+class NLC(Switch, OffloadMixin):
     """Legrand / BTicino cable outlet."""
 
 
@@ -115,7 +116,7 @@ class NLDD(FirmwareMixin, Module):
     """Legrand NLDD dimmer remote control."""
 
 
-class NLUP(FirmwareMixin, PowerMixin, SwitchMixin, Module):
+class NLUP(Switch):
     """Legrand NLUP Power outlet."""
 
 
@@ -135,7 +136,7 @@ class NLUO(Dimmer):
     """Legrand NLUO device stub."""
 
 
-class NLLF(Fan):
+class NLLF(Fan, PowerMixin, EnergyHistoryMixin):
     """Legrand NLLF fan/ventilation device."""
 
 
@@ -159,7 +160,7 @@ class NLTS(Module):
     """NLTS motion sensor."""
 
 
-class NLPD(FirmwareMixin, SwitchMixin, EnergyMixin, PowerMixin, Module):
+class NLPD(Switch, OffloadMixin):
     """NLPD dry contact."""
 
 

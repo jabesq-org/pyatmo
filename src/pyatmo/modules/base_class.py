@@ -10,7 +10,7 @@ import logging
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
-from pyatmo.const import RawData, MAX_HISTORY_TIME_FRAME
+from pyatmo.const import MAX_HISTORY_TIME_FRAME, RawData
 from pyatmo.modules.device_types import DeviceType
 
 if TYPE_CHECKING:
@@ -99,7 +99,6 @@ class NetatmoBase(EntityBase, ABC):
                     continue
 
                 self.add_history_data(hist_feature, val, now)
-
 
     def add_history_data(self, feature: str, value, time: int) -> None:
         """Add historical data at the given time."""

@@ -642,7 +642,9 @@ ENERGY_FILTERS_LEGACY = f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},{MeasureTyp
 ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
-def compute_riemann_sum(power_data : list[tuple[int, float]], conservative: bool = False):
+def compute_riemann_sum(
+    power_data: list[tuple[int, float]], conservative: bool = False
+):
     """Compute energy from power with a rieman sum."""
 
     delta_energy = 0
@@ -662,7 +664,7 @@ def compute_riemann_sum(power_data : list[tuple[int, float]], conservative: bool
                 d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
 
             d_nrj_wh = dt_h * (
-                    min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
+                min(power_data[i + 1][1], power_data[i][1]) + 0.5 * d_p_w
             )
 
             delta_energy += d_nrj_wh

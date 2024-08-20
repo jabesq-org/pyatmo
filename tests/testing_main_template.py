@@ -1,6 +1,7 @@
 import asyncio
 
 from aiohttp import ClientSession
+
 import pyatmo
 from pyatmo.auth import AbstractAsyncAuth
 from pyatmo.modules.module import MeasureInterval
@@ -9,9 +10,7 @@ MY_TOKEN_FROM_NETATMO = "MY_TOKEN"
 
 
 class MyAuth(AbstractAsyncAuth):
-
     async def async_get_access_token(self):
-
         return MY_TOKEN_FROM_NETATMO
 
 
@@ -42,7 +41,6 @@ async def main():
 
 
 if __name__ == "__main__":
-
     topology = asyncio.run(main())
 
     # print(topology)

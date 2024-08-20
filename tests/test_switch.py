@@ -1,7 +1,8 @@
 """Define tests for switch module."""
 
-from pyatmo import DeviceType
 import pytest
+
+from pyatmo import DeviceType
 
 # pylint: disable=F6401
 

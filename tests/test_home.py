@@ -4,10 +4,10 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pyatmo
-from pyatmo import DeviceType, NoDevice
 import pytest
 
+import pyatmo
+from pyatmo import DeviceType, NoDevice
 from tests.common import MockResponse
 
 # pylint: disable=F6401

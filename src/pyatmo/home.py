@@ -148,7 +148,9 @@ class Home:
         }
 
     async def update(
-        self, raw_data: RawData, do_raise_for_reachability_error=False
+        self,
+        raw_data: RawData,
+        do_raise_for_reachability_error=False,
     ) -> None:
         """Update home with the latest data."""
         has_error = False

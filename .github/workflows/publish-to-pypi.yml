@@ -3,7 +3,7 @@ name: Publish 📦 to PyPI
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-n-publish:
@@ -14,7 +14,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5.0.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.10.8
       - name: Install dependencies
@@ -24,11 +24,11 @@ jobs:
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m build .
-#      - name: Publish 📦 to Test PyPI
-#        uses: pypa/gh-action-pypi-publish@master
-#        with:
-#          password: ${{ secrets.PYPI_TEST_TOKEN }}
-#          repository_url: https://test.pypi.org/legacy/
+      #      - name: Publish 📦 to Test PyPI
+      #        uses: pypa/gh-action-pypi-publish@master
+      #        with:
+      #          password: ${{ secrets.PYPI_TEST_TOKEN }}
+      #          repository-url: https://test.pypi.org/legacy/
       - name: Publish 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

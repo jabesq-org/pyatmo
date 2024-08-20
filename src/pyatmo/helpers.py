@@ -1,4 +1,5 @@
 """Collection of helper functions."""
+
 from __future__ import annotations
 
 import logging
@@ -38,7 +39,7 @@ def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
         return {"public": resp["body"], "errors": []}
 
     if resp is None or "body" not in resp or tag not in resp["body"]:
-        LOG.debug("Server response: %s", resp)
+        LOG.debug("Server response (tag: %s): %s", tag, resp)
         raise NoDevice("No device found, errors in response")
 
     if tag == "homes":
@@ -48,7 +49,7 @@ def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
         }
 
     if not (raw_data := fix_id(resp["body"].get(tag))):
-        LOG.debug("Server response: %s", resp)
+        LOG.debug("Server response (tag: %s): %s", tag, resp)
         raise NoDevice("No device data available")
 
     return {tag: raw_data, "errors": resp["body"].get("errors", [])}

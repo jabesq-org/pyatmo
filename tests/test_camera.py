@@ -1,4 +1,5 @@
 """Define tests for camera module."""
+
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -22,7 +23,10 @@ async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-nam
     assert module.local_url == "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
     person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
     assert person_id in module.home.persons
-    assert module.home.persons[person_id].pseudo == "John Doe"
+    person = module.home.persons[person_id]
+    assert person.pseudo == "John Doe"
+    assert person.out_of_sight
+    assert person.last_seen == 1557071156
 
 
 @pytest.mark.asyncio

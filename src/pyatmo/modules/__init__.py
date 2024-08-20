@@ -1,4 +1,5 @@
 """Expose submodules."""
+
 from .base_class import Place
 from .bticino import (
     BNAB,

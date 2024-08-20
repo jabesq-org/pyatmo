@@ -1,0 +1,15 @@
+{
+   "status":"ok",
+   "body":{
+      "errors":[
+         {
+            "code":6,
+            "id":"aa:aa:aa:aa:aa:aa"
+         }
+      ],
+      "home":{
+         "id":"aaaaaaaaaaabbbbbbbbbbccc"
+      }
+   },
+   "time_server":1559292039
+}

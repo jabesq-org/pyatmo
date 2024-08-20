@@ -1,4 +1,5 @@
 """Define tests for shutter module."""
+
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -80,6 +81,12 @@ async def test_async_shutters(async_home):
         assert await module.async_stop()
         mock_resp.assert_awaited_with(
             params=gen_json_data(-1),
+            endpoint="api/setstate",
+        )
+
+        assert await module.async_move_to_preferred_position()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data(-2),
             endpoint="api/setstate",
         )
 

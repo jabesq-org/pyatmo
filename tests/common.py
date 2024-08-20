@@ -1,4 +1,5 @@
 """Define shared test helpers."""
+
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 from __future__ import annotations
 
@@ -60,11 +61,22 @@ async def fake_post_request(*args, **kwargs):
 
     elif endpoint == "getmeasure":
         module_id = kwargs.get("params", {}).get("module_id")
+        type = kwargs.get("params", {}).get("type")
         payload = json.loads(
-            load_fixture(f"{endpoint}_{module_id.replace(':', '_')}.json"),
+            load_fixture(f"{endpoint}_{type}_{module_id.replace(':', '_')}.json"),
         )
 
     else:
-        payload = json.loads(load_fixture(f"{endpoint}.json"))
+        postfix = kwargs.get("POSTFIX", None)
+        if postfix is not None:
+            payload = json.loads(load_fixture(f"{endpoint}_{postfix}.json"))
+        else:
+            payload = json.loads(load_fixture(f"{endpoint}.json"))
 
     return MockResponse(payload, 200)
+
+
+async def fake_post_request_multi(*args, **kwargs):
+    kwargs["POSTFIX"] = "multi"
+    r = await fake_post_request(*args, **kwargs)
+    return r

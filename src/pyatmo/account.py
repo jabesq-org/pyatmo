@@ -1,4 +1,5 @@
 """Support for a Netatmo account."""
+
 from __future__ import annotations
 
 import logging
@@ -35,6 +36,7 @@ class AsyncAccount:
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
+        self.all_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -48,16 +50,30 @@ class AsyncAccount:
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
 
-    def process_topology(self) -> None:
+    def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
         """Process topology information from /homesdata."""
 
+        if disabled_homes_ids is None:
+            disabled_homes_ids = []
+
         for home in self.raw_data["homes"]:
-            if (home_id := home["id"]) in self.homes:
+            home_id = home.get("id", "Unknown")
+            home_name = home.get("name", "Unknown")
+            self.all_homes_id[home_id] = home_name
+
+            if home_id in disabled_homes_ids:
+                if home_id in self.homes:
+                    del self.homes[home_id]
+                continue
+
+            if home_id in self.homes:
                 self.homes[home_id].update_topology(home)
             else:
                 self.homes[home_id] = Home(self.auth, raw_data=home)
 
-    async def async_update_topology(self) -> None:
+    async def async_update_topology(
+        self, disabled_homes_ids: list[str] | None = None
+    ) -> None:
         """Retrieve topology data from /homesdata."""
 
         resp = await self.auth.async_post_api_request(
@@ -67,7 +83,7 @@ class AsyncAccount:
 
         self.user = self.raw_data.get("user", {}).get("email")
 
-        self.process_topology()
+        self.process_topology(disabled_homes_ids=disabled_homes_ids)
 
     async def async_update_status(self, home_id: str) -> None:
         """Retrieve status data from /homestatus."""
@@ -76,7 +92,7 @@ class AsyncAccount:
             params={"home_id": home_id},
         )
         raw_data = extract_raw_data(await resp.json(), HOME)
-        await self.homes[home_id].update(raw_data)
+        await self.homes[home_id].update(raw_data, do_raise_for_reachability_error=True)
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
@@ -104,6 +120,7 @@ class AsyncAccount:
         home_id: str,
         module_id: str,
         start_time: int | None = None,
+        end_time: int | None = None,
         interval: MeasureInterval = MeasureInterval.HOUR,
         days: int = 7,
     ) -> None:
@@ -111,6 +128,7 @@ class AsyncAccount:
 
         await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
             start_time=start_time,
+            end_time=end_time,
             interval=interval,
             days=days,
         )
@@ -218,7 +236,7 @@ class AsyncAccount:
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
-                LOG.debug("No home %s found.", home_id)
+                LOG.debug("No home %s (%s) found.", home_id, home_id)
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id

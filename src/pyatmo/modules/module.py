@@ -502,7 +502,7 @@ class CameraMixin(EntityBase):
                     self.local_url = await self._async_check_url(
                         temp_local_url,
                     )
-                except ClientConnectorError as exc:
+                except (TimeoutError, ClientConnectorError) as exc:
                     LOG.debug("Cannot connect to %s - reason: %s", temp_local_url, exc)
                     self.is_local = False
                     self.local_url = None

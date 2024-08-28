@@ -1,9 +1,10 @@
 """Define tests for weaather module."""
 
+import pytest
+
 import pyatmo
 from pyatmo import DeviceType
 from pyatmo.modules.base_class import Location, Place
-import pytest
 
 # pylint: disable=F6401
 

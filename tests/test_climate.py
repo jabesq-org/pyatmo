@@ -3,11 +3,11 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import pytest
+
 from pyatmo import DeviceType, NoSchedule
 from pyatmo.modules import NATherm1
 from pyatmo.modules.device_types import DeviceCategory
-import pytest
-
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
@@ -200,10 +200,13 @@ async def test_async_climate_switch_schedule(
     with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
         response = json.load(json_file)
 
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=MockResponse(response, 200)),
-    ), expected:
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            AsyncMock(return_value=MockResponse(response, 200)),
+        ),
+        expected,
+    ):
         await async_home.async_switch_schedule(
             schedule_id=t_sched_id,
         )
@@ -351,10 +354,13 @@ async def test_async_climate_set_thermmode(
     with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
         response = json.load(json_file)
 
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=MockResponse(response, 200)),
-    ), exception:
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            AsyncMock(return_value=MockResponse(response, 200)),
+        ),
+        exception,
+    ):
         resp = await async_home.async_set_thermmode(
             mode=mode,
             end_time=end_time,

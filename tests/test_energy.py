@@ -4,11 +4,11 @@ import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch
 
-from pyatmo import ApiHomeReachabilityError, DeviceType
-from pyatmo.modules.module import EnergyHistoryMixin, MeasureInterval
 import pytest
 import time_machine
 
+from pyatmo import ApiHomeReachabilityError, DeviceType
+from pyatmo.modules.module import EnergyHistoryMixin, MeasureInterval
 from tests.common import MockResponse
 
 # pylint: disable=F6401
@@ -139,7 +139,7 @@ async def test_disconnected_main_bridge(async_account_multi):
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=mock_home_status_resp),
-    ) as mock_request:
+    ):
         try:
             await async_account_multi.async_update_status(home_id)
         except ApiHomeReachabilityError:

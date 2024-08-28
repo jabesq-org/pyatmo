@@ -228,6 +228,16 @@ class BoilerMixin(EntityBase):
         self.boiler_status: bool | None = None
 
 
+class CoolerMixin(EntityBase):
+    """Mixin for cooler data."""
+
+    def __init__(self, home: Home, module: ModuleT):
+        """Initialize cooler mixin."""
+
+        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        self.cooler_status: bool | None = None
+
+
 class BatteryMixin(EntityBase):
     """Mixin for battery data."""
 
@@ -492,7 +502,7 @@ class CameraMixin(EntityBase):
                     self.local_url = await self._async_check_url(
                         temp_local_url,
                     )
-                except ClientConnectorError as exc:
+                except (TimeoutError, ClientConnectorError) as exc:
                     LOG.debug("Cannot connect to %s - reason: %s", temp_local_url, exc)
                     self.is_local = False
                     self.local_url = None
@@ -643,19 +653,18 @@ ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
 def compute_riemann_sum(
-    power_data: list[tuple[int, float]], conservative: bool = False
+    power_data: list[tuple[int, float]],
+    conservative: bool = False,
 ):
     """Compute energy from power with a rieman sum."""
 
     delta_energy = 0
     if power_data and len(power_data) > 1:
-
         # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
         # as we don't want to artifically go up the previous one
         # (except in rare exceptions like reset, 0 , etc)
 
         for i in range(len(power_data) - 1):
-
             dt_h = float(power_data[i + 1][0] - power_data[i][0]) / 3600.0
 
             if conservative:
@@ -702,7 +711,9 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_off_peak = 0
 
     def get_sum_energy_elec_power_adapted(
-        self, to_ts: int | float | None = None, conservative: bool = False
+        self,
+        to_ts: int | float | None = None,
+        conservative: bool = False,
     ):
         """Compute proper energy value with adaptation from power."""
         v = self.sum_energy_elec
@@ -713,7 +724,6 @@ class EnergyHistoryMixin(EntityBase):
         delta_energy = 0
 
         if not self.in_reset:
-
             if to_ts is None:
                 to_ts = int(time())
 
@@ -726,10 +736,13 @@ class EnergyHistoryMixin(EntityBase):
                 and isinstance(self, NetatmoBase)
             ):
                 power_data = self.get_history_data(
-                    "power", from_ts=from_ts, to_ts=to_ts
+                    "power",
+                    from_ts=from_ts,
+                    to_ts=to_ts,
                 )
                 if isinstance(
-                    self, EnergyHistoryMixin
+                    self,
+                    EnergyHistoryMixin,
                 ):  # well to please the linter....
                     delta_energy = compute_riemann_sum(power_data, conservative)
 
@@ -784,7 +797,10 @@ class EnergyHistoryMixin(EntityBase):
         filters, raw_data = await self._energy_API_calls(start_time, end_time, interval)
 
         hist_good_vals = await self._get_aligned_energy_values_and_mode(
-            start_time, end_time, delta_range, raw_data
+            start_time,
+            end_time,
+            delta_range,
+            raw_data,
         )
 
         self.historical_data = []
@@ -811,7 +827,6 @@ class EnergyHistoryMixin(EntityBase):
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
         else:
-
             await self._prepare_exported_historical_data(
                 start_time,
                 end_time,
@@ -836,7 +851,6 @@ class EnergyHistoryMixin(EntityBase):
         computed_end = 0
         computed_end_for_calculus = 0
         for cur_start_time, val, vals in hist_good_vals:
-
             self.sum_energy_elec += val
 
             modes = []
@@ -915,7 +929,11 @@ class EnergyHistoryMixin(EntityBase):
         self._anchor_for_power_adjustment = computed_end_for_calculus
 
     async def _get_aligned_energy_values_and_mode(
-        self, start_time, end_time, delta_range, raw_data
+        self,
+        start_time,
+        end_time,
+        delta_range,
+        raw_data,
     ):
         hist_good_vals = []
         values_lots = raw_data
@@ -932,7 +950,7 @@ class EnergyHistoryMixin(EntityBase):
                 )
                 raise ApiError(
                     f"Energy badly formed resp beg_time missing: {values_lots} - "
-                    f"module: {self.name}"
+                    f"module: {self.name}",
                 ) from None
 
             interval_sec = values_lot.get("step_time")
@@ -971,7 +989,6 @@ class EnergyHistoryMixin(EntityBase):
         return ENERGY_FILTERS
 
     async def _energy_API_calls(self, start_time, end_time, interval):
-
         filters = self._get_energy_filers()
 
         params = {
@@ -993,12 +1010,15 @@ class EnergyHistoryMixin(EntityBase):
 
         if rw_dt is None:
             self._log_energy_error(
-                start_time, end_time, msg=f"direct from {filters}", body=rw_dt_f
+                start_time,
+                end_time,
+                msg=f"direct from {filters}",
+                body=rw_dt_f,
             )
             raise ApiError(
                 f"Energy badly formed resp: {rw_dt_f} - "
                 f"module: {self.name} - "
-                f"when accessing '{filters}'"
+                f"when accessing '{filters}'",
             )
 
         raw_data = rw_dt

@@ -150,6 +150,7 @@ class Home:
             self.rooms[room["id"]].update(room)
 
         for person_status in data.get("persons", []):
+            has_an_update = True
             if person := self.persons.get(person_status["id"]):
                 person.update(person_status)
 

@@ -4,10 +4,10 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pyatmo
-from pyatmo import DeviceType, NoDevice
 import pytest
 
+import pyatmo
+from pyatmo import DeviceType, NoDevice
 from tests.common import MockResponse
 
 # pylint: disable=F6401
@@ -38,6 +38,8 @@ async def test_async_home(async_home):
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.NOC
+
+    assert async_home.temperature_control_mode == "cooling"
 
 
 @pytest.mark.asyncio

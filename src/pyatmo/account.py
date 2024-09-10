@@ -57,7 +57,6 @@ class AsyncAccount:
             disabled_homes_ids = []
 
         for home in self.raw_data["homes"]:
-
             home_id = home.get("id", "Unknown")
             home_name = home.get("name", "Unknown")
             self.all_homes_id[home_id] = home_name
@@ -237,7 +236,7 @@ class AsyncAccount:
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
-                LOG.debug("No home %s found.", home_id)
+                LOG.debug("No home %s (%s) found.", home_id, home_id)
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id

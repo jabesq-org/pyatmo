@@ -4,8 +4,9 @@
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 
-import pyatmo
 import pytest
+
+import pyatmo
 
 from .common import fake_post_request, fake_post_request_multi
 
@@ -27,12 +28,15 @@ async def async_account(async_auth):
     """AsyncAccount fixture."""
     account = pyatmo.AsyncAccount(async_auth)
 
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        fake_post_request,
-    ), patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        fake_post_request,
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            fake_post_request,
+        ),
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+            fake_post_request,
+        ),
     ):
         await account.async_update_topology()
         yield account
@@ -51,15 +55,18 @@ async def async_account_multi(async_auth):
     """AsyncAccount fixture."""
     account = pyatmo.AsyncAccount(async_auth)
 
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        fake_post_request_multi,
-    ), patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-        fake_post_request_multi,
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            fake_post_request_multi,
+        ),
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+            fake_post_request_multi,
+        ),
     ):
         await account.async_update_topology(
-            disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"]
+            disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"],
         )
         yield account
 

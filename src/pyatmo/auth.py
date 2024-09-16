@@ -57,7 +57,8 @@ class AbstractAsyncAuth(ABC):
         try:
             access_token = await self.async_get_access_token()
         except ClientError as err:
-            msg = f"Access token failure: {err}"
+            error_type = type(err).__name__
+            msg = f"Access token failure: {error_type} - {err}"
             raise ApiError(msg) from err
         headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
 

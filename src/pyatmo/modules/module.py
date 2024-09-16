@@ -802,7 +802,6 @@ class EnergyHistoryMixin(EntityBase):
             raw_data,
         )
 
-        self.historical_data = []
         prev_sum_energy_elec = self.sum_energy_elec
         self.sum_energy_elec = 0
         self.sum_energy_elec_peak = 0
@@ -846,6 +845,7 @@ class EnergyHistoryMixin(EntityBase):
         prev_start_time,
         prev_sum_energy_elec,
     ):
+        self.historical_data = []
         computed_start = 0
         computed_end = 0
         computed_end_for_calculus = 0

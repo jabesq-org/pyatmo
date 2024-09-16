@@ -39,11 +39,10 @@ Clone the repo and install dependencies:
 
     git clone
     cd pyatmo
-    pipenv install --dev
+    uv sync
 
 To add the pre-commit hook to your environment run:
 
-    pip install pre-commit
     pre-commit install
 
 ## Testing

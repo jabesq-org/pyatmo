@@ -38,16 +38,13 @@ Be aware that the module may stop working if Netatmo decides to change their API
 Prerequisits:
 
     uv
-    python >=3.10
+    python >=3.11
 
-Clone the repo and install dependencies:
+Clone the repo, install dependencies and install pre-commit hooks:
 
     git clone
     cd pyatmo
     uv sync
-
-To add the pre-commit hook to your environment run:
-
     pre-commit install
 
 ## Testing

@@ -56,8 +56,8 @@ class EntityBase:
     home: Home
     bridge: str | None
     history_features: set[str]
-    history_features_values: dict[str, [int, int]] | {}
-    name: str | None
+    history_features_values: dict
+    name: str
 
 
 class NetatmoBase(EntityBase, ABC):
@@ -110,12 +110,9 @@ class NetatmoBase(EntityBase, ABC):
         else:
             i = bisect.bisect_left(hist_f, time, key=itemgetter(0))
 
-            if i < len(hist_f):
-                if hist_f[i][0] == time:
-                    hist_f[i] = (time, value, self.entity_id)
-                    i = None
-
-            if i is not None:
+            if i < len(hist_f) and hist_f[i][0] == time:
+                hist_f[i] = (time, value, self.entity_id)
+            else:
                 hist_f.insert(i, (time, value, self.entity_id))
 
         # keep timing history to a maximum representative time

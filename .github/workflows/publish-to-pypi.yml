@@ -24,11 +24,6 @@ jobs:
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m build .
-      #      - name: Publish 📦 to Test PyPI
-      #        uses: pypa/gh-action-pypi-publish@master
-      #        with:
-      #          password: ${{ secrets.PYPI_TEST_TOKEN }}
-      #          repository-url: https://test.pypi.org/legacy/
       - name: Publish 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

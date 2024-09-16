@@ -35,6 +35,11 @@ Be aware that the module may stop working if Netatmo decides to change their API
 
 ## Development
 
+Prerequisits:
+
+    uv
+    python >=3.10
+
 Clone the repo and install dependencies:
 
     git clone

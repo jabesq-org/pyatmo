@@ -13,11 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--
+- Replaced pipenv with uv and updated readme
 
 ### Deprecated
 
--
+- Python 3.10 support
 
 ### Removed
 
@@ -28,7 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Security
-
 
 ## [8.1.0]
 

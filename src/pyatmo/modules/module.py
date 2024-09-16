@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 import logging
 from typing import TYPE_CHECKING, Any
@@ -658,7 +658,7 @@ def compute_riemann_sum(
 ):
     """Compute energy from power with a rieman sum."""
 
-    delta_energy = 0
+    delta_energy = 0.0
     if power_data and len(power_data) > 1:
         # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
         # as we don't want to artifically go up the previous one
@@ -668,7 +668,7 @@ def compute_riemann_sum(
             dt_h = float(power_data[i + 1][0] - power_data[i][0]) / 3600.0
 
             if conservative:
-                d_p_w = 0
+                d_p_w = 0.0
             else:
                 d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
 
@@ -688,7 +688,7 @@ class EnergyHistoryMixin(EntityBase):
         """Initialize history mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.historical_data: list[dict[str, Any]] | None = None
+        self.historical_data: list[dict[str, Any]] = []
         self.start_time: int | None = None
         self.end_time: int | None = None
         self.interval: MeasureInterval | None = None
@@ -696,7 +696,7 @@ class EnergyHistoryMixin(EntityBase):
         self.sum_energy_elec_peak: int | None = None
         self.sum_energy_elec_off_peak: int | None = None
         self._anchor_for_power_adjustment: int | None = None
-        self.in_reset: bool | False = False
+        self.in_reset: bool = False
 
     def reset_measures(self, start_power_time, in_reset=True):
         """Reset energy measures."""
@@ -712,7 +712,7 @@ class EnergyHistoryMixin(EntityBase):
 
     def get_sum_energy_elec_power_adapted(
         self,
-        to_ts: int | float | None = None,
+        to_ts: int | None = None,
         conservative: bool = False,
     ):
         """Compute proper energy value with adaptation from power."""
@@ -776,8 +776,7 @@ class EnergyHistoryMixin(EntityBase):
 
         if start_time is None:
             end = datetime.fromtimestamp(end_time)
-            start_time = end - timedelta(days=days)
-            start_time = int(start_time.timestamp())
+            start_time = int((end - timedelta(days=days)).timestamp())
 
         prev_start_time = self.start_time
         prev_end_time = self.end_time
@@ -875,8 +874,10 @@ class EnergyHistoryMixin(EntityBase):
             # - delta_range not sure, revert ... it seems the energy value effectively stops at those mid values
             computed_end_for_calculus = c_end  # - delta_range
 
-            start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z"
-            end_time_string = f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z"
+            start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=UTC).isoformat().split('+')[0]}Z"
+            end_time_string = (
+                f"{datetime.fromtimestamp(c_end, tz=UTC).isoformat().split('+')[0]}Z"
+            )
             self.historical_data.append(
                 {
                     "duration": (2 * delta_range) // 60,

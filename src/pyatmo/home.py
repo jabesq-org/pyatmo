@@ -348,11 +348,11 @@ class Home:
         ]
 
         for zone in selected_schedule.zones:
+            rooms = []
             new_zone = {
                 "id": zone.entity_id,
                 "name": zone.name,
                 "type": zone.type,
-                "rooms": [],
             }
 
             for room in zone.rooms:
@@ -360,10 +360,11 @@ class Home:
                 if zone.entity_id == zone_id and room.entity_id in temps:
                     temp = temps[room.entity_id]
 
-                new_zone["rooms"].append(
+                rooms.append(
                     {"id": room.entity_id, "therm_setpoint_temperature": temp},
                 )
 
+            new_zone["rooms"] = rooms
             zones.append(new_zone)
 
         schedule = {

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
 from pyatmo import modules
@@ -20,7 +20,7 @@ from pyatmo.const import (
 )
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
-from pyatmo.modules.module import MeasureInterval, Module
+from pyatmo.modules.module import Energy, MeasureInterval, Module
 
 if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
@@ -31,7 +31,11 @@ LOG = logging.getLogger(__name__)
 class AsyncAccount:
     """Async class of a Netatmo account."""
 
-    def __init__(self, auth: AbstractAsyncAuth, favorite_stations: bool = True) -> None:
+    def __init__(
+        self,
+        auth: AbstractAsyncAuth,
+        favorite_stations: bool = True,  # noqa: FBT001, FBT002
+    ) -> None:
         """Initialize the Netatmo account."""
 
         self.auth: AbstractAsyncAuth = auth
@@ -72,7 +76,8 @@ class AsyncAccount:
                 self.homes[home_id] = Home(self.auth, raw_data=home)
 
     async def async_update_topology(
-        self, disabled_homes_ids: list[str] | None = None
+        self,
+        disabled_homes_ids: list[str] | None = None,
     ) -> None:
         """Retrieve topology data from /homesdata."""
 
@@ -126,12 +131,15 @@ class AsyncAccount:
     ) -> None:
         """Retrieve measures data from /getmeasure."""
 
-        await getattr(self.homes[home_id].modules[module_id], "async_update_measures")(
-            start_time=start_time,
-            end_time=end_time,
-            interval=interval,
-            days=days,
-        )
+        module = self.homes[home_id].modules[module_id]
+        if module.has_feature("historical_data"):
+            module = cast(Energy, module)
+            await module.async_update_measures(
+                start_time=start_time,
+                end_time=end_time,
+                interval=interval,
+                days=days,
+            )
 
     def register_public_weather_area(
         self,
@@ -140,7 +148,7 @@ class AsyncAccount:
         lat_sw: str,
         lon_sw: str,
         required_data_type: str | None = None,
-        filtering: bool = False,
+        filtering: bool = False,  # noqa: FBT001, FBT002
         *,
         area_id: str = str(uuid4()),
     ) -> str:

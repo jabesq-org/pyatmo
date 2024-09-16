@@ -78,5 +78,4 @@ async def fake_post_request(*args, **kwargs):
 
 async def fake_post_request_multi(*args, **kwargs):
     kwargs["POSTFIX"] = "multi"
-    r = await fake_post_request(*args, **kwargs)
-    return r
+    return await fake_post_request(*args, **kwargs)

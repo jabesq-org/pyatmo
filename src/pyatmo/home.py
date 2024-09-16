@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
-
-from aiohttp import ClientResponse
+from typing import TYPE_CHECKING, Any, cast
 
 from pyatmo import modules
 from pyatmo.const import (
@@ -26,13 +24,16 @@ from pyatmo.exceptions import (
     InvalidState,
     NoSchedule,
 )
-from pyatmo.modules import Module
+from pyatmo.modules.netatmo import NACamera
 from pyatmo.person import Person
 from pyatmo.room import Room
 from pyatmo.schedule import Schedule
 
 if TYPE_CHECKING:
+    from aiohttp import ClientResponse
+
     from pyatmo.auth import AbstractAsyncAuth
+    from pyatmo.modules import Module
 
 LOG = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ class Home:
             )
         except AttributeError:
             LOG.info("Unknown device type %s", module["type"])
-            return getattr(modules, "NLunknown")(
+            return modules.NLunknown(
                 home=self,
                 module=module,
             )
@@ -150,7 +151,7 @@ class Home:
     async def update(
         self,
         raw_data: RawData,
-        do_raise_for_reachability_error=False,
+        do_raise_for_reachability_error: bool = False,  # noqa: FBT002, FBT001
     ) -> None:
         """Update home with the latest data."""
         has_error = False
@@ -187,15 +188,12 @@ class Home:
             if module.reachable:
                 has_one_module_reachable = True
             if hasattr(module, "events"):
-                setattr(
-                    module,
-                    "events",
-                    [
-                        event
-                        for event in self.events.values()
-                        if getattr(event, "module_id") == module.entity_id
-                    ],
-                )
+                module = cast(NACamera, module)
+                module.events = [
+                    event
+                    for event in self.events.values()
+                    if event.module_id == module.entity_id
+                ]
 
         if (
             do_raise_for_reachability_error
@@ -203,8 +201,9 @@ class Home:
             and has_one_module_reachable is False
             and has_an_update is False
         ):
+            msg = "No Home update could be performed, all modules unreachable and not updated"
             raise ApiHomeReachabilityError(
-                "No Home update could be performed, all modules unreachable and not updated",
+                msg,
             )
 
     def get_selected_schedule(self) -> Schedule | None:
@@ -252,9 +251,11 @@ class Home:
     ) -> bool:
         """Set thermotat mode."""
         if schedule_id is not None and not self.is_valid_schedule(schedule_id):
-            raise NoSchedule(f"{schedule_id} is not a valid schedule id.")
+            msg = f"{schedule_id} is not a valid schedule id."
+            raise NoSchedule(msg)
         if mode is None:
-            raise NoSchedule(f"{mode} is not a valid mode.")
+            msg = f"{mode} is not a valid mode."
+            raise NoSchedule(msg)
         post_params = {"home_id": self.entity_id, "mode": mode}
         if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
@@ -277,7 +278,8 @@ class Home:
     async def async_switch_schedule(self, schedule_id: str) -> bool:
         """Switch the schedule."""
         if not self.is_valid_schedule(schedule_id):
-            raise NoSchedule(f"{schedule_id} is not a valid schedule id")
+            msg = f"{schedule_id} is not a valid schedule id"
+            raise NoSchedule(msg)
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
         resp = await self.auth.async_post_api_request(
             endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
@@ -289,7 +291,8 @@ class Home:
     async def async_set_state(self, data: dict[str, Any]) -> bool:
         """Set state using given data."""
         if not is_valid_state(data):
-            raise InvalidState("Data for '/set_state' contains errors.")
+            msg = "Data for '/set_state' contains errors."
+            raise InvalidState(msg)
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
         resp = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
@@ -335,7 +338,8 @@ class Home:
         selected_schedule = self.get_selected_schedule()
 
         if selected_schedule is None:
-            raise NoSchedule("Could not determine selected schedule.")
+            msg = "Could not determine selected schedule."
+            raise NoSchedule(msg)
 
         zones = []
 
@@ -383,7 +387,8 @@ class Home:
     ) -> None:
         """Modify an existing schedule."""
         if not is_valid_schedule(schedule):
-            raise InvalidSchedule("Data for '/synchomeschedule' contains errors.")
+            msg = "Data for '/synchomeschedule' contains errors."
+            raise InvalidSchedule(msg)
         LOG.debug(
             "Setting schedule (%s) for home (%s) to %s",
             schedule_id,

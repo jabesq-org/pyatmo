@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, LiteralString
 
 from aiohttp import ClientConnectorError
 
-from pyatmo.const import GETMEASURE_ENDPOINT, OFF, ON, RawData
+from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
 from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
@@ -23,8 +23,8 @@ from time import time
 
 LOG = logging.getLogger(__name__)
 
-ModuleT = dict[str, Any]
 
+ModuleT = dict[str, Any]
 # Hide from features list
 ATTRIBUTE_FILTER = {
     "battery_state",
@@ -226,6 +226,7 @@ class BoilerMixin(EntityBase):
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.boiler_status: bool | None = None
+        self.boiler_valve_comfort_boost: bool | None = None
 
 
 class CoolerMixin(EntityBase):
@@ -354,7 +355,7 @@ class SwitchMixin(EntityBase):
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.on: bool | None = None
 
-    async def async_set_switch(self, target_position: bool) -> bool:  # noqa: FBT001
+    async def async_set_switch(self, target_position: bool) -> bool:
         """Set switch to target position."""
 
         json_switch = {
@@ -371,12 +372,12 @@ class SwitchMixin(EntityBase):
     async def async_on(self) -> bool:
         """Switch on."""
 
-        return await self.async_set_switch(ON)
+        return await self.async_set_switch(True)
 
     async def async_off(self) -> bool:
         """Switch off."""
 
-        return await self.async_set_switch(OFF)
+        return await self.async_set_switch(False)
 
 
 class FanSpeedMixin(EntityBase):
@@ -657,7 +658,7 @@ ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 def compute_riemann_sum(
     power_data: list[tuple[int, float]],
-    conservative: bool = False,  # noqa: FBT001, FBT002
+    conservative: bool = False,
 ) -> float:
     """Compute energy from power with a rieman sum."""
 
@@ -690,7 +691,7 @@ class EnergyHistoryMixin(EntityBase):
     def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize history mixin."""
 
-        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        super().__init__(home, module)  # type: ignore
         self.historical_data: list[dict[str, Any]] | None = None
         self.start_time: float | None = None
         self.end_time: float | None = None
@@ -704,7 +705,7 @@ class EnergyHistoryMixin(EntityBase):
     def reset_measures(
         self,
         start_power_time: datetime,
-        in_reset: bool = True,  # noqa: FBT001, FBT002
+        in_reset: bool = True,
     ) -> None:
         """Reset energy measures."""
         self.in_reset = in_reset
@@ -720,7 +721,7 @@ class EnergyHistoryMixin(EntityBase):
     def get_sum_energy_elec_power_adapted(
         self,
         to_ts: float | None = None,
-        conservative: bool = False,  # noqa: FBT001, FBT002
+        conservative: bool = False,
     ) -> tuple[None, float] | tuple[float, float]:
         """Compute proper energy value with adaptation from power."""
         v = self.sum_energy_elec
@@ -766,8 +767,8 @@ class EnergyHistoryMixin(EntityBase):
             "ENERGY collection error %s %s %s %s %s %s %s",
             msg,
             self.name,
-            datetime.fromtimestamp(start_time),  # noqa: DTZ006
-            datetime.fromtimestamp(end_time),  # noqa: DTZ006
+            datetime.fromtimestamp(start_time),
+            datetime.fromtimestamp(end_time),
             start_time,
             end_time,
             body or "NO BODY",
@@ -783,10 +784,10 @@ class EnergyHistoryMixin(EntityBase):
         """Update historical data."""
 
         if end_time is None:
-            end_time = int(datetime.now().timestamp())  # noqa: DTZ005
+            end_time = int(datetime.now().timestamp())
 
         if start_time is None:
-            end = datetime.fromtimestamp(end_time)  # noqa: DTZ006
+            end = datetime.fromtimestamp(end_time)
             start_time = int((end - timedelta(days=days)).timestamp())
 
         prev_start_time = self.start_time
@@ -831,8 +832,8 @@ class EnergyHistoryMixin(EntityBase):
             LOG.debug(
                 "NO VALUES energy update %s from: %s to %s,  prev_sum=%s",
                 self.name,
-                datetime.fromtimestamp(start_time),  # noqa: DTZ006
-                datetime.fromtimestamp(end_time),  # noqa: DTZ006
+                datetime.fromtimestamp(start_time),
+                datetime.fromtimestamp(end_time),
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
         else:
@@ -912,14 +913,14 @@ class EnergyHistoryMixin(EntityBase):
             LOG.debug(
                 msg,
                 self.name,
-                datetime.fromtimestamp(start_time),  # noqa: DTZ006
-                datetime.fromtimestamp(end_time),  # noqa: DTZ006
-                datetime.fromtimestamp(computed_start),  # noqa: DTZ006
-                datetime.fromtimestamp(computed_end),  # noqa: DTZ006
+                datetime.fromtimestamp(start_time),
+                datetime.fromtimestamp(end_time),
+                datetime.fromtimestamp(computed_start),
+                datetime.fromtimestamp(computed_end),
                 self.sum_energy_elec,
                 prev_sum_energy_elec,
-                datetime.fromtimestamp(prev_start_time),  # noqa: DTZ006
-                datetime.fromtimestamp(prev_end_time),  # noqa: DTZ006
+                datetime.fromtimestamp(prev_start_time),
+                datetime.fromtimestamp(prev_end_time),
             )
         else:
             msg = (
@@ -929,10 +930,10 @@ class EnergyHistoryMixin(EntityBase):
             LOG.debug(
                 msg,
                 self.name,
-                datetime.fromtimestamp(start_time),  # noqa: DTZ006
-                datetime.fromtimestamp(end_time),  # noqa: DTZ006
-                datetime.fromtimestamp(computed_start),  # noqa: DTZ006
-                datetime.fromtimestamp(computed_end),  # noqa: DTZ006
+                datetime.fromtimestamp(start_time),
+                datetime.fromtimestamp(end_time),
+                datetime.fromtimestamp(computed_start),
+                datetime.fromtimestamp(computed_end),
                 self.sum_energy_elec,
                 prev_sum_energy_elec if prev_sum_energy_elec is not None else "NOTHING",
             )
@@ -1159,6 +1160,10 @@ class Fan(FirmwareMixin, FanSpeedMixin, PowerMixin, Module):
 
 class Energy(EnergyHistoryMixin, Module):
     """Class to represent a Netatmo energy module."""
+
+
+class Boiler(BoilerMixin, Module):
+    """Class to represent a Netatmo boiler."""
 
 
 # pylint: enable=too-many-ancestors

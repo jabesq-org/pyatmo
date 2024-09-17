@@ -194,7 +194,7 @@ class PublicWeatherArea:
         lat_sw: str,
         lon_sw: str,
         required_data_type: str | None = None,
-        filtering: bool = False,  # noqa: FBT001, FBT002
+        filtering: bool = False,
     ) -> None:
         """Initialize self."""
 

@@ -27,7 +27,7 @@ from pyatmo.exceptions import (
 from pyatmo.modules.netatmo import NACamera
 from pyatmo.person import Person
 from pyatmo.room import Room
-from pyatmo.schedule import Schedule
+from pyatmo.schedule import Schedule, ScheduleType
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
@@ -36,6 +36,12 @@ if TYPE_CHECKING:
     from pyatmo.modules import Module
 
 LOG = logging.getLogger(__name__)
+
+
+SCHEDULE_TYPE_MAPPING = {
+    "heating": ScheduleType.THERM,
+    "cooling": ScheduleType.COOLING,
+}
 
 
 class Home:
@@ -151,7 +157,7 @@ class Home:
     async def update(
         self,
         raw_data: RawData,
-        do_raise_for_reachability_error: bool = False,  # noqa: FBT002, FBT001
+        do_raise_for_reachability_error: bool = False,
     ) -> None:
         """Update home with the latest data."""
         has_error = False
@@ -210,9 +216,26 @@ class Home:
         """Return selected schedule for given home."""
 
         return next(
-            (schedule for schedule in self.schedules.values() if schedule.selected),
+            (
+                schedule
+                for schedule in self.schedules.values()
+                if schedule.selected
+                and self.temperature_control_mode
+                and schedule.type
+                == SCHEDULE_TYPE_MAPPING[self.temperature_control_mode]
+            ),
             None,
         )
+
+    def get_available_schedules(self) -> list[Schedule]:
+        """Return available schedules for given home."""
+
+        return [
+            schedule
+            for schedule in self.schedules.values()
+            if self.temperature_control_mode
+            and schedule.type == SCHEDULE_TYPE_MAPPING[self.temperature_control_mode]
+        ]
 
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""

@@ -4,18 +4,23 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from pyatmo.const import (
+    COOLING,
     FROSTGUARD,
+    HEATING,
     HOME,
+    IDLE,
     MANUAL,
+    OFF,
     SETROOMTHERMPOINT_ENDPOINT,
     UNKNOWN,
     RawData,
 )
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import DeviceType
+from pyatmo.modules.module import Boiler
 
 if TYPE_CHECKING:
     from pyatmo.home import Home
@@ -228,3 +233,47 @@ class Room(NetatmoBase):
             endpoint=SETROOMTHERMPOINT_ENDPOINT,
             params=post_params,
         )
+
+    @property
+    def boiler_status(self) -> bool | None:
+        """Return the boiler status."""
+
+        for module in self.modules.values():
+            if hasattr(module, "boiler_status"):
+                module = cast(Boiler, module)
+                if (boiler_status := module.boiler_status) is not None:
+                    return boiler_status
+
+        return None
+
+    @property
+    def setpoint_mode(self) -> str:
+        """Return the current setpoint mode."""
+
+        return self.therm_setpoint_mode or self.cooling_setpoint_mode or UNKNOWN
+
+    @property
+    def setpoint_temperature(self) -> float | None:
+        """Return the current setpoint temperature."""
+
+        return (
+            self.therm_setpoint_temperature or self.cooling_setpoint_temperature or None
+        )
+
+    @property
+    def hvac_action(self) -> str:
+        """Return the current HVAC action."""
+
+        if self.setpoint_mode == OFF:
+            return OFF
+
+        if self.boiler_status is True:
+            return HEATING
+
+        if self.heating_power_request is not None and self.heating_power_request > 0:
+            return HEATING
+
+        if self.cooling_setpoint_temperature:
+            return COOLING
+
+        return IDLE

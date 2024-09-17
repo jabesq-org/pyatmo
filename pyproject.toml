@@ -92,6 +92,14 @@ ignore = [
     "UP007",   # keep type annotation style as is
     # Ignored due to performance: https://github.com/charliermarsh/ruff/issues/2923
     "UP038", # Use `X | Y` in `isinstance` call instead of `(X, Y)`
+    # need cleanup
+    "FBT001",
+    "FBT002",
+    "FBT003",
+    "DTZ006",
+    "DTZ005",
+    "PGH003",
+    "ANN401",
 ]
 
 [tool.ruff.lint.flake8-pytest-style]

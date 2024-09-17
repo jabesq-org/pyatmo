@@ -67,7 +67,7 @@ class AbstractAsyncAuth(ABC):
         url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,
-            **req_args,  # type: ignore  # noqa: PGH003
+            **req_args,  # type: ignore
             headers=headers,
             timeout=ClientTimeout(total=timeout),
         ) as resp:
@@ -115,7 +115,7 @@ class AbstractAsyncAuth(ABC):
 
         async with self.websession.post(
             url,
-            **req_args,  # type: ignore  # noqa: PGH003
+            **req_args,  # type: ignore
             headers=headers,
             timeout=ClientTimeout(total=timeout),
         ) as resp:

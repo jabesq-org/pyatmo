@@ -27,7 +27,7 @@ async def main():
 
     await account.async_update_status(home_id=home_id)
 
-    strt = 1709766000 + 10 * 60  # 1709421000+15*60
+    strt = 1709766000 + 10 * 60
     end = 1709852400 + 10 * 60
     await account.async_update_measures(
         home_id=home_id,

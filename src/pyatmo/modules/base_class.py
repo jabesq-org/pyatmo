@@ -37,7 +37,7 @@ NETATMO_ATTRIBUTES_MAP = {
 }
 
 
-def default(key: str, val: Any) -> Any:  # noqa: ANN401
+def default(key: str, val: Any) -> Any:
     """Return default value."""
 
     return lambda x, _: x.get(key, val)
@@ -103,7 +103,7 @@ class NetatmoBase(EntityBase, ABC):
     def add_history_data(
         self,
         feature: str,
-        value: Any,  # noqa: ANN401
+        value: Any,
         time: int,
     ) -> None:
         """Add historical data at the given time."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING
 
@@ -17,22 +18,37 @@ if TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
+class ScheduleType(StrEnum):
+    """Enum representing the type of a schedule."""
+
+    THERM = "therm"
+    COOLING = "cooling"
+    ELECTRICITY = "electricity"
+    EVENT = "event"
+
+
 @dataclass
 class Schedule(NetatmoBase):
     """Class to represent a Netatmo schedule."""
 
-    selected: bool
+    type: ScheduleType
     away_temp: float | None
     hg_temp: float | None
+    cooling_away_temp: float | None
     timetable: list[TimetableEntry]
+    selected: bool
+    default: bool
 
     def __init__(self, home: Home, raw_data: RawData) -> None:
         """Initialize a Netatmo schedule instance."""
         super().__init__(raw_data)
         self.home = home
+        self.type = ScheduleType(raw_data.get("type", ScheduleType.THERM))
+        self.default = raw_data.get("default", False)
         self.selected = raw_data.get("selected", False)
         self.hg_temp = raw_data.get("hg_temp")
         self.away_temp = raw_data.get("away_temp")
+        self.cooling_away_temp = raw_data.get("cooling_away_temp")
         self.timetable = [
             TimetableEntry(home, r) for r in raw_data.get("timetable", [])
         ]

@@ -34,7 +34,7 @@ class AsyncAccount:
     def __init__(
         self,
         auth: AbstractAsyncAuth,
-        favorite_stations: bool = True,  # noqa: FBT001, FBT002
+        favorite_stations: bool = True,
     ) -> None:
         """Initialize the Netatmo account."""
 
@@ -148,7 +148,7 @@ class AsyncAccount:
         lat_sw: str,
         lon_sw: str,
         required_data_type: str | None = None,
-        filtering: bool = False,  # noqa: FBT001, FBT002
+        filtering: bool = False,
         *,
         area_id: str = str(uuid4()),
     ) -> str:

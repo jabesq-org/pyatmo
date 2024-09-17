@@ -106,3 +106,6 @@ ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 MAX_HISTORY_TIME_FRAME = 24 * 2 * 3600
 
 UNKNOWN = "unknown"
+
+ON = True
+OFF = False

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-from pyatmo.const import RawData
 from pyatmo.exceptions import NoDevice
+
+if TYPE_CHECKING:
+    from pyatmo.const import RawData
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ def fix_id(raw_data: RawData) -> dict[str, Any]:
     return raw_data
 
 
-def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
+def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:  # noqa: ANN401
     """Extract raw data from server response."""
     raw_data = {}
 
@@ -40,7 +42,8 @@ def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
 
     if resp is None or "body" not in resp or tag not in resp["body"]:
         LOG.debug("Server response (tag: %s): %s", tag, resp)
-        raise NoDevice("No device found, errors in response")
+        msg = "No device found, errors in response"
+        raise NoDevice(msg)
 
     if tag == "homes":
         return {
@@ -50,6 +53,7 @@ def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
 
     if not (raw_data := fix_id(resp["body"].get(tag))):
         LOG.debug("Server response (tag: %s): %s", tag, resp)
-        raise NoDevice("No device data available")
+        msg = "No device data available"
+        raise NoDevice(msg)
 
     return {tag: raw_data, "errors": resp["body"].get("errors", [])}

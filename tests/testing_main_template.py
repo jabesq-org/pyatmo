@@ -37,10 +37,6 @@ async def main():
         end_time=end,
     )
 
-    # print(account)
-
 
 if __name__ == "__main__":
     topology = asyncio.run(main())
-
-    # print(topology)

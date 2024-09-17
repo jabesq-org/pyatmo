@@ -6,11 +6,12 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING
 
-from pyatmo.const import RawData
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.room import Room
 
 if TYPE_CHECKING:
+    from pyatmo.const import RawData
+
     from .home import Home
 
 LOG = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ class Zone(NetatmoBase):
         self.home = home
         self.type = raw_data.get("type", 0)
 
-        def room_factory(home: Home, room_raw_data: RawData):
+        def room_factory(home: Home, room_raw_data: RawData) -> Room:
             room = Room(home, room_raw_data, {})
             room.update(room_raw_data)
             return room

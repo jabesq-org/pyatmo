@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import TYPE_CHECKING
 
-from pyatmo.const import RawData
+if TYPE_CHECKING:
+    from pyatmo.const import RawData
 
 EVENT_ATTRIBUTES_MAP = {"id": "entity_id", "type": "event_type", "time": "event_time"}
 
@@ -86,6 +88,7 @@ class Event:
     message: str | None = None
     camera_id: str | None = None
     device_id: str | None = None
+    module_id: str | None = None
     person_id: str | None = None
     video_id: str | None = None
     sub_type: int | None = None

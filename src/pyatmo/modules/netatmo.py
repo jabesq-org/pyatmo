@@ -49,49 +49,33 @@ LOG = logging.getLogger(__name__)
 class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
     """Class to represent a Netatmo NRV."""
 
-    ...
-
 
 class NATherm1(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
     """Class to represent a Netatmo NATherm1."""
-
-    ...
 
 
 class NAPlug(FirmwareMixin, RfMixin, WifiMixin, Module):
     """Class to represent a Netatmo NAPlug."""
 
-    ...
-
 
 class OTH(FirmwareMixin, WifiMixin, Module):
     """Class to represent a Netatmo OTH."""
-
-    ...
 
 
 class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
     """Class to represent a Netatmo OTM."""
 
-    ...
-
 
 class NACamera(Camera):
     """Class to represent a Netatmo NACamera."""
-
-    ...
 
 
 class NOC(FloodlightMixin, Camera):
     """Class to represent a Netatmo NOC."""
 
-    ...
-
 
 class NDB(Camera):
     """Class to represent a Netatmo NDB."""
-
-    ...
 
 
 class NAMain(
@@ -107,8 +91,6 @@ class NAMain(
 ):
     """Class to represent a Netatmo NAMain."""
 
-    ...
-
 
 class NAModule1(
     TemperatureMixin,
@@ -121,19 +103,13 @@ class NAModule1(
 ):
     """Class to represent a Netatmo NAModule1."""
 
-    ...
-
 
 class NAModule2(WindMixin, RfMixin, FirmwareMixin, BatteryMixin, PlaceMixin, Module):
     """Class to represent a Netatmo NAModule2."""
 
-    ...
-
 
 class NAModule3(RainMixin, RfMixin, FirmwareMixin, BatteryMixin, PlaceMixin, Module):
     """Class to represent a Netatmo NAModule3."""
-
-    ...
 
 
 class NAModule4(
@@ -147,8 +123,6 @@ class NAModule4(
     Module,
 ):
     """Class to represent a Netatmo NAModule4."""
-
-    ...
 
 
 class NHC(
@@ -165,13 +139,9 @@ class NHC(
 ):
     """Class to represent a Netatmo NHC."""
 
-    ...
-
 
 class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, Module):
     """Class to represent a Netatmo NACamDoorTag."""
-
-    ...
 
 
 class NIS(
@@ -184,8 +154,6 @@ class NIS(
 ):
     """Class to represent a Netatmo NIS."""
 
-    ...
-
 
 class NSD(
     FirmwareMixin,
@@ -193,16 +161,12 @@ class NSD(
 ):
     """Class to represent a Netatmo NSD."""
 
-    ...
-
 
 class NCO(
     FirmwareMixin,
     Module,
 ):
     """Class to represent a Netatmo NCO."""
-
-    ...
 
 
 @dataclass

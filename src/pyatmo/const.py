@@ -81,12 +81,20 @@ ALL_SCOPES: list[str] = [
     "write_thermostat",  # Netatmo climate products
 ]
 
+EVENTS = "events"
+SCHEDULES = "schedules"
+
 MANUAL = "manual"
 MAX = "max"
 HOME = "home"
 FROSTGUARD = "hg"
-SCHEDULES = "schedules"
-EVENTS = "events"
+SCHEDULE = "schedule"
+OFF = "off"
+AWAY = "away"
+
+HEATING = "heating"
+COOLING = "cooling"
+IDLE = "idle"
 
 STATION_TEMPERATURE_TYPE = "temperature"
 STATION_PRESSURE_TYPE = "pressure"

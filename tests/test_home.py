@@ -1,6 +1,5 @@
 """Define tests for home module."""
 
-# import datetime as dt
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -10,10 +9,8 @@ import pyatmo
 from pyatmo import DeviceType, NoDevice
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_home(async_home):
     """Test basic home setup."""
     room_id = "3688132631"
@@ -42,7 +39,7 @@ async def test_async_home(async_home):
     assert async_home.temperature_control_mode == "cooling"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_home_set_schedule(async_home):
     """Test home schedule."""
     schedule_id = "591b54a2764ff4d50d8b5795"
@@ -54,7 +51,7 @@ async def test_async_home_set_schedule(async_home):
     assert async_home.get_away_temp() == 14
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_home_data_no_body(async_auth):
     with open("fixtures/homesdata_emtpy_home.json", encoding="utf-8") as fixture_file:
         json_fixture = json.load(fixture_file)
@@ -70,7 +67,7 @@ async def test_async_home_data_no_body(async_auth):
         mock_request.assert_called()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_set_persons_home(async_account):
     """Test marking a person being at home."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -96,7 +93,7 @@ async def test_async_set_persons_home(async_account):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_set_persons_away(async_account):
     """Test marking a set of persons being away."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -125,7 +122,7 @@ async def test_async_set_persons_away(async_account):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_home_event_update(async_account):
     """Test basic event update."""
     home_id = "91763b24c43d3e344f424e8b"

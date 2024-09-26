@@ -7,7 +7,7 @@ from pyatmo import DeviceType
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_switch_NLP(async_home):  # pylint: disable=invalid-name
     """Test NLP Legrand plug."""
     module_id = "12:34:56:80:00:12:ac:f2"
@@ -19,7 +19,7 @@ async def test_async_switch_NLP(async_home):  # pylint: disable=invalid-name
     assert module.power == 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_switch_NLF(async_home):  # pylint: disable=invalid-name
     """Test NLF Legrand dimmer."""
     module_id = "00:11:22:33:00:11:45:fe"

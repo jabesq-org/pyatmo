@@ -657,7 +657,7 @@
             "name": "Default",
             "selected": true,
             "id": "591b54a2764ff4d50d8b5795",
-            "type": "therm"
+            "type": "cooling"
           },
           {
             "zones": [

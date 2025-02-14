@@ -1,6 +1,6 @@
 {
     "name": "pyatmo Dev",
-    "context": "..",
+    "context": ".",
     "dockerFile": "./Dockerfile.dev",
     "containerEnv": {
         "DEVCONTAINER": "1"
@@ -12,7 +12,7 @@
     ],
     "extensions": [
         "ms-python.vscode-pylance",
-        "visualstudioexptteam.vscodeintellicode",
+        "visualstudioexptteam.vscodeintellicode"
     ],
     "settings": {
         "python.pythonPath": "/usr/local/bin/python",

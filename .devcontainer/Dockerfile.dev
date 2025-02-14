@@ -28,5 +28,9 @@ RUN pip3 install --upgrade pip \
     && pip3 install pre-commit \
     && rm -rf /tmp/requirements.txt /tmp/requirements_dev.txt pyatmo/
 
+# Remove any old pytest versions that might conflict
+RUN python3 -m pip install --upgrade --force-reinstall pytest \
+    && rm -rf /usr/local/py-utils/venvs/pytest/bin/pytest
+
 # Set the default shell to bash instead of sh
 ENV SHELL="/bin/bash"

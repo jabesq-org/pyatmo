@@ -20,21 +20,6 @@
             "problemMatcher": []
         },
         {
-            "label": "Flake8",
-            "detail": "Run flake8 style checker",
-            "type": "shell",
-            "command": "pre-commit run flake8 --all-files",
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            },
-            "presentation": {
-                "reveal": "always",
-                "panel": "new"
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "Pylint",
             "detail": "Run pylint code analysis",
             "type": "shell",

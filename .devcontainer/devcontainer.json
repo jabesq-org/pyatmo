@@ -1,18 +1,18 @@
 {
     "name": "pyatmo Dev",
-    "context": "..",
+    "context": ".",
     "dockerFile": "./Dockerfile.dev",
     "containerEnv": {
         "DEVCONTAINER": "1"
     },
-    "postCreateCommand": "pip3 install -e . && pre-commit run flake8",
+    "postCreateCommand": "pip3 install -e . && pre-commit run ruff",
     "runArgs": [
         "-e",
         "GIT_EDITOR=code --wait"
     ],
     "extensions": [
         "ms-python.vscode-pylance",
-        "visualstudioexptteam.vscodeintellicode",
+        "visualstudioexptteam.vscodeintellicode"
     ],
     "settings": {
         "python.pythonPath": "/usr/local/bin/python",

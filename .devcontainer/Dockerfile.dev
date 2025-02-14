@@ -1,33 +1,16 @@
 ARG VARIANT="3.11"
 
-FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT} as builder
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /workspaces
 
-COPY Pipfile* ./
-
-# Create Python requirements files from pipenv (lockfile)
-RUN pip3 install -U pip \
-    && pip3 install pipenv \
-    && pipenv lock \
-    && pipenv requirements > /tmp/requirements.txt \
-    && pipenv requirements --dev > /tmp/requirements_dev.txt
-
-FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
-
-COPY --from=builder /tmp/requirements.txt /tmp/
-COPY --from=builder /tmp/requirements_dev.txt /tmp/
-
 # Install Python dependencies from requirements
 RUN pip3 install --upgrade pip \
-    && pip3 install -r /tmp/requirements.txt \
     && pip3 install pdbpp \
-    && pip3 install -r /tmp/requirements_dev.txt \
     && pip3 install pre-commit \
-    && pip3 install time-machine \
-    && rm -rf /tmp/requirements.txt /tmp/requirements_dev.txt pyatmo/
+    && pip3 install time-machine
 
 # Remove any old pytest versions that might conflict
 RUN python3 -m pip install --upgrade --force-reinstall pytest \

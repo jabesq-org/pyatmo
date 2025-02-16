@@ -58,6 +58,7 @@ from .legrand import (
 )
 from .module import Camera, Dimmer, Fan, Module, Shutter, Switch
 from .netatmo import (
+    NAC,
     NCO,
     NDB,
     NHC,
@@ -157,6 +158,7 @@ __all__ = [
     "NLV",
     "NOC",
     "NRV",
+    "NAC",
     "NSD",
     "OTH",
     "OTM",

@@ -9,7 +9,7 @@ dynamic = ["version"]
 readme = "README.md"
 authors = [{ name = "Hugo Dupras", email = "jabesq@gmail.com" }]
 maintainers = [{ name = "Tobias Sauerwein", email = "cgtobi@gmail.com" }]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "aiohttp>=3.7.4,<4.0.0",
     "oauthlib~=3.1",

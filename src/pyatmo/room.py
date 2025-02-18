@@ -107,6 +107,8 @@ class Room(NetatmoBase):
             self.features.add("humidity")
         elif "NRV" in self.device_types:
             self.climate_type = DeviceType.NRV
+        elif "NAC" in self.device_types:
+            self.climate_type = DeviceType.NAC
         elif "BNTH" in self.device_types:
             self.climate_type = DeviceType.BNTH
 

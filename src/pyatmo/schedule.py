@@ -25,6 +25,7 @@ class ScheduleType(StrEnum):
     COOLING = "cooling"
     ELECTRICITY = "electricity"
     EVENT = "event"
+    AUTO = "auto"
 
 
 @dataclass

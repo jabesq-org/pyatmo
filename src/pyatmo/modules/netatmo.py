@@ -50,6 +50,10 @@ class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
     """Class to represent a Netatmo NRV."""
 
 
+class NAC(FirmwareMixin, RfMixin, BatteryMixin, Module):
+    """Class to represent a Netatmo NAC."""
+
+
 class NATherm1(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
     """Class to represent a Netatmo NATherm1."""
 

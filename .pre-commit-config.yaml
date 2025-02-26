@@ -1,6 +1,6 @@
 # Note: don't use this config for your own repositories. Instead, see
 # "Version control integration" in README.md.
-default_stages: [commit, push]
+default_stages: [pre-commit, pre-push]
 exclude: ^(fixtures/)
 
 repos:
@@ -27,7 +27,7 @@ repos:
           - types-requests
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0 # Use the ref you want to point at
+    rev: v5.0.0 # Use the ref you want to point at
     hooks:
       - id: check-ast
       - id: no-commit-to-branch

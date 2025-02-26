@@ -21,6 +21,7 @@ class DeviceType(str, Enum):
     NAPlug = "NAPlug"  # Smart thermostat gateway
     NATherm1 = "NATherm1"  # Smart thermostat
     NRV = "NRV"  # Smart valve
+    NAC = "NAC"  # Smart AC control
     OTH = "OTH"  # OpenTherm gateway
     OTM = "OTM"  # OpenTherm modulating thermostat
 
@@ -150,6 +151,7 @@ class DeviceCategory(str, Enum):
 
 DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NRV: DeviceCategory.climate,
+    DeviceType.NAC: DeviceCategory.climate,
     DeviceType.NATherm1: DeviceCategory.climate,
     DeviceType.OTM: DeviceCategory.climate,
     DeviceType.NOC: DeviceCategory.camera,
@@ -212,6 +214,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NAPlug: ("Netatmo", "Smart Thermostat Gateway"),
     DeviceType.NATherm1: ("Netatmo", "Smart Thermostat"),
     DeviceType.NRV: ("Netatmo", "Smart Valve"),
+    DeviceType.NAC: ("Netatmo", "Smart AC Control"),
     DeviceType.OTH: ("Netatmo", "OpenTherm Gateway"),
     DeviceType.OTM: ("Netatmo", "OpenTherm Modulating Thermostat"),
     # Netatmo Cameras/Security

@@ -15,7 +15,7 @@ jobs:
           ref: development
           fetch-depth: 0
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: 3.11.4
       - name: Install dependencies

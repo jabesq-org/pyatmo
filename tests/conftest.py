@@ -75,5 +75,4 @@ async def async_account_multi(async_auth):
 async def async_home_multi(async_account_multi):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
-    await async_account_multi.async_update_status(home_id)
     return async_account_multi.homes[home_id]

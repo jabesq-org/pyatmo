@@ -376,3 +376,16 @@ async def test_async_climate_empty_home(async_account):
 
     home = async_account.homes[home_id]
     assert len(home.rooms) == 0
+
+
+@pytest.mark.asyncio()
+async def test_power_wire(async_home_multi):
+    """Test room with climate devices."""
+    room_id = "3707962039"
+    assert room_id in async_home_multi.rooms
+
+    room = async_home_multi.rooms[room_id]
+
+    assert room.climate_type == DeviceType.NLC
+    assert DeviceType.NLC in room.device_types
+    assert room.support_pilot_wire is True

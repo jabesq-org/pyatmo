@@ -270,7 +270,10 @@ class Room(NetatmoBase):
             # force back the proper preset mode in case of pilot wire
             # to comply with netatmo model
             if self.support_pilot_wire and self.climate_type == DeviceType.NLC:
-                NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE.get(pilot_wire, FROSTGUARD)
+                mode = NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE.get(
+                    pilot_wire,
+                    FROSTGUARD,
+                )
 
         if pilot_wire is not None and mode is None:
             mode = NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE.get(

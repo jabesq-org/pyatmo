@@ -56,7 +56,12 @@ NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE = {
 }
 # invert of the map above:
 NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE = {
-    v: k for k, v in NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE.items()
+    PILOT_WIRE_COMFORT: HOME,
+    PILOT_WIRE_AWAY: AWAY,
+    PILOT_WIRE_FROST_GUARD: FROSTGUARD,
+    PILOT_WIRE_STAND_BY: FROSTGUARD,
+    PILOT_WIRE_COMFORT_1: HOME,
+    PILOT_WIRE_COMFORT_2: HOME,
 }
 
 
@@ -264,6 +269,10 @@ class Room(NetatmoBase):
                 mode,
                 PILOT_WIRE_FROST_GUARD,
             )
+            # force back the proper preset mode in case of pilot wire
+            # to comply with netatmo model
+            if self.support_pilot_wire and self.climate_type == DeviceType.NLC:
+                NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE.get(pilot_wire, FROSTGUARD)
 
         if pilot_wire is not None and mode is None:
             mode = NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE.get(

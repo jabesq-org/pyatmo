@@ -16,6 +16,12 @@ from pyatmo.const import (
     MANUAL,
     MAX,
     OFF,
+    PILOT_WIRE_AWAY,
+    PILOT_WIRE_COMFORT,
+    PILOT_WIRE_COMFORT_1,
+    PILOT_WIRE_COMFORT_2,
+    PILOT_WIRE_FROST_GUARD,
+    PILOT_WIRE_STAND_BY,
     SCHEDULE,
     SETROOMTHERMPOINT_ENDPOINT,
     UNKNOWN,
@@ -34,17 +40,6 @@ LOG = logging.getLogger(__name__)
 MODE_MAP = {SCHEDULE: HOME}
 
 # as for now all the below is not exposed at all through the API, don't put it in the public API, so not in const.py
-PILOT_WIRE_COMFORT = (
-    "comfort"  # this is to be sent in tandem with  the "home" therm_setpoint_mode
-)
-PILOT_WIRE_AWAY = "away"  #  "eco" in the UI and this is to be sent in tandem with  the "manual" therm_setpoint_mode
-PILOT_WIRE_FROST_GUARD = (
-    "frost_guard"  # this is to be sent in tandem with  the "hg" therm_setpoint_mode
-)
-PILOT_WIRE_STAND_BY = "stand_by"
-PILOT_WIRE_COMFORT_1 = "comfort_1"  # => documentation unclear and contradictory here, as it is in teh json schema but no in the doc
-PILOT_WIRE_COMFORT_2 = "comfort_2"  # => same
-
 NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE = {
     MANUAL: PILOT_WIRE_AWAY,
     MAX: PILOT_WIRE_COMFORT,
@@ -233,11 +228,15 @@ class Room(NetatmoBase):
 
     async def async_therm_set(
         self,
-        mode: str,
+        mode: str | None = None,
         temp: float | None = None,
         end_time: int | None = None,
+        pilot_wire: str | None = None,
     ) -> None:
         """Set room temperature set point."""
+
+        if mode is None:
+            mode = MANUAL
 
         mode = MODE_MAP.get(mode, mode)
 
@@ -249,7 +248,7 @@ class Room(NetatmoBase):
             await self._async_set_thermpoint(mode, temp, end_time)
 
         else:
-            await self._async_therm_set(mode, temp, end_time)
+            await self._async_therm_set(mode, temp, end_time, pilot_wire)
 
     async def _async_therm_set(
         self,
@@ -276,10 +275,7 @@ class Room(NetatmoBase):
                 )
 
         if pilot_wire is not None and mode is None:
-            mode = NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE.get(
-                pilot_wire,
-                FROSTGUARD,
-            )
+            mode = MANUAL
 
         json_therm_set: dict[str, Any] = {
             "rooms": [

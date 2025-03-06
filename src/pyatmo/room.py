@@ -189,7 +189,7 @@ class Room(NetatmoBase):
         """Update room data."""
 
         self.humidity = raw_data.get("humidity")
-        if self.climate_type == DeviceType.BNTH:
+        if self.climate_type in [DeviceType.BNTH, DeviceType.NLC]:
             # BNTH is wired, so the room is always reachable
             self.reachable = True
         else:

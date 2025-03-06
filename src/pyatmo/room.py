@@ -197,8 +197,6 @@ class Room(NetatmoBase):
 
         self.therm_measured_temperature = raw_data.get("therm_measured_temperature")
 
-        self.reachable = raw_data.get("reachable")
-
         self.heating_power_request = raw_data.get("heating_power_request")
         self.therm_setpoint_mode = raw_data.get("therm_setpoint_mode")
         self.therm_setpoint_fp = raw_data.get("therm_setpoint_fp")

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 
 from pyatmo.modules.module import (
-    ApplianceTypeMixin,
     BatteryMixin,
     ContactorMixin,
     DimmableMixin,
@@ -37,7 +36,7 @@ class NLT(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
     """Legrand global remote control...but also wireless switch, like NLD."""
 
 
-class NLP(OffloadMixin, ApplianceTypeMixin, Switch):
+class NLP(OffloadMixin, Switch):
     """Legrand plug."""
 
 
@@ -45,11 +44,11 @@ class NLPM(OffloadMixin, Switch):
     """Legrand mobile plug."""
 
 
-class NLPO(ContactorMixin, OffloadMixin, ApplianceTypeMixin, Switch):
+class NLPO(ContactorMixin, OffloadMixin, Switch):
     """Legrand contactor."""
 
 
-class NLPT(OffloadMixin, ApplianceTypeMixin, Switch):
+class NLPT(OffloadMixin, Switch):
     """Legrand latching relay/teleruptor."""
 
 
@@ -109,7 +108,7 @@ class NLPS(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
 
-class NLC(OffloadMixin, ApplianceTypeMixin, Switch):
+class NLC(OffloadMixin, Switch):
     """Legrand / BTicino cable outlet."""
 
 
@@ -161,7 +160,7 @@ class NLTS(Module):
     """NLTS motion sensor."""
 
 
-class NLPD(OffloadMixin, ApplianceTypeMixin, Switch):
+class NLPD(OffloadMixin, Switch):
     """NLPD dry contact."""
 
 

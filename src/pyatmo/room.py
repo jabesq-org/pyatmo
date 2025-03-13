@@ -28,8 +28,8 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.modules.base_class import NetatmoBase
-from pyatmo.modules.device_types import DeviceCategory, DeviceType
-from pyatmo.modules.module import ApplianceTypeMixin, Boiler
+from pyatmo.modules.device_types import ApplianceType, DeviceCategory, DeviceType
+from pyatmo.modules.module import ApplianceTypeMixin, Boiler, PowerMixin
 
 if TYPE_CHECKING:
     from pyatmo.home import Home
@@ -116,6 +116,8 @@ class Room(NetatmoBase):
     cooling_setpoint_end_time: int | None = None
     cooling_setpoint_mode: str | None = None
 
+    radiators_power: int | None = None
+
     def __init__(
         self,
         home: Home,
@@ -158,10 +160,11 @@ class Room(NetatmoBase):
             if (
                 module.device_type == "NLC"
                 and isinstance(module, ApplianceTypeMixin)
-                and module.appliance_type == "radiator"
+                and module.appliance_type == ApplianceType.radiator
             ):
                 self.support_pilot_wire = True
-                # in this case the cable outlet can be seen as climate control
+                # in this case the cable outlet can be seen as climate control, be sure to add
+                # even if the ApplianceTypeMixin should have set the device_category as climate already
                 self.features.add(DeviceCategory.climate.name)
 
         if "OTM" in self.device_types:
@@ -184,9 +187,31 @@ class Room(NetatmoBase):
         """Update room data."""
 
         self.humidity = raw_data.get("humidity")
-        if self.climate_type in [DeviceType.BNTH, DeviceType.NLC]:
+        self.radiators_power = 0
+
+        if self.climate_type == DeviceType.BNTH:
             # BNTH is wired, so the room is always reachable
             self.reachable = True
+        elif self.climate_type == DeviceType.NLC:
+            self.reachable = raw_data.get("reachable", False)
+            for module in self.modules.values():
+                if (
+                    isinstance(module, ApplianceTypeMixin)
+                    and module.device_type == DeviceType.NLC  # type: ignore # mypy issue 4335
+                    and module.appliance_type == ApplianceType.radiator
+                ):
+                    if isinstance(module, PowerMixin) and module.power is not None:
+                        self.radiators_power += module.power
+
+                    if hasattr(module, "reachable"):
+                        state = module.reachable
+                        if state is not None:
+                            if self.reachable is None:
+                                self.reachable = state
+                            else:
+                                self.reachable = (
+                                    self.reachable or state
+                                )  # as soon as we do have one
         else:
             self.reachable = raw_data.get("reachable")
 
@@ -354,6 +379,12 @@ class Room(NetatmoBase):
         return (
             self.therm_setpoint_temperature or self.cooling_setpoint_temperature or None
         )
+
+    @property
+    def setpoint_fp(self) -> str | None:
+        """Return the current setpoint 'Fil pilote (FP)'."""
+
+        return self.therm_setpoint_fp or None
 
     @property
     def hvac_action(self) -> str:

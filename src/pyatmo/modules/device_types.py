@@ -294,3 +294,52 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.EBU: ("3rd Party", "EBU gas meter"),
     DeviceType.NLPD: ("Drivia", "Dry contact"),
 }
+
+
+MAP_APPLIANCE_TYPE_TO_DEVICE_CATEGORY: dict[str, DeviceCategory] = {
+    "radiator": DeviceCategory.climate,
+}
+
+
+class ApplianceType(str, Enum):
+    """Class to represent appliance type of a module. This is only for Home + Control."""
+
+    # temporarily disable locally-disabled and locally-enabled
+    # pylint: disable=C0103
+
+    light = "light"
+    fridge_freezer = "fridge_freezer"
+    oven = "oven"
+    washing_machine = "washing_machine"
+    tumble_dryer = "tumble_dryer"
+    dishwasher = "dishwasher"
+    multimedia = "multimedia"
+    router = "router"
+    other = "other"
+    ooking = "cooking"
+    radiator = "radiator"
+    radiator_without_pilot_wire = "radiator_without_pilot_wire"
+    water_heater = "water_heater"
+    extractor_hood = "extractor_hood"
+    contactor = "contactor"
+    dryer = "dryer"
+    electric_charger = "electric_charger"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: Any) -> Literal[ApplianceType.unknown]:
+        """Handle unknown device types."""
+
+        msg = f"{key} appliance type is unknown"
+        LOG.warning(msg)
+        return ApplianceType.unknown
+
+    @classmethod
+    def get_device_category_from_appliance_type(
+        cls,
+        key: ApplianceType | None,
+    ) -> DeviceCategory | None:
+        """Get device category from appliance type."""
+        if key is None:
+            return None
+        return MAP_APPLIANCE_TYPE_TO_DEVICE_CATEGORY.get(key)

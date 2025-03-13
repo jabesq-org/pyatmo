@@ -12,7 +12,12 @@ from aiohttp import ClientConnectorError
 from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
-from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
+from pyatmo.modules.device_types import (
+    DEVICE_CATEGORY_MAP,
+    ApplianceType,
+    DeviceCategory,
+    DeviceType,
+)
 
 if TYPE_CHECKING:
     from pyatmo.event import Event
@@ -299,11 +304,43 @@ class DimmableMixin(EntityBase):
 class ApplianceTypeMixin(EntityBase):
     """Mixin for appliance type data."""
 
+    device_category: DeviceCategory | None
+    appliance_type: ApplianceType | None
+
     def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize appliance type mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.appliance_type: str | None = module.get("appliance_type", None)
+        self.appliance_type: ApplianceType | None = module.get(
+            "appliance_type",
+            ApplianceType.unknown,
+        )
+        # overcharge what has been done by the Module constructor
+        self._overcharge_device_category()
+
+    def _overcharge_device_category(self) -> None:
+        new_device_category = ApplianceType.get_device_category_from_appliance_type(
+            self.appliance_type,
+        )
+        if new_device_category is not None and isinstance(self, Module):
+            self.device_category = new_device_category  # type: ignore # mypy issue 4335
+
+    async def update(self, raw_data: RawData) -> None:
+        """Update Appliance Type with the latest data."""
+        if hasattr(super(), "update"):
+            await super().update(raw_data)  # type: ignore # mypy issue 4335
+
+        # overcharge what has been done by the Module update function
+        self._overcharge_device_category()
+
+    def update_topology(self, raw_data: RawData) -> None:
+        """Update Appliance Type with the latest data."""
+
+        if hasattr(super(), "update_topology"):
+            super().update_topology(raw_data)  # type: ignore # mypy issue 4335
+
+        # overcharge what has been done by the Module update_topology function
+        self._overcharge_device_category()
 
 
 class PowerMixin(EntityBase):
@@ -1143,7 +1180,14 @@ class Camera(
         await self.async_update_camera_urls()
 
 
-class Switch(FirmwareMixin, EnergyHistoryMixin, PowerMixin, SwitchMixin, Module):
+class Switch(
+    FirmwareMixin,
+    EnergyHistoryMixin,
+    PowerMixin,
+    SwitchMixin,
+    ApplianceTypeMixin,
+    Module,
+):
     """Class to represent a Netatmo switch."""
 
 

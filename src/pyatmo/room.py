@@ -41,18 +41,18 @@ MODE_MAP = {SCHEDULE: HOME}
 
 # as for now all the below is not exposed at all through the API, don't put it in the public API, so not in const.py
 NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE = {
-    MANUAL: PILOT_WIRE_AWAY,
+    MANUAL: PILOT_WIRE_COMFORT,
     MAX: PILOT_WIRE_COMFORT,
     OFF: PILOT_WIRE_FROST_GUARD,
-    HOME: PILOT_WIRE_COMFORT,
+    HOME: PILOT_WIRE_COMFORT,  # HOME is equivalent to a schedule for Netatmo NLC based room
     FROSTGUARD: PILOT_WIRE_FROST_GUARD,
     SCHEDULE: PILOT_WIRE_COMFORT,
     AWAY: PILOT_WIRE_AWAY,
 }
 # invert of the map above:
 NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE = {
-    PILOT_WIRE_COMFORT: HOME,
-    PILOT_WIRE_AWAY: AWAY,
+    PILOT_WIRE_COMFORT: MANUAL,
+    PILOT_WIRE_AWAY: MANUAL,  # AWAY is like ECO for a pilot wire heater, so put manual to force it to happen
     PILOT_WIRE_FROST_GUARD: FROSTGUARD,
     PILOT_WIRE_STAND_BY: FROSTGUARD,
     PILOT_WIRE_COMFORT_1: HOME,
@@ -99,7 +99,7 @@ class Room(NetatmoBase):
     # "away"
     # "frost_guard"
     # "stand_by"
-    # "comfort_1" => documentation unclear and contradictory here, as it is in teh json schema but no in the doc
+    # "comfort_1" => documentation unclear and contradictory here, as it is in the json schema but no in the doc
     # "comfort_2" => same
     # but here:
     therm_setpoint_fp: str | None = None

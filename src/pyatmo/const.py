@@ -101,7 +101,7 @@ PILOT_WIRE_COMFORT = "comfort"
 PILOT_WIRE_AWAY = "away"
 PILOT_WIRE_FROST_GUARD = "frost_guard"
 PILOT_WIRE_STAND_BY = "stand_by"
-PILOT_WIRE_COMFORT_1 = "comfort_1"  # => documentation unclear and contradictory here, as it is in teh json schema but no in the doc
+PILOT_WIRE_COMFORT_1 = "comfort_1"  # => doc unclear and contradictory: it is in the json schema but no in the doc
 PILOT_WIRE_COMFORT_2 = "comfort_2"  # => same
 
 

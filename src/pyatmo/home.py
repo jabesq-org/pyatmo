@@ -24,7 +24,6 @@ from pyatmo.exceptions import (
     InvalidState,
     NoSchedule,
 )
-from pyatmo.modules.netatmo import NACamera
 from pyatmo.person import Person
 from pyatmo.room import Room
 from pyatmo.schedule import Schedule, ScheduleType
@@ -34,6 +33,7 @@ if TYPE_CHECKING:
 
     from pyatmo.auth import AbstractAsyncAuth
     from pyatmo.modules import Module
+    from pyatmo.modules.netatmo import NACamera
 
 LOG = logging.getLogger(__name__)
 
@@ -196,7 +196,7 @@ class Home:
             if module.reachable:
                 has_one_module_reachable = True
             if hasattr(module, "events"):
-                module = cast(NACamera, module)
+                module = cast("NACamera", module)
                 module.events = [
                     event
                     for event in self.events.values()

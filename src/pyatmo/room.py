@@ -163,8 +163,7 @@ class Room(NetatmoBase):
                 and module.appliance_type == ApplianceType.radiator
             ):
                 self.support_pilot_wire = True
-                # in this case the cable outlet can be seen as climate control, be sure to add
-                # even if the ApplianceTypeMixin should have set the device_category as climate already
+                # in this case the cable outlet can be seen as climate control, be sure to add it
                 self.features.add(DeviceCategory.climate.name)
 
         if "OTM" in self.device_types:

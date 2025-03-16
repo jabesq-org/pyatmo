@@ -315,32 +315,6 @@ class ApplianceTypeMixin(EntityBase):
             "appliance_type",
             ApplianceType.unknown,
         )
-        # overcharge what has been done by the Module constructor
-        self._overcharge_device_category()
-
-    def _overcharge_device_category(self) -> None:
-        new_device_category = ApplianceType.get_device_category_from_appliance_type(
-            self.appliance_type,
-        )
-        if new_device_category is not None and isinstance(self, Module):
-            self.device_category = new_device_category  # type: ignore # mypy issue 4335
-
-    async def update(self, raw_data: RawData) -> None:
-        """Update Appliance Type with the latest data."""
-        if hasattr(super(), "update"):
-            await super().update(raw_data)  # type: ignore # mypy issue 4335
-
-        # overcharge what has been done by the Module update function
-        self._overcharge_device_category()
-
-    def update_topology(self, raw_data: RawData) -> None:
-        """Update Appliance Type with the latest data."""
-
-        if hasattr(super(), "update_topology"):
-            super().update_topology(raw_data)  # type: ignore # mypy issue 4335
-
-        # overcharge what has been done by the Module update_topology function
-        self._overcharge_device_category()
 
 
 class PowerMixin(EntityBase):

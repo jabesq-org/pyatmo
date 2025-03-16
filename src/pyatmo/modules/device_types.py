@@ -296,11 +296,6 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
 }
 
 
-MAP_APPLIANCE_TYPE_TO_DEVICE_CATEGORY: dict[str, DeviceCategory] = {
-    "radiator": DeviceCategory.climate,
-}
-
-
 class ApplianceType(str, Enum):
     """Class to represent appliance type of a module. This is only for Home + Control."""
 
@@ -333,13 +328,3 @@ class ApplianceType(str, Enum):
         msg = f"{key} appliance type is unknown"
         LOG.warning(msg)
         return ApplianceType.unknown
-
-    @classmethod
-    def get_device_category_from_appliance_type(
-        cls,
-        key: ApplianceType | None,
-    ) -> DeviceCategory | None:
-        """Get device category from appliance type."""
-        if key is None:
-            return None
-        return MAP_APPLIANCE_TYPE_TO_DEVICE_CATEGORY.get(key)

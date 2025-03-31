@@ -4,20 +4,21 @@ from __future__ import annotations
 
 from abc import ABC
 import bisect
-from collections.abc import Iterable
 from dataclasses import dataclass
 import logging
 from operator import itemgetter
+from time import time
 from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import MAX_HISTORY_TIME_FRAME, RawData
-from pyatmo.modules.device_types import DeviceType
+from pyatmo.event import EventTypes
+from pyatmo.modules.device_types import ApplianceType, DeviceType
 
 if TYPE_CHECKING:
-    from pyatmo.event import EventTypes
+    from collections.abc import Iterator
+
     from pyatmo.home import Home
 
-from time import time
 
 LOG = logging.getLogger(__name__)
 
@@ -29,9 +30,10 @@ NETATMO_ATTRIBUTES_MAP = {
     "event_type": lambda x, y: EventTypes(x.get("type", y)),
     "reachable": lambda x, _: x.get("reachable", False),
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
-    "battery_level": lambda x, y: x.get("battery_vp", x.get("battery_level")),
+    "battery_level": lambda x, _: x.get("battery_vp", x.get("battery_level")),
     "place": lambda x, _: Place(x.get("place")),
     "target_position__step": lambda x, _: x.get("target_position:step"),
+    "appliance_type": lambda x, y: ApplianceType(x.get("appliance_type", y)),
 }
 
 
@@ -56,8 +58,13 @@ class EntityBase:
     home: Home
     bridge: str | None
     history_features: set[str]
-    history_features_values: dict[str, [int, int]] | {}
-    name: str | None
+    history_features_values: dict
+    name: str
+
+    def has_feature(self, feature: str) -> bool:
+        """Check if the entity has the given feature."""
+
+        return hasattr(self, feature) or feature in self.history_features
 
 
 class NetatmoBase(EntityBase, ABC):
@@ -76,13 +83,6 @@ class NetatmoBase(EntityBase, ABC):
 
         self._update_attributes(raw_data)
 
-        if (
-            self.bridge
-            and self.bridge in self.home.modules
-            and getattr(self, "device_category") == "weather"
-        ):
-            self.name = update_name(self.name, self.home.modules[self.bridge].name)
-
     def _update_attributes(self, raw_data: RawData) -> None:
         """Update attributes."""
 
@@ -100,7 +100,12 @@ class NetatmoBase(EntityBase, ABC):
 
                 self.add_history_data(hist_feature, val, now)
 
-    def add_history_data(self, feature: str, value, time: int) -> None:
+    def add_history_data(
+        self,
+        feature: str,
+        value: Any,
+        time: int,
+    ) -> None:
         """Add historical data at the given time."""
 
         # get the feature values rolling buffer
@@ -110,19 +115,21 @@ class NetatmoBase(EntityBase, ABC):
         else:
             i = bisect.bisect_left(hist_f, time, key=itemgetter(0))
 
-            if i < len(hist_f):
-                if hist_f[i][0] == time:
-                    hist_f[i] = (time, value, self.entity_id)
-                    i = None
-
-            if i is not None:
+            if i < len(hist_f) and hist_f[i][0] == time:
+                hist_f[i] = (time, value, self.entity_id)
+            else:
                 hist_f.insert(i, (time, value, self.entity_id))
 
         # keep timing history to a maximum representative time
         while len(hist_f) > 0 and hist_f[-1][0] - hist_f[0][0] > MAX_HISTORY_TIME_FRAME:
             hist_f.pop(0)
 
-    def get_history_data(self, feature: str, from_ts: int, to_ts: int | None = None):
+    def get_history_data(
+        self,
+        feature: str,
+        from_ts: float,
+        to_ts: float | None = None,
+    ) -> list[Any]:
         """Retrieve historical data."""
 
         hist_f = self.history_features_values.get(feature, [])
@@ -153,7 +160,7 @@ class Location:
         self.latitude = latitude
         self.longitude = longitude
 
-    def __iter__(self) -> Iterable[float]:
+    def __iter__(self) -> Iterator[float]:
         """Iterate over latitude and longitude."""
 
         yield self.longitude

@@ -36,11 +36,11 @@ class NLT(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
     """Legrand global remote control...but also wireless switch, like NLD."""
 
 
-class NLP(Switch, OffloadMixin):
+class NLP(OffloadMixin, Switch):
     """Legrand plug."""
 
 
-class NLPM(Switch, OffloadMixin):
+class NLPM(OffloadMixin, Switch):
     """Legrand mobile plug."""
 
 
@@ -48,7 +48,7 @@ class NLPO(ContactorMixin, OffloadMixin, Switch):
     """Legrand contactor."""
 
 
-class NLPT(Switch, OffloadMixin):
+class NLPT(OffloadMixin, Switch):
     """Legrand latching relay/teleruptor."""
 
 
@@ -80,7 +80,7 @@ class NLD(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
     """Legrand Double On/Off dimmer remote. Wireless 2 button switch light."""
 
 
-class NLL(Switch, WifiMixin):
+class NLL(WifiMixin, Switch):
     """Legrand / BTicino italian light switch with neutral."""
 
 
@@ -108,7 +108,7 @@ class NLPS(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand / BTicino smart load shedder."""
 
 
-class NLC(Switch, OffloadMixin):
+class NLC(OffloadMixin, Switch):
     """Legrand / BTicino cable outlet."""
 
 
@@ -160,7 +160,7 @@ class NLTS(Module):
     """NLTS motion sensor."""
 
 
-class NLPD(Switch, OffloadMixin):
+class NLPD(OffloadMixin, Switch):
     """NLPD dry contact."""
 
 

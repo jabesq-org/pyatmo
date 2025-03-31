@@ -2,19 +2,19 @@
 
 import datetime as dt
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
-from pyatmo import ApiHomeReachabilityError, DeviceType
-from pyatmo.modules.module import EnergyHistoryMixin, MeasureInterval
 import pytest
 import time_machine
 
+from pyatmo import ApiHomeReachabilityError, DeviceType
+from pyatmo.modules.module import EnergyHistoryMixin, MeasureInterval
 from tests.common import MockResponse
 
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
     """Test Legrand / BTicino connected energy meter module."""
     module_id = "12:34:56:00:00:a1:4c:da"
@@ -25,7 +25,7 @@ async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
 
 
 @time_machine.travel(dt.datetime(2022, 2, 12, 7, 59, 49))
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_historical_data_retrieval(async_account):
     """Test retrieval of historical measurements."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -63,7 +63,7 @@ async def test_historical_data_retrieval(async_account):
 
 
 @time_machine.travel(dt.datetime(2024, 7, 24, 22, 00, 10))
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_historical_data_retrieval_multi(async_account_multi):
     """Test retrieval of historical measurements."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
@@ -125,7 +125,8 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     assert module.sum_energy_elec_peak == 10177
 
 
-async def test_disconnected_main_bridge(async_account_multi):
+@patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request")
+async def test_disconnected_main_bridge(mock_home_status, async_account_multi):
     """Test retrieval of historical measurements."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
 
@@ -135,14 +136,7 @@ async def test_disconnected_main_bridge(async_account_multi):
     ) as json_file:
         home_status_fixture = json.load(json_file)
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
+    mock_home_status.return_value = mock_home_status_resp
 
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=mock_home_status_resp),
-    ) as mock_request:
-        try:
-            await async_account_multi.async_update_status(home_id)
-        except ApiHomeReachabilityError:
-            pass  # expected error
-        else:
-            assert False
+    with pytest.raises(ApiHomeReachabilityError):
+        await async_account_multi.async_update_status(home_id)

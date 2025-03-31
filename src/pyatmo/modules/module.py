@@ -2,29 +2,34 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 import logging
-from typing import TYPE_CHECKING, Any
+from operator import itemgetter
+from time import time
+from typing import TYPE_CHECKING, Any, LiteralString
 
 from aiohttp import ClientConnectorError
 
 from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
-from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place
-from pyatmo.modules.device_types import DEVICE_CATEGORY_MAP, DeviceCategory, DeviceType
+from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
+from pyatmo.modules.device_types import (
+    DEVICE_CATEGORY_MAP,
+    ApplianceType,
+    DeviceCategory,
+    DeviceType,
+)
 
 if TYPE_CHECKING:
     from pyatmo.event import Event
     from pyatmo.home import Home
 
-from operator import itemgetter
-from time import time
 
 LOG = logging.getLogger(__name__)
 
-ModuleT = dict[str, Any]
 
+ModuleT = dict[str, Any]
 # Hide from features list
 ATTRIBUTE_FILTER = {
     "battery_state",
@@ -46,6 +51,7 @@ ATTRIBUTE_FILTER = {
     "features",
     "history_features",
     "history_features_values",
+    "appliance_type",
 }
 
 
@@ -66,7 +72,7 @@ def process_battery_state(data: str) -> int:
 class FirmwareMixin(EntityBase):
     """Mixin for firmware data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize firmware mixin."""
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.firmware_revision: int | None = None
@@ -76,7 +82,7 @@ class FirmwareMixin(EntityBase):
 class WifiMixin(EntityBase):
     """Mixin for wifi data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize wifi mixin."""
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.wifi_strength: int | None = None
@@ -85,7 +91,7 @@ class WifiMixin(EntityBase):
 class RfMixin(EntityBase):
     """Mixin for rf data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize rf mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -95,7 +101,7 @@ class RfMixin(EntityBase):
 class RainMixin(EntityBase):
     """Mixin for rain data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize rain mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -107,7 +113,7 @@ class RainMixin(EntityBase):
 class WindMixin(EntityBase):
     """Mixin for wind data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize wind mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -152,7 +158,7 @@ def process_angle(angle: int) -> str:
 class TemperatureMixin(EntityBase):
     """Mixin for temperature data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize temperature mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -169,7 +175,7 @@ class TemperatureMixin(EntityBase):
 class HumidityMixin(EntityBase):
     """Mixin for humidity data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize humidity mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -179,7 +185,7 @@ class HumidityMixin(EntityBase):
 class CO2Mixin(EntityBase):
     """Mixin for CO2 data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize CO2 mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -189,7 +195,7 @@ class CO2Mixin(EntityBase):
 class HealthIndexMixin(EntityBase):
     """Mixin for health index data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize health index mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -199,7 +205,7 @@ class HealthIndexMixin(EntityBase):
 class NoiseMixin(EntityBase):
     """Mixin for noise data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize noise mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -209,7 +215,7 @@ class NoiseMixin(EntityBase):
 class PressureMixin(EntityBase):
     """Mixin for pressure data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize pressure mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -221,17 +227,18 @@ class PressureMixin(EntityBase):
 class BoilerMixin(EntityBase):
     """Mixin for boiler data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize boiler mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.boiler_status: bool | None = None
+        self.boiler_valve_comfort_boost: bool | None = None
 
 
 class CoolerMixin(EntityBase):
     """Mixin for cooler data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize cooler mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -241,7 +248,7 @@ class CoolerMixin(EntityBase):
 class BatteryMixin(EntityBase):
     """Mixin for battery data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize battery mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -263,7 +270,7 @@ class BatteryMixin(EntityBase):
 class PlaceMixin(EntityBase):
     """Mixin for place data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize place mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -273,7 +280,7 @@ class PlaceMixin(EntityBase):
 class DimmableMixin(EntityBase):
     """Mixin for dimmable data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize dimmable mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -297,17 +304,23 @@ class DimmableMixin(EntityBase):
 class ApplianceTypeMixin(EntityBase):
     """Mixin for appliance type data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    device_category: DeviceCategory | None
+    appliance_type: ApplianceType | None
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize appliance type mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
-        self.appliance_type: str | None = None
+        self.appliance_type: ApplianceType | None = module.get(
+            "appliance_type",
+            ApplianceType.unknown,
+        )
 
 
 class PowerMixin(EntityBase):
     """Mixin for power data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize power mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -318,7 +331,7 @@ class PowerMixin(EntityBase):
 class EventMixin(EntityBase):
     """Mixin for event data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize event mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -328,7 +341,7 @@ class EventMixin(EntityBase):
 class ContactorMixin(EntityBase):
     """Mixin for contactor data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize contactor mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -338,7 +351,7 @@ class ContactorMixin(EntityBase):
 class OffloadMixin(EntityBase):
     """Mixin for offload data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize offload mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -348,13 +361,13 @@ class OffloadMixin(EntityBase):
 class SwitchMixin(EntityBase):
     """Mixin for switch data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize switch mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
         self.on: bool | None = None
 
-    async def async_set_switch(self, target_position: int) -> bool:
+    async def async_set_switch(self, target_position: bool) -> bool:
         """Set switch to target position."""
 
         json_switch = {
@@ -382,7 +395,7 @@ class SwitchMixin(EntityBase):
 class FanSpeedMixin(EntityBase):
     """Mixin for fan speed data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize fan speed mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -414,7 +427,7 @@ class ShutterMixin(EntityBase):
     __stop_position = -1
     __preferred_position = -2
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize shutter mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -465,7 +478,7 @@ class ShutterMixin(EntityBase):
 class CameraMixin(EntityBase):
     """Mixin for camera data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize camera mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -502,7 +515,7 @@ class CameraMixin(EntityBase):
                     self.local_url = await self._async_check_url(
                         temp_local_url,
                     )
-                except ClientConnectorError as exc:
+                except (TimeoutError, ClientConnectorError) as exc:
                     LOG.debug("Cannot connect to %s - reason: %s", temp_local_url, exc)
                     self.is_local = False
                     self.local_url = None
@@ -520,7 +533,10 @@ class CameraMixin(EntityBase):
             LOG.debug("Api error for camera url %s", url)
             return None
 
-        assert not isinstance(resp, bytes)
+        if isinstance(resp, bytes):
+            msg = "Invalid response from camera url"
+            raise ApiError(msg)
+
         resp_data = await resp.json()
         return resp_data.get("local_url") if resp_data else None
 
@@ -528,7 +544,7 @@ class CameraMixin(EntityBase):
 class FloodlightMixin(EntityBase):
     """Mixin for floodlight data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize floodlight mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -566,7 +582,7 @@ class FloodlightMixin(EntityBase):
 class StatusMixin(EntityBase):
     """Mixin for status data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize status mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -576,7 +592,7 @@ class StatusMixin(EntityBase):
 class MonitoringMixin(EntityBase):
     """Mixin for monitoring data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize monitoring mixin."""
 
         super().__init__(home, module)  # type: ignore # mypy issue 4335
@@ -653,11 +669,12 @@ ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
 
 
 def compute_riemann_sum(
-    power_data: list[tuple[int, float]], conservative: bool = False
-):
+    power_data: list[tuple[int, float]],
+    conservative: bool = False,
+) -> float:
     """Compute energy from power with a rieman sum."""
 
-    delta_energy = 0
+    delta_energy = 0.0
     if power_data and len(power_data) > 1:
         # compute a rieman sum, as best as possible , trapezoidal, taking pessimistic asumption
         # as we don't want to artifically go up the previous one
@@ -667,7 +684,7 @@ def compute_riemann_sum(
             dt_h = float(power_data[i + 1][0] - power_data[i][0]) / 3600.0
 
             if conservative:
-                d_p_w = 0
+                d_p_w = 0.0
             else:
                 d_p_w = abs(float(power_data[i + 1][1] - power_data[i][1]))
 
@@ -683,42 +700,48 @@ def compute_riemann_sum(
 class EnergyHistoryMixin(EntityBase):
     """Mixin for Energy history data."""
 
-    def __init__(self, home: Home, module: ModuleT):
+    def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize history mixin."""
 
-        super().__init__(home, module)  # type: ignore # mypy issue 4335
+        super().__init__(home, module)  # type: ignore
         self.historical_data: list[dict[str, Any]] | None = None
-        self.start_time: int | None = None
-        self.end_time: int | None = None
+        self.start_time: float | None = None
+        self.end_time: float | None = None
         self.interval: MeasureInterval | None = None
-        self.sum_energy_elec: int | None = None
-        self.sum_energy_elec_peak: int | None = None
-        self.sum_energy_elec_off_peak: int | None = None
-        self._anchor_for_power_adjustment: int | None = None
-        self.in_reset: bool | False = False
+        self.sum_energy_elec: float = 0.0
+        self.sum_energy_elec_peak: float = 0.0
+        self.sum_energy_elec_off_peak: float = 0.0
+        self._anchor_for_power_adjustment: float | None = None
+        self.in_reset: bool = False
 
-    def reset_measures(self, start_power_time, in_reset=True):
+    def reset_measures(
+        self,
+        start_power_time: datetime,
+        in_reset: bool = True,
+    ) -> None:
         """Reset energy measures."""
         self.in_reset = in_reset
         self.historical_data = []
+        self.sum_energy_elec = 0.0
+        self.sum_energy_elec_peak = 0.0
+        self.sum_energy_elec_off_peak = 0.0
         if start_power_time is None:
             self._anchor_for_power_adjustment = start_power_time
         else:
             self._anchor_for_power_adjustment = int(start_power_time.timestamp())
-        self.sum_energy_elec = 0
-        self.sum_energy_elec_peak = 0
-        self.sum_energy_elec_off_peak = 0
 
     def get_sum_energy_elec_power_adapted(
-        self, to_ts: int | float | None = None, conservative: bool = False
-    ):
+        self,
+        to_ts: float | None = None,
+        conservative: bool = False,
+    ) -> tuple[None, float] | tuple[float, float]:
         """Compute proper energy value with adaptation from power."""
         v = self.sum_energy_elec
 
         if v is None:
-            return None, 0
+            return None, 0.0
 
-        delta_energy = 0
+        delta_energy = 0.0
 
         if not self.in_reset:
             if to_ts is None:
@@ -733,18 +756,25 @@ class EnergyHistoryMixin(EntityBase):
                 and isinstance(self, NetatmoBase)
             ):
                 power_data = self.get_history_data(
-                    "power", from_ts=from_ts, to_ts=to_ts
+                    "power",
+                    from_ts=from_ts,
+                    to_ts=to_ts,
                 )
                 if isinstance(
-                    self, EnergyHistoryMixin
+                    self,
+                    EnergyHistoryMixin,
                 ):  # well to please the linter....
                     delta_energy = compute_riemann_sum(power_data, conservative)
 
         return v, delta_energy
 
-    def _log_energy_error(self, start_time, end_time, msg=None, body=None):
-        if body is None:
-            body = "NO BODY"
+    def _log_energy_error(
+        self,
+        start_time: float,
+        end_time: float,
+        msg: str | None = None,
+        body: dict | None = None,
+    ) -> None:
         LOG.debug(
             "ENERGY collection error %s %s %s %s %s %s %s",
             msg,
@@ -753,7 +783,7 @@ class EnergyHistoryMixin(EntityBase):
             datetime.fromtimestamp(end_time),
             start_time,
             end_time,
-            body,
+            body or "NO BODY",
         )
 
     async def async_update_measures(
@@ -770,8 +800,7 @@ class EnergyHistoryMixin(EntityBase):
 
         if start_time is None:
             end = datetime.fromtimestamp(end_time)
-            start_time = end - timedelta(days=days)
-            start_time = int(start_time.timestamp())
+            start_time = int((end - timedelta(days=days)).timestamp())
 
         prev_start_time = self.start_time
         prev_end_time = self.end_time
@@ -788,17 +817,19 @@ class EnergyHistoryMixin(EntityBase):
 
         delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0) // 2
 
-        filters, raw_data = await self._energy_API_calls(start_time, end_time, interval)
+        filters, raw_data = await self._energy_api_calls(start_time, end_time, interval)
 
         hist_good_vals = await self._get_aligned_energy_values_and_mode(
-            start_time, end_time, delta_range, raw_data
+            start_time,
+            end_time,
+            delta_range,
+            raw_data,
         )
 
-        self.historical_data = []
         prev_sum_energy_elec = self.sum_energy_elec
-        self.sum_energy_elec = 0
-        self.sum_energy_elec_peak = 0
-        self.sum_energy_elec_off_peak = 0
+        self.sum_energy_elec = 0.0
+        self.sum_energy_elec_peak = 0.0
+        self.sum_energy_elec_off_peak = 0.0
 
         # no data at all: we know nothing for the end: best guess, it is the start
         self._anchor_for_power_adjustment = start_time
@@ -823,24 +854,25 @@ class EnergyHistoryMixin(EntityBase):
                 end_time,
                 delta_range,
                 hist_good_vals,
-                prev_end_time,
-                prev_start_time,
-                prev_sum_energy_elec,
+                prev_end_time or 0.0,
+                prev_start_time or 0.0,
+                prev_sum_energy_elec or 0.0,
             )
 
     async def _prepare_exported_historical_data(
         self,
-        start_time,
-        end_time,
-        delta_range,
-        hist_good_vals,
-        prev_end_time,
-        prev_start_time,
-        prev_sum_energy_elec,
-    ):
-        computed_start = 0
-        computed_end = 0
-        computed_end_for_calculus = 0
+        start_time: float,
+        end_time: float,
+        delta_range: float,
+        hist_good_vals: list[tuple[int, float, list[float]]],
+        prev_end_time: float,
+        prev_start_time: float,
+        prev_sum_energy_elec: float | None,
+    ) -> None:
+        self.historical_data = []
+        computed_start = 0.0
+        computed_end = 0.0
+        computed_end_for_calculus = 0.0
         for cur_start_time, val, vals in hist_good_vals:
             self.sum_energy_elec += val
 
@@ -863,11 +895,12 @@ class EnergyHistoryMixin(EntityBase):
                 computed_start = c_start
             computed_end = c_end
 
-            # - delta_range not sure, revert ... it seems the energy value effectively stops at those mid values
-            computed_end_for_calculus = c_end  # - delta_range
+            computed_end_for_calculus = c_end
 
-            start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=timezone.utc).isoformat().split('+')[0]}Z"
-            end_time_string = f"{datetime.fromtimestamp(c_end, tz=timezone.utc).isoformat().split('+')[0]}Z"
+            start_time_string = f"{datetime.fromtimestamp(c_start + 1, tz=UTC).isoformat().split('+')[0]}Z"
+            end_time_string = (
+                f"{datetime.fromtimestamp(c_end, tz=UTC).isoformat().split('+')[0]}Z"
+            )
             self.historical_data.append(
                 {
                     "duration": (2 * delta_range) // 60,
@@ -920,24 +953,31 @@ class EnergyHistoryMixin(EntityBase):
         self._anchor_for_power_adjustment = computed_end_for_calculus
 
     async def _get_aligned_energy_values_and_mode(
-        self, start_time, end_time, delta_range, raw_data
-    ):
+        self,
+        start_time: float,
+        end_time: float,
+        delta_range: float,
+        raw_data: dict,
+    ) -> list[Any]:
         hist_good_vals = []
         values_lots = raw_data
 
         for values_lot in values_lots:
             try:
                 start_lot_time = int(values_lot["beg_time"])
-            except Exception:
+            except KeyError:
                 self._log_energy_error(
                     start_time,
                     end_time,
                     msg="beg_time missing",
                     body=values_lots,
                 )
-                raise ApiError(
+                msg = (
                     f"Energy badly formed resp beg_time missing: {values_lots} - "
                     f"module: {self.name}"
+                )
+                raise ApiError(
+                    msg,
                 ) from None
 
             interval_sec = values_lot.get("step_time")
@@ -969,13 +1009,17 @@ class EnergyHistoryMixin(EntityBase):
                 hist_good_vals.append((cur_start_time, val, vals))
                 cur_start_time = cur_start_time + interval_sec
 
-        hist_good_vals = sorted(hist_good_vals, key=itemgetter(0))
-        return hist_good_vals
+        return sorted(hist_good_vals, key=itemgetter(0))
 
-    def _get_energy_filers(self):
+    def _get_energy_filers(self) -> LiteralString:
         return ENERGY_FILTERS
 
-    async def _energy_API_calls(self, start_time, end_time, interval):
+    async def _energy_api_calls(
+        self,
+        start_time: float,
+        end_time: float,
+        interval: MeasureInterval,
+    ) -> tuple[LiteralString, Any]:
         filters = self._get_energy_filers()
 
         params = {
@@ -997,13 +1041,17 @@ class EnergyHistoryMixin(EntityBase):
 
         if rw_dt is None:
             self._log_energy_error(
-                start_time, end_time, msg=f"direct from {filters}", body=rw_dt_f
+                start_time,
+                end_time,
+                msg=f"direct from {filters}",
+                body=rw_dt_f,
             )
-            raise ApiError(
+            msg = (
                 f"Energy badly formed resp: {rw_dt_f} - "
                 f"module: {self.name} - "
                 f"when accessing '{filters}'"
             )
+            raise ApiError(msg)
 
         raw_data = rw_dt
 
@@ -1013,7 +1061,7 @@ class EnergyHistoryMixin(EntityBase):
 class EnergyHistoryLegacyMixin(EnergyHistoryMixin):
     """Mixin for Energy history data, Using legacy APis (used for NLE)."""
 
-    def _get_energy_filers(self):
+    def _get_energy_filers(self) -> LiteralString:
         return ENERGY_FILTERS_LEGACY
 
 
@@ -1047,6 +1095,15 @@ class Module(NetatmoBase):
         """Update module with the latest data."""
 
         self.update_topology(raw_data)
+
+        if (
+            self.bridge
+            and self.bridge in self.home.modules
+            and hasattr(self, "device_category")
+            and self.device_category == "weather"
+        ):
+            self.name = update_name(self.name, self.home.modules[self.bridge].name)
+
         self.update_features()
 
         # If we have an NLE as a bridge all its bridged modules will have to be reachable
@@ -1097,28 +1154,35 @@ class Camera(
         await self.async_update_camera_urls()
 
 
-class Switch(FirmwareMixin, EnergyHistoryMixin, PowerMixin, SwitchMixin, Module):
+class Switch(
+    FirmwareMixin,
+    EnergyHistoryMixin,
+    PowerMixin,
+    SwitchMixin,
+    ApplianceTypeMixin,
+    Module,
+):
     """Class to represent a Netatmo switch."""
-
-    ...
 
 
 class Dimmer(DimmableMixin, Switch):
     """Class to represent a Netatmo dimmer."""
 
-    ...
-
 
 class Shutter(FirmwareMixin, ShutterMixin, Module):
     """Class to represent a Netatmo shutter."""
-
-    ...
 
 
 class Fan(FirmwareMixin, FanSpeedMixin, PowerMixin, Module):
     """Class to represent a Netatmo ventilation device."""
 
-    ...
+
+class Energy(EnergyHistoryMixin, Module):
+    """Class to represent a Netatmo energy module."""
+
+
+class Boiler(BoilerMixin, Module):
+    """Class to represent a Netatmo boiler."""
 
 
 # pylint: enable=too-many-ancestors

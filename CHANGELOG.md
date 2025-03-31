@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [9.0.0]
 
+### Added
+
+- Support for Pilot Wire ("fil pilote" support)
+- AC Auto schedule
+
 ### Changed
 
 - Replaced pipenv with uv and updated readme
@@ -19,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Propper handling of climate schedules in heating or cooling
 - Fix HVAC related setpoint evaluation
+- devcontainer
 
 ## [8.1.0]
 

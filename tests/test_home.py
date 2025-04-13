@@ -134,7 +134,7 @@ async def test_async_sync_schedule(async_home):
         )
 
 
-# @pytest.mark.asyncio()
+@pytest.mark.asyncio()
 async def test_async_sync_schedule_invalid_schedule(async_home):
     """Test syncing an invalid schedule."""
     invalid_schedule = {"invalid": "data"}

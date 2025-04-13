@@ -519,10 +519,14 @@
               {
                 "type": 0,
                 "name": "Comfort",
-                "rooms_temp": [
+                "rooms": [
                   {
-                    "temp": 21,
-                    "room_id": "2746182631"
+                    "therm_setpoint_temperature": 21,
+                    "id": "2746182631"
+                  },
+                  {
+                    "therm_setpoint_temperature": 22,
+                    "id": "2746182632"
                   }
                 ],
                 "id": 0
@@ -530,10 +534,14 @@
               {
                 "type": 1,
                 "name": "Night",
-                "rooms_temp": [
+                "rooms": [
                   {
-                    "temp": 17,
-                    "room_id": "2746182631"
+                    "therm_setpoint_temperature": 17,
+                    "id": "2746182631"
+                  },
+                  {
+                    "therm_setpoint_temperature": 18,
+                    "id": "2746182632"
                   }
                 ],
                 "id": 1
@@ -541,10 +549,14 @@
               {
                 "type": 5,
                 "name": "Eco",
-                "rooms_temp": [
+                "rooms": [
                   {
-                    "temp": 17,
-                    "room_id": "2746182631"
+                    "therm_setpoint_temperature": 18,
+                    "id": "2746182631"
+                  },
+                  {
+                    "therm_setpoint_temperature": 19,
+                    "id": "2746182632"
                   }
                 ],
                 "id": 4
@@ -664,10 +676,14 @@
               {
                 "type": 0,
                 "name": "Comfort",
-                "rooms_temp": [
+                "rooms": [
                   {
-                    "temp": 21,
-                    "room_id": "2746182631"
+                    "therm_setpoint_temperature": 21,
+                    "id": "2746182631"
+                  },
+                  {
+                    "therm_setpoint_temperature": 22,
+                    "id": "2746182632"
                   }
                 ],
                 "id": 0
@@ -675,10 +691,14 @@
               {
                 "type": 1,
                 "name": "Night",
-                "rooms_temp": [
+                "rooms": [
                   {
-                    "temp": 17,
-                    "room_id": "2746182631"
+                    "therm_setpoint_temperature": 17,
+                    "id": "2746182631"
+                  },
+                  {
+                    "therm_setpoint_temperature": 18,
+                    "id": "2746182632"
                   }
                 ],
                 "id": 1
@@ -686,10 +706,14 @@
               {
                 "type": 5,
                 "name": "Eco",
-                "rooms_temp": [
+                "rooms": [
                   {
-                    "temp": 17,
-                    "room_id": "2746182631"
+                    "therm_setpoint_temperature": 18,
+                    "id": "2746182631"
+                  },
+                  {
+                    "therm_setpoint_temperature": 19,
+                    "id": "2746182632"
                   }
                 ],
                 "id": 4

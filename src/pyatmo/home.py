@@ -372,11 +372,10 @@ class Home:
                     if room.entity_id in temps:
                         room.therm_setpoint_temperature = temps[room.entity_id]
 
-        await self.async_sync_schedule(selected_schedule.entity_id, selected_schedule)
+        await self.async_sync_schedule(selected_schedule)
 
     async def async_sync_schedule(
         self,
-        schedule_id: str,
         schedule: Schedule,
     ) -> None:
         """Modify an existing schedule."""
@@ -385,7 +384,7 @@ class Home:
             raise InvalidScheduleError(msg)
         LOG.debug(
             "Setting schedule (%s) for home (%s) to %s",
-            schedule_id,
+            schedule.entity_id,
             self.entity_id,
             schedule,
         )
@@ -426,7 +425,7 @@ class Home:
             params={
                 "params": {
                     "home_id": self.entity_id,
-                    "schedule_id": schedule_id,
+                    "schedule_id": schedule.entity_id,
                     "name": "Default",
                 },
                 "json": request_json,

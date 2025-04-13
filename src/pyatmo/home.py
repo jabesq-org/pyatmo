@@ -442,7 +442,11 @@ def is_valid_state(data: dict[str, Any]) -> bool:
 
 def is_valid_schedule(schedule: Schedule) -> bool:
     """Check schedule."""
-    return schedule is not None
+    return (
+        isinstance(schedule, Schedule)
+        and hasattr(schedule, "entity_id")
+        and schedule.entity_id != ""
+    )
 
 
 def get_temperature_control_mode(

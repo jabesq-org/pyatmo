@@ -366,49 +366,18 @@ class Home:
             msg = "Could not determine selected schedule."
             raise NoScheduleError(msg)
 
-        zones = []
-
-        timetable_entries = [
-            {
-                "m_offset": timetable_entry.m_offset,
-                "zone_id": timetable_entry.zone_id,
-            }
-            for timetable_entry in selected_schedule.timetable
-        ]
-
         for zone in selected_schedule.zones:
-            rooms = []
-            new_zone = {
-                "id": zone.entity_id,
-                "name": zone.name,
-                "type": zone.type,
-            }
+            if zone.entity_id == zone_id:
+                for room in zone.rooms:
+                    if room.entity_id in temps:
+                        room.therm_setpoint_temperature = temps[room.entity_id]
 
-            for room in zone.rooms:
-                temp = room.therm_setpoint_temperature
-                if zone.entity_id == zone_id and room.entity_id in temps:
-                    temp = temps[room.entity_id]
-
-                rooms.append(
-                    {"id": room.entity_id, "therm_setpoint_temperature": temp},
-                )
-
-            new_zone["rooms"] = rooms
-            zones.append(new_zone)
-
-        schedule = {
-            "away_temp": selected_schedule.away_temp,
-            "hg_temp": selected_schedule.hg_temp,
-            "timetable": timetable_entries,
-            "zones": zones,
-        }
-
-        await self.async_sync_schedule(selected_schedule.entity_id, schedule)
+        await self.async_sync_schedule(selected_schedule.entity_id, selected_schedule)
 
     async def async_sync_schedule(
         self,
         schedule_id: str,
-        schedule: dict[str, Any],
+        schedule: Schedule,
     ) -> None:
         """Modify an existing schedule."""
         if not is_valid_schedule(schedule):
@@ -421,6 +390,37 @@ class Home:
             schedule,
         )
 
+        timetable_entries = [
+            {
+                "m_offset": timetable_entry.m_offset,
+                "zone_id": timetable_entry.zone_id,
+            }
+            for timetable_entry in schedule.timetable
+        ]
+
+        zones = []
+        for zone in schedule.zones:
+            new_zone = {
+                "id": zone.entity_id,
+                "name": zone.name,
+                "type": zone.type,
+                "rooms": [
+                    {
+                        "id": room.entity_id,
+                        "therm_setpoint_temperature": room.therm_setpoint_temperature,
+                    }
+                    for room in zone.rooms
+                ],
+            }
+            zones.append(new_zone)
+
+        request_json = {
+            "away_temp": schedule.away_temp,
+            "hg_temp": schedule.hg_temp,
+            "timetable": timetable_entries,
+            "zones": zones,
+        }
+
         resp = await self.auth.async_post_api_request(
             endpoint=SYNCHOMESCHEDULE_ENDPOINT,
             params={
@@ -429,7 +429,7 @@ class Home:
                     "schedule_id": schedule_id,
                     "name": "Default",
                 },
-                "json": schedule,
+                "json": request_json,
             },
         )
 
@@ -441,7 +441,7 @@ def is_valid_state(data: dict[str, Any]) -> bool:
     return data is not None
 
 
-def is_valid_schedule(schedule: dict[str, Any]) -> bool:
+def is_valid_schedule(schedule: Schedule) -> bool:
     """Check schedule."""
     return schedule is not None
 

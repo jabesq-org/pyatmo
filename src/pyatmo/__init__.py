@@ -9,6 +9,7 @@ from pyatmo.exceptions import (
     ApiThrottlingError,
     InvalidHomeError,
     InvalidRoomError,
+    InvalidScheduleError,
     NoDeviceError,
     NoScheduleError,
 )
@@ -27,6 +28,7 @@ __all__ = [
     "Home",
     "InvalidHomeError",
     "InvalidRoomError",
+    "InvalidScheduleError"
     "Module",
     "NoDeviceError",
     "NoScheduleError",

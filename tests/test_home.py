@@ -119,7 +119,7 @@ async def test_async_sync_schedule(async_home):
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
         AsyncMock(return_value=MockResponse({"status": "ok"}, 200)),
     ) as mock_resp:
-        await async_home.async_sync_schedule(schedule_id, schedule)
+        await async_home.async_sync_schedule(schedule)
 
         mock_resp.assert_awaited_with(
             endpoint="api/synchomeschedule",
@@ -137,7 +137,6 @@ async def test_async_sync_schedule(async_home):
 # @pytest.mark.asyncio()
 async def test_async_sync_schedule_invalid_schedule(async_home):
     """Test syncing an invalid schedule."""
-    schedule_id = "591b54a2764ff4d50d8b5795"
     invalid_schedule = {"invalid": "data"}
 
     with (
@@ -147,7 +146,7 @@ async def test_async_sync_schedule_invalid_schedule(async_home):
             return_value=False,
         ),
     ):
-        await async_home.async_sync_schedule(schedule_id, invalid_schedule)
+        await async_home.async_sync_schedule(invalid_schedule)
 
 
 @pytest.mark.asyncio()

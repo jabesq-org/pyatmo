@@ -74,6 +74,10 @@ class NACamera(Camera):
     """Class to represent a Netatmo NACamera."""
 
 
+class NPC(Camera):
+    """Class to represent a Netatmo NPC."""
+
+
 class NOC(FloodlightMixin, Camera):
     """Class to represent a Netatmo NOC."""
 

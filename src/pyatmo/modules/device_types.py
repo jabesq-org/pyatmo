@@ -32,6 +32,7 @@ class DeviceType(str, Enum):
     NDB = "NDB"  # Smart Video Doorbell
     NIS = "NIS"  # Smart Indoor Siren
     NOC = "NOC"  # Smart Outdoor Camera (with Siren)
+    NPC = "NPC"  # Indoor Camera Advance
     NSD = "NSD"  # Smart Smoke Detector
 
     # Weather
@@ -155,6 +156,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NATherm1: DeviceCategory.climate,
     DeviceType.OTM: DeviceCategory.climate,
     DeviceType.NOC: DeviceCategory.camera,
+    DeviceType.NPC: DeviceCategory.camera,
     DeviceType.NACamDoorTag: DeviceCategory.opening,
     DeviceType.NACamera: DeviceCategory.camera,
     DeviceType.NDB: DeviceCategory.camera,
@@ -219,6 +221,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.OTM: ("Netatmo", "OpenTherm Modulating Thermostat"),
     # Netatmo Cameras/Security
     DeviceType.NOC: ("Netatmo", "Smart Outdoor Camera"),
+    DeviceType.NPC: ("Netatmo", "Indoor Camera Advance"),
     DeviceType.NACamera: ("Netatmo", "Smart Indoor Camera"),
     DeviceType.NSD: ("Netatmo", "Smart Smoke Detector"),
     DeviceType.NIS: ("Netatmo", "Smart Indoor Siren"),

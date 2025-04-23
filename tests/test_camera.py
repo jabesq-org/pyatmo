@@ -30,6 +30,24 @@ async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-nam
 
 
 @pytest.mark.asyncio()
+async def test_async_camera_NPC(async_home):  # pylint: disable=invalid-name
+    """Test Netatmo indoor camera advance module."""
+    module_id = "12:34:56:00:f1:63"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    await module.async_update_camera_urls()
+    assert module.device_type == DeviceType.NPC
+    assert module.is_local
+    assert module.local_url == "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
+    person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
+    assert person_id in module.home.persons
+    person = module.home.persons[person_id]
+    assert person.pseudo == "John Doe"
+    assert person.out_of_sight
+    assert person.last_seen == 1557071156
+
+
+@pytest.mark.asyncio()
 async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     """Test basic outdoor camera functionality."""
     module_id = "12:34:56:10:b9:0e"

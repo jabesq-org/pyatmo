@@ -44,6 +44,16 @@
           "is_local": true
         },
         {
+          "id": "12:34:56:00:f1:63",
+          "type": "NPC",
+          "monitoring": "on",
+          "sd_status": 4,
+          "alim_status": 2,
+          "locked": false,
+          "vpn_url": "https://prodvpn-eu-2.netatmo.net/restricted/10.255.123.45/9fb1814609e27de5697ab47d06846631/MTRPn_BeWCav5RBq4U1OMDruTW4dkQ0NuMwNDAw11g,,",
+          "is_local": true
+        },
+        {
           "id": "12:34:56:00:fa:d0",
           "type": "NAPlug",
           "firmware_revision": 174,

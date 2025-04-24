@@ -302,11 +302,16 @@ class Room(NetatmoBase):
         if pilot_wire is not None and mode is None:
             mode = MANUAL
 
-        setpoint_mode_prefix = {
+        temp_mode_mapping = {
             None: "therm",
             TemperatureControlMode.HEATING: "therm",
             TemperatureControlMode.COOLING: "cooling",
-        }[self.home.temperature_control_mode]
+        }
+
+        setpoint_mode_prefix = temp_mode_mapping.get(
+            self.home.temperature_control_mode,
+            "therm",
+        )
 
         json_therm_set: dict[str, Any] = {
             "rooms": [

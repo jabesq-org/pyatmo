@@ -27,6 +27,7 @@ from pyatmo.const import (
     UNKNOWN,
     RawData,
 )
+from pyatmo.enums import TemperatureControlMode
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import ApplianceType, DeviceCategory, DeviceType
 from pyatmo.modules.module import ApplianceTypeMixin, Boiler, PowerMixin
@@ -301,20 +302,30 @@ class Room(NetatmoBase):
         if pilot_wire is not None and mode is None:
             mode = MANUAL
 
+        setpoint_mode_prefix = {
+            None: "therm",
+            TemperatureControlMode.HEATING: "therm",
+            TemperatureControlMode.COOLING: "cooling",
+        }[self.home.temperature_control_mode]
+
         json_therm_set: dict[str, Any] = {
             "rooms": [
                 {
                     "id": self.entity_id,
-                    "therm_setpoint_mode": mode,
+                    f"{setpoint_mode_prefix}_setpoint_mode": mode,
                 },
             ],
         }
 
         if temp:
-            json_therm_set["rooms"][0]["therm_setpoint_temperature"] = temp
+            json_therm_set["rooms"][0][
+                f"{setpoint_mode_prefix}_setpoint_temperature"
+            ] = temp
 
         if end_time:
-            json_therm_set["rooms"][0]["therm_setpoint_end_time"] = end_time
+            json_therm_set["rooms"][0][
+                f"{setpoint_mode_prefix}_setpoint_end_time"
+            ] = end_time
 
         if self.support_pilot_wire and pilot_wire:
             json_therm_set["rooms"][0]["therm_setpoint_fp"] = pilot_wire

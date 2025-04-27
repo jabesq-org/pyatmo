@@ -17,6 +17,7 @@ from pyatmo.const import (
     SYNCHOMESCHEDULE_ENDPOINT,
     RawData,
 )
+from pyatmo.enums import SCHEDULE_TYPE_MAPPING, TemperatureControlMode
 from pyatmo.event import Event
 from pyatmo.exceptions import (
     ApiHomeReachabilityError,
@@ -26,7 +27,7 @@ from pyatmo.exceptions import (
 )
 from pyatmo.person import Person
 from pyatmo.room import Room
-from pyatmo.schedule import Schedule, ScheduleType
+from pyatmo.schedule import Schedule
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
@@ -36,12 +37,6 @@ if TYPE_CHECKING:
     from pyatmo.modules.netatmo import NACamera
 
 LOG = logging.getLogger(__name__)
-
-
-SCHEDULE_TYPE_MAPPING = {
-    "heating": ScheduleType.THERM,
-    "cooling": ScheduleType.COOLING,
-}
 
 
 class Home:
@@ -56,7 +51,7 @@ class Home:
     persons: dict[str, Person]
     events: dict[str, Event]
 
-    temperature_control_mode: str | None = None
+    temperature_control_mode: TemperatureControlMode | None = None
     therm_mode: str | None = None
     therm_setpoint_default_duration: int | None = None
     cooling_mode: str | None = None
@@ -88,7 +83,9 @@ class Home:
         }
         self.events = {}
 
-        self.temperature_control_mode = raw_data.get("temperature_control_mode")
+        self.temperature_control_mode = get_temperature_control_mode(
+            raw_data.get("temperature_control_mode"),
+        )
         self.therm_mode = raw_data.get("therm_mode")
         self.therm_setpoint_default_duration = raw_data.get(
             "therm_setpoint_default_duration",
@@ -117,7 +114,9 @@ class Home:
 
         raw_modules = raw_data.get("modules", [])
 
-        self.temperature_control_mode = raw_data.get("temperature_control_mode")
+        self.temperature_control_mode = get_temperature_control_mode(
+            raw_data.get("temperature_control_mode"),
+        )
         self.therm_mode = raw_data.get("therm_mode")
         self.therm_setpoint_default_duration = raw_data.get(
             "therm_setpoint_default_duration",
@@ -444,3 +443,14 @@ def is_valid_state(data: dict[str, Any]) -> bool:
 def is_valid_schedule(schedule: dict[str, Any]) -> bool:
     """Check schedule."""
     return schedule is not None
+
+
+def get_temperature_control_mode(
+    temperature_control_mode: str | None,
+) -> TemperatureControlMode | None:
+    """Return temperature control mode."""
+    return (
+        TemperatureControlMode(temperature_control_mode)
+        if temperature_control_mode
+        else None
+    )

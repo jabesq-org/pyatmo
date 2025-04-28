@@ -24,7 +24,7 @@ async def test_async_home(async_home):
         DeviceType.NPC,
     }
     assert len(async_home.rooms) == 8
-    assert len(async_home.modules) == 39
+    assert len(async_home.modules) == 40
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"

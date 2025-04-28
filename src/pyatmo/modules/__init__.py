@@ -54,6 +54,7 @@ from .legrand import (
     NLUP,
     NLV,
     Z3L,
+    Z3V,
     NLunknown,
 )
 from .module import Camera, Dimmer, Fan, Module, Shutter, Switch
@@ -170,4 +171,5 @@ __all__ = [
     "Switch",
     "TPSRS",
     "Z3L",
+    "Z3V",
 ]

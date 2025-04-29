@@ -48,7 +48,7 @@ class DeviceType(str, Enum):
 
     # Legrand Wiring devices and electrical panel products
     NLC = "NLC"  # Cable outlet
-    NLD = "NLD"  # Dimmer
+    NLD = "NLD"  # Remote control double on off dimmer
     NLDD = "NLDD"  # Dimmer
     NLE = "NLE"  # Connected Ecometer
     NLF = "NLF"  # Dimmer Light Switch
@@ -69,7 +69,7 @@ class DeviceType(str, Enum):
     NLPO = "NLPO"  # Connected contactor
     NLPS = "NLPS"  # Smart Load Shedder
     NLPT = "NLPT"  # Connected latching relay / Telerupt
-    NLT = "NLT"  # Global remote control
+    NLT = "NLT"  # Remote control
     NLV = "NLV"  # Legrand / BTicino shutters
     NLAO = "NLAO"  # Legrand wireless batteryless light switch
     NLUO = "NLUO"  # Legrand Plug-In dimmer switch
@@ -194,7 +194,6 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLUI: DeviceCategory.switch,
     DeviceType.NLUF: DeviceCategory.dimmer,
     DeviceType.NLPS: DeviceCategory.meter,
-    DeviceType.NLD: DeviceCategory.switch,
     DeviceType.NLDD: DeviceCategory.switch,
     DeviceType.NLPT: DeviceCategory.switch,
     DeviceType.BNMS: DeviceCategory.shutter,
@@ -263,7 +262,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLC: ("Legrand", "Cable Outlet"),
     DeviceType.NLT: ("Legrand", "Global Remote Control"),
     DeviceType.NLAS: ("Legrand", "Wireless batteryless scene switch"),
-    DeviceType.NLD: ("Legrand", "Dimmer"),
+    DeviceType.NLD: ("Legrand", "Remote Control"),
     DeviceType.NLDD: ("Legrand", "Dimmer"),
     DeviceType.NLUP: ("Legrand", "Power outlet"),
     DeviceType.NLUO: ("Legrand", "Plug-In dimmer switch"),

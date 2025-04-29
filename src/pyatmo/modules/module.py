@@ -1177,6 +1177,10 @@ class Fan(FirmwareMixin, FanSpeedMixin, PowerMixin, Module):
     """Class to represent a Netatmo ventilation device."""
 
 
+class RemoteControlMixin(FirmwareMixin, Module):
+    """Class to represent a Netatmo remote control."""
+
+
 class Energy(EnergyHistoryMixin, Module):
     """Class to represent a Netatmo energy module."""
 

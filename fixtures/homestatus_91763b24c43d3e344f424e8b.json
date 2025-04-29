@@ -249,6 +249,19 @@
           "bridge": "12:34:56:80:60:40"
         },
         {
+          "id": "12:34:56:80:00:c3:69:3d",
+          "type": "Z3V",
+          "current_position": 0,
+          "target_position": 0,
+          "target_position_step": 100,
+          "firmware_revision": 16,
+          "rf_strength": 0,
+          "last_seen": 1638353156,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40",
+          "variant": "Z3V:generic_window_covering"
+        },
+        {
           "id": "12:34:56:00:16:0e",
           "type": "NLE",
           "firmware_revision": 14,

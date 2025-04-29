@@ -22,6 +22,16 @@ async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
+async def test_async_shutter_Z3V(async_home):  # pylint: disable=invalid-name
+    """Test NLG Legrand roller shutter 3rd party."""
+    module_id = "12:34:56:80:00:c3:69:3d"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.Z3V
+    assert module.firmware_revision == 16
+    assert module.current_position == 0
+
+
 @pytest.mark.asyncio()
 async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
     """Test NBO Bubendorf iDiamant roller shutter."""

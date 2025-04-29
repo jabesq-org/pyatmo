@@ -112,6 +112,7 @@ class DeviceType(str, Enum):
     BNS = "BNS"  # Smarther with Netatmo
     EBU = "EBU"  # EBU gas meter
     Z3L = "Z3L"  # Zigbee 3 Light
+    Z3V = "Z3V"  # Zigbee 3 roller shutter
 
     # Magellan
     NLDP = "NLDP"  # Pocket Remote
@@ -185,6 +186,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
     DeviceType.Z3L: DeviceCategory.dimmer,
+    DeviceType.Z3V: DeviceCategory.shutter,
     DeviceType.NLUP: DeviceCategory.switch,
     DeviceType.NLPO: DeviceCategory.switch,
     DeviceType.TPSRS: DeviceCategory.shutter,
@@ -294,6 +296,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     # 3rd Party
     DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
     DeviceType.Z3L: ("3rd Party", "Zigbee 3 Light"),
+    DeviceType.Z3V: ("3rd Party", "Zigbee 3 roller shutter"),
     DeviceType.EBU: ("3rd Party", "EBU gas meter"),
     DeviceType.NLPD: ("Drivia", "Dry contact"),
 }

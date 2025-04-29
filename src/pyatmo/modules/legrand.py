@@ -152,6 +152,10 @@ class Z3L(Dimmer):
     """Zigbee 3 Light."""
 
 
+class Z3V(FirmwareMixin, RfMixin, ShutterMixin, Module):
+    """Zigbee 3 roller shutter."""
+
+
 class EBU(Module):
     """EBU gas meter."""
 

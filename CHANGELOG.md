@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated device type descriptions to better reflect their functionality
+- Removed some unnecessary mixins from Legrand device classes
+- Create RemoteControlMixin for more easier device representation
+
 ### Removed
 
 ### Fixed

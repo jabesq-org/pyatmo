@@ -22,9 +22,10 @@ async def test_async_home(async_home):
         DeviceType.NIS,
         DeviceType.NBO,
         DeviceType.NPC,
+        DeviceType.NLPD,
     }
-    assert len(async_home.rooms) == 8
-    assert len(async_home.modules) == 40
+    assert len(async_home.rooms) == 9
+    assert len(async_home.modules) == 51
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"

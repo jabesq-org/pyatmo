@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-import asyncio
 from json import JSONDecodeError
 import logging
 from typing import Any
@@ -212,7 +211,7 @@ class AbstractAsyncAuth(ABC):
                 endpoint=WEBHOOK_URL_ADD_ENDPOINT,
                 params={"url": webhook_url},
             )
-        except asyncio.exceptions.TimeoutError as exc:
+        except TimeoutError as exc:
             msg = "Webhook registration timed out"
             raise ApiError(msg) from exc
         else:
@@ -225,7 +224,7 @@ class AbstractAsyncAuth(ABC):
                 endpoint=WEBHOOK_URL_DROP_ENDPOINT,
                 params={"app_types": "app_security"},
             )
-        except asyncio.exceptions.TimeoutError as exc:
+        except TimeoutError as exc:
             msg = "Webhook registration timed out"
             raise ApiError(msg) from exc
         else:

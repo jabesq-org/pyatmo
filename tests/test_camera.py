@@ -3,15 +3,12 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio
 async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-name
     """Test Netatmo indoor camera module."""
     module_id = "12:34:56:00:f1:62"
@@ -29,7 +26,6 @@ async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-nam
     assert person.last_seen == 1557071156
 
 
-@pytest.mark.asyncio
 async def test_async_camera_NPC(async_home):  # pylint: disable=invalid-name
     """Test Netatmo indoor camera advance module."""
     module_id = "12:34:56:00:f1:63"
@@ -47,7 +43,6 @@ async def test_async_camera_NPC(async_home):  # pylint: disable=invalid-name
     assert person.last_seen == 1557071156
 
 
-@pytest.mark.asyncio
 async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     """Test basic outdoor camera functionality."""
     module_id = "12:34:56:10:b9:0e"
@@ -102,7 +97,6 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
         )
 
 
-@pytest.mark.asyncio
 async def test_async_camera_monitoring(async_home):
     """Test basic camera monitoring functionality."""
     module_id = "12:34:56:10:b9:0e"

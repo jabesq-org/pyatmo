@@ -14,7 +14,6 @@ from tests.conftest import does_not_raise
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio
 async def test_async_climate_room(async_home):
     """Test room with climate devices."""
     room_id = "2746182631"
@@ -29,7 +28,6 @@ async def test_async_climate_room(async_home):
     assert len(room.modules) == 1
 
 
-@pytest.mark.asyncio
 async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-name
     """Test NATherm1 climate device."""
     module_id = "12:34:56:00:01:ae"
@@ -43,7 +41,6 @@ async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-na
     assert module.rf_strength == 58
 
 
-@pytest.mark.asyncio
 async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     """Test NRV climate device."""
     module_id = "12:34:56:03:a5:54"
@@ -57,7 +54,6 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 79
 
 
-@pytest.mark.asyncio
 async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     """Test NAPlug climate device."""
     module_id = "12:34:56:00:fa:d0"
@@ -70,7 +66,6 @@ async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 174
 
 
-@pytest.mark.asyncio
 async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
     """Test Netatmo siren."""
     module_id = "12:34:56:00:e3:9b"
@@ -82,7 +77,6 @@ async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
     assert module.monitoring is False
 
 
-@pytest.mark.asyncio
 async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
     """Test OTM climate device."""
     module_id = "12:34:56:20:f5:8c"
@@ -96,7 +90,6 @@ async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
     assert module.rf_strength == 64
 
 
-@pytest.mark.asyncio
 async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     """Test OTH climate device."""
     module_id = "12:34:56:20:f5:44"
@@ -108,7 +101,6 @@ async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 22
 
 
-@pytest.mark.asyncio
 async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
     """Test Smarther BNS climate module."""
     module_id = "10:20:30:bd:b8:1e"
@@ -125,7 +117,6 @@ async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
     assert room.features == {"humidity", DeviceCategory.climate}
 
 
-@pytest.mark.asyncio
 async def test_async_climate_update(async_account):
     """Test basic climate state update."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -191,7 +182,6 @@ async def test_async_climate_update(async_account):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_async_climate_switch_schedule(
     async_home,
     t_sched_id,
@@ -233,7 +223,6 @@ async def test_async_climate_switch_schedule(
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_async_climate_room_therm_set(
     async_home,
     temp,
@@ -333,7 +322,6 @@ async def test_async_climate_room_therm_set(
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_async_climate_set_thermmode(
     async_home,
     mode,
@@ -361,7 +349,6 @@ async def test_async_climate_set_thermmode(
         assert expected is resp
 
 
-@pytest.mark.asyncio
 async def test_async_climate_empty_home(async_account):
     """Test climate setup with empty home."""
     home_id = "91763b24c43d3e344f424e8c"
@@ -378,7 +365,6 @@ async def test_async_climate_empty_home(async_account):
     assert len(home.rooms) == 0
 
 
-@pytest.mark.asyncio
 async def test_power_wire(async_home_multi):
     """Test room with climate devices."""
     room_id = "3707962039"

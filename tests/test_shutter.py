@@ -3,15 +3,12 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio
 async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
     """Test NLP Bubendorf iDiamant roller shutter."""
     module_id = "0009999992"
@@ -32,7 +29,6 @@ async def test_async_shutter_Z3V(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
-@pytest.mark.asyncio
 async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
     """Test NBO Bubendorf iDiamant roller shutter."""
     module_id = "0009999993"
@@ -43,7 +39,6 @@ async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
-@pytest.mark.asyncio
 async def test_async_shutters(async_home):
     """Test basic shutter functionality."""
     room_id = "3688132631"

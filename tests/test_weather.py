@@ -1,7 +1,5 @@
 """Define tests for weaather module."""
 
-import pytest
-
 import pyatmo
 from pyatmo import DeviceType
 from pyatmo.modules.base_class import Location, Place
@@ -9,7 +7,6 @@ from pyatmo.modules.base_class import Location, Place
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio
 async def test_async_weather_NAMain(async_home):  # pylint: disable=invalid-name
     """Test Netatmo weather station main module."""
     module_id = "12:34:56:80:bb:26"
@@ -18,7 +15,6 @@ async def test_async_weather_NAMain(async_home):  # pylint: disable=invalid-name
     assert module.device_type == DeviceType.NAMain
 
 
-@pytest.mark.asyncio
 async def test_async_weather_update(async_account):
     """Test basic weather station update."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -165,7 +161,6 @@ async def test_async_weather_update(async_account):
     assert module.gust_angle == 206
 
 
-@pytest.mark.asyncio
 async def test_async_weather_favorite(async_account):
     """Test favorite weather station."""
     await async_account.async_update_weather_stations()
@@ -231,7 +226,6 @@ async def test_async_weather_favorite(async_account):
     assert module.humidity == 87
 
 
-@pytest.mark.asyncio
 async def test_async_air_care_update(async_account):
     """Test basic air care update."""
     await async_account.async_update_air_care()
@@ -273,7 +267,6 @@ async def test_async_air_care_update(async_account):
     assert module.health_idx == 1
 
 
-@pytest.mark.asyncio
 async def test_async_public_weather_update(async_account):
     """Test basic public weather update."""
     lon_ne = "6.221652"

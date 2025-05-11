@@ -19,6 +19,8 @@ from pyatmo.const import (
     AUTHORIZATION_HEADER,
     DEFAULT_BASE_URL,
     ERRORS,
+    FORBIDDEN_ERROR_CODE,
+    THROTTLING_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
@@ -163,7 +165,10 @@ class AbstractAsyncAuth(ABC):
                 f"when accessing '{url}'",
             )
 
-            if resp_status == 403 and resp_json["error"]["code"] == 26:
+            if (
+                resp_status == FORBIDDEN_ERROR_CODE
+                and resp_json["error"]["code"] == THROTTLING_ERROR_CODE
+            ):
                 raise ApiThrottlingError(message)
 
             raise ApiError(message)

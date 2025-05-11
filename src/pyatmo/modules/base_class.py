@@ -10,7 +10,7 @@ from operator import itemgetter
 from time import time
 from typing import TYPE_CHECKING, Any
 
-from pyatmo.const import MAX_HISTORY_TIME_FRAME, RawData
+from pyatmo.const import GPS_COORDINATES_COUNT, MAX_HISTORY_TIME_FRAME, RawData
 from pyatmo.event import EventTypes
 from pyatmo.modules.device_types import ApplianceType, DeviceType
 
@@ -187,7 +187,9 @@ class Place:
             LOG.debug("Place data is unknown")
             return
 
-        if (location := data.get("location")) is None or len(list(location)) != 2:
+        if (location := data.get("location")) is None or len(
+            list(location),
+        ) != GPS_COORDINATES_COUNT:
             LOG.debug("Invalid location data: %s", data)
             return
 

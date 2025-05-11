@@ -33,7 +33,7 @@ def fix_id(raw_data: RawData) -> dict[str, Any]:
     return raw_data
 
 
-def extract_raw_data(resp: Any, tag: str) -> dict[str, Any]:
+def extract_raw_data(resp: RawData, tag: str) -> RawData:
     """Extract raw data from server response."""
     raw_data = {}
 

@@ -1011,7 +1011,7 @@ class EnergyHistoryMixin(EntityBase):
 
         return sorted(hist_good_vals, key=itemgetter(0))
 
-    def _get_energy_filers(self) -> LiteralString:
+    def _get_energy_filers(self) -> str:
         return ENERGY_FILTERS
 
     async def _energy_api_calls(
@@ -1061,7 +1061,7 @@ class EnergyHistoryMixin(EntityBase):
 class EnergyHistoryLegacyMixin(EnergyHistoryMixin):
     """Mixin for Energy history data, Using legacy APis (used for NLE)."""
 
-    def _get_energy_filers(self) -> LiteralString:
+    def _get_energy_filers(self) -> str:
         return ENERGY_FILTERS_LEGACY
 
 

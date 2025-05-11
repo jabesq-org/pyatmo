@@ -15,7 +15,7 @@ from pyatmo.event import EventTypes
 from pyatmo.modules.device_types import ApplianceType, DeviceType
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
 
     from pyatmo.home import Home
 
@@ -37,7 +37,7 @@ NETATMO_ATTRIBUTES_MAP = {
 }
 
 
-def default(key: str, val: Any) -> Any:
+def default(key: str, val: Any) -> Callable[[dict[str, Any], Any], Any]:  # noqa: ANN401
     """Return default value."""
 
     return lambda x, _: x.get(key, val)
@@ -103,7 +103,7 @@ class NetatmoBase(EntityBase, ABC):
     def add_history_data(
         self,
         feature: str,
-        value: Any,
+        value: Any,  # noqa: ANN401
         time: int,
     ) -> None:
         """Add historical data at the given time."""
@@ -179,14 +179,21 @@ class Place:
 
     def __init__(
         self,
-        data: dict[str, Any],
+        data: dict[str, Any] | None,
     ) -> None:
         """Initialize self."""
 
         if data is None:
+            LOG.debug("Place data is unknown")
             return
+
+        if (location := data.get("location")) is None or len(list(location)) != 2:
+            LOG.debug("Invalid location data: %s", data)
+            return
+
         self.altitude = data.get("altitude")
         self.city = data.get("city")
         self.country = data.get("country")
         self.timezone = data.get("timezone")
-        self.location = Location(*list(data.get("location", [])))
+        location_data = list(location)
+        self.location = Location(location_data[0], location_data[1])

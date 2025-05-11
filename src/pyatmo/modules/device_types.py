@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 import logging
-from typing import Any, Literal
+from typing import Literal
 
 LOG = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ class DeviceType(str, Enum):
     # pylint: enable=C0103
 
     @classmethod
-    def _missing_(cls, key: Any) -> Literal[DeviceType.NLunknown]:
+    def _missing_(cls, key: object) -> Literal[DeviceType.NLunknown]:
         """Handle unknown device types."""
 
         msg = f"{key} device is unknown"
@@ -327,7 +327,7 @@ class ApplianceType(str, Enum):
     unknown = "unknown"
 
     @classmethod
-    def _missing_(cls, key: Any) -> Literal[ApplianceType.unknown]:
+    def _missing_(cls, key: object) -> Literal[ApplianceType.unknown]:
         """Handle unknown device types."""
 
         msg = f"{key} appliance type is unknown"

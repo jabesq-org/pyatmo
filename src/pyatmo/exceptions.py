@@ -1,23 +1,23 @@
 """Exceptions for pyatmo."""
 
 
-class NoSchedule(Exception):
+class NoScheduleError(Exception):
     """Raised when no schedule is found."""
 
 
-class InvalidSchedule(Exception):
+class InvalidScheduleError(Exception):
     """Raised when an invalid schedule is encountered."""
 
 
-class InvalidHome(Exception):
+class InvalidHomeError(Exception):
     """Raised when an invalid home is encountered."""
 
 
-class InvalidRoom(Exception):
+class InvalidRoomError(Exception):
     """Raised when an invalid room is encountered."""
 
 
-class NoDevice(Exception):
+class NoDeviceError(Exception):
     """Raised when no device is found."""
 
 
@@ -25,7 +25,7 @@ class ApiError(Exception):
     """Raised when an API error is encountered."""
 
 
-class ApiErrorThrottling(ApiError):
+class ApiThrottlingError(ApiError):
     """Raised when an API error is encountered."""
 
 
@@ -33,5 +33,5 @@ class ApiHomeReachabilityError(ApiError):
     """Raised when an API error is encountered."""
 
 
-class InvalidState(Exception):
+class InvalidStateError(Exception):
     """Raised when an invalid state is encountered."""

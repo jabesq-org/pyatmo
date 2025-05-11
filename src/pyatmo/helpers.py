@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from pyatmo.exceptions import NoDevice
+from pyatmo.exceptions import NoDeviceError
 
 if TYPE_CHECKING:
     from pyatmo.const import RawData
@@ -43,7 +43,7 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
     if resp is None or "body" not in resp or tag not in resp["body"]:
         LOG.debug("Server response (tag: %s): %s", tag, resp)
         msg = "No device found, errors in response"
-        raise NoDevice(msg)
+        raise NoDeviceError(msg)
 
     if tag == "homes":
         return {
@@ -54,6 +54,6 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
     if not (raw_data := fix_id(resp["body"].get(tag))):
         LOG.debug("Server response (tag: %s): %s", tag, resp)
         msg = "No device data available"
-        raise NoDevice(msg)
+        raise NoDeviceError(msg)
 
     return {tag: raw_data, "errors": resp["body"].get("errors", [])}

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyatmo import DeviceType, NoSchedule
+from pyatmo import DeviceType, NoScheduleError
 from pyatmo.modules import NATherm1
 from pyatmo.modules.device_types import DeviceCategory
 from tests.common import MockResponse, fake_post_request
@@ -178,7 +178,7 @@ async def test_async_climate_update(async_account):
         ("591b54a2764ff4d50d8b5795", does_not_raise()),
         (
             "123456789abcdefg12345678",
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
     ],
 )
@@ -302,7 +302,7 @@ async def test_async_climate_room_therm_set(
             None,
             "home_status_error_mode_is_missing.json",
             False,
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
         (
             "away",
@@ -310,7 +310,7 @@ async def test_async_climate_room_therm_set(
             0000000,
             "status_ok.json",
             True,
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
         (
             "schedule",
@@ -318,7 +318,7 @@ async def test_async_climate_room_therm_set(
             "blahblahblah",
             "home_status_error_invalid_schedule_id.json",
             False,
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
     ],
 )

@@ -15,8 +15,8 @@ async def test_async_weather_NAMain(async_home):  # pylint: disable=invalid-name
     assert module.device_type == DeviceType.NAMain
 
 
-async def test_async_weather_update(async_account):
-    """Test basic weather station update."""
+async def test_async_weather_update_main(async_account):
+    """Test main weather station module."""
     home_id = "91763b24c43d3e344f424e8b"
     await async_account.async_update_weather_stations()
     home = async_account.homes[home_id]
@@ -67,6 +67,13 @@ async def test_async_weather_update(async_account):
         },
     )
 
+
+async def test_async_weather_update_indoor(async_account):
+    """Test indoor weather module."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_weather_stations()
+    home = async_account.homes[home_id]
+
     module_id = "12:34:56:80:44:92"
     assert module_id in home.modules
     module = home.modules[module_id]
@@ -93,6 +100,13 @@ async def test_async_weather_update(async_account):
     assert module.humidity == 53
     assert module.battery == 28
 
+
+async def test_async_weather_update_rain(async_account):
+    """Test rain module."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_weather_stations()
+    home = async_account.homes[home_id]
+
     module_id = "12:34:56:80:c1:ea"
     assert module_id in home.modules
     module = home.modules[module_id]
@@ -111,6 +125,13 @@ async def test_async_weather_update(async_account):
     assert module.firmware_revision == 12
     assert module.rf_strength == 79
     assert module.rain == 3.7
+
+
+async def test_async_weather_update_outdoor(async_account):
+    """Test outdoor module."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_weather_stations()
+    home = async_account.homes[home_id]
 
     module_id = "12:34:56:80:1c:42"
     assert module_id in home.modules
@@ -134,6 +155,13 @@ async def test_async_weather_update(async_account):
     assert module.firmware_revision == 50
     assert module.rf_strength == 68
     assert module.reachable is False
+
+
+async def test_async_weather_update_wind(async_account):
+    """Test wind module."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_weather_stations()
+    home = async_account.homes[home_id]
 
     module_id = "12:34:56:03:1b:e4"
     assert module_id in home.modules

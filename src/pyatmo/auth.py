@@ -22,7 +22,7 @@ from pyatmo.const import (
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
-from pyatmo.exceptions import ApiError, ApiErrorThrottling
+from pyatmo.exceptions import ApiError, ApiThrottlingError
 
 LOG = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class AbstractAsyncAuth(ABC):
         url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,
-            **req_args,  # type: ignore
+            params=params,
             headers=headers,
             timeout=ClientTimeout(total=timeout),
         ) as resp:
@@ -110,7 +110,7 @@ class AbstractAsyncAuth(ABC):
 
         async with self.websession.post(
             url,
-            **req_args,  # type: ignore
+            **req_args,
             headers=headers,
             timeout=ClientTimeout(total=timeout),
         ) as resp:
@@ -168,13 +168,9 @@ class AbstractAsyncAuth(ABC):
             )
 
             if resp_status == 403 and resp_json["error"]["code"] == 26:
-                raise ApiErrorThrottling(
-                    message,
-                )
+                raise ApiThrottlingError(message)
 
-            raise ApiError(
-                message,
-            )
+            raise ApiError(message)
 
         except (JSONDecodeError, ContentTypeError) as exc:
             msg = (

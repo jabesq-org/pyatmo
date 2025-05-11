@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 import pyatmo
-from pyatmo import DeviceType, NoDevice
+from pyatmo import DeviceType, NoDeviceError
 from tests.common import MockResponse
 
 
@@ -61,7 +61,7 @@ async def test_async_home_data_no_body(async_auth):
     ) as mock_request:
         climate = pyatmo.AsyncAccount(async_auth)
 
-    with pytest.raises(NoDevice):
+    with pytest.raises(NoDeviceError):
         await climate.async_update_topology()
         mock_request.assert_called()
 

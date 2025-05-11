@@ -21,9 +21,9 @@ from pyatmo.enums import SCHEDULE_TYPE_MAPPING, TemperatureControlMode
 from pyatmo.event import Event
 from pyatmo.exceptions import (
     ApiHomeReachabilityError,
-    InvalidSchedule,
-    InvalidState,
-    NoSchedule,
+    InvalidScheduleError,
+    InvalidStateError,
+    NoScheduleError,
 )
 from pyatmo.person import Person
 from pyatmo.room import Room
@@ -269,17 +269,18 @@ class Home:
 
     async def async_set_thermmode(
         self,
-        mode: str,
+        mode: str | None,
         end_time: int | None = None,
         schedule_id: str | None = None,
     ) -> bool:
         """Set thermotat mode."""
         if schedule_id is not None and not self.is_valid_schedule(schedule_id):
             msg = f"{schedule_id} is not a valid schedule id."
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
         if mode is None:
             msg = f"{mode} is not a valid mode."
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
+
         post_params = {"home_id": self.entity_id, "mode": mode}
         if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
@@ -303,7 +304,7 @@ class Home:
         """Switch the schedule."""
         if not self.is_valid_schedule(schedule_id):
             msg = f"{schedule_id} is not a valid schedule id"
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
         resp = await self.auth.async_post_api_request(
             endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
@@ -316,7 +317,7 @@ class Home:
         """Set state using given data."""
         if not is_valid_state(data):
             msg = "Data for '/set_state' contains errors."
-            raise InvalidState(msg)
+            raise InvalidStateError(msg)
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
         resp = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
@@ -363,7 +364,7 @@ class Home:
 
         if selected_schedule is None:
             msg = "Could not determine selected schedule."
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
 
         zones = []
 
@@ -412,7 +413,7 @@ class Home:
         """Modify an existing schedule."""
         if not is_valid_schedule(schedule):
             msg = "Data for '/synchomeschedule' contains errors."
-            raise InvalidSchedule(msg)
+            raise InvalidScheduleError(msg)
         LOG.debug(
             "Setting schedule (%s) for home (%s) to %s",
             schedule_id,

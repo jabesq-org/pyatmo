@@ -4,6 +4,7 @@ import datetime as dt
 import json
 from unittest.mock import patch
 
+import anyio
 import pytest
 import time_machine
 
@@ -127,11 +128,12 @@ async def test_disconnected_main_bridge(mock_home_status, async_account_multi):
     """Test retrieval of historical measurements."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
 
-    with open(
+    async with await anyio.open_file(
         "fixtures/home_multi_status_error_disconnected.json",
         encoding="utf-8",
     ) as json_file:
-        home_status_fixture = json.load(json_file)
+        content = await json_file.read()
+        home_status_fixture = json.loads(content)
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
     mock_home_status.return_value = mock_home_status_resp
 

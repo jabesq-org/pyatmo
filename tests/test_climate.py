@@ -3,6 +3,7 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import anyio
 import pytest
 
 from pyatmo import DeviceType, NoScheduleError
@@ -138,11 +139,12 @@ async def test_async_climate_update(async_account):
 
     assert isinstance(module, NATherm1)
 
-    with open(
+    async with await anyio.open_file(
         "fixtures/home_status_error_disconnected.json",
         encoding="utf-8",
     ) as json_file:
-        home_status_fixture = json.load(json_file)
+        content = await json_file.read()
+        home_status_fixture = json.loads(content)
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
@@ -155,8 +157,11 @@ async def test_async_climate_update(async_account):
     assert room.reachable is None
     assert module.reachable is False
 
-    with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
-        home_status_fixture = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/home_status_simple.json",
+        encoding="utf-8",
+    ) as json_file:
+        home_status_fixture = json.loads(await json_file.read())
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
@@ -187,8 +192,11 @@ async def test_async_climate_switch_schedule(
     t_sched_id,
     expected,
 ):
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with (
         patch(
@@ -241,8 +249,11 @@ async def test_async_climate_room_therm_set(
     if end_time:
         expected_params["endtime"] = str(end_time)
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -331,8 +342,11 @@ async def test_async_climate_set_thermmode(
     expected,
     exception,
 ):
-    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        f"fixtures/{json_fixture}",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with (
         patch(

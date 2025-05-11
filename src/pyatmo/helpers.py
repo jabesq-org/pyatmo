@@ -46,8 +46,13 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
         raise NoDeviceError(msg)
 
     if tag == "homes":
+        homes = fix_id(resp["body"].get(tag))
+        if not homes:
+            LOG.debug("Server response (tag: %s): %s", tag, resp)
+            msg = "No homes found"
+            raise NoDeviceError(msg)
         return {
-            tag: fix_id(resp["body"].get(tag)),
+            tag: homes,
             "errors": resp["body"].get("errors", []),
         }
 

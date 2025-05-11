@@ -3,6 +3,7 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import anyio
 import pytest
 
 import pyatmo
@@ -52,18 +53,22 @@ async def test_async_home_set_schedule(async_home):
 
 
 async def test_async_home_data_no_body(async_auth):
-    with open("fixtures/homesdata_emtpy_home.json", encoding="utf-8") as fixture_file:
-        json_fixture = json.load(fixture_file)
+    """Test home data with no body."""
+    async with await anyio.open_file(
+        "fixtures/homesdata_empty.json",
+        encoding="utf-8",
+    ) as fixture_file:
+        json_fixture = json.loads(await fixture_file.read())
 
+    mock_request = AsyncMock(return_value=MockResponse(json_fixture, 200))
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=json_fixture),
-    ) as mock_request:
+        mock_request,
+    ):
         climate = pyatmo.AsyncAccount(async_auth)
-
-    with pytest.raises(NoDeviceError):
-        await climate.async_update_topology()
-        mock_request.assert_called()
+        with pytest.raises(NoDeviceError):
+            await climate.async_update_topology()
+        mock_request.assert_awaited_once()
 
 
 async def test_async_set_persons_home(async_account):
@@ -76,8 +81,11 @@ async def test_async_set_persons_home(async_account):
         "91827375-7e04-5298-83ae-a0cb8372dff2",
     ]
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -96,8 +104,11 @@ async def test_async_set_persons_away(async_account):
     home_id = "91763b24c43d3e344f424e8b"
     home = async_account.homes[home_id]
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",

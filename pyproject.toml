@@ -123,6 +123,7 @@ local_scheme = "no-local-version"
 
 [tool.uv]
 dev-dependencies = [
+    "anyio>=4.3.0",
     "black>=24.8.0",
     "codespell>=2.3.0",
     "docutils>=0.21.2",

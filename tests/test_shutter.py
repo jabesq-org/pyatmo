@@ -3,6 +3,8 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import anyio
+
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
@@ -48,8 +50,11 @@ async def test_async_shutters(async_home):
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.NBR
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     def gen_json_data(position):
         return {

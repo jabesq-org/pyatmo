@@ -3,6 +3,8 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import anyio
+
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
@@ -56,8 +58,11 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     assert module.is_local is False
     assert module.floodlight == "auto"
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     def gen_json_data(state):
         return {
@@ -105,8 +110,11 @@ async def test_async_camera_monitoring(async_home):
     assert module.device_type == DeviceType.NOC
     assert module.is_local is False
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     def gen_json_data(state):
         return {

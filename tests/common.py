@@ -63,7 +63,9 @@ async def fake_post_request(*args, **kwargs):
         module_id = kwargs.get("params", {}).get("module_id")
         type = kwargs.get("params", {}).get("type")
         payload = json.loads(
-            load_fixture(f"{endpoint}_{type}_{module_id.replace(':', '_')}.json"),
+            load_fixture(
+                f"{endpoint}_{measure_type}_{module_id.replace(':', '_')}.json",
+            ),
         )
 
     else:

@@ -91,25 +91,13 @@ split-on-trailing-comma = false
 max-complexity = 12
 
 [tool.ruff.lint.per-file-ignores]
-"src/pyatmo/__main__.py" = [
-    "T201",
-]
-"src/pyatmo/auth.py" = [
-    "ASYNC109",
-]
-"src/pyatmo/modules/module.py" = [
-    "PGH003",
-]
 "tests/*" = [
-    "A001",
     "ANN001",
     "ANN002",
     "ANN003",
     "ANN201",
     "ANN202",
     "ANN204",
-    "ARG001",
-    "ASYNC230",
     "D10",
     "DTZ001",
     "N802",

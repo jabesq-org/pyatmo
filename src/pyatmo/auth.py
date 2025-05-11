@@ -49,7 +49,6 @@ class AbstractAsyncAuth(ABC):
         endpoint: str,
         base_url: str | None = None,
         params: dict[str, Any] | None = None,
-        timeout: int = 5,
     ) -> bytes:
         """Wrap async get requests."""
 
@@ -68,7 +67,7 @@ class AbstractAsyncAuth(ABC):
             url,
             params=params,
             headers=headers,
-            timeout=ClientTimeout(total=timeout),
+            timeout=ClientTimeout(total=5),
         ) as resp:
             resp_content = await resp.read()
 
@@ -85,21 +84,18 @@ class AbstractAsyncAuth(ABC):
         endpoint: str,
         base_url: str | None = None,
         params: dict[str, Any] | None = None,
-        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
         return await self.async_post_request(
             url=(base_url or self.base_url) + endpoint,
             params=params,
-            timeout=timeout,
         )
 
     async def async_post_request(
         self,
         url: str,
         params: dict[str, Any] | None = None,
-        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
@@ -112,7 +108,7 @@ class AbstractAsyncAuth(ABC):
             url,
             **req_args,
             headers=headers,
-            timeout=ClientTimeout(total=timeout),
+            timeout=ClientTimeout(total=5),
         ) as resp:
             return await self.process_response(resp, url)
 

@@ -35,7 +35,7 @@ class MockResponse:
         return self
 
 
-async def fake_post_request(*args, **kwargs):
+async def fake_post_request(*_, **kwargs):
     """Return fake data."""
     if "endpoint" not in kwargs:
         return "{}"
@@ -61,7 +61,7 @@ async def fake_post_request(*args, **kwargs):
 
     elif endpoint == "getmeasure":
         module_id = kwargs.get("params", {}).get("module_id")
-        type = kwargs.get("params", {}).get("type")
+        measure_type = kwargs.get("params", {}).get("type")
         payload = json.loads(
             load_fixture(
                 f"{endpoint}_{measure_type}_{module_id.replace(':', '_')}.json",

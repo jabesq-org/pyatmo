@@ -137,22 +137,21 @@ class WindMixin(EntityBase):
 
 def process_angle(angle: int) -> str:
     """Process angle and return string for display."""
-
-    if angle >= 330:
-        return "N"
-    if angle >= 300:
-        return "NW"
-    if angle >= 240:
-        return "W"
-    if angle >= 210:
-        return "SW"
-    if angle >= 150:
-        return "S"
-    if angle >= 120:
-        return "SE"
-    if angle >= 60:
-        return "E"
-    return "NE" if angle >= 30 else "N"
+    angle_mapping = {
+        (0, 30): "N",
+        (30, 60): "NE",
+        (60, 120): "E",
+        (120, 150): "SE",
+        (150, 210): "S",
+        (210, 240): "SW",
+        (240, 300): "W",
+        (300, 330): "NW",
+        (330, 360): "N",
+    }
+    for (lower, upper), direction in angle_mapping.items():
+        if lower <= angle < upper:
+            return direction
+    return "N"  # Default case
 
 
 class TemperatureMixin(EntityBase):

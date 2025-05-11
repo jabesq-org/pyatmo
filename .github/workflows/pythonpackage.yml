@@ -53,7 +53,7 @@ jobs:
           pip install ruff
       - name: Lint with ruff
         run: |
-          ruff check src/pyatmo
+          ruff check src/pyatmo tests/
 
   typechecker:
     runs-on: ubuntu-latest

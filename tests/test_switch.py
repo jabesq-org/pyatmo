@@ -3,6 +3,8 @@
 import pytest
 
 from pyatmo import DeviceType
+from pyatmo.modules.device_types import DeviceCategory
+
 
 # pylint: disable=F6401
 
@@ -30,3 +32,15 @@ async def test_async_switch_NLF(async_home):  # pylint: disable=invalid-name
     assert module.on is False
     assert module.brightness == 63
     assert module.power == 0
+
+@pytest.mark.asyncio()
+async def test_async_switch_NLIS(async_home):  # pylint: disable=invalid-name
+    """Test NLIS Legrand module."""
+    module_id = "12:34:56:00:01:01:01:b6"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_category == None
+    module_id = "12:34:56:00:01:01:01:b6#1"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_category == DeviceCategory.switch

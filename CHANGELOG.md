@@ -11,18 +11,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for 3rd party zigbee roller blinds
 - Support for Netatmo Indoor Camera Advance (NPC)
+- Fixtures for multiple modules (NLL, NLV, NLLV, NLJ, NLIS, NLPT, NLPD, NLPO)
+- Added conventional-pre-commit hook for commit-msg stage
 
 ### Changed
 
 - Updated device type descriptions to better reflect their functionality
 - Removed some unnecessary mixins from Legrand device classes
 - Create RemoteControlMixin for easier device representation
+- Replaced setup-cfg-fmt with pyprojectsort pre-commit hook
+- Improved error handling in extract_raw_data for empty homes
+- Refactored test file handling to use anyio.open_file()
+- Updated pre-commit hooks to latest versions
+- Updated project metadata in pyproject.toml
 
 ### Removed
 
 ### Fixed
 
 - Handling of cooling/heating control mode
+- Fixed async tests to avoid blocking file access
+- Fixed detection of missing homes in API responses
+- Fixed async mock configuration in tests
+- Fixed error handling for throttling errors
+- Fixed exception class names to end with "Error" suffix
+- Fixed handling of empty homes data
+- Fixed test file handling to use anyio
+- Fixed coverage report configuration in tox.ini
+- Fixed type casting in async_update_measures method for Energy module
+- Fixed error handling for missing parameters in fake_post_request
+- Fixed handling of unknown device types
+- Fixed handling of place data and historical data in NetatmoBase class
+- Fixed handling of station ids in fix_id function
+- Fixed handling of zone_id type in async_set_schedule_temperatures method
+- Fixed handling of angle for display in module.py
+- Fixed handling of device type and boiler status in Room class
+- Fixed handling of missing parameters in test functions
+- Fixed handling of file paths for fixtures
+- Fixed handling of deprecated assert_called method
+- Fixed handling of test cases for NLP, NLF, and NLIS Legrand modules
+- Fixed handling of test cases for different weather modules
+- Fixed handling of mypy configuration in tox.ini
 
 ## [9.0.0]
 

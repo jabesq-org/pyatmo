@@ -375,7 +375,7 @@ class Room(NetatmoBase):
 
         for module in self.modules.values():
             if hasattr(module, "boiler_status"):
-                module = cast(Boiler, module)
+                module = cast("Boiler", module)
                 if (boiler_status := module.boiler_status) is not None:
                     return boiler_status
 

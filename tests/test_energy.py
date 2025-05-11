@@ -14,7 +14,7 @@ from tests.common import MockResponse
 # pylint: disable=F6401
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
     """Test Legrand / BTicino connected energy meter module."""
     module_id = "12:34:56:00:00:a1:4c:da"
@@ -25,7 +25,7 @@ async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
 
 
 @time_machine.travel(dt.datetime(2022, 2, 12, 7, 59, 49))
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_historical_data_retrieval(async_account):
     """Test retrieval of historical measurements."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -63,7 +63,7 @@ async def test_historical_data_retrieval(async_account):
 
 
 @time_machine.travel(dt.datetime(2024, 7, 24, 22, 00, 10))
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_historical_data_retrieval_multi(async_account_multi):
     """Test retrieval of historical measurements."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"

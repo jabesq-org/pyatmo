@@ -133,7 +133,7 @@ class AsyncAccount:
 
         module = self.homes[home_id].modules[module_id]
         if module.has_feature("historical_data"):
-            module = cast(Energy, module)
+            module = cast("Energy", module)
             await module.async_update_measures(
                 start_time=start_time,
                 end_time=end_time,

@@ -25,7 +25,7 @@ def fix_id(raw_data: RawData) -> dict[str, Any]:
         if station.get("_id") is None:
             continue
 
-        station["_id"] = cast(dict, station)["_id"].replace(" ", "")
+        station["_id"] = cast("dict", station)["_id"].replace(" ", "")
 
         for module in station.get("modules", {}):
             module["_id"] = module["_id"].replace(" ", "")

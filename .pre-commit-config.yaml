@@ -44,4 +44,3 @@ repos:
       - id: pretty-format-json
         args: [--autofix]
         exclude: ^(\.devcontainer|\.vscode)/
-

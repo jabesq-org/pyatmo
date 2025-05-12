@@ -44,3 +44,11 @@ repos:
       - id: pretty-format-json
         args: [--autofix]
         exclude: ^(\.devcontainer|\.vscode)/
+
+# on commit-msg, it needs 'pre-commit install -t commit-msg'*
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from pyatmo.exceptions import NoDeviceError
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def fix_id(raw_data: RawData) -> dict[str, Any]:
+def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
     """Fix known errors in station ids like superfluous spaces."""
 
     if not raw_data:
@@ -35,8 +35,6 @@ def fix_id(raw_data: RawData) -> dict[str, Any]:
 
 def extract_raw_data(resp: RawData, tag: str) -> RawData:
     """Extract raw data from server response."""
-    raw_data = {}
-
     if tag == "body":
         return {"public": resp["body"], "errors": []}
 

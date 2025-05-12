@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     from pyatmo.home import Home
+    from pyatmo.modules.module import ModuleT
 
 
 LOG = logging.getLogger(__name__)
@@ -60,6 +61,15 @@ class EntityBase:
     history_features: set[str]
     history_features_values: dict
     name: str
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize the entity."""
+        self.home = home
+        self.entity_id = module.get("id", "")
+        self.name = module.get("name", f"Unknown {self.entity_id}")
+        self.bridge = None
+        self.history_features = set()
+        self.history_features_values = {}
 
     def has_feature(self, feature: str) -> bool:
         """Check if the entity has the given feature."""

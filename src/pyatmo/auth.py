@@ -62,8 +62,6 @@ class AbstractAsyncAuth(ABC):
             raise ApiError(msg) from err
         headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
 
-        req_args = {"data": params if params is not None else {}}
-
         url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,

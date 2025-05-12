@@ -714,10 +714,11 @@ class EnergyHistoryMixin(EntityBase):
 
     def reset_measures(
         self,
-        start_power_time: datetime,
+        start_power_time: datetime | None,
         in_reset: bool = True,
     ) -> None:
         """Reset energy measures."""
+
         self.in_reset = in_reset
         self.historical_data = []
         self.sum_energy_elec = 0.0
@@ -732,12 +733,10 @@ class EnergyHistoryMixin(EntityBase):
         self,
         to_ts: float | None = None,
         conservative: bool = False,
-    ) -> tuple[None, float] | tuple[float, float]:
+    ) -> tuple[float, float]:
         """Compute proper energy value with adaptation from power."""
-        v = self.sum_energy_elec
 
-        if v is None:
-            return None, 0.0
+        v = self.sum_energy_elec
 
         delta_energy = 0.0
 

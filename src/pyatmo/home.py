@@ -355,7 +355,7 @@ class Home:
 
     async def async_set_schedule_temperatures(
         self,
-        zone_id: int,
+        zone_id: str,
         temps: dict[str, int],
     ) -> None:
         """Set the scheduled room temperature for the given schedule ID."""

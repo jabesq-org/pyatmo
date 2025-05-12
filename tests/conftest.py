@@ -1,6 +1,5 @@
 """Define shared fixtures."""
 
-# pylint: disable=redefined-outer-name, protected-access
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 

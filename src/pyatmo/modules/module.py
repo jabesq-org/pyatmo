@@ -1132,9 +1132,6 @@ class Module(NetatmoBase):
             self.features.add("gust_direction")
 
 
-# pylint: disable=too-many-ancestors
-
-
 class Camera(
     FirmwareMixin,
     MonitoringMixin,
@@ -1185,6 +1182,3 @@ class Energy(EnergyHistoryMixin, Module):
 
 class Boiler(BoilerMixin, Module):
     """Class to represent a Netatmo boiler."""
-
-
-# pylint: enable=too-many-ancestors

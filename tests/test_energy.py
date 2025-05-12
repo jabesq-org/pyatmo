@@ -12,10 +12,8 @@ from pyatmo import ApiHomeReachabilityError, DeviceType
 from pyatmo.modules.module import EnergyHistoryMixin, MeasureInterval
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
+async def test_async_energy_NLPC(async_home):
     """Test Legrand / BTicino connected energy meter module."""
     module_id = "12:34:56:00:00:a1:4c:da"
     assert module_id in async_home.modules

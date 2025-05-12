@@ -12,8 +12,6 @@ from pyatmo.modules.device_types import DeviceCategory
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
-# pylint: disable=F6401
-
 
 async def test_async_climate_room(async_home):
     """Test room with climate devices."""
@@ -29,7 +27,7 @@ async def test_async_climate_room(async_home):
     assert len(room.modules) == 1
 
 
-async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NATherm1(async_home):
     """Test NATherm1 climate device."""
     module_id = "12:34:56:00:01:ae"
     module = async_home.modules[module_id]
@@ -42,7 +40,7 @@ async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-na
     assert module.rf_strength == 58
 
 
-async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NRV(async_home):
     """Test NRV climate device."""
     module_id = "12:34:56:03:a5:54"
     module = async_home.modules[module_id]
@@ -55,7 +53,7 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 79
 
 
-async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NAPlug(async_home):
     """Test NAPlug climate device."""
     module_id = "12:34:56:00:fa:d0"
     assert module_id in async_home.modules
@@ -67,7 +65,7 @@ async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 174
 
 
-async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NIS(async_home):
     """Test Netatmo siren."""
     module_id = "12:34:56:00:e3:9b"
     assert module_id in async_home.modules
@@ -78,7 +76,7 @@ async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
     assert module.monitoring is False
 
 
-async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_OTM(async_home):
     """Test OTM climate device."""
     module_id = "12:34:56:20:f5:8c"
     module = async_home.modules[module_id]
@@ -91,7 +89,7 @@ async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
     assert module.rf_strength == 64
 
 
-async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_OTH(async_home):
     """Test OTH climate device."""
     module_id = "12:34:56:20:f5:44"
     assert module_id in async_home.modules
@@ -102,7 +100,7 @@ async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 22
 
 
-async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_BNS(async_home):
     """Test Smarther BNS climate module."""
     module_id = "10:20:30:bd:b8:1e"
     assert module_id in async_home.modules

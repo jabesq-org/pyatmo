@@ -30,8 +30,6 @@ if TYPE_CHECKING:
 
 LOG = logging.getLogger(__name__)
 
-# pylint: disable=R0901
-
 
 class NLG(FirmwareMixin, OffloadMixin, WifiMixin, Module):
     """Legrand gateway."""

@@ -4,10 +4,8 @@ import pyatmo
 from pyatmo import DeviceType
 from pyatmo.modules.base_class import Location, Place
 
-# pylint: disable=F6401
 
-
-async def test_async_weather_NAMain(async_home):  # pylint: disable=invalid-name
+async def test_async_weather_NAMain(async_home):
     """Test Netatmo weather station main module."""
     module_id = "12:34:56:80:bb:26"
     assert module_id in async_home.modules

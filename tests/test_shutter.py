@@ -8,10 +8,8 @@ import anyio
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
+async def test_async_shutter_NBR(async_home):
     """Test NLP Bubendorf iDiamant roller shutter."""
     module_id = "0009999992"
     assert module_id in async_home.modules
@@ -21,7 +19,7 @@ async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
-async def test_async_shutter_Z3V(async_home):  # pylint: disable=invalid-name
+async def test_async_shutter_Z3V(async_home):
     """Test NLG Legrand roller shutter 3rd party."""
     module_id = "12:34:56:80:00:c3:69:3d"
     assert module_id in async_home.modules
@@ -31,7 +29,7 @@ async def test_async_shutter_Z3V(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
-async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
+async def test_async_shutter_NBO(async_home):
     """Test NBO Bubendorf iDiamant roller shutter."""
     module_id = "0009999993"
     assert module_id in async_home.modules

@@ -8,10 +8,8 @@ import anyio
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-name
+async def test_async_camera_NACamera(async_home):
     """Test Netatmo indoor camera module."""
     module_id = "12:34:56:00:f1:62"
     assert module_id in async_home.modules
@@ -28,7 +26,7 @@ async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-nam
     assert person.last_seen == 1557071156
 
 
-async def test_async_camera_NPC(async_home):  # pylint: disable=invalid-name
+async def test_async_camera_NPC(async_home):
     """Test Netatmo indoor camera advance module."""
     module_id = "12:34:56:00:f1:63"
     assert module_id in async_home.modules
@@ -45,7 +43,7 @@ async def test_async_camera_NPC(async_home):  # pylint: disable=invalid-name
     assert person.last_seen == 1557071156
 
 
-async def test_async_NOC(async_home):  # pylint: disable=invalid-name
+async def test_async_NOC(async_home):
     """Test basic outdoor camera functionality."""
     module_id = "12:34:56:10:b9:0e"
     assert module_id in async_home.modules

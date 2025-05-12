@@ -43,8 +43,6 @@ from pyatmo.modules.module import (
 
 LOG = logging.getLogger(__name__)
 
-# pylint: disable=R0901
-
 
 class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
     """Class to represent a Netatmo NRV."""

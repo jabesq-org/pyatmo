@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING
 
+from pyatmo.enums import ScheduleType
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.room import Room
 
@@ -16,16 +16,6 @@ if TYPE_CHECKING:
     from .home import Home
 
 LOG = logging.getLogger(__name__)
-
-
-class ScheduleType(StrEnum):
-    """Enum representing the type of a schedule."""
-
-    THERM = "therm"
-    COOLING = "cooling"
-    ELECTRICITY = "electricity"
-    EVENT = "event"
-    AUTO = "auto"
 
 
 @dataclass

@@ -3,16 +3,13 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
+import anyio
 
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-@pytest.mark.asyncio()
-async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-name
+async def test_async_camera_NACamera(async_home):
     """Test Netatmo indoor camera module."""
     module_id = "12:34:56:00:f1:62"
     assert module_id in async_home.modules
@@ -29,8 +26,24 @@ async def test_async_camera_NACamera(async_home):  # pylint: disable=invalid-nam
     assert person.last_seen == 1557071156
 
 
-@pytest.mark.asyncio()
-async def test_async_NOC(async_home):  # pylint: disable=invalid-name
+async def test_async_camera_NPC(async_home):
+    """Test Netatmo indoor camera advance module."""
+    module_id = "12:34:56:00:f1:63"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    await module.async_update_camera_urls()
+    assert module.device_type == DeviceType.NPC
+    assert module.is_local
+    assert module.local_url == "http://192.168.0.123/678460a0d47e5618699fb31169e2b47d"
+    person_id = "91827374-7e04-5298-83ad-a0cb8372dff1"
+    assert person_id in module.home.persons
+    person = module.home.persons[person_id]
+    assert person.pseudo == "John Doe"
+    assert person.out_of_sight
+    assert person.last_seen == 1557071156
+
+
+async def test_async_NOC(async_home):
     """Test basic outdoor camera functionality."""
     module_id = "12:34:56:10:b9:0e"
     assert module_id in async_home.modules
@@ -43,8 +56,11 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
     assert module.is_local is False
     assert module.floodlight == "auto"
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     def gen_json_data(state):
         return {
@@ -84,7 +100,6 @@ async def test_async_NOC(async_home):  # pylint: disable=invalid-name
         )
 
 
-@pytest.mark.asyncio()
 async def test_async_camera_monitoring(async_home):
     """Test basic camera monitoring functionality."""
     module_id = "12:34:56:10:b9:0e"
@@ -93,8 +108,11 @@ async def test_async_camera_monitoring(async_home):
     assert module.device_type == DeviceType.NOC
     assert module.is_local is False
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     def gen_json_data(state):
         return {

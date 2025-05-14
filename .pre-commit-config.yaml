@@ -5,26 +5,17 @@ exclude: ^(fixtures/)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.5
+    rev: v0.11.9
     hooks:
       - id: ruff
         args:
           - --fix
 
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
-    hooks:
-      - id: mypy
-        name: mypy
-        exclude: tests/
-        additional_dependencies:
-          - types-requests
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0 # Use the ref you want to point at
@@ -41,9 +32,14 @@ repos:
       - id: trailing-whitespace
       - id: debug-statements
       - id: check-toml
+      - id: pretty-format-json
+        args: [--autofix]
+        exclude: ^(\.devcontainer|\.vscode)/
 
-  - repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.5.0
+# on commit-msg, it needs 'pre-commit install -t commit-msg'*
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
     hooks:
-      - id: setup-cfg-fmt
-        args: [--include-version-classifiers]
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []

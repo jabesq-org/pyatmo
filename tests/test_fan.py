@@ -1,14 +1,9 @@
 """Define tests for fan module."""
 
-import pytest
-
 from pyatmo import DeviceType
 
-# pylint: disable=F6401
 
-
-@pytest.mark.asyncio()
-async def test_async_fan_NLLF(async_home):  # pylint: disable=invalid-name
+async def test_async_fan_NLLF(async_home):
     """Test NLLF Legrand centralized ventilation controller."""
     module_id = "12:34:56:00:01:01:01:b1"
     assert module_id in async_home.modules

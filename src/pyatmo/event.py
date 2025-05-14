@@ -15,9 +15,6 @@ EVENT_ATTRIBUTES_MAP = {"id": "entity_id", "type": "event_type", "time": "event_
 class EventTypes(Enum):
     """Event types."""
 
-    # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=C0103
-
     movement = "movement"
     person = "person"
     person_away = "person_away"
@@ -53,19 +50,12 @@ class EventTypes(Enum):
     missed_call = "missed_call"
     co_detected = "co_detected"
 
-    # pylint: enable=C0103
-
 
 class VideoStatus(Enum):
     """Video states."""
 
-    # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=C0103
-
     available = "available"
     deleted = "deleted"
-
-    # pylint: enable=C0103
 
 
 @dataclass

@@ -4,18 +4,13 @@ from __future__ import annotations
 
 from enum import Enum
 import logging
-from typing import Any, Literal
+from typing import Literal
 
 LOG = logging.getLogger(__name__)
-
-# pylint: disable=W0613
 
 
 class DeviceType(str, Enum):
     """Class to represent Netatmo device types."""
-
-    # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=C0103
 
     # Climate/Energy
     NAPlug = "NAPlug"  # Smart thermostat gateway
@@ -32,6 +27,7 @@ class DeviceType(str, Enum):
     NDB = "NDB"  # Smart Video Doorbell
     NIS = "NIS"  # Smart Indoor Siren
     NOC = "NOC"  # Smart Outdoor Camera (with Siren)
+    NPC = "NPC"  # Indoor Camera Advance
     NSD = "NSD"  # Smart Smoke Detector
 
     # Weather
@@ -47,7 +43,7 @@ class DeviceType(str, Enum):
 
     # Legrand Wiring devices and electrical panel products
     NLC = "NLC"  # Cable outlet
-    NLD = "NLD"  # Dimmer
+    NLD = "NLD"  # Remote control double on off dimmer
     NLDD = "NLDD"  # Dimmer
     NLE = "NLE"  # Connected Ecometer
     NLF = "NLF"  # Dimmer Light Switch
@@ -68,7 +64,7 @@ class DeviceType(str, Enum):
     NLPO = "NLPO"  # Connected contactor
     NLPS = "NLPS"  # Smart Load Shedder
     NLPT = "NLPT"  # Connected latching relay / Telerupt
-    NLT = "NLT"  # Global remote control
+    NLT = "NLT"  # Remote control
     NLV = "NLV"  # Legrand / BTicino shutters
     NLAO = "NLAO"  # Legrand wireless batteryless light switch
     NLUO = "NLUO"  # Legrand Plug-In dimmer switch
@@ -111,14 +107,13 @@ class DeviceType(str, Enum):
     BNS = "BNS"  # Smarther with Netatmo
     EBU = "EBU"  # EBU gas meter
     Z3L = "Z3L"  # Zigbee 3 Light
+    Z3V = "Z3V"  # Zigbee 3 roller shutter
 
     # Magellan
     NLDP = "NLDP"  # Pocket Remote
 
-    # pylint: enable=C0103
-
     @classmethod
-    def _missing_(cls, key: Any) -> Literal[DeviceType.NLunknown]:
+    def _missing_(cls, key: object) -> Literal[DeviceType.NLunknown]:
         """Handle unknown device types."""
 
         msg = f"{key} device is unknown"
@@ -130,7 +125,6 @@ class DeviceCategory(str, Enum):
     """Class to represent Netatmo device types."""
 
     # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=C0103
 
     climate = "climate"
     camera = "camera"
@@ -146,8 +140,6 @@ class DeviceCategory(str, Enum):
     opening = "opening"
     fan = "fan"
 
-    # pylint: enable=C0103
-
 
 DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NRV: DeviceCategory.climate,
@@ -155,6 +147,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NATherm1: DeviceCategory.climate,
     DeviceType.OTM: DeviceCategory.climate,
     DeviceType.NOC: DeviceCategory.camera,
+    DeviceType.NPC: DeviceCategory.camera,
     DeviceType.NACamDoorTag: DeviceCategory.opening,
     DeviceType.NACamera: DeviceCategory.camera,
     DeviceType.NDB: DeviceCategory.camera,
@@ -183,6 +176,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLPC: DeviceCategory.meter,
     DeviceType.NLE: DeviceCategory.meter,
     DeviceType.Z3L: DeviceCategory.dimmer,
+    DeviceType.Z3V: DeviceCategory.shutter,
     DeviceType.NLUP: DeviceCategory.switch,
     DeviceType.NLPO: DeviceCategory.switch,
     DeviceType.TPSRS: DeviceCategory.shutter,
@@ -190,7 +184,6 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLUI: DeviceCategory.switch,
     DeviceType.NLUF: DeviceCategory.dimmer,
     DeviceType.NLPS: DeviceCategory.meter,
-    DeviceType.NLD: DeviceCategory.switch,
     DeviceType.NLDD: DeviceCategory.switch,
     DeviceType.NLPT: DeviceCategory.switch,
     DeviceType.BNMS: DeviceCategory.shutter,
@@ -219,6 +212,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.OTM: ("Netatmo", "OpenTherm Modulating Thermostat"),
     # Netatmo Cameras/Security
     DeviceType.NOC: ("Netatmo", "Smart Outdoor Camera"),
+    DeviceType.NPC: ("Netatmo", "Indoor Camera Advance"),
     DeviceType.NACamera: ("Netatmo", "Smart Indoor Camera"),
     DeviceType.NSD: ("Netatmo", "Smart Smoke Detector"),
     DeviceType.NIS: ("Netatmo", "Smart Indoor Siren"),
@@ -258,7 +252,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLC: ("Legrand", "Cable Outlet"),
     DeviceType.NLT: ("Legrand", "Global Remote Control"),
     DeviceType.NLAS: ("Legrand", "Wireless batteryless scene switch"),
-    DeviceType.NLD: ("Legrand", "Dimmer"),
+    DeviceType.NLD: ("Legrand", "Remote Control"),
     DeviceType.NLDD: ("Legrand", "Dimmer"),
     DeviceType.NLUP: ("Legrand", "Power outlet"),
     DeviceType.NLUO: ("Legrand", "Plug-In dimmer switch"),
@@ -291,6 +285,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     # 3rd Party
     DeviceType.BNS: ("Smarther", "Smarther with Netatmo"),
     DeviceType.Z3L: ("3rd Party", "Zigbee 3 Light"),
+    DeviceType.Z3V: ("3rd Party", "Zigbee 3 roller shutter"),
     DeviceType.EBU: ("3rd Party", "EBU gas meter"),
     DeviceType.NLPD: ("Drivia", "Dry contact"),
 }
@@ -300,7 +295,6 @@ class ApplianceType(str, Enum):
     """Class to represent appliance type of a module. This is only for Home + Control."""
 
     # temporarily disable locally-disabled and locally-enabled
-    # pylint: disable=C0103
 
     light = "light"
     fridge_freezer = "fridge_freezer"
@@ -322,7 +316,7 @@ class ApplianceType(str, Enum):
     unknown = "unknown"
 
     @classmethod
-    def _missing_(cls, key: Any) -> Literal[ApplianceType.unknown]:
+    def _missing_(cls, key: object) -> Literal[ApplianceType.unknown]:
         """Handle unknown device types."""
 
         msg = f"{key} appliance type is unknown"

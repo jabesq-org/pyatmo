@@ -11,7 +11,7 @@ updates:
       # Check for updates to GitHub Actions every weekday
       interval: "daily"
 
-  - package-ecosystem: "pip" # See documentation for possible values
+  - package-ecosystem: "uv" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"

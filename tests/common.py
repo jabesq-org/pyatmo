@@ -1,6 +1,5 @@
 """Define shared test helpers."""
 
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
 from __future__ import annotations
 
 import json
@@ -35,7 +34,7 @@ class MockResponse:
         return self
 
 
-async def fake_post_request(*args, **kwargs):
+async def fake_post_request(*_, **kwargs):
     """Return fake data."""
     if "endpoint" not in kwargs:
         return "{}"
@@ -60,14 +59,16 @@ async def fake_post_request(*args, **kwargs):
         payload = json.loads(load_fixture(f"{endpoint}_{home_id}.json"))
 
     elif endpoint == "getmeasure":
-        module_id = kwargs.get("params", {}).get("module_id")
-        type = kwargs.get("params", {}).get("type")
+        module_id = kwargs.get("params", {}).get("module_id", "")
+        measure_type = kwargs.get("params", {}).get("type", "")
         payload = json.loads(
-            load_fixture(f"{endpoint}_{type}_{module_id.replace(':', '_')}.json"),
+            load_fixture(
+                f"{endpoint}_{measure_type}_{module_id.replace(':', '_')}.json",
+            ),
         )
 
     else:
-        postfix = kwargs.get("POSTFIX", None)
+        postfix = kwargs.get("POSTFIX")
         if postfix is not None:
             payload = json.loads(load_fixture(f"{endpoint}_{postfix}.json"))
         else:

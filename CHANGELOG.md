@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [9.1.0]
+
+### Added
+
+- Support for 3rd party zigbee roller blinds
+- Support for Netatmo Indoor Camera Advance (NPC)
+- Fixtures for multiple modules (NLL, NLV, NLLV, NLJ, NLIS, NLPT, NLPD, NLPO)
+- Added conventional-pre-commit hook for commit-msg stage
+
+### Changed
+
+- Updated device type descriptions to better reflect their functionality
+- Removed some unnecessary mixins from Legrand device classes
+- Create RemoteControlMixin for easier device representation
+- Replaced setup-cfg-fmt with pyprojectsort pre-commit hook
+- Improved error handling in extract_raw_data for empty homes
+- Refactored test file handling to use anyio.open_file()
+- Updated pre-commit hooks to latest versions
+- Updated project metadata in pyproject.toml
+
+### Fixed
+
+- Handling of cooling/heating control mode
+- Fixed async tests to avoid blocking file access
+- Fixed detection of missing homes in API responses
+- Fixed async mock configuration in tests
+- Fixed error handling for throttling errors
+- Fixed exception class names to end with "Error" suffix
+- Fixed handling of empty homes data
+- Fixed test file handling to use anyio
+- Fixed coverage report configuration in tox.ini
+- Fixed type casting in async_update_measures method for Energy module
+- Fixed error handling for missing parameters in fake_post_request
+- Fixed handling of unknown device types
+- Fixed handling of place data and historical data in NetatmoBase class
+- Fixed handling of station ids in fix_id function
+- Fixed handling of zone_id type in async_set_schedule_temperatures method
+- Fixed handling of angle for display in module.py
+- Fixed handling of device type and boiler status in Room class
+- Fixed handling of missing parameters in test functions
+- Fixed handling of file paths for fixtures
+- Fixed handling of deprecated assert_called method
+- Fixed handling of test cases for NLP, NLF, and NLIS Legrand modules
+- Fixed handling of test cases for different weather modules
+- Fixed handling of mypy configuration in tox.ini
+
 ## [9.0.0]
 
 ### Added
@@ -368,7 +424,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq/pyatmo/compare/v8.0.3...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...HEAD
+[9.1.0]: https://github.com/jabesq-org/pyatmo/compare/v9.0.0...v9.1.0
+[9.0.0]: https://github.com/jabesq-org/pyatmo/compare/v8.1.0...v9.0.0
+[8.1.0]: https://github.com/jabesq/pyatmo/compare/v8.0.3...v8.1.0
 [8.0.3]: https://github.com/jabesq/pyatmo/compare/v8.0.2...v8.0.3
 [8.0.2]: https://github.com/jabesq/pyatmo/compare/v8.0.1...v8.0.2
 [8.0.1]: https://github.com/jabesq/pyatmo/compare/v8.0.0...v8.0.1
@@ -394,7 +453,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [5.2.0]: https://github.com/jabesq/pyatmo/compare/v5.1.0...v5.2.0
 [5.1.0]: https://github.com/jabesq/pyatmo/compare/v5.0.1...v5.1.0
 [5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1
-[5.0.1]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0
+[5.0.0]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0
 [4.2.3]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v4.2.3
 [4.2.2]: https://github.com/jabesq/pyatmo/compare/v4.2.1...v4.2.2
 [4.2.1]: https://github.com/jabesq/pyatmo/compare/v4.2.0...v4.2.1

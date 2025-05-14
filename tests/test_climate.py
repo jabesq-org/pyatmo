@@ -3,18 +3,16 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import anyio
 import pytest
 
-from pyatmo import DeviceType, NoSchedule
+from pyatmo import DeviceType, NoScheduleError
 from pyatmo.modules import NATherm1
 from pyatmo.modules.device_types import DeviceCategory
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
-# pylint: disable=F6401
 
-
-@pytest.mark.asyncio()
 async def test_async_climate_room(async_home):
     """Test room with climate devices."""
     room_id = "2746182631"
@@ -29,8 +27,7 @@ async def test_async_climate_room(async_home):
     assert len(room.modules) == 1
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NATherm1(async_home):
     """Test NATherm1 climate device."""
     module_id = "12:34:56:00:01:ae"
     module = async_home.modules[module_id]
@@ -43,8 +40,7 @@ async def test_async_climate_NATherm1(async_home):  # pylint: disable=invalid-na
     assert module.rf_strength == 58
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NRV(async_home):
     """Test NRV climate device."""
     module_id = "12:34:56:03:a5:54"
     module = async_home.modules[module_id]
@@ -57,8 +53,7 @@ async def test_async_climate_NRV(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 79
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NAPlug(async_home):
     """Test NAPlug climate device."""
     module_id = "12:34:56:00:fa:d0"
     assert module_id in async_home.modules
@@ -70,8 +65,7 @@ async def test_async_climate_NAPlug(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 174
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_NIS(async_home):
     """Test Netatmo siren."""
     module_id = "12:34:56:00:e3:9b"
     assert module_id in async_home.modules
@@ -82,8 +76,7 @@ async def test_async_climate_NIS(async_home):  # pylint: disable=invalid-name
     assert module.monitoring is False
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_OTM(async_home):
     """Test OTM climate device."""
     module_id = "12:34:56:20:f5:8c"
     module = async_home.modules[module_id]
@@ -96,8 +89,7 @@ async def test_async_climate_OTM(async_home):  # pylint: disable=invalid-name
     assert module.rf_strength == 64
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_OTH(async_home):
     """Test OTH climate device."""
     module_id = "12:34:56:20:f5:44"
     assert module_id in async_home.modules
@@ -108,8 +100,7 @@ async def test_async_climate_OTH(async_home):  # pylint: disable=invalid-name
     assert module.firmware_revision == 22
 
 
-@pytest.mark.asyncio()
-async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
+async def test_async_climate_BNS(async_home):
     """Test Smarther BNS climate module."""
     module_id = "10:20:30:bd:b8:1e"
     assert module_id in async_home.modules
@@ -125,7 +116,6 @@ async def test_async_climate_BNS(async_home):  # pylint: disable=invalid-name
     assert room.features == {"humidity", DeviceCategory.climate}
 
 
-@pytest.mark.asyncio()
 async def test_async_climate_update(async_account):
     """Test basic climate state update."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -147,11 +137,12 @@ async def test_async_climate_update(async_account):
 
     assert isinstance(module, NATherm1)
 
-    with open(
+    async with await anyio.open_file(
         "fixtures/home_status_error_disconnected.json",
         encoding="utf-8",
     ) as json_file:
-        home_status_fixture = json.load(json_file)
+        content = await json_file.read()
+        home_status_fixture = json.loads(content)
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
@@ -164,8 +155,11 @@ async def test_async_climate_update(async_account):
     assert room.reachable is None
     assert module.reachable is False
 
-    with open("fixtures/home_status_simple.json", encoding="utf-8") as json_file:
-        home_status_fixture = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/home_status_simple.json",
+        encoding="utf-8",
+    ) as json_file:
+        home_status_fixture = json.loads(await json_file.read())
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
 
     with patch(
@@ -187,18 +181,20 @@ async def test_async_climate_update(async_account):
         ("591b54a2764ff4d50d8b5795", does_not_raise()),
         (
             "123456789abcdefg12345678",
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
     ],
 )
-@pytest.mark.asyncio()
 async def test_async_climate_switch_schedule(
     async_home,
     t_sched_id,
     expected,
 ):
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with (
         patch(
@@ -233,7 +229,6 @@ async def test_async_climate_switch_schedule(
         ),
     ],
 )
-@pytest.mark.asyncio()
 async def test_async_climate_room_therm_set(
     async_home,
     temp,
@@ -252,8 +247,11 @@ async def test_async_climate_room_therm_set(
     if end_time:
         expected_params["endtime"] = str(end_time)
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -313,7 +311,7 @@ async def test_async_climate_room_therm_set(
             None,
             "home_status_error_mode_is_missing.json",
             False,
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
         (
             "away",
@@ -321,7 +319,7 @@ async def test_async_climate_room_therm_set(
             0000000,
             "status_ok.json",
             True,
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
         (
             "schedule",
@@ -329,11 +327,10 @@ async def test_async_climate_room_therm_set(
             "blahblahblah",
             "home_status_error_invalid_schedule_id.json",
             False,
-            pytest.raises(NoSchedule),
+            pytest.raises(NoScheduleError),
         ),
     ],
 )
-@pytest.mark.asyncio()
 async def test_async_climate_set_thermmode(
     async_home,
     mode,
@@ -343,8 +340,11 @@ async def test_async_climate_set_thermmode(
     expected,
     exception,
 ):
-    with open(f"fixtures/{json_fixture}", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        f"fixtures/{json_fixture}",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with (
         patch(
@@ -361,7 +361,6 @@ async def test_async_climate_set_thermmode(
         assert expected is resp
 
 
-@pytest.mark.asyncio()
 async def test_async_climate_empty_home(async_account):
     """Test climate setup with empty home."""
     home_id = "91763b24c43d3e344f424e8c"
@@ -378,7 +377,6 @@ async def test_async_climate_empty_home(async_account):
     assert len(home.rooms) == 0
 
 
-@pytest.mark.asyncio()
 async def test_power_wire(async_home_multi):
     """Test room with climate devices."""
     room_id = "3707962039"

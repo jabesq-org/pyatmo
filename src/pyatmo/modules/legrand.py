@@ -3,36 +3,39 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from pyatmo.modules.module import (
     BatteryMixin,
     ContactorMixin,
-    DimmableMixin,
     Dimmer,
     EnergyHistoryLegacyMixin,
     EnergyHistoryMixin,
     Fan,
     FirmwareMixin,
     Module,
+    ModuleT,
     OffloadMixin,
     PowerMixin,
-    RfMixin,
+    RemoteControlMixin,
     ShutterMixin,
     Switch,
     SwitchMixin,
     WifiMixin,
 )
 
-LOG = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from pyatmo.home import Home
 
-# pylint: disable=R0901
+
+LOG = logging.getLogger(__name__)
 
 
 class NLG(FirmwareMixin, OffloadMixin, WifiMixin, Module):
     """Legrand gateway."""
 
 
-class NLT(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
+class NLT(RemoteControlMixin, BatteryMixin):
     """Legrand global remote control...but also wireless switch, like NLD."""
 
 
@@ -75,24 +78,32 @@ class NLM(Switch):
 class NLIS(Switch):
     """Legrand double switch."""
 
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize NLIS module."""
+        super().__init__(home, module)
+        if "#" not in self.entity_id:
+            # This is a workaround for the fact the this module type has three entries in the API
+            # but one of them is not a light switch
+            self.device_category = None
 
-class NLD(DimmableMixin, FirmwareMixin, BatteryMixin, SwitchMixin, Module):
+
+class NLD(RemoteControlMixin, BatteryMixin):
     """Legrand Double On/Off dimmer remote. Wireless 2 button switch light."""
 
 
-class NLL(WifiMixin, Switch):
+class NLL(Switch):
     """Legrand / BTicino italian light switch with neutral."""
 
 
-class NLV(FirmwareMixin, RfMixin, ShutterMixin, Module):
+class NLV(FirmwareMixin, ShutterMixin, Module):
     """Legrand / BTicino shutters."""
 
 
-class NLLV(FirmwareMixin, RfMixin, ShutterMixin, Module):
+class NLLV(FirmwareMixin, ShutterMixin, Module):
     """Legrand / BTicino shutters."""
 
 
-class NLLM(FirmwareMixin, RfMixin, ShutterMixin, Module):
+class NLLM(FirmwareMixin, ShutterMixin, Module):
     """Legrand / BTicino shutters."""
 
 
@@ -112,7 +123,7 @@ class NLC(OffloadMixin, Switch):
     """Legrand / BTicino cable outlet."""
 
 
-class NLDD(FirmwareMixin, Module):
+class NLDD(RemoteControlMixin):
     """Legrand NLDD dimmer remote control."""
 
 
@@ -120,7 +131,7 @@ class NLUP(Switch):
     """Legrand NLUP Power outlet."""
 
 
-class NLAO(FirmwareMixin, SwitchMixin, Module):
+class NLAO(RemoteControlMixin):
     """Legrand wireless batteryless light switch."""
 
 
@@ -144,12 +155,16 @@ class NLunknown(Module):
     """NLunknown device stub."""
 
 
-class NLAS(Module):
+class NLAS(RemoteControlMixin):
     """NLAS wireless batteryless scene switch."""
 
 
 class Z3L(Dimmer):
     """Zigbee 3 Light."""
+
+
+class Z3V(FirmwareMixin, ShutterMixin, Module):
+    """Zigbee 3 roller shutter."""
 
 
 class EBU(Module):
@@ -164,5 +179,5 @@ class NLPD(OffloadMixin, Switch):
     """NLPD dry contact."""
 
 
-class NLJ(FirmwareMixin, RfMixin, ShutterMixin, Module):
+class NLJ(FirmwareMixin, ShutterMixin, Module):
     """Legrand garage door opener."""

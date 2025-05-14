@@ -17,16 +17,17 @@ from pyatmo.const import (
     SYNCHOMESCHEDULE_ENDPOINT,
     RawData,
 )
+from pyatmo.enums import SCHEDULE_TYPE_MAPPING, TemperatureControlMode
 from pyatmo.event import Event
 from pyatmo.exceptions import (
     ApiHomeReachabilityError,
-    InvalidSchedule,
-    InvalidState,
-    NoSchedule,
+    InvalidScheduleError,
+    InvalidStateError,
+    NoScheduleError,
 )
 from pyatmo.person import Person
 from pyatmo.room import Room
-from pyatmo.schedule import Schedule, ScheduleType
+from pyatmo.schedule import Schedule
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
@@ -36,12 +37,6 @@ if TYPE_CHECKING:
     from pyatmo.modules.netatmo import NACamera
 
 LOG = logging.getLogger(__name__)
-
-
-SCHEDULE_TYPE_MAPPING = {
-    "heating": ScheduleType.THERM,
-    "cooling": ScheduleType.COOLING,
-}
 
 
 class Home:
@@ -56,7 +51,7 @@ class Home:
     persons: dict[str, Person]
     events: dict[str, Event]
 
-    temperature_control_mode: str | None = None
+    temperature_control_mode: TemperatureControlMode | None = None
     therm_mode: str | None = None
     therm_setpoint_default_duration: int | None = None
     cooling_mode: str | None = None
@@ -88,7 +83,9 @@ class Home:
         }
         self.events = {}
 
-        self.temperature_control_mode = raw_data.get("temperature_control_mode")
+        self.temperature_control_mode = get_temperature_control_mode(
+            raw_data.get("temperature_control_mode"),
+        )
         self.therm_mode = raw_data.get("therm_mode")
         self.therm_setpoint_default_duration = raw_data.get(
             "therm_setpoint_default_duration",
@@ -117,7 +114,9 @@ class Home:
 
         raw_modules = raw_data.get("modules", [])
 
-        self.temperature_control_mode = raw_data.get("temperature_control_mode")
+        self.temperature_control_mode = get_temperature_control_mode(
+            raw_data.get("temperature_control_mode"),
+        )
         self.therm_mode = raw_data.get("therm_mode")
         self.therm_setpoint_default_duration = raw_data.get(
             "therm_setpoint_default_duration",
@@ -270,17 +269,18 @@ class Home:
 
     async def async_set_thermmode(
         self,
-        mode: str,
+        mode: str | None,
         end_time: int | None = None,
         schedule_id: str | None = None,
     ) -> bool:
         """Set thermotat mode."""
         if schedule_id is not None and not self.is_valid_schedule(schedule_id):
             msg = f"{schedule_id} is not a valid schedule id."
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
         if mode is None:
             msg = f"{mode} is not a valid mode."
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
+
         post_params = {"home_id": self.entity_id, "mode": mode}
         if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
@@ -304,7 +304,7 @@ class Home:
         """Switch the schedule."""
         if not self.is_valid_schedule(schedule_id):
             msg = f"{schedule_id} is not a valid schedule id"
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
         resp = await self.auth.async_post_api_request(
             endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
@@ -317,7 +317,7 @@ class Home:
         """Set state using given data."""
         if not is_valid_state(data):
             msg = "Data for '/set_state' contains errors."
-            raise InvalidState(msg)
+            raise InvalidStateError(msg)
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
         resp = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
@@ -355,7 +355,7 @@ class Home:
 
     async def async_set_schedule_temperatures(
         self,
-        zone_id: int,
+        zone_id: str,
         temps: dict[str, int],
     ) -> None:
         """Set the scheduled room temperature for the given schedule ID."""
@@ -364,7 +364,7 @@ class Home:
 
         if selected_schedule is None:
             msg = "Could not determine selected schedule."
-            raise NoSchedule(msg)
+            raise NoScheduleError(msg)
 
         zones = []
 
@@ -413,7 +413,7 @@ class Home:
         """Modify an existing schedule."""
         if not is_valid_schedule(schedule):
             msg = "Data for '/synchomeschedule' contains errors."
-            raise InvalidSchedule(msg)
+            raise InvalidScheduleError(msg)
         LOG.debug(
             "Setting schedule (%s) for home (%s) to %s",
             schedule_id,
@@ -444,3 +444,14 @@ def is_valid_state(data: dict[str, Any]) -> bool:
 def is_valid_schedule(schedule: dict[str, Any]) -> bool:
     """Check schedule."""
     return schedule is not None
+
+
+def get_temperature_control_mode(
+    temperature_control_mode: str | None,
+) -> TemperatureControlMode | None:
+    """Return temperature control mode."""
+    return (
+        TemperatureControlMode(temperature_control_mode)
+        if temperature_control_mode
+        else None
+    )

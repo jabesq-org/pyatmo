@@ -3,14 +3,14 @@
 import json
 from unittest.mock import AsyncMock, patch
 
+import anyio
 import pytest
 
 import pyatmo
-from pyatmo import DeviceType, NoDevice
+from pyatmo import DeviceType, NoDeviceError
 from tests.common import MockResponse
 
 
-@pytest.mark.asyncio()
 async def test_async_home(async_home):
     """Test basic home setup."""
     room_id = "3688132631"
@@ -21,9 +21,11 @@ async def test_async_home(async_home):
         DeviceType.NBR,
         DeviceType.NIS,
         DeviceType.NBO,
+        DeviceType.NPC,
+        DeviceType.NLPD,
     }
-    assert len(async_home.rooms) == 8
-    assert len(async_home.modules) == 38
+    assert len(async_home.rooms) == 9
+    assert len(async_home.modules) == 51
     assert async_home.modules != room.modules
 
     module_id = "12:34:56:10:f1:66"
@@ -39,7 +41,6 @@ async def test_async_home(async_home):
     assert async_home.temperature_control_mode == "cooling"
 
 
-@pytest.mark.asyncio()
 async def test_async_home_set_schedule(async_home):
     """Test home schedule."""
     schedule_id = "591b54a2764ff4d50d8b5795"
@@ -51,23 +52,25 @@ async def test_async_home_set_schedule(async_home):
     assert async_home.get_away_temp() == 14
 
 
-@pytest.mark.asyncio()
 async def test_async_home_data_no_body(async_auth):
-    with open("fixtures/homesdata_emtpy_home.json", encoding="utf-8") as fixture_file:
-        json_fixture = json.load(fixture_file)
+    """Test home data with no body."""
+    async with await anyio.open_file(
+        "fixtures/homesdata_empty.json",
+        encoding="utf-8",
+    ) as fixture_file:
+        json_fixture = json.loads(await fixture_file.read())
 
+    mock_request = AsyncMock(return_value=MockResponse(json_fixture, 200))
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        AsyncMock(return_value=json_fixture),
-    ) as mock_request:
+        mock_request,
+    ):
         climate = pyatmo.AsyncAccount(async_auth)
+        with pytest.raises(NoDeviceError):
+            await climate.async_update_topology()
+        mock_request.assert_awaited_once()
 
-    with pytest.raises(NoDevice):
-        await climate.async_update_topology()
-        mock_request.assert_called()
 
-
-@pytest.mark.asyncio()
 async def test_async_set_persons_home(async_account):
     """Test marking a person being at home."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -78,8 +81,11 @@ async def test_async_set_persons_home(async_account):
         "91827375-7e04-5298-83ae-a0cb8372dff2",
     ]
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -93,14 +99,16 @@ async def test_async_set_persons_home(async_account):
         )
 
 
-@pytest.mark.asyncio()
 async def test_async_set_persons_away(async_account):
     """Test marking a set of persons being away."""
     home_id = "91763b24c43d3e344f424e8b"
     home = async_account.homes[home_id]
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -122,7 +130,6 @@ async def test_async_set_persons_away(async_account):
         )
 
 
-@pytest.mark.asyncio()
 async def test_home_event_update(async_account):
     """Test basic event update."""
     home_id = "91763b24c43d3e344f424e8b"

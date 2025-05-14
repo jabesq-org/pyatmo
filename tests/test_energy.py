@@ -4,6 +4,7 @@ import datetime as dt
 import json
 from unittest.mock import patch
 
+import anyio
 import pytest
 import time_machine
 
@@ -11,11 +12,8 @@ from pyatmo import ApiHomeReachabilityError, DeviceType
 from pyatmo.modules.module import EnergyHistoryMixin, MeasureInterval
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-@pytest.mark.asyncio()
-async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
+async def test_async_energy_NLPC(async_home):
     """Test Legrand / BTicino connected energy meter module."""
     module_id = "12:34:56:00:00:a1:4c:da"
     assert module_id in async_home.modules
@@ -25,7 +23,6 @@ async def test_async_energy_NLPC(async_home):  # pylint: disable=invalid-name
 
 
 @time_machine.travel(dt.datetime(2022, 2, 12, 7, 59, 49))
-@pytest.mark.asyncio()
 async def test_historical_data_retrieval(async_account):
     """Test retrieval of historical measurements."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -63,7 +60,6 @@ async def test_historical_data_retrieval(async_account):
 
 
 @time_machine.travel(dt.datetime(2024, 7, 24, 22, 00, 10))
-@pytest.mark.asyncio()
 async def test_historical_data_retrieval_multi(async_account_multi):
     """Test retrieval of historical measurements."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
@@ -130,11 +126,12 @@ async def test_disconnected_main_bridge(mock_home_status, async_account_multi):
     """Test retrieval of historical measurements."""
     home_id = "aaaaaaaaaaabbbbbbbbbbccc"
 
-    with open(
+    async with await anyio.open_file(
         "fixtures/home_multi_status_error_disconnected.json",
         encoding="utf-8",
     ) as json_file:
-        home_status_fixture = json.load(json_file)
+        content = await json_file.read()
+        home_status_fixture = json.loads(content)
     mock_home_status_resp = MockResponse(home_status_fixture, 200)
     mock_home_status.return_value = mock_home_status_resp
 

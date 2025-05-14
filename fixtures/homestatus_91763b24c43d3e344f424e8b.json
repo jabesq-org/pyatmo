@@ -44,6 +44,16 @@
           "is_local": true
         },
         {
+          "id": "12:34:56:00:f1:63",
+          "type": "NPC",
+          "monitoring": "on",
+          "sd_status": 4,
+          "alim_status": 2,
+          "locked": false,
+          "vpn_url": "https://prodvpn-eu-2.netatmo.net/restricted/10.255.123.45/9fb1814609e27de5697ab47d06846631/MTRPn_BeWCav5RBq4U1OMDruTW4dkQ0NuMwNDAw11g,,",
+          "is_local": true
+        },
+        {
           "id": "12:34:56:00:fa:d0",
           "type": "NAPlug",
           "firmware_revision": 174,
@@ -239,6 +249,27 @@
           "bridge": "12:34:56:80:60:40"
         },
         {
+          "id": "12:34:56:80:00:c3:69:3e",
+          "type": "NLD",
+          "battery_state": "medium",
+          "battery_level": 2500,
+          "firmware_revision": 56,
+          "last_seen": 0,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:80:00:c3:69:3d",
+          "type": "Z3V",
+          "current_position": 0,
+          "target_position": 0,
+          "target_position_step": 100,
+          "firmware_revision": 16,
+          "last_seen": 1638353156,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
           "id": "12:34:56:00:16:0e",
           "type": "NLE",
           "firmware_revision": 14,
@@ -327,6 +358,103 @@
           "reachable": true,
           "bridge": "12:34:56:80:60:40",
           "fan_speed": 1
+        },
+        {
+          "firmware_revision": 53,
+          "id": "12:34:56:00:01:01:01:b2",
+          "last_seen": 1657086949,
+          "on": false,
+          "power": 0,
+          "reachable": true,
+          "type": "NLL",
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "current_position": 0,
+          "firmware_revision": 47,
+          "id": "12:34:56:00:01:01:01:b3",
+          "last_seen": 1746730909,
+          "reachable": true,
+          "target_position": 0,
+          "target_position:step": 100,
+          "type": "NLV",
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "current_position": 0,
+          "firmware_revision": 53,
+          "id": "12:34:56:00:01:01:01:b4",
+          "last_seen": 1746730664,
+          "reachable": true,
+          "target_position": 10,
+          "target_position:step": 1,
+          "type": "NLLV",
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b5",
+          "type": "NLJ",
+          "target_position": 100,
+          "target_position:step": 1,
+          "firmware_revision": 7,
+          "last_seen": 1746736151,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b6",
+          "type": "NLIS",
+          "firmware_revision": 20,
+          "last_seen": 1746731520,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b6#2",
+          "type": "NLIS",
+          "on": false,
+          "power": 0,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b6#1",
+          "type": "NLIS",
+          "on": false,
+          "power": 0,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b7",
+          "type": "NLPT",
+          "on": true,
+          "firmware_revision": 77,
+          "last_seen": 1746731885,
+          "power": 0,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b8",
+          "type": "NLPD",
+          "on": true,
+          "offload": false,
+          "firmware_revision": 66,
+          "last_seen": 1746731949,
+          "power": 0,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
+        },
+        {
+          "id": "12:34:56:00:01:01:01:b9",
+          "type": "NLPO",
+          "on": false,
+          "contactor_mode": "off",
+          "offload": false,
+          "firmware_revision": 74,
+          "last_seen": 1746731968,
+          "power": 0,
+          "reachable": true,
+          "bridge": "12:34:56:80:60:40"
         }
       ],
       "rooms": [

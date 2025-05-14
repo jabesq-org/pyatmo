@@ -27,6 +27,7 @@ from pyatmo.const import (
     UNKNOWN,
     RawData,
 )
+from pyatmo.enums import TemperatureControlMode
 from pyatmo.modules.base_class import NetatmoBase
 from pyatmo.modules.device_types import ApplianceType, DeviceCategory, DeviceType
 from pyatmo.modules.module import ApplianceTypeMixin, Boiler, PowerMixin
@@ -196,7 +197,7 @@ class Room(NetatmoBase):
             for module in self.modules.values():
                 if (
                     isinstance(module, ApplianceTypeMixin)
-                    and module.device_type == DeviceType.NLC  # type: ignore # mypy issue 4335
+                    and module.device_type == DeviceType.NLC
                     and module.appliance_type == ApplianceType.radiator
                 ):
                     if isinstance(module, PowerMixin) and module.power is not None:
@@ -301,20 +302,35 @@ class Room(NetatmoBase):
         if pilot_wire is not None and mode is None:
             mode = MANUAL
 
+        temp_mode_mapping = {
+            None: "therm",
+            TemperatureControlMode.HEATING: "therm",
+            TemperatureControlMode.COOLING: "cooling",
+        }
+
+        setpoint_mode_prefix = temp_mode_mapping.get(
+            self.home.temperature_control_mode,
+            "therm",
+        )
+
         json_therm_set: dict[str, Any] = {
             "rooms": [
                 {
                     "id": self.entity_id,
-                    "therm_setpoint_mode": mode,
+                    f"{setpoint_mode_prefix}_setpoint_mode": mode,
                 },
             ],
         }
 
         if temp:
-            json_therm_set["rooms"][0]["therm_setpoint_temperature"] = temp
+            json_therm_set["rooms"][0][
+                f"{setpoint_mode_prefix}_setpoint_temperature"
+            ] = temp
 
         if end_time:
-            json_therm_set["rooms"][0]["therm_setpoint_end_time"] = end_time
+            json_therm_set["rooms"][0][
+                f"{setpoint_mode_prefix}_setpoint_end_time"
+            ] = end_time
 
         if self.support_pilot_wire and pilot_wire:
             json_therm_set["rooms"][0]["therm_setpoint_fp"] = pilot_wire
@@ -359,7 +375,7 @@ class Room(NetatmoBase):
 
         for module in self.modules.values():
             if hasattr(module, "boiler_status"):
-                module = cast(Boiler, module)
+                module = cast("Boiler", module)
                 if (boiler_status := module.boiler_status) is not None:
                     return boiler_status
 

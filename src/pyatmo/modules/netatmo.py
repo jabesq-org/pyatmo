@@ -43,8 +43,6 @@ from pyatmo.modules.module import (
 
 LOG = logging.getLogger(__name__)
 
-# pylint: disable=R0901
-
 
 class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
     """Class to represent a Netatmo NRV."""
@@ -72,6 +70,10 @@ class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
 
 class NACamera(Camera):
     """Class to represent a Netatmo NACamera."""
+
+
+class NPC(Camera):
+    """Class to represent a Netatmo NPC."""
 
 
 class NOC(FloodlightMixin, Camera):

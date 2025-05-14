@@ -5,12 +5,12 @@ from pyatmo.account import AsyncAccount
 from pyatmo.auth import AbstractAsyncAuth
 from pyatmo.exceptions import (
     ApiError,
-    ApiErrorThrottling,
     ApiHomeReachabilityError,
-    InvalidHome,
-    InvalidRoom,
-    NoDevice,
-    NoSchedule,
+    ApiThrottlingError,
+    InvalidHomeError,
+    InvalidRoomError,
+    NoDeviceError,
+    NoScheduleError,
 )
 from pyatmo.home import Home
 from pyatmo.modules import Module
@@ -20,17 +20,17 @@ from pyatmo.room import Room
 __all__ = [
     "AbstractAsyncAuth",
     "ApiError",
-    "ApiErrorThrottling",
     "ApiHomeReachabilityError",
+    "ApiThrottlingError",
     "AsyncAccount",
-    "InvalidHome",
-    "InvalidRoom",
-    "Home",
-    "Module",
-    "Room",
     "DeviceType",
-    "NoDevice",
-    "NoSchedule",
+    "Home",
+    "InvalidHomeError",
+    "InvalidRoomError",
+    "Module",
+    "NoDeviceError",
+    "NoScheduleError",
+    "Room",
     "const",
     "modules",
 ]

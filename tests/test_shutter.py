@@ -3,16 +3,13 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
+import anyio
 
 from pyatmo import DeviceType
 from tests.common import MockResponse
 
-# pylint: disable=F6401
 
-
-@pytest.mark.asyncio()
-async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
+async def test_async_shutter_NBR(async_home):
     """Test NLP Bubendorf iDiamant roller shutter."""
     module_id = "0009999992"
     assert module_id in async_home.modules
@@ -22,8 +19,17 @@ async def test_async_shutter_NBR(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
-@pytest.mark.asyncio()
-async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
+async def test_async_shutter_Z3V(async_home):
+    """Test NLG Legrand roller shutter 3rd party."""
+    module_id = "12:34:56:80:00:c3:69:3d"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.Z3V
+    assert module.firmware_revision == 16
+    assert module.current_position == 0
+
+
+async def test_async_shutter_NBO(async_home):
     """Test NBO Bubendorf iDiamant roller shutter."""
     module_id = "0009999993"
     assert module_id in async_home.modules
@@ -33,7 +39,6 @@ async def test_async_shutter_NBO(async_home):  # pylint: disable=invalid-name
     assert module.current_position == 0
 
 
-@pytest.mark.asyncio()
 async def test_async_shutters(async_home):
     """Test basic shutter functionality."""
     room_id = "3688132631"
@@ -43,8 +48,11 @@ async def test_async_shutters(async_home):
     module = async_home.modules[module_id]
     assert module.device_type == DeviceType.NBR
 
-    with open("fixtures/status_ok.json", encoding="utf-8") as json_file:
-        response = json.load(json_file)
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
 
     def gen_json_data(position):
         return {

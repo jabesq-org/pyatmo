@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-import asyncio
 from json import JSONDecodeError
 import logging
 from typing import Any
@@ -20,10 +19,12 @@ from pyatmo.const import (
     AUTHORIZATION_HEADER,
     DEFAULT_BASE_URL,
     ERRORS,
+    FORBIDDEN_ERROR_CODE,
+    THROTTLING_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
-from pyatmo.exceptions import ApiError, ApiErrorThrottling
+from pyatmo.exceptions import ApiError, ApiThrottlingError
 
 LOG = logging.getLogger(__name__)
 
@@ -50,7 +51,6 @@ class AbstractAsyncAuth(ABC):
         endpoint: str,
         base_url: str | None = None,
         params: dict[str, Any] | None = None,
-        timeout: int = 5,
     ) -> bytes:
         """Wrap async get requests."""
 
@@ -62,14 +62,12 @@ class AbstractAsyncAuth(ABC):
             raise ApiError(msg) from err
         headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
 
-        req_args = {"data": params if params is not None else {}}
-
         url = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,
-            **req_args,  # type: ignore
+            params=params,
             headers=headers,
-            timeout=ClientTimeout(total=timeout),
+            timeout=ClientTimeout(total=5),
         ) as resp:
             resp_content = await resp.read()
 
@@ -86,21 +84,18 @@ class AbstractAsyncAuth(ABC):
         endpoint: str,
         base_url: str | None = None,
         params: dict[str, Any] | None = None,
-        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
         return await self.async_post_request(
             url=(base_url or self.base_url) + endpoint,
             params=params,
-            timeout=timeout,
         )
 
     async def async_post_request(
         self,
         url: str,
         params: dict[str, Any] | None = None,
-        timeout: int = 5,
     ) -> ClientResponse:
         """Wrap async post requests."""
 
@@ -111,9 +106,9 @@ class AbstractAsyncAuth(ABC):
 
         async with self.websession.post(
             url,
-            **req_args,  # type: ignore
+            **req_args,
             headers=headers,
-            timeout=ClientTimeout(total=timeout),
+            timeout=ClientTimeout(total=5),
         ) as resp:
             return await self.process_response(resp, url)
 
@@ -168,14 +163,13 @@ class AbstractAsyncAuth(ABC):
                 f"when accessing '{url}'",
             )
 
-            if resp_status == 403 and resp_json["error"]["code"] == 26:
-                raise ApiErrorThrottling(
-                    message,
-                )
+            if (
+                resp_status == FORBIDDEN_ERROR_CODE
+                and resp_json["error"]["code"] == THROTTLING_ERROR_CODE
+            ):
+                raise ApiThrottlingError(message)
 
-            raise ApiError(
-                message,
-            )
+            raise ApiError(message)
 
         except (JSONDecodeError, ContentTypeError) as exc:
             msg = (
@@ -212,7 +206,7 @@ class AbstractAsyncAuth(ABC):
                 endpoint=WEBHOOK_URL_ADD_ENDPOINT,
                 params={"url": webhook_url},
             )
-        except asyncio.exceptions.TimeoutError as exc:
+        except TimeoutError as exc:
             msg = "Webhook registration timed out"
             raise ApiError(msg) from exc
         else:
@@ -225,7 +219,7 @@ class AbstractAsyncAuth(ABC):
                 endpoint=WEBHOOK_URL_DROP_ENDPOINT,
                 params={"app_types": "app_security"},
             )
-        except asyncio.exceptions.TimeoutError as exc:
+        except TimeoutError as exc:
             msg = "Webhook registration timed out"
             raise ApiError(msg) from exc
         else:

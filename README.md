@@ -10,7 +10,7 @@
 >
 > I apologize for any inconvenience this may cause, and I sincerely hope to have the capacity to allocate more time to this repository in the near future. Your understanding is greatly appreciated.
 >
-> *Hugo DUPRAS*
+> *Hugo DUPRAS (jabesq)*
 
 ---
 

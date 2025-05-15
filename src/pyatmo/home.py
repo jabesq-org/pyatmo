@@ -366,11 +366,9 @@ class Home:
             msg = "Could not determine selected schedule."
             raise NoScheduleError(msg)
 
-        for zone in selected_schedule.zones:
-            if zone.entity_id == zone_id:
-                for room in zone.rooms:
-                    if room.entity_id in temps:
-                        room.therm_setpoint_temperature = temps[room.entity_id]
+        for zone in (z for z in selected_schedule.zones if z.entity_id == zone_id):
+            for room in (r for r in zone.rooms if r.entity_id in temps):
+                room.therm_setpoint_temperature = temps[room.entity_id]
 
         await self.async_sync_schedule(selected_schedule)
 

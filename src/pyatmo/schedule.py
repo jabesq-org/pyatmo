@@ -45,6 +45,24 @@ class Schedule(NetatmoBase):
         ]
         self.zones = [Zone(home, r) for r in raw_data.get("zones", [])]
 
+    def update_topology(self, raw_data: RawData) -> None:
+        """Update the schedule topology."""
+        super().update_topology(raw_data)
+
+        self.selected = raw_data.get("selected", self.selected)
+        self.default = raw_data.get("default", self.default)
+        self.hg_temp = raw_data.get("hg_temp", self.hg_temp)
+        self.away_temp = raw_data.get("away_temp", self.away_temp)
+        self.cooling_away_temp = raw_data.get(
+            "cooling_away_temp",
+            self.cooling_away_temp,
+        )
+        self.timetable = [
+            TimetableEntry(self.home, r) for r in raw_data.get("timetable", [])
+        ]
+
+        self.zones = [Zone(self.home, r) for r in raw_data.get("zones", [])]
+
 
 @dataclass
 class TimetableEntry:

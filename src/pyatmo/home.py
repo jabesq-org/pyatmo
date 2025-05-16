@@ -148,10 +148,16 @@ class Home:
         for room in self.rooms.keys() - {m["id"] for m in raw_rooms}:
             self.rooms.pop(room)
 
-        self.schedules = {
-            s["id"]: Schedule(home=self, raw_data=s)
-            for s in raw_data.get(SCHEDULES, [])
-        }
+        raw_schedules = raw_data.get("schedules", [])
+        for schedule in raw_schedules:
+            if (schedule_id := schedule["id"]) not in self.schedules:
+                self.schedules[schedule_id] = Schedule(home=self, raw_data=schedule)
+            else:
+                self.schedules[schedule_id].update_topology(schedule)
+
+        # Drop schedule if has been removed
+        for schedule in self.schedules.keys() - {s["id"] for s in raw_schedules}:
+            self.schedules.pop(schedule)
 
     async def update(
         self,
@@ -356,7 +362,7 @@ class Home:
     async def async_set_schedule_temperatures(
         self,
         zone_id: str,
-        temps: dict[str, int],
+        temps: dict[str, float],
     ) -> None:
         """Set the scheduled room temperature for the given schedule ID."""
 

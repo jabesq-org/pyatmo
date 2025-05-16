@@ -8,6 +8,7 @@ WORKDIR /workspaces
 
 # Install Python dependencies from requirements
 RUN pip3 install --upgrade pip \
+    && pip3 install uv \
     && pip3 install pdbpp \
     && pip3 install pre-commit \
     && pip3 install time-machine \

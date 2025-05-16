@@ -7,7 +7,7 @@ import anyio
 import pytest
 
 import pyatmo
-from pyatmo import DeviceType, NoDeviceError, InvalidScheduleError
+from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError
 from tests.common import MockResponse
 
 
@@ -66,11 +66,11 @@ async def test_async_set_schedule_temperatures(async_home):
 
     temps = {"2746182631": 15}
 
-    with open(
+    async with await anyio.open_file(
         "fixtures/sync_schedule_591b54a2764ff4d50d8b5795.json",
         encoding="utf-8",
     ) as fixture_file:
-        json_fixture = json.load(fixture_file)
+        json_fixture = json.loads(await fixture_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -107,11 +107,11 @@ async def test_async_sync_schedule(async_home):
     # set a new room temperature
     room.therm_setpoint_temperature = 14
 
-    with open(
+    async with await anyio.open_file(
         "fixtures/sync_schedule_b1b54a2f45795764f59d50d8.json",
         encoding="utf-8",
     ) as fixture_file:
-        json_fixture = json.load(fixture_file)
+        json_fixture = json.loads(await fixture_file.read())
 
     with patch(
         "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
@@ -130,6 +130,7 @@ async def test_async_sync_schedule(async_home):
                 "json": json_fixture,
             },
         )
+
 
 async def test_async_sync_schedule_invalid_schedule(async_home):
     """Test syncing an invalid schedule."""

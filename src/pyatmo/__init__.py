@@ -28,7 +28,7 @@ __all__ = [
     "Home",
     "InvalidHomeError",
     "InvalidRoomError",
-    "InvalidScheduleError"
+    "InvalidScheduleError",
     "Module",
     "NoDeviceError",
     "NoScheduleError",

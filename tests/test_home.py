@@ -7,7 +7,7 @@ import anyio
 import pytest
 
 import pyatmo
-from pyatmo import DeviceType, NoDeviceError
+from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError
 from tests.common import MockResponse
 
 
@@ -50,6 +50,100 @@ async def test_async_home_set_schedule(async_home):
     assert not async_home.is_valid_schedule("123")
     assert async_home.get_hg_temp() == 7
     assert async_home.get_away_temp() == 14
+
+
+async def test_async_set_schedule_temperatures(async_home):
+    """Test setting schedule temperatures."""
+    schedule_id = "591b54a2764ff4d50d8b5795"
+    schedule = async_home.get_selected_schedule()
+
+    assert schedule.entity_id == schedule_id
+    zone = next((zone for zone in schedule.zones if zone.entity_id == 1), None)
+    assert zone is not None
+    room = next((room for room in zone.rooms if room.entity_id == "2746182631"), None)
+    assert room is not None
+    assert room.therm_setpoint_temperature == 17
+
+    temps = {"2746182631": 15}
+
+    async with await anyio.open_file(
+        "fixtures/sync_schedule_591b54a2764ff4d50d8b5795.json",
+        encoding="utf-8",
+    ) as fixture_file:
+        json_fixture = json.loads(await fixture_file.read())
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse({"status": "ok"}, 200)),
+    ) as mock_resp:
+        await async_home.async_set_schedule_temperatures(1, temps)
+
+        mock_resp.assert_awaited_with(
+            endpoint="api/synchomeschedule",
+            params={
+                "params": {
+                    "home_id": "91763b24c43d3e344f424e8b",
+                    "schedule_id": schedule_id,
+                    "name": "Default",
+                },
+                "json": json_fixture,
+            },
+        )
+
+
+async def test_async_sync_schedule(async_home):
+    """Test setting schedule temperatures."""
+    schedule_id = "b1b54a2f45795764f59d50d8"
+    schedule = async_home.schedules.get(schedule_id)
+
+    assert schedule is not None
+    assert schedule.entity_id == schedule_id
+    zone = next((zone for zone in schedule.zones if zone.entity_id == 1), None)
+    assert zone is not None
+    room = next((room for room in zone.rooms if room.entity_id == "2746182631"), None)
+    assert room is not None
+    assert room.therm_setpoint_temperature == 17
+
+    # set a new room temperature
+    room.therm_setpoint_temperature = 14
+
+    async with await anyio.open_file(
+        "fixtures/sync_schedule_b1b54a2f45795764f59d50d8.json",
+        encoding="utf-8",
+    ) as fixture_file:
+        json_fixture = json.loads(await fixture_file.read())
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse({"status": "ok"}, 200)),
+    ) as mock_resp:
+        await async_home.async_sync_schedule(schedule)
+
+        mock_resp.assert_awaited_with(
+            endpoint="api/synchomeschedule",
+            params={
+                "params": {
+                    "home_id": "91763b24c43d3e344f424e8b",
+                    "schedule_id": schedule_id,
+                    "name": "Default",
+                },
+                "json": json_fixture,
+            },
+        )
+
+
+async def test_async_sync_schedule_invalid_schedule(async_home):
+    """Test syncing an invalid schedule."""
+    invalid_schedule = {"invalid": "data"}
+
+    with (
+        pytest.raises(InvalidScheduleError),
+        patch(
+            "pyatmo.home.is_valid_schedule",
+            return_value=False,
+        ),
+    ):
+        await async_home.async_sync_schedule(invalid_schedule)
 
 
 async def test_async_home_data_no_body(async_auth):

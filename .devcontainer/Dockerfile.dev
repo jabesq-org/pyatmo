@@ -8,10 +8,12 @@ WORKDIR /workspaces
 
 # Install Python dependencies from requirements
 RUN pip3 install --upgrade pip \
+    && pip3 install uv \
     && pip3 install pdbpp \
     && pip3 install pre-commit \
     && pip3 install time-machine \
-    && pip3 install pytest-cov
+    && pip3 install pytest-cov \
+    && pip3 install anyio
 
 # Remove any old pytest versions that might conflict
 RUN python3 -m pip install --upgrade --force-reinstall pytest \

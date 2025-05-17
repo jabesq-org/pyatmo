@@ -11,9 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+
 ### Removed
 
-### Fixed
+## [9.2.0]
+
+### Changed
+- Improved schedule handling
+- Updated dev container configuration
 
 ## [9.1.0]
 
@@ -424,7 +430,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...HEAD
+[9.2.0]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...v9.2.0
 [9.1.0]: https://github.com/jabesq-org/pyatmo/compare/v9.0.0...v9.1.0
 [9.0.0]: https://github.com/jabesq-org/pyatmo/compare/v8.1.0...v9.0.0
 [8.1.0]: https://github.com/jabesq/pyatmo/compare/v8.0.3...v8.1.0

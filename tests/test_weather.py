@@ -304,7 +304,7 @@ async def test_async_public_weather_update(async_account):
     await async_account.async_update_public_weather(area_id)
 
     area = async_account.public_weather_areas[area_id]
-    assert area.location == pyatmo.modules.netatmo.Location(
+    assert area.location == pyatmo.modules.Location(
         lat_ne,
         lon_ne,
         lat_sw,

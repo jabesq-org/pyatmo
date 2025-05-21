@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added SPDX license identifier [PEP 639](https://peps.python.org/pep-0639/).
 
 ### Changed
 
 ### Fixed
+- Removed upper bound for Python version constraint.
 
 ### Removed
 

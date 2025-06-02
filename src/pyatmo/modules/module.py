@@ -993,7 +993,7 @@ class EnergyHistoryMixin(EntityBase):
             # align the start on the begining of the segment
             cur_start_time = start_lot_time - interval_sec // 2
             for val_arr in values_lot.get("value", []):
-                vals = []
+                vals: list[int | None] = []
                 val = 0
                 for v in val_arr:
                     if v is not None:

@@ -8,12 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+-
 
 ### Changed
+-
 
 ### Fixed
+-
 
 ### Removed
+-
+
+## [9.2.1]
+
+### Added
+- Added SPDX license identifier [PEP 639](https://peps.python.org/pep-0639/).
+
+### Fixed
+- Removed upper bound for Python version constraint.
 
 ## [9.2.0]
 
@@ -430,7 +442,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.2.1...HEAD
+[9.2.1]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...v9.2.1
 [9.2.0]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...v9.2.0
 [9.1.0]: https://github.com/jabesq-org/pyatmo/compare/v9.0.0...v9.1.0
 [9.0.0]: https://github.com/jabesq-org/pyatmo/compare/v8.1.0...v9.0.0

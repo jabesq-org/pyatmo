@@ -20,7 +20,7 @@ class TemperatureControlMode(StrEnum):
     COOLING = "cooling"
 
 
-SCHEDULE_TYPE_MAPPING = {
+SCHEDULE_TYPE_MAPPING: dict[TemperatureControlMode, ScheduleType] = {
     TemperatureControlMode.HEATING: ScheduleType.THERM,
     TemperatureControlMode.COOLING: ScheduleType.COOLING,
 }

@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from pyatmo.modules import Module
     from pyatmo.modules.netatmo import NACamera
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class Home:
@@ -287,7 +287,7 @@ class Home:
             msg = f"{mode} is not a valid mode."
             raise NoScheduleError(msg)
 
-        post_params = {"home_id": self.entity_id, "mode": mode}
+        post_params: dict[str, str] = {"home_id": self.entity_id, "mode": mode}
         if end_time is not None and mode in {"hg", "away"}:
             post_params["endtime"] = str(end_time)
         if schedule_id is not None and mode == "schedule":
@@ -299,7 +299,7 @@ class Home:
             schedule_id,
         )
 
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SETTHERMMODE_ENDPOINT,
             params=post_params,
         )
@@ -309,10 +309,10 @@ class Home:
     async def async_switch_schedule(self, schedule_id: str) -> bool:
         """Switch the schedule."""
         if not self.is_valid_schedule(schedule_id):
-            msg = f"{schedule_id} is not a valid schedule id"
+            msg: str = f"{schedule_id} is not a valid schedule id"
             raise NoScheduleError(msg)
         LOG.debug("Setting home (%s) schedule to %s", self.entity_id, schedule_id)
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SWITCHHOMESCHEDULE_ENDPOINT,
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
@@ -325,7 +325,7 @@ class Home:
             msg = "Data for '/set_state' contains errors."
             raise InvalidStateError(msg)
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
             params={"json": {"home": {"id": self.entity_id, **data}}},
         )
@@ -351,7 +351,7 @@ class Home:
     ) -> ClientResponse:
         """Mark a person as away or set the whole home to being empty."""
 
-        post_params = {"home_id": self.entity_id}
+        post_params: dict[str, str] = {"home_id": self.entity_id}
         if person_id:
             post_params["person_id"] = person_id
         return await self.auth.async_post_api_request(
@@ -366,7 +366,7 @@ class Home:
     ) -> None:
         """Set the scheduled room temperature for the given schedule ID."""
 
-        selected_schedule = self.get_selected_schedule()
+        selected_schedule: Schedule | None = self.get_selected_schedule()
 
         if selected_schedule is None:
             msg = "Could not determine selected schedule."
@@ -393,7 +393,7 @@ class Home:
             schedule,
         )
 
-        timetable_entries = [
+        timetable_entries: list[dict[str, int | None]] = [
             {
                 "m_offset": timetable_entry.m_offset,
                 "zone_id": timetable_entry.zone_id,
@@ -401,9 +401,9 @@ class Home:
             for timetable_entry in schedule.timetable
         ]
 
-        zones = []
+        zones: list[dict[str, Any]] = []
         for zone in schedule.zones:
-            new_zone = {
+            new_zone: dict[str, Any] = {
                 "id": zone.entity_id,
                 "name": zone.name,
                 "type": zone.type,
@@ -417,14 +417,14 @@ class Home:
             }
             zones.append(new_zone)
 
-        request_json = {
+        request_json: dict[str, Any] = {
             "away_temp": schedule.away_temp,
             "hg_temp": schedule.hg_temp,
             "timetable": timetable_entries,
             "zones": zones,
         }
 
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SYNCHOMESCHEDULE_ENDPOINT,
             params={
                 "params": {

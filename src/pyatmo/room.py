@@ -36,12 +36,12 @@ if TYPE_CHECKING:
     from pyatmo.home import Home
     from pyatmo.modules.module import Module
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
-MODE_MAP = {SCHEDULE: HOME}
+MODE_MAP: dict[str, str] = {SCHEDULE: HOME}
 
 # as for now all the below is not exposed at all through the API, don't put it in the public API, so not in const.py
-NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE = {
+NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE: dict[str, str] = {
     MANUAL: PILOT_WIRE_COMFORT,
     MAX: PILOT_WIRE_COMFORT,
     OFF: PILOT_WIRE_FROST_GUARD,
@@ -51,7 +51,7 @@ NETAMO_CLIMATE_SETPOINT_MODE_TO_PILOT_WIRE = {
     AWAY: PILOT_WIRE_AWAY,
 }
 # invert of the map above:
-NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE = {
+NETAMO_PILOT_WIRE_TO_CLIMATE_SETPOINT_MODE: dict[str, str] = {
     PILOT_WIRE_COMFORT: MANUAL,
     PILOT_WIRE_AWAY: MANUAL,  # AWAY is like ECO for a pilot wire heater, so put manual to force it to happen
     PILOT_WIRE_FROST_GUARD: FROSTGUARD,
@@ -302,13 +302,13 @@ class Room(NetatmoBase):
         if pilot_wire is not None and mode is None:
             mode = MANUAL
 
-        temp_mode_mapping = {
+        temp_mode_mapping: dict[TemperatureControlMode | None, str] = {
             None: "therm",
             TemperatureControlMode.HEATING: "therm",
             TemperatureControlMode.COOLING: "cooling",
         }
 
-        setpoint_mode_prefix = temp_mode_mapping.get(
+        setpoint_mode_prefix: str = temp_mode_mapping.get(
             self.home.temperature_control_mode,
             "therm",
         )
@@ -345,7 +345,7 @@ class Room(NetatmoBase):
     ) -> None:
         """Set room temperature set point (NRV, NATherm1)."""
 
-        post_params = {
+        post_params: dict[str, str] = {
             "home_id": self.home.entity_id,
             "room_id": self.entity_id,
             "mode": mode,

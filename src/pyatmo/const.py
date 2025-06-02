@@ -120,7 +120,7 @@ ACCESSORY_GUST_STRENGTH_TYPE = "gust_strength"
 ACCESSORY_GUST_ANGLE_TYPE = "gust_angle"
 
 # 2 days of dynamic historical data stored
-MAX_HISTORY_TIME_FRAME = 24 * 2 * 3600
+MAX_HISTORY_TIME_FRAME: int = 24 * 2 * 3600
 
 UNKNOWN = "unknown"
 

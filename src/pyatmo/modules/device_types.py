@@ -6,7 +6,7 @@ from enum import Enum
 import logging
 from typing import Literal
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class DeviceType(str, Enum):
@@ -319,6 +319,6 @@ class ApplianceType(str, Enum):
     def _missing_(cls, key: object) -> Literal[ApplianceType.unknown]:
         """Handle unknown device types."""
 
-        msg = f"{key} appliance type is unknown"
+        msg: str = f"{key} appliance type is unknown"
         LOG.warning(msg)
         return ApplianceType.unknown

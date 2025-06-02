@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
     from .home import Home
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -92,7 +92,7 @@ class Zone(NetatmoBase):
         self.type = raw_data.get("type", 0)
 
         def room_factory(home: Home, room_raw_data: RawData) -> Room:
-            room = Room(home, room_raw_data, {})
+            room: Room = Room(home, room_raw_data, {})
             room.update(room_raw_data)
             return room
 

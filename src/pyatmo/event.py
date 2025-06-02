@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyatmo.const import RawData
 
-EVENT_ATTRIBUTES_MAP = {"id": "entity_id", "type": "event_type", "time": "event_time"}
+EVENT_ATTRIBUTES_MAP: dict[str, str] = {
+    "id": "entity_id",
+    "type": "event_type",
+    "time": "event_time",
+}
 
 
 class EventTypes(Enum):

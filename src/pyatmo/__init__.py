@@ -18,7 +18,7 @@ from pyatmo.modules import Module
 from pyatmo.modules.device_types import DeviceType
 from pyatmo.room import Room
 
-__all__ = [
+__all__: list[str] = [
     "AbstractAsyncAuth",
     "ApiError",
     "ApiHomeReachabilityError",

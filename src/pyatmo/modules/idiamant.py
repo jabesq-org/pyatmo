@@ -12,7 +12,7 @@ from pyatmo.modules.module import (
     WifiMixin,
 )
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class NBG(FirmwareMixin, WifiMixin, Module):

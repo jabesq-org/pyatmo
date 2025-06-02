@@ -116,8 +116,8 @@ async def test_async_climate_BNS(async_home):
     assert room.features == {"humidity", DeviceCategory.climate}
 
 
-async def test_async_climate_update(async_account):
-    """Test basic climate state update."""
+async def test_async_climate_initial_state(async_account):
+    """Test initial climate state."""
     home_id = "91763b24c43d3e344f424e8b"
     await async_account.async_update_status(home_id)
     home = async_account.homes[home_id]
@@ -134,8 +134,18 @@ async def test_async_climate_update(async_account):
     assert module.reachable is True
     assert module.boiler_status is False
     assert module.battery == 75
-
     assert isinstance(module, NATherm1)
+
+
+async def test_async_climate_disconnected_state(async_account):
+    """Test climate state when disconnected."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+    room_id = "2746182631"
+    room = home.rooms[room_id]
+    module_id = "12:34:56:00:01:ae"
+    module = home.modules[module_id]
 
     async with await anyio.open_file(
         "fixtures/home_status_error_disconnected.json",
@@ -154,6 +164,17 @@ async def test_async_climate_update(async_account):
 
     assert room.reachable is None
     assert module.reachable is False
+
+
+async def test_async_climate_reconnected_state(async_account):
+    """Test climate state after reconnection."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+    room_id = "2746182631"
+    room = home.rooms[room_id]
+    module_id = "12:34:56:00:01:ae"
+    module = home.modules[module_id]
 
     async with await anyio.open_file(
         "fixtures/home_status_simple.json",

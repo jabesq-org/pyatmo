@@ -6,7 +6,7 @@ import logging
 
 from pyatmo.modules.module import RfMixin, Shutter
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class TPSRS(RfMixin, Shutter):

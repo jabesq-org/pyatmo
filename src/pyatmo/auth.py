@@ -26,7 +26,7 @@ from pyatmo.const import (
 )
 from pyatmo.exceptions import ApiError, ApiThrottlingError
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class AbstractAsyncAuth(ABC):
@@ -39,8 +39,8 @@ class AbstractAsyncAuth(ABC):
     ) -> None:
         """Initialize the auth."""
 
-        self.websession = websession
-        self.base_url = base_url
+        self.websession: ClientSession = websession
+        self.base_url: str = base_url
 
     @abstractmethod
     async def async_get_access_token(self) -> str:
@@ -55,29 +55,27 @@ class AbstractAsyncAuth(ABC):
         """Wrap async get requests."""
 
         try:
-            access_token = await self.async_get_access_token()
+            access_token: str = await self.async_get_access_token()
         except ClientError as err:
-            error_type = type(err).__name__
-            msg = f"Access token failure: {error_type} - {err}"
+            error_type: str = type(err).__name__
+            msg: str = f"Access token failure: {error_type} - {err}"
             raise ApiError(msg) from err
-        headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+        headers: dict[str, str] = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
 
-        url = (base_url or self.base_url) + endpoint
+        url: str = (base_url or self.base_url) + endpoint
         async with self.websession.get(
             url,
             params=params,
             headers=headers,
             timeout=ClientTimeout(total=5),
         ) as resp:
-            resp_content = await resp.read()
+            resp_content: bytes = await resp.read()
 
             if resp.headers.get("content-type") == "image/jpeg":
                 return resp_content
 
         msg = f"{resp.status} - invalid content-type in response when accessing '{url}'"
-        raise ApiError(
-            msg,
-        )
+        raise ApiError(msg)
 
     async def async_post_api_request(
         self,
@@ -99,10 +97,10 @@ class AbstractAsyncAuth(ABC):
     ) -> ClientResponse:
         """Wrap async post requests."""
 
-        access_token = await self.get_access_token()
-        headers = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+        access_token: str = await self.get_access_token()
+        headers: dict[str, str] = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
 
-        req_args = self.prepare_request_arguments(params)
+        req_args: dict[str, Any] = self.prepare_request_arguments(params)
 
         async with self.websession.post(
             url,
@@ -117,12 +115,12 @@ class AbstractAsyncAuth(ABC):
         try:
             return await self.async_get_access_token()
         except ClientError as err:
-            msg = f"Access token failure: {err}"
+            msg: str = f"Access token failure: {err}"
             raise ApiError(msg) from err
 
     def prepare_request_arguments(self, params: dict | None) -> dict:
         """Prepare request arguments."""
-        req_args = {"data": params if params is not None else {}}
+        req_args: dict[str, Any] = {"data": params if params is not None else {}}
 
         if "params" in req_args["data"]:
             req_args["params"] = req_args["data"]["params"]
@@ -136,8 +134,8 @@ class AbstractAsyncAuth(ABC):
 
     async def process_response(self, resp: ClientResponse, url: str) -> ClientResponse:
         """Process response."""
-        resp_status = resp.status
-        resp_content = await resp.read()
+        resp_status: int = resp.status
+        resp_content: bytes = await resp.read()
 
         if not resp.ok:
             LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
@@ -153,14 +151,14 @@ class AbstractAsyncAuth(ABC):
     ) -> None:
         """Handle error response."""
         try:
-            resp_json = await resp.json()
+            resp_json: dict[str, Any] = await resp.json()
 
-            message = (
+            message: str = (
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
                 f"{resp_json['error']['message']} "
                 f"({resp_json['error']['code']}) "
-                f"when accessing '{url}'",
+                f"when accessing '{url}'"
             )
 
             if (
@@ -172,14 +170,12 @@ class AbstractAsyncAuth(ABC):
             raise ApiError(message)
 
         except (JSONDecodeError, ContentTypeError) as exc:
-            msg = (
+            msg: str = (
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
                 f"when accessing '{url}'"
             )
-            raise ApiError(
-                msg,
-            ) from exc
+            raise ApiError(msg) from exc
 
     async def handle_success_response(
         self,
@@ -202,12 +198,12 @@ class AbstractAsyncAuth(ABC):
     async def async_addwebhook(self, webhook_url: str) -> None:
         """Register webhook."""
         try:
-            resp = await self.async_post_api_request(
+            resp: ClientResponse = await self.async_post_api_request(
                 endpoint=WEBHOOK_URL_ADD_ENDPOINT,
                 params={"url": webhook_url},
             )
         except TimeoutError as exc:
-            msg = "Webhook registration timed out"
+            msg: str = "Webhook registration timed out"
             raise ApiError(msg) from exc
         else:
             LOG.debug("addwebhook: %s", resp)
@@ -215,12 +211,12 @@ class AbstractAsyncAuth(ABC):
     async def async_dropwebhook(self) -> None:
         """Unregister webhook."""
         try:
-            resp = await self.async_post_api_request(
+            resp: ClientResponse = await self.async_post_api_request(
                 endpoint=WEBHOOK_URL_DROP_ENDPOINT,
                 params={"app_types": "app_security"},
             )
         except TimeoutError as exc:
-            msg = "Webhook registration timed out"
+            msg: str = "Webhook registration timed out"
             raise ApiError(msg) from exc
         else:
             LOG.debug("dropwebhook: %s", resp)

@@ -25,7 +25,7 @@ async def async_auth():
 @pytest.fixture
 async def async_account(async_auth):
     """AsyncAccount fixture."""
-    account = pyatmo.AsyncAccount(async_auth)
+    account: pyatmo.AsyncAccount = pyatmo.AsyncAccount(async_auth)
 
     with (
         patch(
@@ -52,7 +52,7 @@ async def async_home(async_account):
 @pytest.fixture
 async def async_account_multi(async_auth):
     """AsyncAccount fixture."""
-    account = pyatmo.AsyncAccount(async_auth)
+    account: pyatmo.AsyncAccount = pyatmo.AsyncAccount(async_auth)
 
     with (
         patch(

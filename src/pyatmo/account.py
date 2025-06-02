@@ -23,9 +23,11 @@ from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
 
 if TYPE_CHECKING:
+    from aiohttp import ClientResponse
+
     from pyatmo.auth import AbstractAsyncAuth
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class AsyncAccount:
@@ -61,8 +63,8 @@ class AsyncAccount:
             disabled_homes_ids = []
 
         for home in self.raw_data["homes"]:
-            home_id = home.get("id", "Unknown")
-            home_name = home.get("name", "Unknown")
+            home_id: str = home.get("id", "Unknown")
+            home_name: str = home.get("name", "Unknown")
             self.all_homes_id[home_id] = home_name
 
             if home_id in disabled_homes_ids:
@@ -92,25 +94,27 @@ class AsyncAccount:
 
     async def async_update_status(self, home_id: str) -> None:
         """Retrieve status data from /homestatus."""
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data = extract_raw_data(await resp.json(), HOME)
+        raw_data: RawData = extract_raw_data(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data, do_raise_for_reachability_error=True)
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data = extract_raw_data(await resp.json(), HOME)
+        raw_data: RawData = extract_raw_data(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data)
 
     async def async_update_weather_stations(self) -> None:
         """Retrieve status data from /getstationsdata."""
-        params = {"get_favorites": ("true" if self.favorite_stations else "false")}
+        params: dict[str, str] = {
+            "get_favorites": ("true" if self.favorite_stations else "false")
+        }
         await self._async_update_data(
             GETSTATIONDATA_ENDPOINT,
             params=params,
@@ -131,7 +135,7 @@ class AsyncAccount:
     ) -> None:
         """Retrieve measures data from /getmeasure."""
 
-        module = self.homes[home_id].modules[module_id]
+        module: Module = self.homes[home_id].modules[module_id]
         if module.has_feature("historical_data"):
             module = cast("Energy", module)
             await module.async_update_measures(
@@ -166,7 +170,7 @@ class AsyncAccount:
 
     async def async_update_public_weather(self, area_id: str) -> None:
         """Retrieve status data from /getpublicdata."""
-        params = {
+        params: dict[str, str] = {
             "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
             "lon_ne": self.public_weather_areas[area_id].location.lon_ne,
             "lat_sw": self.public_weather_areas[area_id].location.lat_sw,
@@ -190,15 +194,17 @@ class AsyncAccount:
         area_id: str | None = None,
     ) -> None:
         """Retrieve status data from <endpoint>."""
-        resp = await self.auth.async_post_api_request(endpoint=endpoint, params=params)
-        raw_data = extract_raw_data(await resp.json(), tag)
+        resp: ClientResponse = await self.auth.async_post_api_request(
+            endpoint=endpoint, params=params
+        )
+        raw_data: RawData = extract_raw_data(await resp.json(), tag)
         await self.update_devices(raw_data, area_id)
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:
         """Modify device state by passing JSON specific to the device."""
         LOG.debug("Setting state: %s", data)
 
-        post_params = {
+        post_params: dict[str, Any] = {
             "json": {
                 HOME: {
                     "id": home_id,
@@ -206,7 +212,7 @@ class AsyncAccount:
                 },
             },
         }
-        resp = await self.auth.async_post_api_request(
+        resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
             params=post_params,
         )
@@ -224,7 +230,7 @@ class AsyncAccount:
                 self.find_home_of_device(device_data),
             ):
                 if home_id not in self.homes:
-                    modules_data = []
+                    modules_data: list[dict[str, Any]] = []
                     for module_data in device_data.get("modules", []):
                         module_data["home_id"] = home_id
                         module_data["id"] = module_data["_id"]
@@ -289,7 +295,7 @@ class AsyncAccount:
         )
 
 
-ATTRIBUTES_TO_FIX = {
+ATTRIBUTES_TO_FIX: dict[str, str] = {
     "_id": "id",
     "firmware": "firmware_revision",
     "wifi_status": "wifi_strength",

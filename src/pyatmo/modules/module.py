@@ -7,9 +7,9 @@ from enum import Enum
 import logging
 from operator import itemgetter
 from time import time
-from typing import TYPE_CHECKING, Any, LiteralString
+from typing import TYPE_CHECKING, Any
 
-from aiohttp import ClientConnectorError
+from aiohttp import ClientConnectorError, ClientResponse
 
 from pyatmo.const import GETMEASURE_ENDPOINT, RawData
 from pyatmo.exceptions import ApiError
@@ -661,9 +661,13 @@ MEASURE_INTERVAL_TO_SECONDS = {
     MeasureInterval.MONTH: 2592000,
 }
 
-ENERGY_FILTERS = f"{MeasureType.SUM_ENERGY_ELEC.value},{MeasureType.SUM_ENERGY_ELEC_BASIC.value},{MeasureType.SUM_ENERGY_ELEC_PEAK.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value}"
-ENERGY_FILTERS_LEGACY = f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_BASIC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_PEAK_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_LEGACY.value}"
-ENERGY_FILTERS_MODES = ["generic", "basic", "peak", "off_peak"]
+ENERGY_FILTERS: str = (
+    f"{MeasureType.SUM_ENERGY_ELEC.value},{MeasureType.SUM_ENERGY_ELEC_BASIC.value},{MeasureType.SUM_ENERGY_ELEC_PEAK.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value}"
+)
+ENERGY_FILTERS_LEGACY: str = (
+    f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_BASIC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_PEAK_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_LEGACY.value}"
+)
+ENERGY_FILTERS_MODES: list[str] = ["generic", "basic", "peak", "off_peak"]
 
 
 def compute_riemann_sum(
@@ -1016,8 +1020,8 @@ class EnergyHistoryMixin(EntityBase):
         start_time: float,
         end_time: float,
         interval: MeasureInterval,
-    ) -> tuple[LiteralString, Any]:
-        filters = self._get_energy_filers()
+    ) -> tuple[str, Any]:
+        filters: str = self._get_energy_filers()
 
         params = {
             "device_id": self.bridge,
@@ -1028,7 +1032,7 @@ class EnergyHistoryMixin(EntityBase):
             "date_end": end_time,
         }
 
-        resp = await self.home.auth.async_post_api_request(
+        resp: ClientResponse = await self.home.auth.async_post_api_request(
             endpoint=GETMEASURE_ENDPOINT,
             params=params,
         )
@@ -1043,7 +1047,7 @@ class EnergyHistoryMixin(EntityBase):
                 msg=f"direct from {filters}",
                 body=rw_dt_f,
             )
-            msg = (
+            msg: str = (
                 f"Energy badly formed resp: {rw_dt_f} - "
                 f"module: {self.name} - "
                 f"when accessing '{filters}'"
@@ -1115,7 +1119,7 @@ class Module(NetatmoBase):
         if not self.reachable and self.modules:
             # Update bridged modules and associated rooms
             for module_id in self.modules:
-                module = self.home.modules[module_id]
+                module: Module = self.home.modules[module_id]
                 await module.update(raw_data)
                 if module.room_id:
                     self.home.rooms[module.room_id].update(raw_data)

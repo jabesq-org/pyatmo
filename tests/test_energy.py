@@ -83,6 +83,8 @@ async def test_historical_data_retrieval_multi(async_account_multi):
     )
     assert isinstance(module, EnergyHistoryMixin)
 
+    assert module.historical_data is not None
+
     assert module.historical_data[0] == {
         "Wh": 20,
         "duration": 30,

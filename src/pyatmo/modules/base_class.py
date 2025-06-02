@@ -21,10 +21,10 @@ if TYPE_CHECKING:
     from pyatmo.modules.module import ModuleT
 
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
-NETATMO_ATTRIBUTES_MAP = {
+NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "entity_id": lambda x, y: x.get("id", y),
     "modules": lambda x, y: x.get("modules_bridged", y),
     "device_type": lambda x, y: DeviceType(x.get("type", y)),
@@ -147,10 +147,10 @@ class NetatmoBase(EntityBase, ABC):
         if not hist_f:
             return []
 
-        in_s = bisect.bisect_left(hist_f, from_ts, key=itemgetter(0))
+        in_s: int = bisect.bisect_left(hist_f, from_ts, key=itemgetter(0))
 
         if to_ts is None:
-            out_s = len(hist_f)
+            out_s: int = len(hist_f)
         else:
             out_s = bisect.bisect_right(hist_f, to_ts, key=itemgetter(0))
 
@@ -207,5 +207,5 @@ class Place:
         self.city = data.get("city")
         self.country = data.get("country")
         self.timezone = data.get("timezone")
-        location_data = list(location)
+        location_data: list[float] = list(location)
         self.location = Location(location_data[0], location_data[1])

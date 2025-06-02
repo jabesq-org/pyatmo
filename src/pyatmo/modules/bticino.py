@@ -13,7 +13,7 @@ from pyatmo.modules.module import (
     SwitchMixin,
 )
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class BNDL(Module):

@@ -8,16 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
--
 
 ### Changed
--
+
+- Improved type hints and annotations using pyrefly
+- Added ruff check to tox configuration
+- Deprecated Python 3.11 support
 
 ### Fixed
--
+
+- Fixed mypy typing errors
 
 ### Removed
--
+
+- Removed unused development packages (pytest-mock)
 
 ## [9.2.1]
 
@@ -109,16 +113,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add proper energy support
 - Add cooler support
 - Add BNS support
-
-## [8.0.3]
-
-### Added
-
-- Add NLLF centralized ventilation controller
-
-### Fixed
-
-- Add BNSC switch capability
 
 ## [8.0.3]
 

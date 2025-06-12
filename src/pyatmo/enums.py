@@ -9,6 +9,7 @@ class ScheduleType(StrEnum):
     THERM = "therm"
     COOLING = "cooling"
     ELECTRICITY = "electricity"
+    ELECTRICITY_PRODUCTION = "electricity_production"
     EVENT = "event"
     AUTO = "auto"
 

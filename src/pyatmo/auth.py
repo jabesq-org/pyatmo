@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from json import JSONDecodeError
 import logging
-from typing import Any
+from typing import Any, Final
 
 from aiohttp import (
     ClientError,
@@ -27,6 +27,8 @@ from pyatmo.const import (
 from pyatmo.exceptions import ApiError, ApiThrottlingError
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
+DEFAULT_TIMEOUT: Final[ClientTimeout] = ClientTimeout(total=20)
 
 
 class AbstractAsyncAuth(ABC):
@@ -67,7 +69,7 @@ class AbstractAsyncAuth(ABC):
             url,
             params=params,
             headers=headers,
-            timeout=ClientTimeout(total=5),
+            timeout=DEFAULT_TIMEOUT,
         ) as resp:
             resp_content: bytes = await resp.read()
 
@@ -106,7 +108,7 @@ class AbstractAsyncAuth(ABC):
             url,
             **req_args,
             headers=headers,
-            timeout=ClientTimeout(total=5),
+            timeout=DEFAULT_TIMEOUT,
         ) as resp:
             return await self.process_response(resp, url)
 

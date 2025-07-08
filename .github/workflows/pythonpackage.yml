@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  black:
+  formatter:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1

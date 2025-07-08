@@ -14,10 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved type hints and annotations using pyrefly
 - Added ruff check to tox configuration
 - Deprecated Python 3.11 support
+- Replace black by ruff format
+- Use astral uv actions in github actions
+- Update dev dependencies and tooling
+-
 
 ### Fixed
 
 - Fixed mypy typing errors
+- Add missing 'electricity_production' schedule type to ScheduleType
 
 ### Removed
 
@@ -26,14 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [9.2.1]
 
 ### Added
+
 - Added SPDX license identifier [PEP 639](https://peps.python.org/pep-0639/).
 
 ### Fixed
+
 - Removed upper bound for Python version constraint.
 
 ## [9.2.0]
 
 ### Changed
+
 - Improved schedule handling
 - Updated dev container configuration
 

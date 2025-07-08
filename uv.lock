@@ -926,8 +926,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "anyio", specifier = ">=4.3.0" },
-    { name = "codespell", specifier = ">=2.3.0" },
+    { name = "anyio", specifier = ">=4.9.0" },
+    { name = "codespell", specifier = ">=2.4.1" },
     { name = "docutils", specifier = ">=0.21.2" },
     { name = "mypy", specifier = ">=1.16.1" },
     { name = "pre-commit", specifier = ">=4.2.0" },

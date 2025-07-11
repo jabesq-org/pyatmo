@@ -328,9 +328,9 @@ class Room(NetatmoBase):
             ] = temp
 
         if end_time:
-            json_therm_set["rooms"][0][
-                f"{setpoint_mode_prefix}_setpoint_end_time"
-            ] = end_time
+            json_therm_set["rooms"][0][f"{setpoint_mode_prefix}_setpoint_end_time"] = (
+                end_time
+            )
 
         if self.support_pilot_wire and pilot_wire:
             json_therm_set["rooms"][0]["therm_setpoint_fp"] = pilot_wire

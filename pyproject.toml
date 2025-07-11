@@ -1,14 +1,12 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = [ "setuptools>=77", "setuptools_scm>=8" ]
+requires = ["setuptools>=77", "setuptools_scm>=8"]
 
 [project]
 name = "pyatmo"
 description = "Simple API to access Netatmo weather station data from any Python 3 script. Designed for Home Assistant (but not only)"
 readme = "README.md"
-authors = [
-    { email = "jabesq@gmail.com", name = "Hugo Dupras" },
-]
+authors = [{ email = "jabesq@gmail.com", name = "Hugo Dupras" }]
 maintainers = [
     { email = "cgtobi@gmail.com", name = "Tobias Sauerwein" },
     { email = "jabesq@gmail.com", name = "Hugo Dupras" },
@@ -48,7 +46,7 @@ show_error_codes = true
 pretty = true
 check_untyped_defs = true
 strict_equality = true
-implicit_optional=true
+implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_unreachable = true
@@ -65,20 +63,20 @@ fix = true
 line-length = 88
 
 [tool.ruff.lint]
-select = [ "ALL" ]
+select = ["ALL"]
 ignore = [
     "COM812",  # missing-trailing-comma (COM812) - Handled by formatter
-    "D202",  # blank-line-after-function (D202)
-    "D203",  # incorrect-blank-line-before-class (D203)
-    "D213",  # multi-line-summary-second-line (D213)
+    "D202",    # blank-line-after-function (D202)
+    "D203",    # incorrect-blank-line-before-class (D203)
+    "D213",    # multi-line-summary-second-line (D213)
     "DTZ005",  # call-datetime-now-without-tzinfo (DTZ005)
     "DTZ006",  # call-datetime-fromtimestamp (DTZ006)
-    "E501",  # line-too-long (E501)
+    "E501",    # line-too-long (E501)
     "FBT001",  # Boolean-typed positional argument in function definition (FBT001)
     "FBT002",  # Boolean default positional argument in function definition (FBT002)
     "FBT003",  # Boolean positional value in function call (FBT003)
-    "PLR0913",  # Too many arguments in function definition (PLR0913)
-    "PLW2901",  # redefined-loop-name (PLW2901)
+    "PLR0913", # Too many arguments in function definition (PLR0913)
+    "PLW2901", # redefined-loop-name (PLW2901)
 ]
 
 [tool.ruff.lint.flake8-pytest-style]
@@ -116,17 +114,16 @@ local_scheme = "no-local-version"
 
 [tool.uv]
 dev-dependencies = [
-    "anyio>=4.3.0",
-    "black>=24.8.0",
-    "codespell>=2.3.0",
+    "anyio>=4.9.0",
+    "codespell>=2.4.1",
     "docutils>=0.21.2",
-    "mypy>=1.11.2",
-    "pre-commit>=3.8.0",
-    "pytest-asyncio>=0.24.0",
-    "pytest-cov>=5.0.0",
-    "pytest>=8.3.3",
-    "ruff>=0.6.4",
+    "mypy>=1.16.1",
+    "pre-commit>=4.2.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
+    "pytest>=8.4.1",
+    "ruff>=0.12.2",
     "time-machine>=2.15.0",
-    "tox-uv>=1.25.0",
+    "tox-uv>=1.26.1",
     "twine>=6.1.0",
 ]

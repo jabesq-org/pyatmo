@@ -662,10 +662,16 @@ MEASURE_INTERVAL_TO_SECONDS = {
 }
 
 ENERGY_FILTERS: str = (
-    f"{MeasureType.SUM_ENERGY_ELEC.value},{MeasureType.SUM_ENERGY_ELEC_BASIC.value},{MeasureType.SUM_ENERGY_ELEC_PEAK.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value}"
+    f"{MeasureType.SUM_ENERGY_ELEC.value},"
+    f"{MeasureType.SUM_ENERGY_ELEC_BASIC.value},"
+    f"{MeasureType.SUM_ENERGY_ELEC_PEAK.value},"
+    f"{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK.value}"
 )
 ENERGY_FILTERS_LEGACY: str = (
-    f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_BASIC_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_PEAK_LEGACY.value},{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_LEGACY.value}"
+    f"{MeasureType.SUM_ENERGY_ELEC_LEGACY.value},"
+    f"{MeasureType.SUM_ENERGY_ELEC_BASIC_LEGACY.value},"
+    f"{MeasureType.SUM_ENERGY_ELEC_PEAK_LEGACY.value},"
+    f"{MeasureType.SUM_ENERGY_ELEC_OFF_PEAK_LEGACY.value}"
 )
 ENERGY_FILTERS_MODES: list[str] = ["generic", "basic", "peak", "off_peak"]
 

@@ -322,9 +322,14 @@ class Home:
     async def async_set_state(self, data: dict[str, Any]) -> bool:
         """Set state using given data."""
         if not is_valid_state(data):
+            LOG.error(
+                "INVALID DATA Setting state for home (%s) according to %s",
+                self.entity_id,
+                data,
+            )
             msg = "Data for '/set_state' contains errors."
             raise InvalidStateError(msg)
-        LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
+        LOG.info("Setting state for home (%s) according to %s", self.entity_id, data)
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
             params={"json": {"home": {"id": self.entity_id, **data}}},
@@ -440,8 +445,38 @@ class Home:
 
 
 def is_valid_state(data: dict[str, Any]) -> bool:
-    """Check set state data."""
-    return data is not None
+    """Check set state data, and return False if error(s) found."""
+    if data is None or (not isinstance(data, dict)):
+        return False
+
+    ret = False
+
+    for list_names in ["rooms", "modules"]:
+        if list_names in data:
+            if not isinstance(data[list_names], list) or len(data[list_names]) != 1:
+                return False
+
+            item = data[list_names][0]
+            if (
+                not isinstance(item, dict)
+                or "id" not in item
+                or not isinstance(item["id"], str)
+            ):
+                return False
+
+            if item["id"].lower() in ["none", "", "null", "undefined", "unknown"]:
+                return False
+
+            if (
+                list_names == "rooms"
+                and "therm_setpoint_mode" not in item
+                and "cooling_setpoint_mode" not in item
+            ):
+                return False
+
+            ret = True
+
+    return ret
 
 
 def is_valid_schedule(schedule: Schedule) -> bool:

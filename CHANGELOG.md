@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
+### Removed
+
+-
+
+## [9.2.2]
+
 ### Changed
 
 - Improved type hints and annotations using pyrefly
@@ -444,7 +460,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.2.1...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...HEAD
+[9.2.2]: https://github.com/jabesq-org/pyatmo/compare/v9.2.1...v9.2.2
 [9.2.1]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...v9.2.1
 [9.2.0]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...v9.2.0
 [9.1.0]: https://github.com/jabesq-org/pyatmo/compare/v9.0.0...v9.1.0

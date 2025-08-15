@@ -19,7 +19,7 @@ repos:
     hooks:
       - id: check-ast
       - id: no-commit-to-branch
-        args: [--branch, master, --branch, devel]
+        args: [--branch, master, --branch, devel, --branch, development]
       - id: forbid-new-submodules
       - id: check-merge-conflict
       - id: detect-private-key

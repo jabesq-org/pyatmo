@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace black by ruff format
 - Use astral uv actions in github actions
 - Update dev dependencies and tooling
--
+- Test uv build for test.pypi
 
 ### Fixed
 

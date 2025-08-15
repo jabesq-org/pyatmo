@@ -25,7 +25,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Build a binary wheel and a source tarball
-        run: uv run python -m build .
+        run: uv build
 
       - name: Publish 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

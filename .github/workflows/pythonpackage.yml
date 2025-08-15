@@ -25,7 +25,7 @@ jobs:
       - name: Format with ruff
         uses: astral-sh/ruff-action@v3
         with:
-          version: "0.12.2"
+          version: "0.12.9"
           args: "format --check --diff src/pyatmo/ tests/"
 
   linter:
@@ -40,7 +40,7 @@ jobs:
       - name: Lint with ruff
         uses: astral-sh/ruff-action@v3
         with:
-          version: "0.12.2"
+          version: "0.12.9"
           args: "check src/pyatmo tests/"
 
   typechecker:

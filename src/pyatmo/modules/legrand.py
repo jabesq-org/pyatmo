@@ -181,3 +181,7 @@ class NLPD(OffloadMixin, Switch):
 
 class NLJ(FirmwareMixin, ShutterMixin, Module):
     """Legrand garage door opener."""
+
+
+class NLY(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
+    """Legrand connected 3 phases energy meter."""

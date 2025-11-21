@@ -76,6 +76,7 @@ class DeviceType(str, Enum):
     NLLF = "NLLF"  # Legrand Centralized Ventilation Control
     NLTS = "NLTS"  # Legrand motion sensor stub
     NLJ = "NLJ"  # Legrand garage door opener
+    NLY = "NLY"  # Connected 3 phases energy meter
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from pyatmo.const import HOME
 from pyatmo.exceptions import NoDeviceError
 
 if TYPE_CHECKING:
@@ -14,7 +13,6 @@ if TYPE_CHECKING:
 LOG: logging.Logger = logging.getLogger(__name__)
 
 ATTRIBUTES_TO_FIX: dict[str, str] = {
-    "_id": "id",
     "firmware": "firmware_revision",
     "firmware_revision": "firmware_revision",
     "firmware_name": "firmware_name",
@@ -39,29 +37,29 @@ ATTRIBUTES_TO_FIX: dict[str, str] = {
 def normalize_weather_attributes(raw_data: RawData) -> RawData:
     """Normalize weather-related attributes recursively."""
 
-    if isinstance(raw_data, dict):
-        normalized: dict[str, Any] = {}
-        has_internal_id = "_id" in raw_data
-        for key, value in raw_data.items():
-            if key == "_id":
-                normalized["_id"] = value
-                if "id" not in raw_data:
-                    normalized.setdefault("id", value)
-                continue
-            if key == "dashboard_data" and isinstance(value, dict):
-                normalized.update(normalize_weather_attributes(value))
-                continue
-            normalized[ATTRIBUTES_TO_FIX.get(key, key)] = normalize_weather_attributes(
-                value
-            )
-        if has_internal_id and "id" not in normalized:
-            normalized["id"] = raw_data["_id"]
-        return normalized
-
-    if isinstance(raw_data, list):
-        return [normalize_weather_attributes(item) for item in raw_data]
-
-    return raw_data
+    if not isinstance(raw_data, dict):
+        return (
+            [normalize_weather_attributes(item) for item in raw_data]
+            if isinstance(raw_data, list)
+            else raw_data
+        )
+    normalized: dict[str, Any] = {}
+    has_internal_id = "_id" in raw_data
+    for key, value in raw_data.items():
+        if key == "_id":
+            normalized["_id"] = value
+            if "id" not in raw_data:
+                normalized.setdefault("id", value)
+            continue
+        if key == "dashboard_data" and isinstance(value, dict):
+            normalized |= normalize_weather_attributes(value)
+            continue
+        normalized[ATTRIBUTES_TO_FIX.get(key, key)] = normalize_weather_attributes(
+            value
+        )
+    if has_internal_id and "id" not in normalized:
+        normalized["id"] = raw_data["_id"]
+    return normalized
 
 
 def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
@@ -87,7 +85,7 @@ def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
 def extract_raw_data(resp: RawData, tag: str) -> RawData:
     """Extract raw data from server response."""
     if tag == "body":
-        return {"public": normalize_weather_attributes(resp["body"]), "errors": []}
+        return {"public": resp["body"], "errors": []}
 
     if resp is None or "body" not in resp or tag not in resp["body"]:
         LOG.debug("Server response (tag: %s): %s", tag, resp)
@@ -95,10 +93,6 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
         raise NoDeviceError(msg)
 
     body = normalize_weather_attributes(resp["body"])
-    if tag == HOME and "modules" in body.get(HOME, {}):
-        body[HOME]["modules"] = [
-            normalize_weather_attributes(module) for module in body[HOME]["modules"]
-        ]
 
     if tag == "homes":
         homes: list[dict[str, Any] | str] = fix_id(body.get(tag))

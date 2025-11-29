@@ -18,7 +18,7 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     RawData,
 )
-from pyatmo.helpers import extract_raw_data
+from pyatmo.helpers import extract_raw_data, normalize_weather_attributes
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
 
@@ -293,33 +293,3 @@ class AsyncAccount:
             ),
             None,
         )
-
-
-ATTRIBUTES_TO_FIX: dict[str, str] = {
-    "_id": "id",
-    "firmware": "firmware_revision",
-    "wifi_status": "wifi_strength",
-    "rf_status": "rf_strength",
-    "Temperature": "temperature",
-    "Humidity": "humidity",
-    "Pressure": "pressure",
-    "CO2": "co2",
-    "AbsolutePressure": "absolute_pressure",
-    "Noise": "noise",
-    "Rain": "rain",
-    "WindStrength": "wind_strength",
-    "WindAngle": "wind_angle",
-    "GustStrength": "gust_strength",
-    "GustAngle": "gust_angle",
-}
-
-
-def normalize_weather_attributes(raw_data: RawData) -> dict[str, Any]:
-    """Normalize weather attributes."""
-    result: dict[str, Any] = {}
-    for attribute, value in raw_data.items():
-        if attribute == "dashboard_data":
-            result.update(**normalize_weather_attributes(value))
-        else:
-            result[ATTRIBUTES_TO_FIX.get(attribute, attribute)] = value
-    return result

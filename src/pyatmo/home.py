@@ -25,6 +25,7 @@ from pyatmo.exceptions import (
     InvalidStateError,
     NoScheduleError,
 )
+from pyatmo.helpers import normalize_weather_attributes
 from pyatmo.person import Person
 from pyatmo.room import Room
 from pyatmo.schedule import Schedule
@@ -174,6 +175,7 @@ class Home:
 
         has_an_update = False
         for module in data.get("modules", []):
+            module = normalize_weather_attributes(module)
             has_an_update = True
             if module["id"] not in self.modules:
                 self.update_topology({"modules": [module]})

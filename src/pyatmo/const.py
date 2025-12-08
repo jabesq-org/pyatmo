@@ -59,6 +59,7 @@ ALL_SCOPES: list[str] = [
     "access_camera",  # Netatmo camera products
     "access_doorbell",  # Netatmo Smart Video Doorbell
     "access_presence",  # Netatmo Smart Outdoor Camera
+    "access_camerapro",  # Netatmo Indoor Camera Advance
     "read_bubendorff",  # Bubbendorf shutters
     "read_bfi",  # BTicino IP
     "read_camera",  # Netatmo camera products
@@ -73,6 +74,7 @@ ALL_SCOPES: list[str] = [
     "read_smokedetector",  # Smart Smoke Alarm information and events
     "read_station",  # Netatmo weather station
     "read_thermostat",  # Netatmo climate products
+    "read_camerapro",  # Netatmo Indoor Camera Advance
     "write_bubendorff",  # Bubbendorf shutters
     "write_bfi",  # BTicino IP
     "write_camera",  # Netatmo camera products
@@ -82,6 +84,7 @@ ALL_SCOPES: list[str] = [
     "write_presence",  # Netatmo Smart Outdoor Camera
     "write_smarther",  # Smarther products
     "write_thermostat",  # Netatmo climate products
+    "write_camerapro",  # Netatmo Indoor Camera Advance
 ]
 
 EVENTS = "events"

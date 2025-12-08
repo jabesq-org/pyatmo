@@ -49,6 +49,9 @@ GETSTATIONDATA_ENDPOINT = "api/getstationsdata"
 
 GETPUBLIC_DATA_ENDPOINT = "api/getpublicdata"
 
+WEBRTC_OFFER_ENDPOINT = "api/webrtc/offer"
+WEBRTC_TERMINATE_ENDPOINT = "api/webrtc/terminate"
+
 AUTHORIZATION_HEADER = "Authorization"
 
 # Possible scops

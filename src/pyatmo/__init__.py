@@ -17,6 +17,7 @@ from pyatmo.home import Home
 from pyatmo.modules import Module
 from pyatmo.modules.device_types import DeviceType
 from pyatmo.room import Room
+from pyatmo.webrtc import WebRTCStream
 
 __all__: list[str] = [
     "AbstractAsyncAuth",
@@ -33,6 +34,7 @@ __all__: list[str] = [
     "NoDeviceError",
     "NoScheduleError",
     "Room",
+    "WebRTCStream",
     "const",
     "modules",
 ]

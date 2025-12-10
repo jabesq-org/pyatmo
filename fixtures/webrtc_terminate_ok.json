@@ -1,0 +1,10 @@
+{
+    "status": "ok",
+    "time_server": 1765234822,
+    "body": {
+        "type": "ack",
+        "time_server": 1765234822,
+        "correlation_id": "11591074238736810245",
+        "status": "ok"
+    }
+}

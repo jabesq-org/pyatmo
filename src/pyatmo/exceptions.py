@@ -35,3 +35,7 @@ class ApiHomeReachabilityError(ApiError):
 
 class InvalidStateError(Exception):
     """Raised when an invalid state is encountered."""
+
+
+class ApiTooManyRequestError(ApiError):
+    """Raised when API returned 429 code 11."""

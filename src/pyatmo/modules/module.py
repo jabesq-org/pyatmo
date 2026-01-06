@@ -824,7 +824,9 @@ class EnergyHistoryMixin(EntityBase):
 
         delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0) // 2
 
-        filters, raw_data = await self._energy_api_calls(start_time, end_time, interval)
+        _filters, raw_data = await self._energy_api_calls(
+            start_time, end_time, interval
+        )
 
         hist_good_vals = await self._get_aligned_energy_values_and_mode(
             start_time,

@@ -14,19 +14,33 @@ from aiohttp import (
     ClientTimeout,
     ContentTypeError,
 )
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from pyatmo.const import (
     AUTHORIZATION_HEADER,
+    CONCURRENCY_ERROR_CODE,
     DEFAULT_BASE_URL,
     ERRORS,
     FORBIDDEN_ERROR_CODE,
     THROTTLING_ERROR_CODE,
+    TOO_MANY_REQUESTS_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
-from pyatmo.exceptions import ApiError, ApiThrottlingError
+from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
+# Retries to official API
+MAX_RETRIES = 5
+INITIAL_BACKOFF = 1  # in seconds
+MULTIPLIER = 1
 
 
 class AbstractAsyncAuth(ABC):
@@ -77,6 +91,13 @@ class AbstractAsyncAuth(ABC):
         msg = f"{resp.status} - invalid content-type in response when accessing '{url}'"
         raise ApiError(msg)
 
+    @retry(
+        retry=retry_if_exception_type(ApiTooManyRequestError),
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=wait_exponential(multiplier=MULTIPLIER, min=INITIAL_BACKOFF),
+        before_sleep=before_sleep_log(LOG, logging.DEBUG),
+        reraise=True,
+    )
     async def async_post_api_request(
         self,
         endpoint: str,
@@ -161,6 +182,13 @@ class AbstractAsyncAuth(ABC):
                 f"when accessing '{url}'"
             )
 
+            if (
+                resp_status == TOO_MANY_REQUESTS_ERROR_CODE
+                and resp_json["error"]["code"] == CONCURRENCY_ERROR_CODE
+            ):
+                raise ApiTooManyRequestError(message)
+
+            LOG.debug("The Netatmo API returned %s", message)
             if (
                 resp_status == FORBIDDEN_ERROR_CODE
                 and resp_json["error"]["code"] == THROTTLING_ERROR_CODE

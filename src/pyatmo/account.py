@@ -18,7 +18,7 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     RawData,
 )
-from pyatmo.helpers import extract_raw_data, normalize_weather_attributes
+from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
 
@@ -235,8 +235,8 @@ class AsyncAccount:
                         module_data["home_id"] = home_id
                         module_data["id"] = module_data["_id"]
                         module_data["name"] = module_data.get("module_name")
-                        modules_data.append(normalize_weather_attributes(module_data))
-                    modules_data.append(normalize_weather_attributes(device_data))
+                        modules_data.append(module_data)
+                    modules_data.append(device_data)
 
                     self.homes[home_id] = Home(
                         self.auth,
@@ -247,7 +247,7 @@ class AsyncAccount:
                         },
                     )
                 await self.homes[home_id].update(
-                    {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
+                    {HOME: {"modules": [device_data]}},
                 )
             else:
                 LOG.debug("No home %s (%s) found.", home_id, home_id)
@@ -264,7 +264,6 @@ class AsyncAccount:
                     "station_name",
                     device_data.get("module_name", "Unknown"),
                 )
-                device_data = normalize_weather_attributes(device_data)
                 if device_data["id"] not in self.modules:
                     self.modules[device_data["id"]] = getattr(
                         modules,

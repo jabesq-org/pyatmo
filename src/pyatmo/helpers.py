@@ -44,12 +44,9 @@ def normalize_weather_attributes(raw_data: RawData) -> RawData:
             else raw_data
         )
     normalized: dict[str, Any] = {}
-    has_internal_id = "_id" in raw_data
     for key, value in raw_data.items():
         if key == "_id":
             normalized["_id"] = value
-            if "id" not in raw_data:
-                normalized.setdefault("id", value)
             continue
         if key == "dashboard_data" and isinstance(value, dict):
             normalized |= normalize_weather_attributes(value)
@@ -57,8 +54,8 @@ def normalize_weather_attributes(raw_data: RawData) -> RawData:
         normalized[ATTRIBUTES_TO_FIX.get(key, key)] = normalize_weather_attributes(
             value
         )
-    if has_internal_id and "id" not in normalized:
-        normalized["id"] = raw_data["_id"]
+    if "_id" in normalized and "id" not in normalized:
+        normalized["id"] = normalized["_id"]
     return normalized
 
 

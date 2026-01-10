@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+# types for data that can be normalized (recursive structures) - to satisfy mypy
+NormalizableData = dict[str, Any] | list[Any] | str | int | float | bool | None
+
 ATTRIBUTES_TO_FIX: dict[str, str] = {
     "firmware": "firmware_revision",
     "firmware_revision": "firmware_revision",
@@ -34,26 +37,28 @@ ATTRIBUTES_TO_FIX: dict[str, str] = {
 }
 
 
-def normalize_weather_attributes(raw_data: RawData) -> RawData:
+def normalize_weather_attributes(raw_data: NormalizableData) -> NormalizableData:
     """Normalize weather-related attributes recursively."""
 
+    if isinstance(raw_data, list):
+        return [normalize_weather_attributes(item) for item in raw_data]
+
     if not isinstance(raw_data, dict):
-        return (
-            [normalize_weather_attributes(item) for item in raw_data]
-            if isinstance(raw_data, list)
-            else raw_data
-        )
+        return raw_data
+
     normalized: dict[str, Any] = {}
     for key, value in raw_data.items():
         if key == "_id":
             normalized["_id"] = value
             continue
         if key == "dashboard_data" and isinstance(value, dict):
-            normalized |= normalize_weather_attributes(value)
+            # useless cast here to satisfy mypy
+            normalized |= cast("dict[str, Any]", normalize_weather_attributes(value))
             continue
-        normalized[ATTRIBUTES_TO_FIX.get(key, key)] = normalize_weather_attributes(
-            value
-        )
+
+        mapped_key = ATTRIBUTES_TO_FIX[key] if key in ATTRIBUTES_TO_FIX else key  # noqa: SIM401
+        normalized[mapped_key] = normalize_weather_attributes(value)
+
     if "_id" in normalized and "id" not in normalized:
         normalized["id"] = normalized["_id"]
     return normalized
@@ -89,10 +94,11 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
         msg = "No device found, errors in response"
         raise NoDeviceError(msg)
 
-    body = normalize_weather_attributes(resp["body"])
+    # useless cast here again to satisfy mypy
+    body = cast("dict[str, Any]", normalize_weather_attributes(resp["body"]))
 
     if tag == "homes":
-        homes: list[dict[str, Any] | str] = fix_id(body.get(tag))
+        homes: list[dict[str, Any] | str] = fix_id(body.get(tag, []))
         if not homes:
             LOG.debug("Server response (tag: %s): %s", tag, resp)
             msg = "No homes found"
@@ -102,7 +108,7 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
             "errors": body.get("errors", []),
         }
 
-    if not (raw_data := fix_id(body.get(tag))):
+    if not (raw_data := fix_id(body.get(tag, []))):
         LOG.debug("Server response (tag: %s): %s", tag, resp)
         msg = "No device data available"
         raise NoDeviceError(msg)

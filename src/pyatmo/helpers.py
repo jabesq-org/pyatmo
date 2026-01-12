@@ -17,8 +17,6 @@ NormalizableData = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 ATTRIBUTES_TO_FIX: dict[str, str] = {
     "firmware": "firmware_revision",
-    "firmware_revision": "firmware_revision",
-    "firmware_name": "firmware_name",
     "wifi_status": "wifi_strength",
     "rf_status": "rf_strength",
     "Temperature": "temperature",

@@ -99,10 +99,12 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
         msg = "No device found, errors in response"
         raise NoDeviceError(msg)
 
-    body = normalize_weather_attributes(resp["body"])
+    body = resp["body"]
+    tag_data = body.get(tag, [])
+    normalized_data = [normalize_weather_attributes(item) for item in tag_data if isinstance(item, dict)]
 
     if tag == "homes":
-        homes: list[dict[str, Any] | str] = fix_id(body.get(tag, []))
+        homes: list[dict[str, Any] | str] = fix_id(normalized_data)
         if not homes:
             LOG.debug("Server response (tag: %s): %s", tag, resp)
             msg = "No homes found"
@@ -112,7 +114,7 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
             "errors": body.get("errors", []),
         }
 
-    if not (raw_data := fix_id(body.get(tag, []))):
+    if not (raw_data := fix_id(normalized_data)):
         LOG.debug("Server response (tag: %s): %s", tag, resp)
         msg = "No device data available"
         raise NoDeviceError(msg)

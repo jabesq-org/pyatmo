@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from pyatmo.exceptions import NoDeviceError
 
@@ -11,9 +11,6 @@ if TYPE_CHECKING:
     from pyatmo.const import RawData
 
 LOG: logging.Logger = logging.getLogger(__name__)
-
-# types for data that can be normalized (recursive structures) - to satisfy mypy
-NormalizableData = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 ATTRIBUTES_TO_FIX: dict[str, str] = {
     "firmware": "firmware_revision",
@@ -35,31 +32,41 @@ ATTRIBUTES_TO_FIX: dict[str, str] = {
 }
 
 
-def normalize_weather_attributes(raw_data: NormalizableData) -> NormalizableData:
-    """Normalize weather-related attributes recursively."""
+def _normalize_value(value: Any) -> Any:
+    """Recursively normalize a value (handles nested dicts and lists)."""
+    if isinstance(value, dict):
+        return _normalize_dict(value)
+    if isinstance(value, list):
+        return [_normalize_value(item) for item in value]
+    return value
 
-    if isinstance(raw_data, list):
-        return [normalize_weather_attributes(item) for item in raw_data]
 
-    if not isinstance(raw_data, dict):
-        return raw_data
-
+def _normalize_dict(raw_data: dict[str, Any]) -> dict[str, Any]:
+    """Normalize a dictionary's weather-related attributes."""
     normalized: dict[str, Any] = {}
     for key, value in raw_data.items():
         if key == "_id":
             normalized["_id"] = value
             continue
         if key == "dashboard_data" and isinstance(value, dict):
-            # useless cast here to satisfy mypy
-            normalized |= cast("dict[str, Any]", normalize_weather_attributes(value))
+            normalized |= _normalize_dict(value)
             continue
 
-        mapped_key = ATTRIBUTES_TO_FIX[key] if key in ATTRIBUTES_TO_FIX else key  # noqa: SIM401
-        normalized[mapped_key] = normalize_weather_attributes(value)
+        mapped_key = ATTRIBUTES_TO_FIX.get(key, key)
+        normalized[mapped_key] = _normalize_value(value)
 
     if "_id" in normalized and "id" not in normalized:
         normalized["id"] = normalized["_id"]
     return normalized
+
+
+def normalize_weather_attributes(raw_data: RawData) -> dict[str, Any]:
+    """Normalize weather attributes.
+
+    Transforms API response attribute names to standardized names
+    and flattens dashboard_data into the parent dictionary.
+    """
+    return _normalize_dict(raw_data)
 
 
 def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
@@ -74,7 +81,7 @@ def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
         if station.get("_id") is None:
             continue
 
-        station["_id"] = cast("dict", station)["_id"].replace(" ", "")
+        station["_id"] = station["_id"].replace(" ", "")
 
         for module in station.get("modules", {}):
             module["_id"] = module["_id"].replace(" ", "")
@@ -92,8 +99,7 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
         msg = "No device found, errors in response"
         raise NoDeviceError(msg)
 
-    # useless cast here again to satisfy mypy
-    body = cast("dict[str, Any]", normalize_weather_attributes(resp["body"]))
+    body = normalize_weather_attributes(resp["body"])
 
     if tag == "homes":
         homes: list[dict[str, Any] | str] = fix_id(body.get(tag, []))

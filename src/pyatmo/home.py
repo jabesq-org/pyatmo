@@ -181,7 +181,7 @@ class Home:
 
         for room in data.get("rooms", []):
             has_an_update = True
-            if room["id"] in self.rooms.keys():
+            if room["id"] in self.rooms::
                 self.rooms[room["id"]].update(room)
 
         for person_status in data.get("persons", []):

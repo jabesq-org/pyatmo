@@ -17,6 +17,7 @@ from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_nam
 from pyatmo.modules.device_types import (
     DEVICE_CATEGORY_MAP,
     ApplianceType,
+    Category,
     DeviceCategory,
     DeviceType,
 )
@@ -35,6 +36,7 @@ ATTRIBUTE_FILTER = {
     "battery_state",
     "battery_level",
     "battery_percent",
+    "category",
     "date_min_temp",
     "date_max_temp",
     "name",
@@ -313,6 +315,21 @@ class ApplianceTypeMixin(EntityBase):
         self.appliance_type: ApplianceType | None = module.get(
             "appliance_type",
             ApplianceType.unknown,
+        )
+
+
+class CategoryMixin(EntityBase):
+    """Mixin for category data."""
+
+    category: Category | None
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize category mixin."""
+
+        super().__init__(home, module)
+        self.appliance_type: Category | None = module.get(
+            "category",
+            Category.unknown,
         )
 
 

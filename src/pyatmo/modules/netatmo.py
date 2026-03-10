@@ -23,6 +23,7 @@ from pyatmo.modules.module import (
     BatteryMixin,
     BoilerMixin,
     Camera,
+    CategoryMixin,
     CO2Mixin,
     FirmwareMixin,
     FloodlightMixin,
@@ -146,7 +147,9 @@ class NHC(
     """Class to represent a Netatmo NHC."""
 
 
-class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, Module):
+class NACamDoorTag(
+    StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, CategoryMixin, Module
+):
     """Class to represent a Netatmo NACamDoorTag."""
 
 

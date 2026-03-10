@@ -35,7 +35,7 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "place": lambda x, _: Place(x.get("place")),
     "target_position__step": lambda x, _: x.get("target_position:step"),
     "appliance_type": lambda x, y: ApplianceType(x.get("appliance_type", y)),
-    "doortag_category": lambda x, y: DoorTagCategory(x.get("doortag_category", y)),
+    "doortag_category": lambda x, y: DoorTagCategory(x.get("category", y)),
 }
 
 

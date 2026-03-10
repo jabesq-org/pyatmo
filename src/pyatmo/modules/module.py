@@ -36,7 +36,6 @@ ATTRIBUTE_FILTER = {
     "battery_state",
     "battery_level",
     "battery_percent",
-    "category",
     "date_min_temp",
     "date_max_temp",
     "name",
@@ -328,7 +327,7 @@ class DoorTagCategoryMixin(EntityBase):
 
         super().__init__(home, module)
         self.doortag_category: DoorTagCategory | None = module.get(
-            "category",
+            "doortag_category",
             DoorTagCategory.unknown,
         )
 

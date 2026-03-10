@@ -325,7 +325,7 @@ class ApplianceType(str, Enum):
         return ApplianceType.unknown
 
 
-class Category(str, Enum):
+class DoorTagCategory(str, Enum):
     """Class to represent category of a module. This is only for Home + Security/NACamDoorTag."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -339,9 +339,9 @@ class Category(str, Enum):
     unknown = "unknown"
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[Category.unknown]:
+    def _missing_(cls, key: object) -> Literal[DoorTagCategory.unknown]:
         """Handle unknown device category."""
 
         msg: str = f"{key} category is unknown"
         LOG.warning(msg)
-        return Category.unknown
+        return DoorTagCategory.unknown

@@ -17,9 +17,9 @@ from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_nam
 from pyatmo.modules.device_types import (
     DEVICE_CATEGORY_MAP,
     ApplianceType,
-    Category,
     DeviceCategory,
     DeviceType,
+    DoorTagCategory,
 )
 
 if TYPE_CHECKING:
@@ -318,18 +318,18 @@ class ApplianceTypeMixin(EntityBase):
         )
 
 
-class CategoryMixin(EntityBase):
+class DoorTagCategoryMixin(EntityBase):
     """Mixin for category data."""
 
-    category: Category | None
+    doortag_category: DoorTagCategory | None
 
     def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize category mixin."""
 
         super().__init__(home, module)
-        self.appliance_type: Category | None = module.get(
+        self.doortag_category: DoorTagCategory | None = module.get(
             "category",
-            Category.unknown,
+            DoorTagCategory.unknown,
         )
 
 

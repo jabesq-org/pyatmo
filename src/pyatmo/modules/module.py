@@ -327,7 +327,7 @@ class DoorTagCategoryMixin(EntityBase):
 
         super().__init__(home, module)
         self.doortag_category: DoorTagCategory | None = module.get(
-            "doortag_category",
+            "category",
             DoorTagCategory.unknown,
         )
 

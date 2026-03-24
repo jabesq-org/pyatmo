@@ -328,8 +328,6 @@ class ApplianceType(str, Enum):
 class DoorTagCategory(str, Enum):
     """Class to represent category of a module. This is only for Home + Security/NACamDoorTag."""
 
-    # temporarily disable locally-disabled and locally-enabled
-
     door = "door"
     furniture = "furniture"
     garage = "garage"

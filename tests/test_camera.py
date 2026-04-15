@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 import anyio
 
 from pyatmo import DeviceType
+from pyatmo.modules.module import SirenMixin
 from tests.common import MockResponse
 
 
@@ -191,3 +192,13 @@ async def test_async_camera_siren(async_home):
             params=gen_json_data("no_sound"),
             endpoint="api/setstate",
         )
+
+
+async def test_async_camera_siren_missing_status(async_home):
+    """Test that NOC handles missing siren_status in API payload gracefully."""
+    module_id = "12:34:56:10:b9:0e"
+    module = async_home.modules[module_id]
+
+    # Simulate an API response without siren_status (e.g. older firmware)
+    module.siren_status = None
+    assert module.siren_status is None

@@ -35,6 +35,7 @@ from pyatmo.modules.module import (
     PressureMixin,
     RainMixin,
     RfMixin,
+    SirenMixin,
     StatusMixin,
     TemperatureMixin,
     WifiMixin,
@@ -76,7 +77,7 @@ class NPC(Camera):
     """Class to represent a Netatmo NPC."""
 
 
-class NOC(FloodlightMixin, Camera):
+class NOC(SirenMixin, FloodlightMixin, Camera):
     """Class to represent a Netatmo NOC."""
 
 

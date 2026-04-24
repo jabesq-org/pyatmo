@@ -577,6 +577,39 @@ class FloodlightMixin(EntityBase):
         return await self.async_set_floodlight_state("auto")
 
 
+class SirenMixin(EntityBase):
+    """Mixin for siren data."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize siren mixin."""
+
+        super().__init__(home, module)
+        self.siren_status: str | None = None
+
+    async def async_set_siren_state(self, state: str) -> bool:
+        """Set siren state."""
+
+        json_siren_state = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    "siren_status": state,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_siren_state)
+
+    async def async_siren_on(self) -> bool:
+        """Turn on siren."""
+
+        return await self.async_set_siren_state("sound")
+
+    async def async_siren_off(self) -> bool:
+        """Turn off siren."""
+
+        return await self.async_set_siren_state("no_sound")
+
+
 class StatusMixin(EntityBase):
     """Mixin for status data."""
 

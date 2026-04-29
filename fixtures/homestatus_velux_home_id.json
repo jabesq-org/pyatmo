@@ -1,0 +1,57 @@
+{
+  "status": "ok",
+  "body": {
+    "home": {
+      "modules": [
+        {
+          "id": "velux_gateway_id",
+          "type": "NXG",
+          "wifi_strength": 44,
+          "locked": true,
+          "locking": false,
+          "secure": true,
+          "busy": false,
+          "calibrating": false,
+          "pairing": false,
+          "is_raining": false,
+          "last_seen": 1776675797,
+          "hardware_version": 1,
+          "firmware_revision_netatmo": 10,
+          "firmware_revision_thirdparty": 14
+        },
+        {
+          "id": "velux_opener_awning",
+          "type": "NXO",
+          "bridge": "velux_gateway_id",
+          "current_position": 100,
+          "target_position": 100,
+          "mode": "algo_disabled",
+          "reachable": true,
+          "velux_type": "awning_blind",
+          "silent": false,
+          "manufacturer": "Netatmo",
+          "last_seen": 1776675797,
+          "firmware_revision": 14
+        },
+        {
+          "id": "velux_opener_blind",
+          "type": "NXO",
+          "bridge": "velux_gateway_id",
+          "current_position": 0,
+          "target_position": 0,
+          "mode": "algo_disabled",
+          "reachable": true,
+          "velux_type": "blind",
+          "silent": false,
+          "manufacturer": "Netatmo",
+          "last_seen": 1776675797,
+          "firmware_revision": 14
+        }
+      ],
+      "rooms": [],
+      "persons": [],
+      "events": []
+    },
+    "errors": []
+  }
+}

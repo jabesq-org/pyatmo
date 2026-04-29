@@ -101,6 +101,10 @@ class DeviceType(str, Enum):
     NBR = "NBR"  # roller shutter
     NBS = "NBS"  # swing shutter
 
+    # VELUX ACTIVE
+    NXG = "NXG"  # gateway
+    NXO = "NXO"  # opener / cover
+
     # Somfy
     TPSRS = "TPSRS"  # Somfy io shutter
 
@@ -163,6 +167,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLLM: DeviceCategory.shutter,
     DeviceType.NBR: DeviceCategory.shutter,
     DeviceType.NBO: DeviceCategory.shutter,
+    DeviceType.NXO: DeviceCategory.shutter,
     DeviceType.NLP: DeviceCategory.switch,
     DeviceType.NLPM: DeviceCategory.switch,
     DeviceType.NLPBS: DeviceCategory.switch,
@@ -281,6 +286,9 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),
     DeviceType.NBO: ("Bubbendorf", "Orientable Shutter"),
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
+    # VELUX ACTIVE
+    DeviceType.NXG: ("VELUX ACTIVE", "Gateway"),
+    DeviceType.NXO: ("VELUX ACTIVE", "Opener"),
     # Somfy
     DeviceType.TPSRS: ("Somfy", "io Shutter"),
     # 3rd Party

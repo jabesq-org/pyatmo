@@ -21,11 +21,11 @@ jobs:
         python-version: [3.12.11]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Format with ruff
         uses: astral-sh/ruff-action@v3
         with:
-          version: "0.12.9"
+          version: "0.15.12"
           args: "format --check --diff src/pyatmo/ tests/"
 
   linter:
@@ -36,11 +36,11 @@ jobs:
         python-version: [3.12.11]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Lint with ruff
         uses: astral-sh/ruff-action@v3
         with:
-          version: "0.12.9"
+          version: "0.15.12"
           args: "check src/pyatmo tests/"
 
   typechecker:
@@ -51,9 +51,9 @@ jobs:
         python-version: [3.12.11]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5.6.0
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -78,11 +78,11 @@ jobs:
           - ""
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"

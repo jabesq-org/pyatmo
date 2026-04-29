@@ -129,6 +129,7 @@
           "network_lock": false,
           "firmware_name": "3.2.0",
           "wifi_strength": 62,
+          "siren_status": "no_sound",
           "alim_status": 2,
           "locked": false,
           "wifi_state": "high"

@@ -19,6 +19,7 @@ from pyatmo.modules.device_types import (
     ApplianceType,
     DeviceCategory,
     DeviceType,
+    DoorTagCategory,
 )
 
 if TYPE_CHECKING:
@@ -316,6 +317,21 @@ class ApplianceTypeMixin(EntityBase):
         )
 
 
+class DoorTagCategoryMixin(EntityBase):
+    """Mixin for category data."""
+
+    doortag_category: DoorTagCategory | None
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize category mixin."""
+
+        super().__init__(home, module)
+        self.doortag_category: DoorTagCategory | None = module.get(
+            "category",
+            DoorTagCategory.unknown,
+        )
+
+
 class PowerMixin(EntityBase):
     """Mixin for power data."""
 
@@ -577,6 +593,39 @@ class FloodlightMixin(EntityBase):
         return await self.async_set_floodlight_state("auto")
 
 
+class SirenMixin(EntityBase):
+    """Mixin for siren data."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize siren mixin."""
+
+        super().__init__(home, module)
+        self.siren_status: str | None = None
+
+    async def async_set_siren_state(self, state: str) -> bool:
+        """Set siren state."""
+
+        json_siren_state = {
+            "modules": [
+                {
+                    "id": self.entity_id,
+                    "siren_status": state,
+                },
+            ],
+        }
+        return await self.home.async_set_state(json_siren_state)
+
+    async def async_siren_on(self) -> bool:
+        """Turn on siren."""
+
+        return await self.async_set_siren_state("sound")
+
+    async def async_siren_off(self) -> bool:
+        """Turn off siren."""
+
+        return await self.async_set_siren_state("no_sound")
+
+
 class StatusMixin(EntityBase):
     """Mixin for status data."""
 
@@ -824,7 +873,7 @@ class EnergyHistoryMixin(EntityBase):
 
         delta_range = MEASURE_INTERVAL_TO_SECONDS.get(interval, 0) // 2
 
-        filters, raw_data = await self._energy_api_calls(start_time, end_time, interval)
+        _, raw_data = await self._energy_api_calls(start_time, end_time, interval)
 
         hist_good_vals = await self._get_aligned_energy_values_and_mode(
             start_time,

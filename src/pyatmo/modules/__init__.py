@@ -53,6 +53,7 @@ from .legrand import (
     NLUO,
     NLUP,
     NLV,
+    NLY,
     Z3L,
     Z3V,
     NLunknown,
@@ -84,6 +85,7 @@ from .netatmo import (
 )
 from .smarther import BNS
 from .somfy import TPSRS
+from .velux import NXG, NXO
 
 __all__ = [
     "BNAB",
@@ -144,10 +146,13 @@ __all__ = [
     "NLUO",
     "NLUP",
     "NLV",
+    "NLY",
     "NOC",
     "NPC",
     "NRV",
     "NSD",
+    "NXG",
+    "NXO",
     "OTH",
     "OTM",
     "TPSRS",

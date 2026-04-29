@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Literal
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-class DeviceType(str, Enum):
+class DeviceType(StrEnum):
     """Class to represent Netatmo device types."""
 
     # Climate/Energy
@@ -101,6 +101,10 @@ class DeviceType(str, Enum):
     NBR = "NBR"  # roller shutter
     NBS = "NBS"  # swing shutter
 
+    # VELUX ACTIVE
+    NXG = "NXG"  # gateway
+    NXO = "NXO"  # opener / cover
+
     # Somfy
     TPSRS = "TPSRS"  # Somfy io shutter
 
@@ -122,7 +126,7 @@ class DeviceType(str, Enum):
         return DeviceType.NLunknown
 
 
-class DeviceCategory(str, Enum):
+class DeviceCategory(StrEnum):
     """Class to represent Netatmo device types."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -163,6 +167,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NLLM: DeviceCategory.shutter,
     DeviceType.NBR: DeviceCategory.shutter,
     DeviceType.NBO: DeviceCategory.shutter,
+    DeviceType.NXO: DeviceCategory.shutter,
     DeviceType.NLP: DeviceCategory.switch,
     DeviceType.NLPM: DeviceCategory.switch,
     DeviceType.NLPBS: DeviceCategory.switch,
@@ -281,6 +286,9 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NBR: ("Bubbendorf", "Roller Shutter"),
     DeviceType.NBO: ("Bubbendorf", "Orientable Shutter"),
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
+    # VELUX ACTIVE
+    DeviceType.NXG: ("VELUX ACTIVE", "Gateway"),
+    DeviceType.NXO: ("VELUX ACTIVE", "Opener"),
     # Somfy
     DeviceType.TPSRS: ("Somfy", "io Shutter"),
     # 3rd Party
@@ -292,7 +300,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
 }
 
 
-class ApplianceType(str, Enum):
+class ApplianceType(StrEnum):
     """Class to represent appliance type of a module. This is only for Home + Control."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -306,7 +314,7 @@ class ApplianceType(str, Enum):
     multimedia = "multimedia"
     router = "router"
     other = "other"
-    ooking = "cooking"
+    cooking = "cooking"
     radiator = "radiator"
     radiator_without_pilot_wire = "radiator_without_pilot_wire"
     water_heater = "water_heater"
@@ -323,3 +331,23 @@ class ApplianceType(str, Enum):
         msg: str = f"{key} appliance type is unknown"
         LOG.warning(msg)
         return ApplianceType.unknown
+
+
+class DoorTagCategory(StrEnum):
+    """Class to represent category of a module. This is only for Home + Security/NACamDoorTag."""
+
+    door = "door"
+    furniture = "furniture"
+    garage = "garage"
+    gate = "gate"
+    other = "other"
+    window = "window"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: object) -> Literal[DoorTagCategory.unknown]:
+        """Handle unknown device category."""
+
+        msg: str = f"{key} category is unknown"
+        LOG.warning(msg)
+        return DoorTagCategory.unknown

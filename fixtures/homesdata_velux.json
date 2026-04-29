@@ -1,0 +1,57 @@
+{
+  "status": "ok",
+  "body": {
+    "homes": [
+      {
+        "id": "velux_home_id",
+        "name": "VELUX Test Home",
+        "modules": [
+          {
+            "id": "velux_gateway_id",
+            "type": "NXG",
+            "name": "Gateway 1",
+            "subtype": "EU",
+            "reachable": true,
+            "modules_bridged": [
+              "velux_opener_awning",
+              "velux_opener_blind"
+            ],
+            "pincode_enabled": false
+          },
+          {
+            "id": "velux_opener_awning",
+            "type": "NXO",
+            "name": "Bedroom Awning",
+            "bridge": "velux_gateway_id",
+            "room_id": "velux_room_id",
+            "velux_type": "awning_blind"
+          },
+          {
+            "id": "velux_opener_blind",
+            "type": "NXO",
+            "name": "Bedroom Blind",
+            "bridge": "velux_gateway_id",
+            "room_id": "velux_room_id",
+            "velux_type": "blind"
+          }
+        ],
+        "rooms": [
+          {
+            "id": "velux_room_id",
+            "name": "Bedroom",
+            "module_ids": [
+              "velux_opener_awning",
+              "velux_opener_blind"
+            ]
+          }
+        ],
+        "schedules": [],
+        "persons": []
+      }
+    ],
+    "user": {
+      "email": "velux@example.com"
+    },
+    "errors": []
+  }
+}

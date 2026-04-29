@@ -55,6 +55,7 @@ async def test_async_NOC(async_home):
     assert module.alim_status == 2
     assert module.is_local is False
     assert module.floodlight == "auto"
+    assert module.siren_status == "no_sound"
 
     async with await anyio.open_file(
         "fixtures/status_ok.json",
@@ -144,3 +145,59 @@ async def test_async_camera_monitoring(async_home):
             params=gen_json_data("off"),
             endpoint="api/setstate",
         )
+
+
+async def test_async_camera_siren(async_home):
+    """Test basic camera siren functionality."""
+    module_id = "12:34:56:10:b9:0e"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.NOC
+    assert module.siren_status == "no_sound"
+
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
+
+    def gen_json_data(state):
+        return {
+            "json": {
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "id": module_id,
+                            "siren_status": state,
+                        },
+                    ],
+                },
+            },
+        }
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        assert await module.async_siren_on()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data("sound"),
+            endpoint="api/setstate",
+        )
+
+        assert await module.async_siren_off()
+        mock_resp.assert_awaited_with(
+            params=gen_json_data("no_sound"),
+            endpoint="api/setstate",
+        )
+
+
+async def test_async_camera_siren_missing_status(async_home):
+    """Test that NOC handles missing siren_status in API payload gracefully."""
+    module_id = "12:34:56:10:b9:0e"
+    module = async_home.modules[module_id]
+
+    # Simulate an API response without siren_status (e.g. older firmware)
+    module.siren_status = None
+    assert module.siren_status is None

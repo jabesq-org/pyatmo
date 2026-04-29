@@ -181,16 +181,7 @@ class Home:
 
         for room in data.get("rooms", []):
             has_an_update = True
-            if room["id"] in self.rooms:
-                self.rooms[room["id"]].update(room)
-            else:
-                LOG.warning(
-                    "Room id (%s) not found in known rooms. Known room ids: %s (count=%d)",
-                    room["id"],
-                    list(self.rooms.keys()),
-                    len(self.rooms),
-                )
-
+            self.rooms[room["id"]].update(room)
 
         for person_status in data.get("persons", []):
             # if there is a person update, it means the house has been updated

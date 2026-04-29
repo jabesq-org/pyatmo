@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, patch
 import anyio
 
 from pyatmo import DeviceType
-from pyatmo.modules.module import SirenMixin
 from tests.common import MockResponse
 
 

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Literal
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-class DeviceType(str, Enum):
+class DeviceType(StrEnum):
     """Class to represent Netatmo device types."""
 
     # Climate/Energy
@@ -126,7 +126,7 @@ class DeviceType(str, Enum):
         return DeviceType.NLunknown
 
 
-class DeviceCategory(str, Enum):
+class DeviceCategory(StrEnum):
     """Class to represent Netatmo device types."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -300,7 +300,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
 }
 
 
-class ApplianceType(str, Enum):
+class ApplianceType(StrEnum):
     """Class to represent appliance type of a module. This is only for Home + Control."""
 
     # temporarily disable locally-disabled and locally-enabled
@@ -333,7 +333,7 @@ class ApplianceType(str, Enum):
         return ApplianceType.unknown
 
 
-class DoorTagCategory(str, Enum):
+class DoorTagCategory(StrEnum):
     """Class to represent category of a module. This is only for Home + Security/NACamDoorTag."""
 
     door = "door"

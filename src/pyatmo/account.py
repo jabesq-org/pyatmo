@@ -235,8 +235,8 @@ class AsyncAccount:
                         module_data["home_id"] = home_id
                         module_data["id"] = module_data["_id"]
                         module_data["name"] = module_data.get("module_name")
-                        modules_data.append(normalize_weather_attributes(module_data))
-                    modules_data.append(normalize_weather_attributes(device_data))
+                        modules_data.append(module_data)
+                    modules_data.append(device_data)
 
                     self.homes[home_id] = Home(
                         self.auth,
@@ -247,7 +247,7 @@ class AsyncAccount:
                         },
                     )
                 await self.homes[home_id].update(
-                    {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
+                    {HOME: {"modules": [device_data]}},
                 )
             else:
                 LOG.debug("No home %s (%s) found.", home_id, home_id)
@@ -264,7 +264,6 @@ class AsyncAccount:
                     "station_name",
                     device_data.get("module_name", "Unknown"),
                 )
-                device_data = normalize_weather_attributes(device_data)
                 if device_data["id"] not in self.modules:
                     self.modules[device_data["id"]] = getattr(
                         modules,
@@ -293,33 +292,3 @@ class AsyncAccount:
             ),
             None,
         )
-
-
-ATTRIBUTES_TO_FIX: dict[str, str] = {
-    "_id": "id",
-    "firmware": "firmware_revision",
-    "wifi_status": "wifi_strength",
-    "rf_status": "rf_strength",
-    "Temperature": "temperature",
-    "Humidity": "humidity",
-    "Pressure": "pressure",
-    "CO2": "co2",
-    "AbsolutePressure": "absolute_pressure",
-    "Noise": "noise",
-    "Rain": "rain",
-    "WindStrength": "wind_strength",
-    "WindAngle": "wind_angle",
-    "GustStrength": "gust_strength",
-    "GustAngle": "gust_angle",
-}
-
-
-def normalize_weather_attributes(raw_data: RawData) -> dict[str, Any]:
-    """Normalize weather attributes."""
-    result: dict[str, Any] = {}
-    for attribute, value in raw_data.items():
-        if attribute == "dashboard_data":
-            result.update(**normalize_weather_attributes(value))
-        else:
-            result[ATTRIBUTES_TO_FIX.get(attribute, attribute)] = value
-    return result

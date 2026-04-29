@@ -306,7 +306,7 @@ class ApplianceType(str, Enum):
     multimedia = "multimedia"
     router = "router"
     other = "other"
-    ooking = "cooking"
+    cooking = "cooking"
     radiator = "radiator"
     radiator_without_pilot_wire = "radiator_without_pilot_wire"
     water_heater = "water_heater"

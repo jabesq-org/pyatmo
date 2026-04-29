@@ -331,3 +331,23 @@ class ApplianceType(str, Enum):
         msg: str = f"{key} appliance type is unknown"
         LOG.warning(msg)
         return ApplianceType.unknown
+
+
+class DoorTagCategory(str, Enum):
+    """Class to represent category of a module. This is only for Home + Security/NACamDoorTag."""
+
+    door = "door"
+    furniture = "furniture"
+    garage = "garage"
+    gate = "gate"
+    other = "other"
+    window = "window"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: object) -> Literal[DoorTagCategory.unknown]:
+        """Handle unknown device category."""
+
+        msg: str = f"{key} category is unknown"
+        LOG.warning(msg)
+        return DoorTagCategory.unknown

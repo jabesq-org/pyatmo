@@ -19,6 +19,7 @@ from pyatmo.modules.device_types import (
     ApplianceType,
     DeviceCategory,
     DeviceType,
+    DoorTagCategory,
 )
 
 if TYPE_CHECKING:
@@ -313,6 +314,21 @@ class ApplianceTypeMixin(EntityBase):
         self.appliance_type: ApplianceType | None = module.get(
             "appliance_type",
             ApplianceType.unknown,
+        )
+
+
+class DoorTagCategoryMixin(EntityBase):
+    """Mixin for category data."""
+
+    doortag_category: DoorTagCategory | None
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize category mixin."""
+
+        super().__init__(home, module)
+        self.doortag_category: DoorTagCategory | None = module.get(
+            "category",
+            DoorTagCategory.unknown,
         )
 
 

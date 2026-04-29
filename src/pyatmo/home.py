@@ -191,7 +191,6 @@ class Home:
                     len(self.rooms),
                 )
 
-
         for person_status in data.get("persons", []):
             # if there is a person update, it means the house has been updated
             has_an_update = True

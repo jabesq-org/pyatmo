@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any, TypeVar
 
+from pyatmo.const import RawData
 from pyatmo.exceptions import NoDeviceError
-
-if TYPE_CHECKING:
-    from pyatmo.const import RawData
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -31,8 +29,10 @@ ATTRIBUTES_TO_FIX: dict[str, str] = {
     "wind_gust_angle": "gust_angle",
 }
 
+T = TypeVar("T", RawData, list)
 
-def _normalize_value(value: Any) -> Any:
+
+def _normalize_value(value: T) -> T:
     """Recursively normalize a value (handles nested dicts and lists)."""
     if isinstance(value, dict):
         return _normalize_dict(value)
@@ -41,9 +41,9 @@ def _normalize_value(value: Any) -> Any:
     return value
 
 
-def _normalize_dict(raw_data: dict[str, Any]) -> dict[str, Any]:
+def _normalize_dict(raw_data: RawData) -> RawData:
     """Normalize a dictionary's weather-related attributes."""
-    normalized: dict[str, Any] = {}
+    normalized: RawData = {}
     for key, value in raw_data.items():
         if key == "_id":
             normalized["_id"] = value
@@ -60,7 +60,7 @@ def _normalize_dict(raw_data: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
-def normalize_weather_attributes(raw_data: RawData) -> dict[str, Any]:
+def normalize_weather_attributes(raw_data: RawData) -> RawData:
     """Normalize weather attributes.
 
     Transforms API response attribute names to standardized names
@@ -101,7 +101,11 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
 
     body = resp["body"]
     tag_data = body.get(tag, [])
-    normalized_data = [normalize_weather_attributes(item) for item in tag_data if isinstance(item, dict)]
+    normalized_data = [
+        normalize_weather_attributes(item)
+        for item in tag_data
+        if isinstance(item, dict)
+    ]
 
     if tag == "homes":
         homes: list[dict[str, Any] | str] = fix_id(normalized_data)

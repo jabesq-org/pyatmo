@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for VELUX ACTIVE gateways (`NXG`) and covers (`NXO`)
+-
 
 ### Changed
 
@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 -
+
+## [9.3.0]
+
+### Added
+
+- Support for VELUX ACTIVE gateways (`NXG`) and covers (`NXO`)
+- New category concept for NACamDoorTag modules
+- Support for siren control for NOC (Smart Outdoor Camera)
+
+### Fixed
+
+- Correct typo in device_types for cooking
 
 ## [9.2.3]
 
@@ -466,7 +478,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...HEAD
+[9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...v9.3.0
 [9.2.2]: https://github.com/jabesq-org/pyatmo/compare/v9.2.1...v9.2.2
 [9.2.1]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...v9.2.1
 [9.2.0]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...v9.2.0

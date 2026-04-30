@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [9.4.0]
+
+### Added
+
+- Support for WebRTC live stream for Netatmo Indoor Camera Advance (NPC)
+
+### Changed
+
+- bump dependencies and tooling
+
 ## [9.3.0]
 
 ### Added
@@ -478,7 +488,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...HEAD
+[9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0
 [9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...v9.3.0
 [9.2.2]: https://github.com/jabesq-org/pyatmo/compare/v9.2.1...v9.2.2
 [9.2.1]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...v9.2.1

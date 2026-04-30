@@ -11,7 +11,12 @@ from typing import TYPE_CHECKING, Any
 
 from aiohttp import ClientConnectorError, ClientResponse
 
-from pyatmo.const import GETMEASURE_ENDPOINT, RawData
+from pyatmo.const import (
+    GETMEASURE_ENDPOINT,
+    WEBRTC_OFFER_ENDPOINT,
+    WEBRTC_TERMINATE_ENDPOINT,
+    RawData,
+)
 from pyatmo.exceptions import ApiError
 from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
 from pyatmo.modules.device_types import (
@@ -21,6 +26,7 @@ from pyatmo.modules.device_types import (
     DeviceType,
     DoorTagCategory,
 )
+from pyatmo.webrtc import WebRTCAnswer, WebRTCStream
 
 if TYPE_CHECKING:
     from pyatmo.event import Event
@@ -490,8 +496,8 @@ class ShutterMixin(EntityBase):
         return await self.async_set_target_position(self.__preferred_position)
 
 
-class CameraMixin(EntityBase):
-    """Mixin for camera data."""
+class CameraMixinBase(EntityBase):
+    """Base class for camera mixins."""
 
     def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize camera mixin."""
@@ -504,13 +510,28 @@ class CameraMixin(EntityBase):
         self.alim_status: int | None = None
         self.device_type: DeviceType
 
+        self._force_vpn_url = False
+
+    @property
+    def camera_url(self) -> str | None:
+        """Return the camera URL, if available.
+
+        Depending on the camera streaming protocol, this URL can be used to retrieve:
+          - The live snapshot (HLS and WebRTC).
+          - The live stream (HLS only).
+        """
+        return self.local_url or self.vpn_url
+
     async def async_get_live_snapshot(self) -> bytes | None:
         """Fetch live camera image."""
 
-        if not self.local_url and not self.vpn_url:
+        url = self.camera_url
+
+        if not url:
             return None
+
         resp = await self.home.auth.async_get_image(
-            base_url=f"{self.local_url or self.vpn_url}",
+            base_url=f"{url}",
             endpoint="/live/snapshot_720.jpg",
         )
 
@@ -519,8 +540,9 @@ class CameraMixin(EntityBase):
     async def async_update_camera_urls(self) -> None:
         """Update and validate the camera urls."""
 
-        if self.device_type == "NDB":
-            self.is_local = None
+        if self._force_vpn_url:
+            self.local_url = None
+            return
 
         if self.vpn_url and self.is_local:
             temp_local_url = await self._async_check_url(self.vpn_url)
@@ -553,6 +575,96 @@ class CameraMixin(EntityBase):
 
         resp_data = await resp.json()
         return resp_data.get("local_url") if resp_data else None
+
+
+class HLSCameraMixin(CameraMixinBase):
+    """Mixin for cameras using the HLS protocol."""
+
+
+class WebRTCCameraMixin(CameraMixinBase):
+    """Mixin for cameras using the WebRTC protocol."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize WebRTC camera mixin."""
+
+        super().__init__(home, module)
+
+        # WebRTC cameras don't support accessing the live stream nor snapshot via the local URL
+        self._force_vpn_url = True
+
+    async def async_start_stream(self, session_id: str, sdp_offer: str) -> WebRTCAnswer:
+        """Start WebRTC streaming session.
+
+        Netatmo cameras do not support ICE trickle when accessed through third-party applications,
+        so the SDP offer must include all ICE candidates.
+        """
+
+        params = {
+            "home_id": self.home.entity_id,
+            "device_id": self.entity_id,
+            "sdp": sdp_offer,
+            "session_id": session_id,
+        }
+
+        resp = await self.home.auth.async_post_api_request(
+            endpoint=WEBRTC_OFFER_ENDPOINT, params=params
+        )
+
+        json_resp = await resp.json()
+        resp_body = self._parse_webrtc_response_body(json_resp)
+
+        try:
+            if session_id != resp_body["session_id"]:
+                msg = "Invalid WebRTC answer: session ID mismatch"
+                raise ApiError(msg)
+
+            tag_id = resp_body["tag_id"]
+            sdp_answer = resp_body["sdpAnswer"]
+        except KeyError as exc:
+            msg = f"Invalid WebRTC answer: missing {exc} field"
+            raise ApiError(msg) from exc
+
+        return WebRTCAnswer(WebRTCStream(session_id, tag_id), sdp_answer)
+
+    async def async_stop_stream(self, stream: WebRTCStream) -> None:
+        """Stop an active WebRTC streaming session."""
+
+        params = {
+            "home_id": self.home.entity_id,
+            "device_id": self.entity_id,
+            "session_id": stream.session_id,
+            "tag_id": stream.tag_id,
+        }
+
+        resp = await self.home.auth.async_post_api_request(
+            endpoint=WEBRTC_TERMINATE_ENDPOINT, params=params
+        )
+
+        json_resp = await resp.json()
+        self._parse_webrtc_response_body(json_resp)
+
+    def _parse_webrtc_response_body(self, json_resp: dict[str, Any]) -> dict[str, Any]:
+        """Extract the body from a WebRTC API response and check for errors."""
+
+        if not json_resp:
+            msg = "Empty WebRTC response"
+            raise ApiError(msg)
+
+        try:
+            resp_body = json_resp["body"]
+
+            if resp_body["status"] != "ok":
+                error_dict = resp_body["error"]
+                error_code = error_dict["code"]
+                error_msg = error_dict["message"]
+
+                msg = f"WebRTC API error: {error_msg} ({error_code})"
+                raise ApiError(msg)
+        except KeyError as exc:
+            msg = f"Invalid WebRTC response: missing {exc} field"
+            raise ApiError(msg) from exc
+
+        return resp_body
 
 
 class FloodlightMixin(EntityBase):
@@ -1194,7 +1306,7 @@ class Camera(
     FirmwareMixin,
     MonitoringMixin,
     EventMixin,
-    CameraMixin,
+    CameraMixinBase,
     WifiMixin,
     Module,
 ):

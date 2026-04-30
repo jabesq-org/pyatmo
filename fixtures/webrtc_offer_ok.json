@@ -1,0 +1,13 @@
+{
+    "status": "ok",
+    "time_server": 1765234648,
+    "body": {
+        "type": "ack",
+        "time_server": 1765234642,
+        "correlation_id": "2775454822782367811",
+        "session_id": "af6da83b-1fd5-46ab-bf08-8e5db3cb9725",
+        "tag_id": "OZzgKVlQCW0=",
+        "status": "ok",
+        "sdpAnswer": "sdp_test_answser"
+    }
+}

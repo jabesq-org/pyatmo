@@ -24,9 +24,11 @@ from pyatmo.modules.module import (
     BoilerMixin,
     Camera,
     CO2Mixin,
+    DoorTagCategoryMixin,
     FirmwareMixin,
     FloodlightMixin,
     HealthIndexMixin,
+    HLSCameraMixin,
     HumidityMixin,
     Module,
     MonitoringMixin,
@@ -35,8 +37,10 @@ from pyatmo.modules.module import (
     PressureMixin,
     RainMixin,
     RfMixin,
+    SirenMixin,
     StatusMixin,
     TemperatureMixin,
+    WebRTCCameraMixin,
     WifiMixin,
     WindMixin,
 )
@@ -68,19 +72,19 @@ class OTM(FirmwareMixin, RfMixin, BatteryMixin, BoilerMixin, Module):
     """Class to represent a Netatmo OTM."""
 
 
-class NACamera(Camera):
+class NACamera(HLSCameraMixin, Camera):
     """Class to represent a Netatmo NACamera."""
 
 
-class NPC(Camera):
+class NPC(WebRTCCameraMixin, Camera):
     """Class to represent a Netatmo NPC."""
 
 
-class NOC(FloodlightMixin, Camera):
+class NOC(SirenMixin, FloodlightMixin, HLSCameraMixin, Camera):
     """Class to represent a Netatmo NOC."""
 
 
-class NDB(Camera):
+class NDB(WebRTCCameraMixin, Camera):
     """Class to represent a Netatmo NDB."""
 
 
@@ -146,7 +150,9 @@ class NHC(
     """Class to represent a Netatmo NHC."""
 
 
-class NACamDoorTag(StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, Module):
+class NACamDoorTag(
+    StatusMixin, FirmwareMixin, BatteryMixin, RfMixin, DoorTagCategoryMixin, Module
+):
     """Class to represent a Netatmo NACamDoorTag."""
 
 

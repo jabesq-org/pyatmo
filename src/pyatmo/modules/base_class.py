@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import GPS_COORDINATES_COUNT, MAX_HISTORY_TIME_FRAME, RawData
 from pyatmo.event import EventTypes
-from pyatmo.modules.device_types import ApplianceType, DeviceType
+from pyatmo.modules.device_types import ApplianceType, DeviceType, DoorTagCategory
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -35,6 +35,7 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "place": lambda x, _: Place(x.get("place")),
     "target_position__step": lambda x, _: x.get("target_position:step"),
     "appliance_type": lambda x, y: ApplianceType(x.get("appliance_type", y)),
+    "doortag_category": lambda x, y: DoorTagCategory(x.get("category", y)),
 }
 
 

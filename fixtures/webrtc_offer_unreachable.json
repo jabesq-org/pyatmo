@@ -1,0 +1,14 @@
+{
+    "status": "ok",
+    "time_server": 1765234880,
+    "body": {
+        "type": "ack",
+        "time_server": 1765234880,
+        "correlation_id": "5792380006970076896",
+        "status": "error",
+        "error": {
+            "code": 41,
+            "message": "Device is unreachable"
+        }
+    }
+}

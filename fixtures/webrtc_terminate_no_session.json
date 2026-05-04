@@ -1,0 +1,14 @@
+{
+    "status": "ok",
+    "time_server": 1765234777,
+    "body": {
+        "type": "ack",
+        "time_server": 1765234776,
+        "correlation_id": "9204136935571038154",
+        "status": "error",
+        "error": {
+            "code": 21,
+            "message": "Nil session"
+        }
+    }
+}

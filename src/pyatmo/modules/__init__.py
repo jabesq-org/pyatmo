@@ -85,6 +85,7 @@ from .netatmo import (
 )
 from .smarther import BNS
 from .somfy import TPSRS
+from .velux import NXG, NXO
 
 __all__ = [
     "BNAB",
@@ -150,6 +151,8 @@ __all__ = [
     "NPC",
     "NRV",
     "NSD",
+    "NXG",
+    "NXO",
     "OTH",
     "OTM",
     "TPSRS",

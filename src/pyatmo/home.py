@@ -337,7 +337,7 @@ class Home:
             )
             msg = "Data for '/set_state' contains errors."
             raise InvalidStateError(msg)
-        LOG.info("Setting state for home (%s) according to %s", self.entity_id, data)
+        LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=SETSTATE_ENDPOINT,
             params={"json": {"home": {"id": self.entity_id, **data}}},

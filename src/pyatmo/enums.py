@@ -12,6 +12,7 @@ class ScheduleType(StrEnum):
     ELECTRICITY_PRODUCTION = "electricity_production"
     EVENT = "event"
     AUTO = "auto"
+    ALGO = "algo"
 
 
 class TemperatureControlMode(StrEnum):

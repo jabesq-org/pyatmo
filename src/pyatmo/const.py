@@ -19,6 +19,10 @@ ERRORS: dict[int, str] = {
 RawData = dict[str, Any]
 
 DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
+# Alternative base URL for commands restricted on the public OAuth2 API.
+# app.netatmo.net accepts the same OAuth2 tokens but exposes endpoints
+# (e.g. siren_status) that api.netatmo.com currently rejects.
+SIREN_BASE_URL: str = "https://app.netatmo.net/"
 
 # Endpoints
 AUTH_REQ_ENDPOINT = "oauth2/token"

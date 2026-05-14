@@ -720,15 +720,9 @@ class SirenMixin(EntityBase):
     ) -> bool:
         """Set siren state.
 
-        By default uses the public OAuth2 API (api.netatmo.com).
-        The public API currently rejects siren_status with error code 21
-        ("should NOT have additional properties ['siren_status']").
-
-        Pass base_url=SIREN_BASE_URL to route via app.netatmo.net, which
-        accepts the same OAuth2 token and payload without restriction.
-        This workaround has been validated on a real NOC device and is
-        running in production. It can be dropped once Netatmo opens their
-        public API to siren_status.
+        Uses the public OAuth2 API by default. Pass base_url=SIREN_BASE_URL
+        to route via app.netatmo.net, which currently accepts siren_status
+        where the public API rejects it (error code 21).
         """
 
         resp = await self.home.auth.async_post_api_request(

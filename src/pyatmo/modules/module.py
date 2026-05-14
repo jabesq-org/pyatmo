@@ -13,6 +13,7 @@ from aiohttp import ClientConnectorError, ClientResponse
 
 from pyatmo.const import (
     GETMEASURE_ENDPOINT,
+    SETSTATE_ENDPOINT,
     WEBRTC_OFFER_ENDPOINT,
     WEBRTC_TERMINATE_ENDPOINT,
     RawData,
@@ -714,28 +715,50 @@ class SirenMixin(EntityBase):
         super().__init__(home, module)
         self.siren_status: str | None = None
 
-    async def async_set_siren_state(self, state: str) -> bool:
-        """Set siren state."""
+    async def async_set_siren_state(
+        self, state: str, base_url: str | None = None
+    ) -> bool:
+        """Set siren state.
 
-        json_siren_state = {
-            "modules": [
-                {
-                    "id": self.entity_id,
-                    "siren_status": state,
+        By default uses the public OAuth2 API (api.netatmo.com).
+        The public API currently rejects siren_status with error code 21
+        ("should NOT have additional properties ['siren_status']").
+
+        Pass base_url=SIREN_BASE_URL to route via app.netatmo.net, which
+        accepts the same OAuth2 token and payload without restriction.
+        This workaround has been validated on a real NOC device and is
+        running in production. It can be dropped once Netatmo opens their
+        public API to siren_status.
+        """
+
+        resp = await self.home.auth.async_post_api_request(
+            endpoint=SETSTATE_ENDPOINT,
+            base_url=base_url,
+            params={
+                "json": {
+                    "home": {
+                        "id": self.home.entity_id,
+                        "modules": [
+                            {
+                                "id": self.entity_id,
+                                "siren_status": state,
+                            },
+                        ],
+                    },
                 },
-            ],
-        }
-        return await self.home.async_set_state(json_siren_state)
+            },
+        )
+        return (await resp.json()).get("status") == "ok"
 
-    async def async_siren_on(self) -> bool:
+    async def async_siren_on(self, base_url: str | None = None) -> bool:
         """Turn on siren."""
 
-        return await self.async_set_siren_state("sound")
+        return await self.async_set_siren_state("sound", base_url=base_url)
 
-    async def async_siren_off(self) -> bool:
+    async def async_siren_off(self, base_url: str | None = None) -> bool:
         """Turn off siren."""
 
-        return await self.async_set_siren_state("no_sound")
+        return await self.async_set_siren_state("no_sound", base_url=base_url)
 
 
 class StatusMixin(EntityBase):

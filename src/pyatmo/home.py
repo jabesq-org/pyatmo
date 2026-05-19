@@ -452,7 +452,7 @@ class Home:
         return (await resp.json()).get("status") == "ok"
 
 
-def is_valid_state(data: dict[str, Any]) -> bool:
+def is_valid_state(data: dict[str, Any] | None) -> bool:
     """Check set state data, and return False if error(s) found."""
     if data is None or (not isinstance(data, dict)):
         return False

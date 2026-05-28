@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import anyio
 import pytest
 
-from pyatmo import ApiError, DeviceType, WebRTCStream
+from pyatmo import ApiError, DeviceType, SIREN_BASE_URL, WebRTCStream
 from tests.common import MockResponse
 from tests.conftest import does_not_raise
 
@@ -160,7 +160,7 @@ async def test_async_camera_monitoring(async_home):
 
 
 async def test_async_camera_siren(async_home):
-    """Test basic camera siren functionality."""
+    """Test siren control via default public API endpoint (api.netatmo.com)."""
     module_id = "12:34:56:10:b9:0e"
     assert module_id in async_home.modules
     module = async_home.modules[module_id]
@@ -194,14 +194,68 @@ async def test_async_camera_siren(async_home):
     ) as mock_resp:
         assert await module.async_siren_on()
         mock_resp.assert_awaited_with(
-            params=gen_json_data("sound"),
             endpoint="api/setstate",
+            base_url=None,
+            params=gen_json_data("sound"),
         )
 
         assert await module.async_siren_off()
         mock_resp.assert_awaited_with(
-            params=gen_json_data("no_sound"),
             endpoint="api/setstate",
+            base_url=None,
+            params=gen_json_data("no_sound"),
+        )
+
+
+async def test_async_camera_siren_app_endpoint(async_home):
+    """Test siren control via app.netatmo.net to bypass public API restriction.
+
+    The public OAuth2 API (api.netatmo.com) rejects siren_status with error
+    code 21. app.netatmo.net accepts the same OAuth2 token and payload.
+    Callers pass base_url=SIREN_BASE_URL to opt in to this workaround.
+    """
+    module_id = "12:34:56:10:b9:0e"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.NOC
+
+    async with await anyio.open_file(
+        "fixtures/status_ok.json",
+        encoding="utf-8",
+    ) as json_file:
+        response = json.loads(await json_file.read())
+
+    def gen_json_data(state):
+        return {
+            "json": {
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "id": module_id,
+                            "siren_status": state,
+                        },
+                    ],
+                },
+            },
+        }
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        assert await module.async_siren_on(base_url=SIREN_BASE_URL)
+        mock_resp.assert_awaited_with(
+            endpoint="api/setstate",
+            base_url=SIREN_BASE_URL,
+            params=gen_json_data("sound"),
+        )
+
+        assert await module.async_siren_off(base_url=SIREN_BASE_URL)
+        mock_resp.assert_awaited_with(
+            endpoint="api/setstate",
+            base_url=SIREN_BASE_URL,
+            params=gen_json_data("no_sound"),
         )
 
 

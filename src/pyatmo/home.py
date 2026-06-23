@@ -343,7 +343,17 @@ class Home:
             params={"json": {"home": {"id": self.entity_id, **data}}},
         )
 
-        return (await resp.json()).get("status") == "ok"
+        response = await resp.json()
+        body = response.get("body")
+        if isinstance(body, dict) and (errors := body.get("errors")):
+            LOG.warning(
+                "Set state response for home %s contains errors: status=%r errors=%r",
+                self.entity_id,
+                response.get("status"),
+                errors,
+            )
+            return False
+        return response.get("status") == "ok"
 
     async def async_set_persons_home(
         self,

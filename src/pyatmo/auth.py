@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from json import JSONDecodeError
 import logging
 from typing import Any
@@ -15,11 +17,12 @@ from aiohttp import (
     ContentTypeError,
 )
 from tenacity import (
+    RetryCallState,
     before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_exponential,
+    wait_random_exponential,
 )
 
 from pyatmo.const import (
@@ -37,10 +40,57 @@ from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestErr
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-# Retries to official API
-MAX_RETRIES = 5
-INITIAL_BACKOFF = 1  # in seconds
+# Retries to official API on 429 concurrency errors
+MAX_RETRIES = 4  # total attempts
+INITIAL_BACKOFF = 1  # seconds
 MULTIPLIER = 1
+MAX_BACKOFF = 8  # cap on a single fallback wait
+MAX_RETRY_AFTER = 60  # cap on an honored server Retry-After hint
+
+
+def _parse_retry_after(value: str | None) -> float | None:
+    """Parse a Retry-After header (RFC 7231) into seconds.
+
+    Accepts either a delta-seconds integer or an HTTP-date. Returns None when
+    the header is absent or unparseable. A date in the past clamps to 0.
+    """
+    if not value:
+        return None
+
+    value = value.strip()
+    if value.isdigit():
+        return float(value)
+
+    try:
+        retry_date = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+
+    if retry_date.tzinfo is None:
+        retry_date = retry_date.replace(tzinfo=UTC)
+
+    delta = (retry_date - datetime.now(UTC)).total_seconds()
+    return max(delta, 0.0)
+
+
+_fallback_wait = wait_random_exponential(
+    multiplier=MULTIPLIER,
+    min=INITIAL_BACKOFF,
+    max=MAX_BACKOFF,
+)
+
+
+def _wait_retry_after(retry_state: RetryCallState) -> float:
+    """Wait strategy honoring a server Retry-After, else bounded backoff.
+
+    Prefers the ``retry_after`` carried by ``ApiTooManyRequestError`` (capped
+    at ``MAX_RETRY_AFTER``); otherwise falls back to a jittered, bounded
+    exponential backoff.
+    """
+    exc = retry_state.outcome.exception() if retry_state.outcome else None
+    if isinstance(exc, ApiTooManyRequestError) and exc.retry_after is not None:
+        return min(exc.retry_after, MAX_RETRY_AFTER)
+    return _fallback_wait(retry_state)
 
 
 class AbstractAsyncAuth(ABC):
@@ -68,6 +118,10 @@ class AbstractAsyncAuth(ABC):
     ) -> bytes:
         """Wrap async get requests."""
 
+        # Note: the 429/concurrency retry lives on async_post_api_request only.
+        # Camera snapshots are best-effort and time-sensitive - retrying a live
+        # image seconds later has no value - so this path is deliberately not
+        # decorated.
         try:
             access_token: str = await self.async_get_access_token()
         except ClientError as err:
@@ -94,7 +148,7 @@ class AbstractAsyncAuth(ABC):
     @retry(
         retry=retry_if_exception_type(ApiTooManyRequestError),
         stop=stop_after_attempt(MAX_RETRIES),
-        wait=wait_exponential(multiplier=MULTIPLIER, min=INITIAL_BACKOFF),
+        wait=_wait_retry_after,
         before_sleep=before_sleep_log(LOG, logging.DEBUG),
         reraise=True,
     )
@@ -173,25 +227,27 @@ class AbstractAsyncAuth(ABC):
         """Handle error response."""
         try:
             resp_json: dict[str, Any] = await resp.json()
+            error: dict[str, Any] = resp_json.get("error", {})
+            error_code = error.get("code")
 
             message: str = (
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
-                f"{resp_json['error']['message']} "
-                f"({resp_json['error']['code']}) "
+                f"{error.get('message')} "
+                f"({error_code}) "
                 f"when accessing '{url}'"
             )
 
             if (
                 resp_status == TOO_MANY_REQUESTS_ERROR_CODE
-                and resp_json["error"]["code"] == CONCURRENCY_ERROR_CODE
+                and error_code == CONCURRENCY_ERROR_CODE
             ):
-                raise ApiTooManyRequestError(message)
+                retry_after = _parse_retry_after(resp.headers.get("Retry-After"))
+                raise ApiTooManyRequestError(message, retry_after=retry_after)
 
-            LOG.debug("The Netatmo API returned %s", message)
             if (
                 resp_status == FORBIDDEN_ERROR_CODE
-                and resp_json["error"]["code"] == THROTTLING_ERROR_CODE
+                and error_code == THROTTLING_ERROR_CODE
             ):
                 raise ApiThrottlingError(message)
 

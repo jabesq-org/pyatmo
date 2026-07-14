@@ -39,3 +39,8 @@ class InvalidStateError(Exception):
 
 class ApiTooManyRequestError(ApiError):
     """Raised when API returned 429 code 11."""
+
+    def __init__(self, message: str, retry_after: float | None = None) -> None:
+        """Initialize with an optional server-provided retry delay (seconds)."""
+        super().__init__(message)
+        self.retry_after = retry_after

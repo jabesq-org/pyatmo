@@ -17,9 +17,10 @@ def load_fixture(filename):
 
 
 class MockResponse:
-    def __init__(self, text, status):
+    def __init__(self, text, status, headers=None):
         self._text = text
         self.status = status
+        self.headers = headers or {}
 
     async def json(self):
         return self._text

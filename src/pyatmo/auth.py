@@ -22,7 +22,9 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_random_exponential,
+    wait_combine,
+    wait_exponential,
+    wait_random,
 )
 
 from pyatmo.const import (
@@ -73,10 +75,12 @@ def _parse_retry_after(value: str | None) -> float | None:
     return max(delta, 0.0)
 
 
-_fallback_wait = wait_random_exponential(
-    multiplier=MULTIPLIER,
-    min=INITIAL_BACKOFF,
-    max=MAX_BACKOFF,
+# Bounded exponential backoff with jitter. wait_exponential honors min/max
+# on all supported tenacity versions (wait_random_exponential only respects
+# min from 9.1.0), so combine it with wait_random for the jitter.
+_fallback_wait = wait_combine(
+    wait_exponential(multiplier=MULTIPLIER, min=INITIAL_BACKOFF, max=MAX_BACKOFF),
+    wait_random(0, 1),
 )
 
 

@@ -9,6 +9,7 @@ import pytest
 from tenacity import Future, RetryCallState
 
 from pyatmo.auth import (
+    INITIAL_BACKOFF,
     MAX_BACKOFF,
     MAX_RETRIES,
     MAX_RETRY_AFTER,
@@ -117,7 +118,7 @@ def test_wait_retry_after_falls_back_without_hint():
 
     result = _wait_retry_after(state)
 
-    assert 0.0 <= result <= MAX_BACKOFF
+    assert INITIAL_BACKOFF <= result <= MAX_BACKOFF + 1
 
 
 def test_wait_retry_after_falls_back_for_other_exception():
@@ -126,7 +127,7 @@ def test_wait_retry_after_falls_back_for_other_exception():
 
     result = _wait_retry_after(state)
 
-    assert 0.0 <= result <= MAX_BACKOFF
+    assert INITIAL_BACKOFF <= result <= MAX_BACKOFF + 1
 
 
 async def test_handle_error_429_code_11_raises_too_many_with_retry_after(auth):

@@ -137,6 +137,18 @@ async def test_async_climate_initial_state(async_account):
     assert isinstance(module, NATherm1)
 
 
+async def test_async_climate_last_seen(async_account):
+    """last_seen is parsed for non-VELUX modules."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+
+    module = home.modules["12:34:56:00:01:ae"]
+    assert module.last_seen == 1776675797
+    # availability metadata, not a measurement feature
+    assert "last_seen" not in module.features
+
+
 async def test_async_climate_disconnected_state(async_account):
     """Test climate state when disconnected."""
     home_id = "91763b24c43d3e344f424e8b"

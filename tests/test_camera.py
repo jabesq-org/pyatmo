@@ -6,9 +6,22 @@ from unittest.mock import AsyncMock, patch
 import anyio
 import pytest
 
-from pyatmo import ApiError, DeviceType, SIREN_BASE_URL, WebRTCStream
+from pyatmo import SIREN_BASE_URL, ApiError, DeviceType, WebRTCStream
+from pyatmo.modules.device_types import DeviceCategory, DoorTagCategory
 from tests.common import MockResponse
 from tests.conftest import does_not_raise
+
+
+async def test_async_doortag_NACamDoorTag(async_home):
+    """NACamDoorTag exposes doortag_category, keeps device_category, no feature leak."""
+    module_id = "12:34:56:00:86:99"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.device_type == DeviceType.NACamDoorTag
+    assert module.doortag_category == DoorTagCategory.window
+    assert module.device_category == DeviceCategory.opening
+    assert "doortag_category" not in module.features
+    assert "device_category" not in module.features
 
 
 async def test_async_camera_NACamera(async_home):

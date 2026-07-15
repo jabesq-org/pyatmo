@@ -244,6 +244,18 @@ class BoilerMixin(EntityBase):
         self.boiler_valve_comfort_boost: bool | None = None
 
 
+class OpenThermMixin(EntityBase):
+    """Mixin for OpenTherm boiler diagnostics (OTH)."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize OpenTherm mixin."""
+
+        super().__init__(home, module)
+        self.boiler_control: str | None = None  # onoff | opentherm | detecting
+        self.boiler_error: str | None = None
+        self.dhw_control: str | None = None  # none | instantaneous | water_tank
+
+
 class CoolerMixin(EntityBase):
     """Mixin for cooler data."""
 

@@ -98,6 +98,11 @@ async def test_async_climate_OTH(async_home):
     assert len(module.modules) == 1
     assert module.wifi_strength == 57
     assert module.firmware_revision == 22
+    assert module.boiler_control == "onoff"
+    assert module.boiler_error == "water_pressure"
+    assert module.dhw_control == "none"
+    # BoilerMixin field is now parsed; defaults to None when absent from the response
+    assert module.boiler_status is None
 
 
 async def test_async_climate_BNS(async_home):

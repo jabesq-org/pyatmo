@@ -137,6 +137,7 @@
         },
         {
           "boiler_control": "onoff",
+          "boiler_error": "water_pressure",
           "dhw_control": "none",
           "firmware_revision": 22,
           "hardware_version": 222,

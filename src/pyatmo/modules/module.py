@@ -60,6 +60,7 @@ ATTRIBUTE_FILTER = {
     "history_features",
     "history_features_values",
     "appliance_type",
+    "doortag_category",
 }
 
 

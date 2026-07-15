@@ -18,7 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Exclude `doortag_category` from the `NACamDoorTag` `features` set, matching the
+  handling of the sibling metadata attributes `device_category` and `appliance_type`
+  (#500)
 
 ### Removed
 

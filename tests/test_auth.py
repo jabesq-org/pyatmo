@@ -63,6 +63,8 @@ def test_too_many_request_error_defaults_retry_after_none():
 def test_parse_retry_after_delta_seconds():
     """A numeric Retry-After header parses to float seconds."""
     assert _parse_retry_after("5") == 5.0
+    assert _parse_retry_after(" 5 ") == 5.0
+    assert _parse_retry_after("005") == 5.0
 
 
 def test_parse_retry_after_empty_or_none():

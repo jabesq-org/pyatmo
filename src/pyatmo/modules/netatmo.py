@@ -33,6 +33,7 @@ from pyatmo.modules.module import (
     Module,
     MonitoringMixin,
     NoiseMixin,
+    OpenThermMixin,
     PlaceMixin,
     PressureMixin,
     RainMixin,
@@ -64,7 +65,7 @@ class NAPlug(FirmwareMixin, RfMixin, WifiMixin, Module):
     """Class to represent a Netatmo NAPlug."""
 
 
-class OTH(FirmwareMixin, WifiMixin, Module):
+class OTH(FirmwareMixin, WifiMixin, BoilerMixin, OpenThermMixin, Module):
     """Class to represent a Netatmo OTH."""
 
 

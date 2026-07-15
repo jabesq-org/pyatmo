@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   VELUX modules exposed it)
 - Parse the `offload_meters` list (smart-shedder module ids) on offload-capable
   modules
+- Parse OpenTherm boiler diagnostics on OTH modules (`boiler_control`,
+  `boiler_error`, `dhw_control`) and expose `boiler_status`
 
 ### Changed
 

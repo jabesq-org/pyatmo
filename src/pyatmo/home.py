@@ -168,7 +168,17 @@ class Home:
         has_error = False
         for module in raw_data.get("errors", []):
             has_error = True
-            await self.modules[module["id"]].update({})
+            module_id = module["id"]
+            if module_id in self.modules:
+                await self.modules[module_id].update({})
+                # Set error_code AFTER update({}): update() reruns reflection
+                # (_update_attributes) which would otherwise reset it to None.
+                self.modules[module_id].error_code = module.get("code")
+            else:
+                LOG.warning(
+                    "Error reported for unknown module id (%s); skipping",
+                    module_id,
+                )
 
         data = raw_data["home"]
 

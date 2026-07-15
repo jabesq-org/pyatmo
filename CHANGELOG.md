@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parse OpenTherm boiler diagnostics on OTH modules as typed enums
   (`boiler_control`, `boiler_error`, `dhw_control`) and expose `boiler_status`;
   unknown values fall back to `unknown` instead of breaking parsing
+- Surface the per-module error `code` from the `/homestatus` `errors[]` array as
+  `Module.error_code`, and log a warning for errors on unknown module ids
 
 ### Changed
 

@@ -244,6 +244,34 @@ async def test_home_event_update(async_account):
     assert events[1].event_type == "connection"
 
 
+async def test_async_home_module_error_code(async_account):
+    """Test that per-module error code from homestatus errors[] is surfaced."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+
+    module_id = "12:34:56:00:fa:d0"
+    assert module_id in home.modules
+    module = home.modules[module_id]
+
+    async with await anyio.open_file(
+        "fixtures/home_status_error_disconnected.json",
+        encoding="utf-8",
+    ) as json_file:
+        home_status_fixture = json.loads(await json_file.read())
+    mock_home_status_resp = MockResponse(home_status_fixture, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=mock_home_status_resp),
+    ) as mock_request:
+        await async_account.async_update_status(home_id)
+        mock_request.assert_called()
+
+    assert module.error_code == 6
+    assert "error_code" not in module.features
+
+
 def test_device_types_missing():
     """Test handling of missing device types."""
 

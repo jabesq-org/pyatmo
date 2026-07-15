@@ -12,7 +12,14 @@ from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import GPS_COORDINATES_COUNT, MAX_HISTORY_TIME_FRAME, RawData
 from pyatmo.event import EventTypes
-from pyatmo.modules.device_types import ApplianceType, DeviceType, DoorTagCategory
+from pyatmo.modules.device_types import (
+    ApplianceType,
+    BoilerControl,
+    BoilerError,
+    DeviceType,
+    DhwControl,
+    DoorTagCategory,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -36,6 +43,17 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "target_position__step": lambda x, _: x.get("target_position:step"),
     "appliance_type": lambda x, y: ApplianceType(x.get("appliance_type", y)),
     "doortag_category": lambda x, y: DoorTagCategory(x.get("category", y)),
+    # Coerce only when present so absent fields keep their default (no spurious
+    # "unknown" warning from Enum(None) on every non-OTH update).
+    "boiler_control": lambda x, y: (
+        BoilerControl(x["boiler_control"]) if "boiler_control" in x else y
+    ),
+    "boiler_error": lambda x, y: (
+        BoilerError(x["boiler_error"]) if "boiler_error" in x else y
+    ),
+    "dhw_control": lambda x, y: (
+        DhwControl(x["dhw_control"]) if "dhw_control" in x else y
+    ),
 }
 
 

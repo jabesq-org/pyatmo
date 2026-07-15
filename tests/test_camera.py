@@ -21,6 +21,7 @@ async def test_async_doortag_NACamDoorTag(async_home):
     assert module.doortag_category == DoorTagCategory.window
     assert module.device_category == DeviceCategory.opening
     assert "doortag_category" not in module.features
+    assert "device_category" not in module.features
 
 
 async def test_async_camera_NACamera(async_home):

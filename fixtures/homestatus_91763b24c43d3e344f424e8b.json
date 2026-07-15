@@ -62,6 +62,7 @@
         },
         {
           "id": "12:34:56:00:01:ae",
+          "last_seen": 1776675797,
           "reachable": true,
           "type": "NATherm1",
           "firmware_revision": 65,

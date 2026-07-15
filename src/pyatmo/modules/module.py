@@ -68,6 +68,7 @@ ATTRIBUTE_FILTER = {
     "boiler_control",
     "boiler_error",
     "dhw_control",
+    "error_code",
 }
 
 
@@ -1281,6 +1282,7 @@ class Module(NetatmoBase):
     modules: list[str] | None
     reachable: bool | None
     last_seen: int | None
+    error_code: int | None
     features: set[str]
 
     def __init__(self, home: Home, module: ModuleT) -> None:
@@ -1294,6 +1296,7 @@ class Module(NetatmoBase):
         self.room_id = module.get("room_id")
         self.reachable = module.get("reachable")
         self.last_seen = module.get("last_seen")
+        self.error_code = None
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged")
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)

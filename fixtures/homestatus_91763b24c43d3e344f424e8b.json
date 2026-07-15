@@ -234,6 +234,7 @@
           "type": "NLP",
           "on": true,
           "offload": false,
+          "offload_meters": ["98:76:54:32:10:ab"],
           "firmware_revision": 62,
           "last_seen": 1644569425,
           "power": 0,

@@ -380,6 +380,7 @@ class OffloadMixin(EntityBase):
 
         super().__init__(home, module)
         self.offload: bool | None = None
+        self.offload_meters: list[str] | None = None
 
 
 class SwitchMixin(EntityBase):

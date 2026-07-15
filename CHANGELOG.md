@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   backoff, honoring the response `Retry-After` header when present (#547)
 - Parse the `last_seen` availability timestamp for all modules (previously only
   VELUX modules exposed it)
+- Parse the `offload_meters` list (smart-shedder module ids) on offload-capable
+  modules
 
 ### Changed
 

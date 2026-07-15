@@ -62,6 +62,7 @@ ATTRIBUTE_FILTER = {
     "appliance_type",
     "doortag_category",
     "last_seen",
+    "error_code",
 }
 
 
@@ -1275,6 +1276,7 @@ class Module(NetatmoBase):
     modules: list[str] | None
     reachable: bool | None
     last_seen: int | None
+    error_code: int | None
     features: set[str]
 
     def __init__(self, home: Home, module: ModuleT) -> None:
@@ -1287,6 +1289,7 @@ class Module(NetatmoBase):
         self.home = home
         self.room_id = module.get("room_id")
         self.reachable = module.get("reachable")
+        self.error_code = None
         self.last_seen = module.get("last_seen")
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged")

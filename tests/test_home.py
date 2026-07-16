@@ -310,6 +310,51 @@ async def test_async_account_user_country_and_consent(async_account):
     assert "user" not in async_account.raw_data
 
 
+async def test_async_home_electricity_schedule(async_home):
+    """Test electricity schedule tariff fields + zone prices are parsed."""
+    schedule = async_home.schedules["c1c54a2f45795764f59d50d9"]
+    assert schedule.type == "electricity"
+    assert schedule.tariff == "custom"
+    assert schedule.tariff_option == "peak_and_off_peak"
+    assert schedule.power_threshold == 6
+    assert schedule.contract_power_unit == "kVA"
+
+    peak = next(z for z in schedule.zones if z.entity_id == 0)
+    assert peak.price_type == "peak"
+    assert peak.price_value == 0.21
+    off_peak = next(z for z in schedule.zones if z.entity_id == 1)
+    assert off_peak.price_type == "off_peak"
+    assert off_peak.price_value == 0.16
+
+
+async def test_async_home_event_schedule(async_home):
+    """Test event schedule twilight timetables + zone module actions are parsed."""
+    schedule = async_home.schedules["d1d54a2f45795764f59d50da"]
+    assert schedule.type == "event"
+
+    assert len(schedule.timetable_sunrise) == 1
+    sunrise = schedule.timetable_sunrise[0]
+    assert sunrise.zone_id == 0
+    assert sunrise.day == 1
+    assert sunrise.twilight_offset == -30
+
+    assert len(schedule.timetable_sunset) == 1
+    assert schedule.timetable_sunset[0].twilight_offset == 15
+
+    morning = next(z for z in schedule.zones if z.entity_id == 0)
+    assert len(morning.modules) == 1
+    light = morning.modules[0]
+    assert light.entity_id == "12:34:56:00:01:ae"
+    assert light.bridge == "12:34:56:00:fa:d0"
+    assert light.on is True
+    assert light.brightness == 80
+
+    evening = next(z for z in schedule.zones if z.entity_id == 1)
+    shutter = evening.modules[0]
+    assert shutter.target_position == 100
+    assert shutter.fan_speed == 2
+
+
 def test_device_types_missing():
     """Test handling of missing device types."""
 

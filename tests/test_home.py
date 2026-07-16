@@ -305,6 +305,10 @@ async def test_async_account_user_country_and_consent(async_account):
     assert async_account.user_country == "DE"
     assert async_account.pending_user_consent is True
 
+    # The raw user block (email/id PII) must not leak into raw_data, which
+    # consumers such as Home Assistant diagnostics serialize wholesale.
+    assert "user" not in async_account.raw_data
+
 
 def test_device_types_missing():
     """Test handling of missing device types."""

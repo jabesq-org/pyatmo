@@ -33,7 +33,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "entity_id": lambda x, y: x.get("id", y),
-    "modules": lambda x, y: x.get("modules_bridged", y),
+    "modules": lambda x, y: x.get("modules_bridged", x.get("module_bridged", y)),
     "device_type": lambda x, y: DeviceType(x.get("type", y)),
     "event_type": lambda x, y: EventTypes(x.get("type", y)),
     "reachable": lambda x, _: x.get("reachable", False),

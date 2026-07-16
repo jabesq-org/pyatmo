@@ -1301,7 +1301,11 @@ class Module(NetatmoBase):
         self.setup_date = module.get("setup_date")
         self.error_code = None
         self.bridge = module.get("bridge")
-        self.modules = module.get("modules_bridged")
+        # API spelling is unconfirmed: some /homesdata schemas document the
+        # bridged-children list as `module_bridged`, others as `modules_bridged`.
+        # Read both so bridge/leaf logic works regardless. See
+        # homesdata-gap-fix-plan.md (Branch A).
+        self.modules = module.get("modules_bridged", module.get("module_bridged"))
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
         self.features = set()
 

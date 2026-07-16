@@ -360,3 +360,16 @@ def test_device_types_missing():
 
     assert DeviceType("NOC") == DeviceType.NOC
     assert DeviceType("UNKNOWN") == DeviceType.NLunknown
+
+
+async def test_module_bridged_key_variants(async_home):
+    """Both `modules_bridged` and `module_bridged` populate Module.modules."""
+    plural = async_home.get_module(
+        {"id": "aa:aa", "type": "NLP", "modules_bridged": ["child-1"]},
+    )
+    assert plural.modules == ["child-1"]
+
+    singular = async_home.get_module(
+        {"id": "bb:bb", "type": "NLP", "module_bridged": ["child-2"]},
+    )
+    assert singular.modules == ["child-2"]

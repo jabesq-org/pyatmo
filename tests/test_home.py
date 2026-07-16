@@ -414,3 +414,21 @@ async def test_home_geolocation(async_home):
     # Coordinates are exposed as-is; the API's lat/lon ordering is ambiguous
     # across schema variants, so the library does not reinterpret them.
     assert async_home.coordinates == [52.516263, 13.377726]
+
+
+async def test_home_geolocation_topology_update(async_home):
+    """Geolocation is refreshed on the update_topology path, not only __init__."""
+    async_home.update_topology(
+        {
+            "id": async_home.entity_id,
+            "name": "MYHOME",
+            "altitude": 5,
+            "coordinates": [1.0, 2.0],
+            "country": "FR",
+            "timezone": "Europe/Paris",
+        },
+    )
+    assert async_home.altitude == 5
+    assert async_home.coordinates == [1.0, 2.0]
+    assert async_home.country == "FR"
+    assert async_home.timezone == "Europe/Paris"

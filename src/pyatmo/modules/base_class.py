@@ -31,9 +31,19 @@ if TYPE_CHECKING:
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
+def bridged_module_ids(raw_data: dict[str, Any], default: Any = None) -> Any:  # noqa: ANN401
+    """Return the bridged-children module ids.
+
+    The /homesdata schema documents this list as `module_bridged` in some
+    variants and `modules_bridged` in others; the API spelling is unconfirmed.
+    Both are read, and `modules_bridged` takes precedence when both are present.
+    """
+    return raw_data.get("modules_bridged", raw_data.get("module_bridged", default))
+
+
 NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "entity_id": lambda x, y: x.get("id", y),
-    "modules": lambda x, y: x.get("modules_bridged", x.get("module_bridged", y)),
+    "modules": bridged_module_ids,
     "device_type": lambda x, y: DeviceType(x.get("type", y)),
     "event_type": lambda x, y: EventTypes(x.get("type", y)),
     "reachable": lambda x, _: x.get("reachable", False),

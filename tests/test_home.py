@@ -375,6 +375,19 @@ async def test_module_bridged_key_variants(async_home):
     assert singular.modules == ["child-2"]
 
 
+async def test_module_bridged_key_precedence(async_home):
+    """When both keys are present, `modules_bridged` wins over `module_bridged`."""
+    mod = async_home.get_module(
+        {
+            "id": "ee:ee",
+            "type": "NLP",
+            "modules_bridged": ["canonical"],
+            "module_bridged": ["alias"],
+        },
+    )
+    assert mod.modules == ["canonical"]
+
+
 async def test_module_bridged_key_topology_update(async_home):
     """Both bridged-key spellings work on the update_topology reflection path."""
     # update_topology -> _update_attributes drives the NETATMO_ATTRIBUTES_MAP

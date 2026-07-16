@@ -20,16 +20,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unknown values fall back to `unknown` instead of breaking parsing
 - Surface the per-module error `code` from the `/homestatus` `errors[]` array as
   `Module.error_code`, and log a warning for errors on unknown module ids
+- Parse the module `setup_date` (install timestamp) from the `/homesdata`
+  topology for all module types
+- Parse the room `type` (as `Room.room_type`) and `therm_relay` (id of the
+  controlling heating module) from the `/homesdata` topology
+- Parse the user `country` and `pending_user_consent` from `/homesdata` into
+  `AsyncAccount.user_country` and `AsyncAccount.pending_user_consent`
 
 ### Changed
 
--
+- Clarify the room setpoint-mode/pilot-wire lookup: replace the misleadingly
+  named "invert" dicts with `climate_setpoint_mode_to_pilot_wire` /
+  `pilot_wire_to_climate_setpoint_mode` helpers that centralize the shared
+  frost-guard fallback
 
 ### Fixed
 
 - Exclude `doortag_category` from the `NACamDoorTag` `features` set, matching the
   handling of the sibling metadata attributes `device_category` and `appliance_type`
   (#500)
+- `AsyncAccount.user` (email) was always `None` because `extract_raw_data` dropped
+  the `/homesdata` `user` object; the user block is now carried through and the
+  email populated
 
 ### Removed
 

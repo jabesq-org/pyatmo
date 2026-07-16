@@ -42,6 +42,8 @@ class AsyncAccount:
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
+        self.user_country: str | None = None
+        self.pending_user_consent: bool | None = None
         self.all_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
@@ -88,7 +90,10 @@ class AsyncAccount:
         )
         self.raw_data = extract_raw_data(await resp.json(), "homes")
 
-        self.user = self.raw_data.get("user", {}).get("email")
+        user = self.raw_data.get("user", {})
+        self.user = user.get("email")
+        self.user_country = user.get("country")
+        self.pending_user_consent = user.get("pending_user_consent")
 
         self.process_topology(disabled_homes_ids=disabled_homes_ids)
 

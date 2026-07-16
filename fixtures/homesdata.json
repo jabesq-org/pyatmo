@@ -1009,6 +1009,8 @@
       "unit_wind": 0,
       "all_linked": false,
       "type": "netatmo",
+      "country": "DE",
+      "pending_user_consent": true,
       "id": "91763b24c43d3e344f424e8b"
     }
   },

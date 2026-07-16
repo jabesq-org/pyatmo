@@ -88,9 +88,13 @@ class AsyncAccount:
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
         )
-        self.raw_data = extract_raw_data(await resp.json(), "homes")
+        body = await resp.json()
+        self.raw_data = extract_raw_data(body, "homes")
 
-        user = self.raw_data.get("user", {})
+        # Read the user block straight from the response body; keep it out of
+        # raw_data so consumers that serialize raw_data (e.g. Home Assistant
+        # diagnostics) do not leak the user's email/id.
+        user = body.get("body", {}).get("user", {})
         self.user = user.get("email")
         self.user_country = user.get("country")
         self.pending_user_consent = user.get("pending_user_consent")

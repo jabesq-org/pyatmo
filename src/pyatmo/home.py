@@ -38,6 +38,14 @@ if TYPE_CHECKING:
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+# Legacy/typo module type strings some /homesdata schema variants document,
+# mapped to the canonical type the library implements. Defensive: the live API
+# is expected to send the canonical spelling.
+MODULE_TYPE_ALIASES: dict[str, str] = {
+    "NBD": "NDB",  # transposition of Smart Video Doorbell
+    "NADoorTag": "NACamDoorTag",  # legacy Smart Door/Window Sensor name
+}
+
 
 class Home:
     """Class to represent a Netatmo home."""
@@ -103,13 +111,19 @@ class Home:
     def get_module(self, module: dict) -> Module:
         """Return module."""
 
+        module_type = MODULE_TYPE_ALIASES.get(module["type"], module["type"])
+        if module_type != module["type"]:
+            # Normalize so both the class lookup and DeviceType(...) in
+            # Module.__init__ see the canonical type.
+            module = {**module, "type": module_type}
+
         try:
-            return getattr(modules, module["type"])(
+            return getattr(modules, module_type)(
                 home=self,
                 module=module,
             )
         except AttributeError:
-            LOG.info("Unknown device type %s", module["type"])
+            LOG.info("Unknown device type %s", module_type)
             return modules.NLunknown(
                 home=self,
                 module=module,

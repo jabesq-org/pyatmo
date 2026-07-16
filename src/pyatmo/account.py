@@ -44,6 +44,9 @@ class AsyncAccount:
         self.user: str | None = None
         self.user_country: str | None = None
         self.pending_user_consent: bool | None = None
+        self.unit_system: int | None = None
+        self.unit_wind: int | None = None
+        self.unit_pressure: int | None = None
         self.all_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
@@ -98,6 +101,9 @@ class AsyncAccount:
         self.user = user.get("email")
         self.user_country = user.get("country")
         self.pending_user_consent = user.get("pending_user_consent")
+        self.unit_system = user.get("unit_system")
+        self.unit_wind = user.get("unit_wind")
+        self.unit_pressure = user.get("unit_pressure")
 
         self.process_topology(disabled_homes_ids=disabled_homes_ids)
 

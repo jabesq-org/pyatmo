@@ -482,3 +482,13 @@ async def test_home_update_new_module_preserves_home_fields(async_home):
     assert async_home.altitude == altitude
     assert async_home.coordinates == coordinates
     assert async_home.therm_mode == therm_mode
+
+
+async def test_account_user_units(async_account):
+    """Test user display-unit preferences from /homesdata are surfaced."""
+    assert async_account.unit_system == 0
+    assert async_account.unit_wind == 1
+    assert async_account.unit_pressure == 2
+
+    # The raw user block (email/id PII) must not leak into raw_data.
+    assert "user" not in async_account.raw_data

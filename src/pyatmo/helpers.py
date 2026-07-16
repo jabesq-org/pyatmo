@@ -51,6 +51,7 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
             raise NoDeviceError(msg)
         return {
             tag: homes,
+            "user": resp["body"].get("user", {}),
             "errors": resp["body"].get("errors", []),
         }
 

@@ -119,6 +119,10 @@ class Room(NetatmoBase):
 
     radiators_power: int | None = None
 
+    # /homesdata topology fields
+    room_type: str | None = None  # API "type": kitchen, bedroom, livingroom, ...
+    therm_relay: str | None = None  # main device id of the controlling heating module
+
     def __init__(
         self,
         home: Home,
@@ -130,6 +134,8 @@ class Room(NetatmoBase):
         super().__init__(room)
         self.home = home
         self.support_pilot_wire = False
+        self.room_type = room.get("type")
+        self.therm_relay = room.get("therm_relay")
         self.modules = {
             m_id: m
             for m_id, m in all_modules.items()
@@ -143,6 +149,8 @@ class Room(NetatmoBase):
         """Update room topology."""
 
         self.name = raw_data.get("name", UNKNOWN)
+        self.room_type = raw_data.get("type", self.room_type)
+        self.therm_relay = raw_data.get("therm_relay", self.therm_relay)
         self.modules = {
             m_id: m
             for m_id, m in self.home.modules.items()

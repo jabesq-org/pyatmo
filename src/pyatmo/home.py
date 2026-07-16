@@ -168,7 +168,17 @@ class Home:
         has_error = False
         for module in raw_data.get("errors", []):
             has_error = True
-            await self.modules[module["id"]].update({})
+            module_id = module["id"]
+            if module_id in self.modules:
+                await self.modules[module_id].update({})
+                # Set error_code AFTER update({}): update() reruns reflection
+                # (_update_attributes) which would otherwise reset it to None.
+                self.modules[module_id].error_code = module.get("code")
+            else:
+                LOG.warning(
+                    "Error reported for unknown module id (%s); skipping",
+                    module_id,
+                )
 
         data = raw_data["home"]
 
@@ -178,6 +188,10 @@ class Home:
             if module["id"] not in self.modules:
                 self.update_topology({"modules": [module]})
             await self.modules[module["id"]].update(module)
+            # Clear any error code from a previous /homestatus errors[] entry:
+            # the module is reported healthy again. Reflection in update() would
+            # otherwise carry the stale code forward (raw data has no error_code).
+            self.modules[module["id"]].error_code = None
 
         for room in data.get("rooms", []):
             has_an_update = True

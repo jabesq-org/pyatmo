@@ -360,3 +360,47 @@ def test_device_types_missing():
 
     assert DeviceType("NOC") == DeviceType.NOC
     assert DeviceType("UNKNOWN") == DeviceType.NLunknown
+
+
+async def test_module_bridged_key_variants(async_home):
+    """Both `modules_bridged` and `module_bridged` populate Module.modules."""
+    plural = async_home.get_module(
+        {"id": "aa:aa", "type": "NLP", "modules_bridged": ["child-1"]},
+    )
+    assert plural.modules == ["child-1"]
+
+    singular = async_home.get_module(
+        {"id": "bb:bb", "type": "NLP", "module_bridged": ["child-2"]},
+    )
+    assert singular.modules == ["child-2"]
+
+
+async def test_module_bridged_key_precedence(async_home):
+    """When both keys are present, `modules_bridged` wins over `module_bridged`."""
+    mod = async_home.get_module(
+        {
+            "id": "ee:ee",
+            "type": "NLP",
+            "modules_bridged": ["canonical"],
+            "module_bridged": ["alias"],
+        },
+    )
+    assert mod.modules == ["canonical"]
+
+
+async def test_module_bridged_key_topology_update(async_home):
+    """Both bridged-key spellings work on the update_topology reflection path."""
+    # update_topology -> _update_attributes drives the NETATMO_ATTRIBUTES_MAP
+    # "modules" entry (bridged_module_ids), a different code path than
+    # Module.__init__.
+    plural = async_home.get_module({"id": "cc:cc", "type": "NLP"})
+    plural.update_topology(
+        {"id": "cc:cc", "type": "NLP", "modules_bridged": ["child-3"]},
+    )
+    assert plural.modules == ["child-3"]
+
+    singular = async_home.get_module({"id": "dd:dd", "type": "NLP"})
+    singular.update_topology(
+        {"id": "dd:dd", "type": "NLP", "module_bridged": ["child-4"]},
+    )
+    assert singular.modules == ["child-4"]

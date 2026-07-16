@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   controlling heating module) from the `/homesdata` topology
 - Parse the user `country` and `pending_user_consent` from `/homesdata` into
   `AsyncAccount.user_country` and `AsyncAccount.pending_user_consent`
+- Parse the distinguishing payload of `electricity` / `electricity_production`
+  schedules (`tariff`, `tariff_option`, `power_threshold`, `contract_power_unit`
+  and per-zone `price_type` / `price_value`) and of `event` schedules
+  (`timetable_sunrise` / `timetable_sunset` twilight entries and per-zone module
+  actions), previously dropped when collapsed to a base `Schedule`
 
 ### Changed
 
@@ -40,8 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   handling of the sibling metadata attributes `device_category` and `appliance_type`
   (#500)
 - `AsyncAccount.user` (email) was always `None` because `extract_raw_data` dropped
-  the `/homesdata` `user` object; the user block is now carried through and the
-  email populated
+  the `/homesdata` `user` object; the email is now read from the response body.
+  The raw `user` block is deliberately kept out of `AsyncAccount.raw_data` so
+  consumers that serialize it (e.g. Home Assistant diagnostics) do not leak the
+  user's email/id
 
 ### Removed
 

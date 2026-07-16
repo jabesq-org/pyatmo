@@ -9,6 +9,7 @@ import pytest
 from pyatmo import DeviceType, NoScheduleError
 from pyatmo.modules import NATherm1
 from pyatmo.modules.device_types import DeviceCategory
+from pyatmo.modules.module import BoilerMixin, OpenThermMixin
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
@@ -103,6 +104,20 @@ async def test_async_climate_OTH(async_home):
     assert module.dhw_control == "none"
     # BoilerMixin field is now parsed; defaults to None when absent from the response
     assert module.boiler_status is None
+
+
+async def test_async_climate_OTH_mixin_composition(async_home):
+    """Guard the OTH MRO: both boiler mixins run and no diagnostic field is skipped.
+
+    Protects against reordering the OTH base classes, which could silently drop
+    a mixin from the cooperative ``super().__init__`` chain.
+    """
+    module = async_home.modules["12:34:56:20:f5:44"]
+    assert isinstance(module, BoilerMixin)
+    assert isinstance(module, OpenThermMixin)
+    # every diagnostic field is initialised regardless of response content
+    for attr in ("boiler_control", "boiler_error", "dhw_control", "boiler_status"):
+        assert hasattr(module, attr)
 
 
 async def test_async_climate_BNS(async_home):

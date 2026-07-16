@@ -1,15 +1,22 @@
 """Define tests for climate module."""
 
 import json
-from unittest.mock import AsyncMock, patch
+import logging
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import anyio
 import pytest
 
 from pyatmo import DeviceType, NoScheduleError
 from pyatmo.modules import NATherm1
-from pyatmo.modules.device_types import DeviceCategory
+from pyatmo.modules.device_types import (
+    BoilerControl,
+    BoilerError,
+    DeviceCategory,
+    DhwControl,
+)
 from pyatmo.modules.module import BoilerMixin, OpenThermMixin
+from pyatmo.modules.netatmo import OTH
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
@@ -99,11 +106,43 @@ async def test_async_climate_OTH(async_home):
     assert len(module.modules) == 1
     assert module.wifi_strength == 57
     assert module.firmware_revision == 22
+    # coerced to enums, still string-comparable (StrEnum)
+    assert module.boiler_control is BoilerControl.onoff
+    assert module.boiler_error is BoilerError.water_pressure
+    assert module.dhw_control is DhwControl.none
     assert module.boiler_control == "onoff"
     assert module.boiler_error == "water_pressure"
     assert module.dhw_control == "none"
     # BoilerMixin field is now parsed; defaults to None when absent from the response
     assert module.boiler_status is None
+
+
+async def test_oth_boiler_enum_unknown_value():
+    """Unknown enum values fall back to `unknown` instead of crashing parsing."""
+    module = OTH(MagicMock(), {"id": "x", "type": "OTH"})
+    module.update_topology(
+        {
+            "id": "x",
+            "type": "OTH",
+            "boiler_control": "brand_new_value",
+            "boiler_error": "brand_new_error",
+            "dhw_control": "brand_new_mode",
+        },
+    )
+    assert module.boiler_control is BoilerControl.unknown
+    assert module.boiler_error is BoilerError.unknown
+    assert module.dhw_control is DhwControl.unknown
+
+
+async def test_oth_boiler_enum_absent_no_warning(caplog):
+    """Absent boiler fields stay None and do not log spurious 'unknown' warnings."""
+    module = OTH(MagicMock(), {"id": "x", "type": "OTH"})
+    with caplog.at_level(logging.WARNING):
+        module.update_topology({"id": "x", "type": "OTH"})
+    assert module.boiler_control is None
+    assert module.boiler_error is None
+    assert module.dhw_control is None
+    assert "unknown" not in caplog.text.lower()
 
 
 async def test_async_climate_OTH_mixin_composition(async_home):

@@ -23,8 +23,11 @@ from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_nam
 from pyatmo.modules.device_types import (
     DEVICE_CATEGORY_MAP,
     ApplianceType,
+    BoilerControl,
+    BoilerError,
     DeviceCategory,
     DeviceType,
+    DhwControl,
     DoorTagCategory,
 )
 from pyatmo.webrtc import WebRTCAnswer, WebRTCStream
@@ -62,6 +65,9 @@ ATTRIBUTE_FILTER = {
     "appliance_type",
     "doortag_category",
     "last_seen",
+    "boiler_control",
+    "boiler_error",
+    "dhw_control",
 }
 
 
@@ -251,9 +257,9 @@ class OpenThermMixin(EntityBase):
         """Initialize OpenTherm mixin."""
 
         super().__init__(home, module)
-        self.boiler_control: str | None = None  # onoff | opentherm | detecting
-        self.boiler_error: str | None = None
-        self.dhw_control: str | None = None  # none | instantaneous | water_tank
+        self.boiler_control: BoilerControl | None = None
+        self.boiler_error: BoilerError | None = None
+        self.dhw_control: DhwControl | None = None
 
 
 class CoolerMixin(EntityBase):

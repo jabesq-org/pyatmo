@@ -404,3 +404,13 @@ async def test_module_bridged_key_topology_update(async_home):
         {"id": "dd:dd", "type": "NLP", "module_bridged": ["child-4"]},
     )
     assert singular.modules == ["child-4"]
+
+
+async def test_home_geolocation(async_home):
+    """Test home geolocation fields from /homesdata topology are surfaced."""
+    assert async_home.altitude == 112
+    assert async_home.country == "DE"
+    assert async_home.timezone == "Europe/Berlin"
+    # Coordinates are exposed as-is; the API's lat/lon ordering is ambiguous
+    # across schema variants, so the library does not reinterpret them.
+    assert async_home.coordinates == [52.516263, 13.377726]

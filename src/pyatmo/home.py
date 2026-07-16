@@ -45,6 +45,10 @@ class Home:
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
+    altitude: int | None = None
+    coordinates: list[float] | None = None
+    country: str | None = None
+    timezone: str | None = None
     rooms: dict[str, Room]
     modules: dict[str, Module]
     schedules: dict[str, Schedule]
@@ -62,6 +66,10 @@ class Home:
         self.auth = auth
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
+        self.altitude = raw_data.get("altitude")
+        self.coordinates = raw_data.get("coordinates")
+        self.country = raw_data.get("country")
+        self.timezone = raw_data.get("timezone")
         self.modules = {
             module["id"]: self.get_module(module)
             for module in raw_data.get("modules", [])
@@ -111,6 +119,10 @@ class Home:
         """Update topology."""
 
         self.name = raw_data.get("name", "Unknown")
+        self.altitude = raw_data.get("altitude")
+        self.coordinates = raw_data.get("coordinates")
+        self.country = raw_data.get("country")
+        self.timezone = raw_data.get("timezone")
 
         raw_modules = raw_data.get("modules", [])
 

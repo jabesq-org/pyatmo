@@ -131,6 +131,7 @@ class TwilightEntry:
 class ZoneModule(NetatmoBase):
     """Class to represent an event schedule zone's per-module action."""
 
+    bridge: str | None
     on: bool | None
     target_position: int | None
     brightness: int | None

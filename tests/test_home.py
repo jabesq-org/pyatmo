@@ -520,3 +520,16 @@ def test_account_user_units_unknown_fallback(caplog):
     assert WindUnit(99) is WindUnit.UNKNOWN
     assert PressureUnit(99) is PressureUnit.UNKNOWN
     assert "unknown" in caplog.text.lower()
+
+
+async def test_device_type_aliases(async_home):
+    """Legacy/typo module types from /homesdata resolve to canonical classes."""
+    # `NBD` is a transposition of the canonical `NDB` (Smart Video Doorbell).
+    doorbell = async_home.get_module({"id": "1", "type": "NBD"})
+    assert isinstance(doorbell, pyatmo.modules.NDB)
+    assert doorbell.device_type == DeviceType.NDB
+
+    # `NADoorTag` is a legacy alias of `NACamDoorTag`.
+    doortag = async_home.get_module({"id": "2", "type": "NADoorTag"})
+    assert isinstance(doortag, pyatmo.modules.NACamDoorTag)
+    assert doortag.device_type == DeviceType.NACamDoorTag

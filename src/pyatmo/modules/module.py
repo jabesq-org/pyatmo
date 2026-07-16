@@ -65,6 +65,7 @@ ATTRIBUTE_FILTER = {
     "appliance_type",
     "doortag_category",
     "last_seen",
+    "setup_date",
     "boiler_control",
     "boiler_error",
     "dhw_control",
@@ -1282,6 +1283,7 @@ class Module(NetatmoBase):
     modules: list[str] | None
     reachable: bool | None
     last_seen: int | None
+    setup_date: int | None
     error_code: int | None
     features: set[str]
 
@@ -1296,6 +1298,7 @@ class Module(NetatmoBase):
         self.room_id = module.get("room_id")
         self.reachable = module.get("reachable")
         self.last_seen = module.get("last_seen")
+        self.setup_date = module.get("setup_date")
         self.error_code = None
         self.bridge = module.get("bridge")
         self.modules = module.get("modules_bridged")

@@ -42,6 +42,8 @@ class AsyncAccount:
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
+        self.user_country: str | None = None
+        self.pending_user_consent: bool | None = None
         self.all_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
@@ -86,9 +88,16 @@ class AsyncAccount:
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
         )
-        self.raw_data = extract_raw_data(await resp.json(), "homes")
+        body = await resp.json()
+        self.raw_data = extract_raw_data(body, "homes")
 
-        self.user = self.raw_data.get("user", {}).get("email")
+        # Read the user block straight from the response body; keep it out of
+        # raw_data so consumers that serialize raw_data (e.g. Home Assistant
+        # diagnostics) do not leak the user's email/id.
+        user = body.get("body", {}).get("user", {})
+        self.user = user.get("email")
+        self.user_country = user.get("country")
+        self.pending_user_consent = user.get("pending_user_consent")
 
         self.process_topology(disabled_homes_ids=disabled_homes_ids)
 

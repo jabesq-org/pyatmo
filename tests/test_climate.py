@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import anyio
 import pytest
 
-from pyatmo import DeviceType, NoScheduleError
+from pyatmo import DeviceType, NoScheduleError, const
 from pyatmo.modules import NATherm1
 from pyatmo.modules.device_types import (
     BoilerControl,
@@ -17,6 +17,10 @@ from pyatmo.modules.device_types import (
 )
 from pyatmo.modules.module import BoilerMixin, OpenThermMixin
 from pyatmo.modules.netatmo import OTH
+from pyatmo.room import (
+    climate_setpoint_mode_to_pilot_wire,
+    pilot_wire_to_climate_setpoint_mode,
+)
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
@@ -479,3 +483,40 @@ async def test_power_wire(async_home_multi):
     assert room.climate_type == DeviceType.NLC
     assert DeviceType.NLC in room.device_types
     assert room.support_pilot_wire is True
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected"),
+    [
+        (const.MANUAL, const.PILOT_WIRE_COMFORT),
+        (const.MAX, const.PILOT_WIRE_COMFORT),
+        (const.OFF, const.PILOT_WIRE_FROST_GUARD),
+        (const.HOME, const.PILOT_WIRE_COMFORT),
+        (const.FROSTGUARD, const.PILOT_WIRE_FROST_GUARD),
+        (const.SCHEDULE, const.PILOT_WIRE_COMFORT),
+        (const.AWAY, const.PILOT_WIRE_AWAY),
+        # unknown mode falls back to frost guard
+        ("nonsense", const.PILOT_WIRE_FROST_GUARD),
+    ],
+)
+def test_climate_setpoint_mode_to_pilot_wire(mode, expected):
+    """Test climate setpoint mode -> pilot wire preset mapping (frost-guard default)."""
+    assert climate_setpoint_mode_to_pilot_wire(mode) == expected
+
+
+@pytest.mark.parametrize(
+    ("pilot_wire", "expected"),
+    [
+        (const.PILOT_WIRE_COMFORT, const.MANUAL),
+        (const.PILOT_WIRE_AWAY, const.MANUAL),
+        (const.PILOT_WIRE_FROST_GUARD, const.FROSTGUARD),
+        (const.PILOT_WIRE_STAND_BY, const.FROSTGUARD),
+        (const.PILOT_WIRE_COMFORT_1, const.HOME),
+        (const.PILOT_WIRE_COMFORT_2, const.HOME),
+        # unknown pilot wire preset falls back to frost guard
+        ("nonsense", const.FROSTGUARD),
+    ],
+)
+def test_pilot_wire_to_climate_setpoint_mode(pilot_wire, expected):
+    """Test pilot wire preset -> canonical NLC setpoint mode mapping (frost-guard default)."""
+    assert pilot_wire_to_climate_setpoint_mode(pilot_wire) == expected

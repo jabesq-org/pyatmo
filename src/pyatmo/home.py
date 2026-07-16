@@ -188,6 +188,10 @@ class Home:
             if module["id"] not in self.modules:
                 self.update_topology({"modules": [module]})
             await self.modules[module["id"]].update(module)
+            # Clear any error code from a previous /homestatus errors[] entry:
+            # the module is reported healthy again. Reflection in update() would
+            # otherwise carry the stale code forward (raw data has no error_code).
+            self.modules[module["id"]].error_code = None
 
         for room in data.get("rooms", []):
             has_an_update = True

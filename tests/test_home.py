@@ -271,6 +271,11 @@ async def test_async_home_module_error_code(async_account):
     assert module.error_code == 6
     assert "error_code" not in module.features
 
+    # Recovery: a subsequent healthy /homestatus update (the module is reported
+    # in home.modules again) must clear the stale error code back to None.
+    await async_account.async_update_status(home_id)
+    assert module.error_code is None
+
 
 def test_device_types_missing():
     """Test handling of missing device types."""

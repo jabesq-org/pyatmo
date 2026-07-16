@@ -277,6 +277,39 @@ async def test_async_home_module_error_code(async_account):
     assert module.error_code is None
 
 
+async def test_async_home_module_setup_date(async_home):
+    """Test that module setup_date from /homesdata topology is surfaced."""
+    module_id = "12:34:56:00:fa:d0"
+    assert module_id in async_home.modules
+    module = async_home.modules[module_id]
+    assert module.setup_date == 1494963356
+    assert "setup_date" not in module.features
+
+
+async def test_async_home_room_type_and_therm_relay(async_home):
+    """Test room type + therm_relay from /homesdata topology are surfaced."""
+    livingroom = async_home.rooms["2746182631"]
+    assert livingroom.room_type == "livingroom"
+
+    bureau = async_home.rooms["222452125"]
+    assert bureau.room_type == "electrical_cabinet"
+    assert bureau.therm_relay == "12:34:56:20:f5:44"
+
+    # Rooms without therm_relay in the payload default to None.
+    assert livingroom.therm_relay is None
+
+
+async def test_async_account_user_country_and_consent(async_account):
+    """Test user country + pending_user_consent from /homesdata are surfaced."""
+    assert async_account.user == "john@doe.com"
+    assert async_account.user_country == "DE"
+    assert async_account.pending_user_consent is True
+
+    # The raw user block (email/id PII) must not leak into raw_data, which
+    # consumers such as Home Assistant diagnostics serialize wholesale.
+    assert "user" not in async_account.raw_data
+
+
 def test_device_types_missing():
     """Test handling of missing device types."""
 

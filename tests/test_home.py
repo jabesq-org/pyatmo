@@ -376,9 +376,17 @@ async def test_module_bridged_key_variants(async_home):
 
 
 async def test_module_bridged_key_topology_update(async_home):
-    """`module_bridged` fallback also works on the update_topology reflection path."""
-    mod = async_home.get_module({"id": "cc:cc", "type": "NLP"})
+    """Both bridged-key spellings work on the update_topology reflection path."""
     # update_topology -> _update_attributes drives the NETATMO_ATTRIBUTES_MAP
     # "modules" lambda, a different code path than Module.__init__.
-    mod.update_topology({"id": "cc:cc", "type": "NLP", "module_bridged": ["child-3"]})
-    assert mod.modules == ["child-3"]
+    plural = async_home.get_module({"id": "cc:cc", "type": "NLP"})
+    plural.update_topology(
+        {"id": "cc:cc", "type": "NLP", "modules_bridged": ["child-3"]},
+    )
+    assert plural.modules == ["child-3"]
+
+    singular = async_home.get_module({"id": "dd:dd", "type": "NLP"})
+    singular.update_topology(
+        {"id": "dd:dd", "type": "NLP", "module_bridged": ["child-4"]},
+    )
+    assert singular.modules == ["child-4"]

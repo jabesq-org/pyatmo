@@ -45,6 +45,10 @@ class Home:
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
+    altitude: int | None = None
+    coordinates: list[float] | None = None
+    country: str | None = None
+    timezone: str | None = None
     rooms: dict[str, Room]
     modules: dict[str, Module]
     schedules: dict[str, Schedule]
@@ -62,6 +66,10 @@ class Home:
         self.auth = auth
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
+        self.altitude = raw_data.get("altitude")
+        self.coordinates = raw_data.get("coordinates")
+        self.country = raw_data.get("country")
+        self.timezone = raw_data.get("timezone")
         self.modules = {
             module["id"]: self.get_module(module)
             for module in raw_data.get("modules", [])
@@ -111,6 +119,14 @@ class Home:
         """Update topology."""
 
         self.name = raw_data.get("name", "Unknown")
+        # Geolocation is treated as sticky, unlike the live state below (name,
+        # therm mode, ...): it is effectively static per home and only carried
+        # in a full /homesdata payload, so a topology update that omits these
+        # keys keeps the previously populated values instead of wiping them.
+        self.altitude = raw_data.get("altitude", self.altitude)
+        self.coordinates = raw_data.get("coordinates", self.coordinates)
+        self.country = raw_data.get("country", self.country)
+        self.timezone = raw_data.get("timezone", self.timezone)
 
         raw_modules = raw_data.get("modules", [])
 
@@ -186,7 +202,11 @@ class Home:
         for module in data.get("modules", []):
             has_an_update = True
             if module["id"] not in self.modules:
-                self.update_topology({"modules": [module]})
+                # Register the newly-seen module directly. Routing through
+                # update_topology with a partial `{"modules": [...]}` payload
+                # would wipe home-level fields (name, therm state, geolocation)
+                # whose keys are absent from this /homestatus data.
+                self.modules[module["id"]] = self.get_module(module)
             await self.modules[module["id"]].update(module)
             # Clear any error code from a previous /homestatus errors[] entry:
             # the module is reported healthy again. Reflection in update() would

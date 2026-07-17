@@ -113,8 +113,10 @@ class Home:
 
         module_type = MODULE_TYPE_ALIASES.get(module["type"], module["type"])
         if module_type != module["type"]:
+            LOG.debug("Aliased device type %s -> %s", module["type"], module_type)
             # Normalize so both the class lookup and DeviceType(...) in
-            # Module.__init__ see the canonical type.
+            # Module.__init__ see the canonical type. Copy (not mutate) to avoid
+            # rewriting the shared raw_data dict, which consumers may serialize.
             module = {**module, "type": module_type}
 
         try:

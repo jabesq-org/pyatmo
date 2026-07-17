@@ -8,6 +8,7 @@ import pytest
 
 import pyatmo
 from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError
+from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
 from tests.common import MockResponse
 
 
@@ -482,3 +483,40 @@ async def test_home_update_new_module_preserves_home_fields(async_home):
     assert async_home.altitude == altitude
     assert async_home.coordinates == coordinates
     assert async_home.therm_mode == therm_mode
+
+
+async def test_account_user_units(async_account):
+    """Test user display-unit preferences from /homesdata are surfaced."""
+    assert async_account.unit_system == UnitSystem.METRIC
+    assert async_account.unit_wind == WindUnit.MPH
+    assert async_account.unit_pressure == PressureUnit.MMHG
+
+    # The raw user block (email/id PII) must not leak into raw_data.
+    assert "user" not in async_account.raw_data
+
+
+async def test_account_user_units_missing(async_auth):
+    """Test unit preferences stay None when the keys are absent."""
+    account = pyatmo.AsyncAccount(async_auth)
+
+    async def fake_request(*_, **__):
+        body = {"body": {"homes": [{"id": "1", "name": "home"}], "user": {}}}
+        return MockResponse(body, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        fake_request,
+    ):
+        await account.async_update_topology()
+
+    assert account.unit_system is None
+    assert account.unit_wind is None
+    assert account.unit_pressure is None
+
+
+def test_account_user_units_unknown_fallback(caplog):
+    """Test out-of-range unit codes fall back to UNKNOWN and log a warning."""
+    assert UnitSystem(99) is UnitSystem.UNKNOWN
+    assert WindUnit(99) is WindUnit.UNKNOWN
+    assert PressureUnit(99) is PressureUnit.UNKNOWN
+    assert "unknown" in caplog.text.lower()

@@ -90,7 +90,7 @@ def process_battery_state(data: str) -> int:
         "low": 25,
         "very_low": 10,
     }
-    return mapping[data]
+    return mapping.get(data, 0)
 
 
 class FirmwareMixin(EntityBase):

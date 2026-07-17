@@ -175,9 +175,12 @@ class AsyncAccount:
         required_data_type: str | None = None,
         filtering: bool = False,
         *,
-        area_id: str = str(uuid4()),
+        area_id: str | None = None,
     ) -> str:
         """Register public weather area to monitor."""
+
+        if area_id is None:
+            area_id = str(uuid4())
 
         self.public_weather_areas[area_id] = modules.PublicWeatherArea(
             lat_ne,

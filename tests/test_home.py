@@ -493,3 +493,30 @@ async def test_account_user_units(async_account):
 
     # The raw user block (email/id PII) must not leak into raw_data.
     assert "user" not in async_account.raw_data
+
+
+async def test_account_user_units_missing(async_auth):
+    """Test unit preferences stay None when the keys are absent."""
+    account = pyatmo.AsyncAccount(async_auth)
+
+    async def fake_request(*_, **__):
+        body = {"body": {"homes": [{"id": "1", "name": "home"}], "user": {}}}
+        return MockResponse(body, 200)
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        fake_request,
+    ):
+        await account.async_update_topology()
+
+    assert account.unit_system is None
+    assert account.unit_wind is None
+    assert account.unit_pressure is None
+
+
+def test_account_user_units_unknown_fallback(caplog):
+    """Test out-of-range unit codes fall back to UNKNOWN and log a warning."""
+    assert UnitSystem(99) is UnitSystem.UNKNOWN
+    assert WindUnit(99) is WindUnit.UNKNOWN
+    assert PressureUnit(99) is PressureUnit.UNKNOWN
+    assert "unknown" in caplog.text.lower()

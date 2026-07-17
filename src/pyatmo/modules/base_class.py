@@ -49,7 +49,7 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "reachable": lambda x, _: x.get("reachable", False),
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
     "battery_level": lambda x, _: x.get("battery_vp", x.get("battery_level")),
-    "place": lambda x, y: Place(x["place"]) if x.get("place") is not None else y,
+    "place": lambda x, y: Place(x["place"]) if isinstance(x.get("place"), dict) else y,
     "target_position__step": lambda x, _: x.get("target_position:step"),
     "appliance_type": lambda x, y: ApplianceType(x.get("appliance_type", y)),
     "doortag_category": lambda x, y: DoorTagCategory(x.get("category", y)),
@@ -228,7 +228,7 @@ class Place:
         self.timezone = None
         self.location = None
 
-        if data is None:
+        if not isinstance(data, dict):
             LOG.debug("Place data is unknown")
             return
 
@@ -237,11 +237,13 @@ class Place:
         self.country = data.get("country")
         self.timezone = data.get("timezone")
 
-        if (location := data.get("location")) is None or len(
-            list(location),
-        ) != GPS_COORDINATES_COUNT:
+        try:
+            location_data: list[float] = list(data.get("location") or [])
+        except TypeError:
+            location_data = []
+
+        if len(location_data) != GPS_COORDINATES_COUNT:
             LOG.debug("Invalid location data: %s", data)
             return
 
-        location_data: list[float] = list(location)
         self.location = Location(location_data[0], location_data[1])

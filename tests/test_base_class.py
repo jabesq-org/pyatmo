@@ -37,7 +37,7 @@ def test_place_full_dict() -> None:
             "altitude": 329,
             "city": "Somewhere",
             "country": "DE",
-            "location": Location(longitude=6.1234567, latitude=46.123456),
+            "location": [6.1234567, 46.123456],
             "timezone": "Europe/Berlin",
         },
     )
@@ -47,6 +47,24 @@ def test_place_full_dict() -> None:
     assert place.country == "DE"
     assert place.timezone == "Europe/Berlin"
     assert place.location == Location(longitude=6.1234567, latitude=46.123456)
+
+
+def test_place_malformed_location_length() -> None:
+    """Wrong-length location leaves location None but keeps other fields."""
+    place = Place({"altitude": 100, "city": "X", "location": [1.0]})
+
+    assert place.altitude == 100
+    assert place.city == "X"
+    assert place.location is None
+
+
+def test_place_malformed_location_type() -> None:
+    """Non-iterable location leaves location None but keeps other fields."""
+    place = Place({"altitude": 100, "city": "X", "location": 42})
+
+    assert place.altitude == 100
+    assert place.city == "X"
+    assert place.location is None
 
 
 def test_reflection_place_absent_keeps_previous() -> None:
@@ -75,7 +93,7 @@ def test_reflection_place_present_builds_place() -> None:
                 "altitude": 329,
                 "city": "Somewhere",
                 "country": "DE",
-                "location": Location(longitude=6.1234567, latitude=46.123456),
+                "location": [6.1234567, 46.123456],
                 "timezone": "Europe/Berlin",
             },
         },
@@ -85,3 +103,25 @@ def test_reflection_place_present_builds_place() -> None:
     assert isinstance(result, Place)
     assert result.altitude == 329
     assert result.location == Location(longitude=6.1234567, latitude=46.123456)
+
+
+def test_reflection_place_present_invalid_location() -> None:
+    """Present 'place' with invalid location builds Place, location None."""
+    fn = NETATMO_ATTRIBUTES_MAP["place"]
+    sentinel = object()
+
+    result = fn(
+        {
+            "place": {
+                "altitude": 329,
+                "city": "Somewhere",
+                "location": [1.0, 2.0, 3.0],
+            },
+        },
+        sentinel,
+    )
+
+    assert isinstance(result, Place)
+    assert result.altitude == 329
+    assert result.city == "Somewhere"
+    assert result.location is None

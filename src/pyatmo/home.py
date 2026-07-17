@@ -524,9 +524,19 @@ def is_valid_schedule(schedule: Schedule) -> bool:
 def get_temperature_control_mode(
     temperature_control_mode: str | None,
 ) -> TemperatureControlMode | None:
-    """Return temperature control mode."""
-    return (
-        TemperatureControlMode(temperature_control_mode)
-        if temperature_control_mode
-        else None
-    )
+    """Return temperature control mode.
+
+    Unknown values degrade to None with a warning rather than raising, so a
+    single unrecognized mode never aborts topology parsing for the whole
+    account.
+    """
+    if not temperature_control_mode:
+        return None
+    try:
+        return TemperatureControlMode(temperature_control_mode)
+    except ValueError:
+        LOG.warning(
+            "%s temperature control mode is unknown",
+            temperature_control_mode,
+        )
+        return None

@@ -45,7 +45,7 @@ class Home:
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
-    altitude: float | None = None
+    altitude: int | None = None
     coordinates: list[float] | None = None
     country: str | None = None
     timezone: str | None = None
@@ -119,9 +119,10 @@ class Home:
         """Update topology."""
 
         self.name = raw_data.get("name", "Unknown")
-        # Preserve existing geolocation on partial topology updates (e.g. the
-        # `{"modules": [...]}` call in Home.update): missing keys must not wipe
-        # values already populated from a full /homesdata payload.
+        # Geolocation is treated as sticky, unlike the live state below (name,
+        # therm mode, ...): it is effectively static per home and only carried
+        # in a full /homesdata payload, so a topology update that omits these
+        # keys keeps the previously populated values instead of wiping them.
         self.altitude = raw_data.get("altitude", self.altitude)
         self.coordinates = raw_data.get("coordinates", self.coordinates)
         self.country = raw_data.get("country", self.country)

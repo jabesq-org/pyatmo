@@ -19,7 +19,13 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.exceptions import ApiError
-from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
+from pyatmo.modules.base_class import (
+    EntityBase,
+    NetatmoBase,
+    Place,
+    bridged_module_ids,
+    update_name,
+)
 from pyatmo.modules.device_types import (
     DEVICE_CATEGORY_MAP,
     ApplianceType,
@@ -1301,7 +1307,7 @@ class Module(NetatmoBase):
         self.setup_date = module.get("setup_date")
         self.error_code = None
         self.bridge = module.get("bridge")
-        self.modules = module.get("modules_bridged")
+        self.modules = bridged_module_ids(module)
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
         self.features = set()
 

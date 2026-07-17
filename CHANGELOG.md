@@ -11,25 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Retry requests on Netatmo 429 concurrency errors (code 11) with exponential
   backoff, honoring the response `Retry-After` header when present (#547)
-- Parse the `last_seen` availability timestamp for all modules (previously only
-  VELUX modules exposed it)
-- Parse the `offload_meters` list (smart-shedder module ids) on offload-capable
-  modules
+- Parse additional module attributes: `last_seen` availability (previously
+  VELUX-only), `setup_date` install timestamp, `offload_meters` (smart-shedder
+  module ids), and the per-module error `code` as `Module.error_code` (logging a
+  warning for errors on unknown module ids)
 - Parse OpenTherm boiler diagnostics on OTH modules as typed enums
   (`boiler_control`, `boiler_error`, `dhw_control`) and expose `boiler_status`;
   unknown values fall back to `unknown` instead of breaking parsing
-- Surface the per-module error `code` from the `/homestatus` `errors[]` array as
-  `Module.error_code`, and log a warning for errors on unknown module ids
-- Parse the module `setup_date` (install timestamp) from the `/homesdata`
-  topology for all module types
 - Parse the room `type` (as `Room.room_type`) and `therm_relay` (id of the
   controlling heating module) from the `/homesdata` topology
-- Parse the user `country` and `pending_user_consent` from `/homesdata` into
-  `AsyncAccount.user_country` and `AsyncAccount.pending_user_consent`
-- Surface the user's display-unit preferences from `/homesdata` as typed enums
-  on `AsyncAccount.unit_system`, `AsyncAccount.unit_wind` and
-  `AsyncAccount.unit_pressure` (`UnitSystem` / `WindUnit` / `PressureUnit`);
-  unknown values fall back to `unknown` instead of breaking parsing
+- Parse the `/homesdata` user block: `country`, `pending_user_consent`, and the
+  display-unit preferences as typed enums (`UnitSystem` / `WindUnit` /
+  `PressureUnit` on `AsyncAccount.unit_system` / `unit_wind` / `unit_pressure`);
+  unknown unit values fall back to `unknown` instead of breaking parsing
 - Parse the distinguishing payload of `electricity` / `electricity_production`
   schedules (`tariff`, `tariff_option`, `power_threshold`, `contract_power_unit`
   and per-zone `price_type` / `price_value`) and of `event` schedules

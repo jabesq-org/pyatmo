@@ -14,15 +14,15 @@ class UnitSystem(IntEnum):
 
     METRIC = 0
     IMPERIAL = 1
-    unknown = -1
+    UNKNOWN = -1
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[UnitSystem.unknown]:
+    def _missing_(cls, key: object) -> Literal[UnitSystem.UNKNOWN]:
         """Handle unknown unit system values."""
 
         msg: str = f"{key} unit system is unknown"
         LOG.warning(msg)
-        return UnitSystem.unknown
+        return UnitSystem.UNKNOWN
 
 
 class WindUnit(IntEnum):
@@ -33,15 +33,15 @@ class WindUnit(IntEnum):
     MS = 2
     BEAUFORT = 3
     KNOT = 4
-    unknown = -1
+    UNKNOWN = -1
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[WindUnit.unknown]:
+    def _missing_(cls, key: object) -> Literal[WindUnit.UNKNOWN]:
         """Handle unknown wind unit values."""
 
         msg: str = f"{key} wind unit is unknown"
         LOG.warning(msg)
-        return WindUnit.unknown
+        return WindUnit.UNKNOWN
 
 
 class PressureUnit(IntEnum):
@@ -50,15 +50,15 @@ class PressureUnit(IntEnum):
     MBAR = 0
     INHG = 1
     MMHG = 2
-    unknown = -1
+    UNKNOWN = -1
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[PressureUnit.unknown]:
+    def _missing_(cls, key: object) -> Literal[PressureUnit.UNKNOWN]:
         """Handle unknown pressure unit values."""
 
         msg: str = f"{key} pressure unit is unknown"
         LOG.warning(msg)
-        return PressureUnit.unknown
+        return PressureUnit.UNKNOWN
 
 
 class ScheduleType(StrEnum):

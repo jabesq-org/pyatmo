@@ -432,3 +432,47 @@ async def test_home_geolocation_topology_update(async_home):
     assert async_home.coordinates == [1.0, 2.0]
     assert async_home.country == "FR"
     assert async_home.timezone == "Europe/Paris"
+
+
+async def test_home_geolocation_partial_update_preserves(async_home):
+    """A partial topology update must not wipe known geolocation.
+
+    Home.update calls update_topology({"modules": [...]}) for newly-seen
+    modules; that payload omits the geolocation keys and must keep the
+    values already populated from /homesdata.
+    """
+    assert async_home.altitude == 112
+    assert async_home.coordinates == [52.516263, 13.377726]
+
+    async_home.update_topology({"modules": []})
+
+    assert async_home.altitude == 112
+    assert async_home.coordinates == [52.516263, 13.377726]
+    assert async_home.country == "DE"
+    assert async_home.timezone == "Europe/Berlin"
+
+
+async def test_home_update_new_module_preserves_home_fields(async_home):
+    """Discovering a new module via /homestatus must not wipe home fields.
+
+    Home.update registers a not-yet-seen module; that path must not reset
+    name/therm state/geolocation, whose keys are absent from /homestatus.
+    """
+    name = async_home.name
+    altitude = async_home.altitude
+    coordinates = async_home.coordinates
+    therm_mode = async_home.therm_mode
+    assert name == "MYHOME"
+
+    new_module = {"id": "ff:ff:ff:ff:ff:ff", "type": "NAMain"}
+    assert new_module["id"] not in async_home.modules
+
+    await async_home.update(
+        {"home": {"id": async_home.entity_id, "modules": [new_module]}},
+    )
+
+    assert new_module["id"] in async_home.modules
+    assert async_home.name == name
+    assert async_home.altitude == altitude
+    assert async_home.coordinates == coordinates
+    assert async_home.therm_mode == therm_mode

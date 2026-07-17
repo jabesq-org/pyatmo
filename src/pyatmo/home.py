@@ -45,7 +45,7 @@ class Home:
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
-    altitude: int | None = None
+    altitude: float | None = None
     coordinates: list[float] | None = None
     country: str | None = None
     timezone: str | None = None
@@ -119,10 +119,13 @@ class Home:
         """Update topology."""
 
         self.name = raw_data.get("name", "Unknown")
-        self.altitude = raw_data.get("altitude")
-        self.coordinates = raw_data.get("coordinates")
-        self.country = raw_data.get("country")
-        self.timezone = raw_data.get("timezone")
+        # Preserve existing geolocation on partial topology updates (e.g. the
+        # `{"modules": [...]}` call in Home.update): missing keys must not wipe
+        # values already populated from a full /homesdata payload.
+        self.altitude = raw_data.get("altitude", self.altitude)
+        self.coordinates = raw_data.get("coordinates", self.coordinates)
+        self.country = raw_data.get("country", self.country)
+        self.timezone = raw_data.get("timezone", self.timezone)
 
         raw_modules = raw_data.get("modules", [])
 
@@ -198,7 +201,11 @@ class Home:
         for module in data.get("modules", []):
             has_an_update = True
             if module["id"] not in self.modules:
-                self.update_topology({"modules": [module]})
+                # Register the newly-seen module directly. Routing through
+                # update_topology with a partial `{"modules": [...]}` payload
+                # would wipe home-level fields (name, therm state, geolocation)
+                # whose keys are absent from this /homestatus data.
+                self.modules[module["id"]] = self.get_module(module)
             await self.modules[module["id"]].update(module)
             # Clear any error code from a previous /homestatus errors[] entry:
             # the module is reported healthy again. Reflection in update() would

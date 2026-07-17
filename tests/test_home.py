@@ -8,6 +8,7 @@ import pytest
 
 import pyatmo
 from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError
+from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
 from tests.common import MockResponse
 
 
@@ -486,9 +487,9 @@ async def test_home_update_new_module_preserves_home_fields(async_home):
 
 async def test_account_user_units(async_account):
     """Test user display-unit preferences from /homesdata are surfaced."""
-    assert async_account.unit_system == 0
-    assert async_account.unit_wind == 1
-    assert async_account.unit_pressure == 2
+    assert async_account.unit_system == UnitSystem.METRIC
+    assert async_account.unit_wind == WindUnit.MPH
+    assert async_account.unit_pressure == PressureUnit.MMHG
 
     # The raw user block (email/id PII) must not leak into raw_data.
     assert "user" not in async_account.raw_data

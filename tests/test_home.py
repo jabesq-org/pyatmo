@@ -391,7 +391,8 @@ async def test_module_bridged_key_precedence(async_home):
 async def test_module_bridged_key_topology_update(async_home):
     """Both bridged-key spellings work on the update_topology reflection path."""
     # update_topology -> _update_attributes drives the NETATMO_ATTRIBUTES_MAP
-    # "modules" lambda, a different code path than Module.__init__.
+    # "modules" entry (bridged_module_ids), a different code path than
+    # Module.__init__.
     plural = async_home.get_module({"id": "cc:cc", "type": "NLP"})
     plural.update_topology(
         {"id": "cc:cc", "type": "NLP", "modules_bridged": ["child-3"]},

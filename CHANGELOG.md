@@ -56,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Discovering a new module via `/homestatus` no longer wipes home-level fields
   (name, therm state, geolocation) or the other known modules; the module is now
   registered directly instead of through a partial topology update
+- Alias legacy/typo module type strings from `/homesdata` variants (`NBD`,
+  `NADoorTag`) to their canonical classes (`NDB`, `NACamDoorTag`) so they resolve
+  to the proper module type instead of falling back to `NLunknown`
 
 ### Removed
 

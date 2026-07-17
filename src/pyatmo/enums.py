@@ -17,10 +17,10 @@ class UnitSystem(IntEnum):
     UNKNOWN = -1
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[UnitSystem.UNKNOWN]:
+    def _missing_(cls, value: object) -> Literal[UnitSystem.UNKNOWN]:
         """Handle unknown unit system values."""
 
-        msg: str = f"{key} unit system is unknown"
+        msg: str = f"{value} unit system is unknown"
         LOG.warning(msg)
         return UnitSystem.UNKNOWN
 
@@ -36,10 +36,10 @@ class WindUnit(IntEnum):
     UNKNOWN = -1
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[WindUnit.UNKNOWN]:
+    def _missing_(cls, value: object) -> Literal[WindUnit.UNKNOWN]:
         """Handle unknown wind unit values."""
 
-        msg: str = f"{key} wind unit is unknown"
+        msg: str = f"{value} wind unit is unknown"
         LOG.warning(msg)
         return WindUnit.UNKNOWN
 
@@ -53,10 +53,10 @@ class PressureUnit(IntEnum):
     UNKNOWN = -1
 
     @classmethod
-    def _missing_(cls, key: object) -> Literal[PressureUnit.UNKNOWN]:
+    def _missing_(cls, value: object) -> Literal[PressureUnit.UNKNOWN]:
         """Handle unknown pressure unit values."""
 
-        msg: str = f"{key} pressure unit is unknown"
+        msg: str = f"{value} pressure unit is unknown"
         LOG.warning(msg)
         return PressureUnit.UNKNOWN
 
@@ -78,9 +78,11 @@ class TemperatureControlMode(StrEnum):
 
     HEATING = "heating"
     COOLING = "cooling"
+    AUTO = "auto"
 
 
 SCHEDULE_TYPE_MAPPING: dict[TemperatureControlMode, ScheduleType] = {
     TemperatureControlMode.HEATING: ScheduleType.THERM,
     TemperatureControlMode.COOLING: ScheduleType.COOLING,
+    TemperatureControlMode.AUTO: ScheduleType.AUTO,
 }

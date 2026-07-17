@@ -290,10 +290,15 @@ class AsyncAccount:
                 )
                 device_data = normalize_weather_attributes(device_data)
                 if device_data["id"] not in self.modules:
-                    self.modules[device_data["id"]] = getattr(
+                    module_class: Any = getattr(
                         modules,
                         device_data["type"],
-                    )(
+                        None,
+                    )
+                    if module_class is None:
+                        LOG.info("Unknown device type %s", device_data["type"])
+                        module_class = modules.NLunknown
+                    self.modules[device_data["id"]] = module_class(
                         home=self,
                         module=device_data,
                     )

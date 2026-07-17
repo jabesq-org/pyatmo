@@ -1,6 +1,7 @@
 """Define tests for home module."""
 
 import json
+import logging
 from unittest.mock import AsyncMock, patch
 
 import anyio
@@ -8,7 +9,15 @@ import pytest
 
 import pyatmo
 from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError
-from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
+from pyatmo.enums import (
+    SCHEDULE_TYPE_MAPPING,
+    PressureUnit,
+    ScheduleType,
+    TemperatureControlMode,
+    UnitSystem,
+    WindUnit,
+)
+from pyatmo.home import Home, get_temperature_control_mode
 from tests.common import MockResponse
 
 
@@ -533,3 +542,79 @@ async def test_device_type_aliases(async_home):
     doortag = async_home.get_module({"id": "2", "type": "NADoorTag"})
     assert isinstance(doortag, pyatmo.modules.NACamDoorTag)
     assert doortag.device_type == DeviceType.NACamDoorTag
+
+
+@pytest.mark.parametrize(
+    ("raw_value", "expected"),
+    [
+        ("heating", TemperatureControlMode.HEATING),
+        ("cooling", TemperatureControlMode.COOLING),
+        ("auto", TemperatureControlMode.AUTO),
+        (None, None),
+    ],
+)
+def test_get_temperature_control_mode(raw_value, expected):
+    """Known modes parse to their enum member; missing value stays None."""
+    assert get_temperature_control_mode(raw_value) == expected
+
+
+def test_get_temperature_control_mode_unknown(caplog):
+    """Unknown mode degrades to None with a warning, does not raise."""
+    with caplog.at_level(logging.WARNING):
+        assert get_temperature_control_mode("garbage") is None
+    assert "garbage" in caplog.text
+
+
+def test_schedule_type_mapping_covers_all_modes():
+    """Every TemperatureControlMode maps to a ScheduleType (no KeyError path)."""
+    for mode in TemperatureControlMode:
+        assert mode in SCHEDULE_TYPE_MAPPING
+    assert SCHEDULE_TYPE_MAPPING[TemperatureControlMode.AUTO] == ScheduleType.AUTO
+
+
+async def test_schedule_lookup_auto_mode_no_keyerror(async_home):
+    """Home in auto mode: schedule lookups must not raise KeyError."""
+    async_home.temperature_control_mode = TemperatureControlMode.AUTO
+    # No auto schedule in the fixture -> no match, but must not crash.
+    assert async_home.get_selected_schedule() is None
+    assert async_home.get_available_schedules() == []
+
+
+async def test_home_init_auto_mode_parses_and_selects_schedule(async_auth):
+    """Home built from a tcm='auto' payload must not raise (issue #176631).
+
+    Reproduces the original crash path (Home.__init__ ->
+    get_temperature_control_mode) with a real raw payload rather than a
+    mutated fixture, and confirms an auto-typed schedule is selectable.
+    """
+    raw_data = {
+        "id": "auto-home",
+        "name": "Auto Home",
+        "temperature_control_mode": "auto",
+        "schedules": [
+            {
+                "id": "sched-auto",
+                "name": "Auto schedule",
+                "type": "auto",
+                "selected": True,
+                "hg_temp": 7,
+                "away_temp": 14,
+            },
+            {
+                "id": "sched-therm",
+                "name": "Therm schedule",
+                "type": "therm",
+                "selected": False,
+            },
+        ],
+    }
+
+    home = Home(async_auth, raw_data)
+
+    assert home.temperature_control_mode == TemperatureControlMode.AUTO
+    selected = home.get_selected_schedule()
+    assert selected is not None
+    assert selected.entity_id == "sched-auto"
+    assert home.get_hg_temp() == 7
+    assert home.get_away_temp() == 14
+    assert [s.entity_id for s in home.get_available_schedules()] == ["sched-auto"]

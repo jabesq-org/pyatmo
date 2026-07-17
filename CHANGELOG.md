@@ -59,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alias legacy/typo module type strings from `/homesdata` variants (`NBD`,
   `NADoorTag`) to their canonical classes (`NDB`, `NACamDoorTag`) so they resolve
   to the proper module type instead of falling back to `NLunknown`
+- Handle the `auto` temperature control mode (homes with both a thermostat and an
+  AC controller); previously an unknown mode value aborted topology parsing for
+  the whole account, and any unrecognized mode now degrades to `None` with a
+  warning instead of raising (#176631)
 
 ### Removed
 

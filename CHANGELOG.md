@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   controlling heating module) from the `/homesdata` topology
 - Parse the user `country` and `pending_user_consent` from `/homesdata` into
   `AsyncAccount.user_country` and `AsyncAccount.pending_user_consent`
+- Surface the user's display-unit preferences from `/homesdata` as typed enums
+  on `AsyncAccount.unit_system`, `AsyncAccount.unit_wind` and
+  `AsyncAccount.unit_pressure` (`UnitSystem` / `WindUnit` / `PressureUnit`);
+  unknown values fall back to `unknown` instead of breaking parsing
 - Parse the distinguishing payload of `electricity` / `electricity_production`
   schedules (`tariff`, `tariff_option`, `power_threshold`, `contract_power_unit`
   and per-zone `price_type` / `price_value`) and of `event` schedules

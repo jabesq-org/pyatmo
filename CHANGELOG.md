@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and per-zone `price_type` / `price_value`) and of `event` schedules
   (`timetable_sunrise` / `timetable_sunset` twilight entries and per-zone module
   actions), previously dropped when collapsed to a base `Schedule`
+- Surface the home geolocation from the `/homesdata` topology on `Home`
+  (`altitude`, `coordinates`, `country`, `timezone`); values are exposed as-is
+  and preserved across partial topology updates
 
 ### Changed
 
@@ -49,6 +52,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The raw `user` block is deliberately kept out of `AsyncAccount.raw_data` so
   consumers that serialize it (e.g. Home Assistant diagnostics) do not leak the
   user's email/id
+- Read the bridged-children module ids from both the `module_bridged` and
+  `modules_bridged` `/homesdata` spellings (previously only `modules_bridged`),
+  so bridged modules are no longer missed (#603)
+- Discovering a new module via `/homestatus` no longer wipes home-level fields
+  (name, therm state, geolocation) or the other known modules; the module is now
+  registered directly instead of through a partial topology update
 
 ### Removed
 

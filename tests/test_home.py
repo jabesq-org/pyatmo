@@ -464,6 +464,11 @@ async def test_home_update_new_module_preserves_home_fields(async_home):
     therm_mode = async_home.therm_mode
     assert name == "MYHOME"
 
+    # Capture the pre-existing modules: routing a single-module payload through
+    # update_topology used to pop every other module via its removal loop.
+    existing_module_ids = set(async_home.modules)
+    assert len(existing_module_ids) > 1
+
     new_module = {"id": "ff:ff:ff:ff:ff:ff", "type": "NAMain"}
     assert new_module["id"] not in async_home.modules
 
@@ -472,6 +477,7 @@ async def test_home_update_new_module_preserves_home_fields(async_home):
     )
 
     assert new_module["id"] in async_home.modules
+    assert existing_module_ids <= set(async_home.modules)
     assert async_home.name == name
     assert async_home.altitude == altitude
     assert async_home.coordinates == coordinates

@@ -111,6 +111,12 @@ split-on-trailing-comma = false
 max-complexity = 12
 
 [tool.ruff.lint.per-file-ignores]
+"scripts/*" = [
+    "EXE001", # Shebang present but file not executable (fine for a helper script)
+    "S603",   # subprocess call - inputs are trusted (git)
+    "S607",   # Starting a process with a partial executable path (git on PATH)
+    "T201",   # print - this is a CLI script
+]
 "src/pyatmo/home.py" = [
     "C901",    # Function is too complex (C901)
     "PLR0912", # Function has too many branches (PLR0912)

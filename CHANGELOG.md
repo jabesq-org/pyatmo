@@ -9,64 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Retry requests on Netatmo 429 concurrency errors (code 11) with exponential
-  backoff, honoring the response `Retry-After` header when present (#547)
-- Parse additional module attributes: `last_seen` availability (previously
-  VELUX-only), `setup_date` install timestamp, `offload_meters` (smart-shedder
-  module ids), and the per-module error `code` as `Module.error_code` (logging a
-  warning for errors on unknown module ids)
-- Parse OpenTherm boiler diagnostics on OTH modules as typed enums
-  (`boiler_control`, `boiler_error`, `dhw_control`) and expose `boiler_status`;
-  unknown values fall back to `unknown` instead of breaking parsing
-- Parse the room `type` (as `Room.room_type`) and `therm_relay` (id of the
-  controlling heating module) from the `/homesdata` topology
-- Parse the `/homesdata` user block: `country`, `pending_user_consent`, and the
-  display-unit preferences as typed enums (`UnitSystem` / `WindUnit` /
-  `PressureUnit` on `AsyncAccount.unit_system` / `unit_wind` / `unit_pressure`);
-  unknown unit values fall back to `unknown` instead of breaking parsing
-- Parse the distinguishing payload of `electricity` / `electricity_production`
-  schedules (`tariff`, `tariff_option`, `power_threshold`, `contract_power_unit`
-  and per-zone `price_type` / `price_value`) and of `event` schedules
-  (`timetable_sunrise` / `timetable_sunset` twilight entries and per-zone module
-  actions), previously dropped when collapsed to a base `Schedule`
-- Surface the home geolocation from the `/homesdata` topology on `Home`
-  (`altitude`, `coordinates`, `country`, `timezone`); values are exposed as-is
-  and preserved across partial topology updates
+- Retry on Netatmo 429 concurrency errors with exponential backoff, honoring the
+  `Retry-After` header (#547)
+- Parse additional module attributes (`last_seen`, `setup_date`,
+  `offload_meters`, per-module `error_code`)
+- Parse OpenTherm boiler diagnostics on OTH modules (`boiler_control`,
+  `boiler_error`, `dhw_control`, `boiler_status`)
+- Parse room `type` and `therm_relay` from `/homesdata`
+- Parse the `/homesdata` user block (`country`, `pending_user_consent`, unit
+  preferences)
+- Parse `electricity` / `electricity_production` and `event` schedule payloads
+- Surface home geolocation (`altitude`, `coordinates`, `country`, `timezone`) on
+  `Home`
 
 ### Changed
 
-- Clarify the room setpoint-mode/pilot-wire lookup: replace the misleadingly
-  named "invert" dicts with `climate_setpoint_mode_to_pilot_wire` /
-  `pilot_wire_to_climate_setpoint_mode` helpers that centralize the shared
-  frost-guard fallback
+- Replace the room setpoint-mode/pilot-wire "invert" dicts with clearer named
+  helpers
 
 ### Fixed
 
-- Exclude `doortag_category` from the `NACamDoorTag` `features` set, matching the
-  handling of the sibling metadata attributes `device_category` and `appliance_type`
-  (#500)
-- `AsyncAccount.user` (email) was always `None` because `extract_raw_data` dropped
-  the `/homesdata` `user` object; the email is now read from the response body.
-  The raw `user` block is deliberately kept out of `AsyncAccount.raw_data` so
-  consumers that serialize it (e.g. Home Assistant diagnostics) do not leak the
-  user's email/id
-- Read the bridged-children module ids from both the `module_bridged` and
-  `modules_bridged` `/homesdata` spellings (previously only `modules_bridged`),
-  so bridged modules are no longer missed (#603)
-- Discovering a new module via `/homestatus` no longer wipes home-level fields
-  (name, therm state, geolocation) or the other known modules; the module is now
-  registered directly instead of through a partial topology update
-- Alias legacy/typo module type strings from `/homesdata` variants (`NBD`,
-  `NADoorTag`) to their canonical classes (`NDB`, `NACamDoorTag`) so they resolve
-  to the proper module type instead of falling back to `NLunknown`
-- Handle the `auto` temperature control mode (homes with both a thermostat and an
-  AC controller); previously an unknown mode value aborted topology parsing for
-  the whole account, and any unrecognized mode now degrades to `None` with a
-  warning instead of raising (#176631)
-
-### Removed
-
--
+- Exclude `doortag_category` from the `NACamDoorTag` features set (#500)
+- Populate `AsyncAccount.user` email from `/homesdata`, kept out of `raw_data`
+- Read bridged-children ids from both `module_bridged` and `modules_bridged`
+  spellings (#603)
+- Registering a module discovered via `/homestatus` no longer wipes home fields
+  or known modules
+- Alias legacy `/homesdata` module types (`NBD`, `NADoorTag`) to their canonical
+  classes
+- Handle the `auto` temperature control mode; unknown modes degrade to `None`
+  instead of raising (#176631)
 
 ## [9.4.0]
 

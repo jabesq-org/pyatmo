@@ -75,6 +75,25 @@ class TestBumpVersion:
         with pytest.raises(ValueError, match="patch"):
             release.bump_version("9.4.0", "sideways")
 
+    def test_rejects_two_component_tag(self):
+        with pytest.raises(release.ReleaseError, match=r"9\.4"):
+            release.bump_version("9.4", "patch")
+
+    def test_rejects_non_numeric_tag(self):
+        with pytest.raises(release.ReleaseError):
+            release.bump_version("9.4.x", "patch")
+
+
+class TestParsingRobustness:
+    def test_header_as_last_line_without_newline(self):
+        # A header with no trailing newline must not raise; body is empty.
+        text = "# Changelog\n\n## [9.4.0]"
+        assert release.extract_notes(text, "9.4.0") == ""
+
+    def test_extract_notes_last_section_no_trailing_newline(self):
+        text = "# C\n\n## [9.4.0]\n\n### Added\n\n- old"
+        assert release.extract_notes(text, "9.4.0") == "### Added\n\n- old"
+
 
 class TestUnreleasedGuard:
     def test_detects_entries(self):

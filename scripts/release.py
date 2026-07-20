@@ -31,6 +31,13 @@ CHANGELOG = Path(__file__).resolve().parents[1] / "CHANGELOG.md"
 _BUMP_PARTS = ("patch", "minor", "major")
 _SECTION_RE = re.compile(r"^## \[", re.MULTILINE)
 _SUBSECTION_RE = re.compile(r"^### .+$", re.MULTILINE)
+_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
+
+
+def _line_end(text: str, pos: int) -> int:
+    """Return the offset of the newline at/after ``pos``, or end of text."""
+    nl = text.find("\n", pos)
+    return len(text) if nl == -1 else nl
 
 
 class ReleaseError(Exception):
@@ -46,7 +53,11 @@ def bump_version(current: str, part: str) -> str:
         msg = f"unknown bump part {part!r}; expected one of {_BUMP_PARTS}"
         raise ValueError(msg)
 
-    major, minor, patch = (int(x) for x in current.lstrip("v").split("."))
+    stripped = current.removeprefix("v")
+    if not _VERSION_RE.match(stripped):
+        msg = f"expected an X.Y.Z version tag, got {current!r}"
+        raise ReleaseError(msg)
+    major, minor, patch = (int(x) for x in stripped.split("."))
     if part == "major":
         return f"{major + 1}.0.0"
     if part == "minor":
@@ -65,7 +76,7 @@ def _split_sections(text: str) -> list[tuple[str, int, int]]:
     for i, m in enumerate(matches):
         start = m.start()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        header = text[start : text.index("\n", start)]
+        header = text[start : _line_end(text, start)]
         sections.append((header, start, end))
     return sections
 
@@ -76,7 +87,8 @@ def _section_body(text: str, label: str) -> str | None:
         if header.strip() == f"## [{label}]" or header.strip().startswith(
             f"## [{label}] "
         ):
-            header_end = text.index("\n", start) + 1
+            line_end = _line_end(text, start)
+            header_end = min(line_end + 1, len(text))
             return text[header_end:end]
     return None
 
@@ -153,7 +165,7 @@ def finalize_changelog(
     for header, sec_start, sec_end in _split_sections(text):
         if header.strip() == "## [unreleased]":
             start, end = sec_start, sec_end
-            header_end = text.index("\n", sec_start) + 1
+            header_end = min(_line_end(text, sec_start) + 1, len(text))
             break
     if start is None:
         msg = "could not find the [unreleased] section"

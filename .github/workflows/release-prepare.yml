@@ -19,7 +19,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  checks: read
+  actions: read
 
 # Serialize releases: never let two prepare runs race on the same version.
 concurrency:
@@ -42,10 +42,18 @@ jobs:
         run: |
           set -euo pipefail
           sha="$(git rev-parse HEAD)"
-          echo "Checking 'Python package' checks for $sha"
-          conclusion="$(gh api \
-            "repos/${GITHUB_REPOSITORY}/commits/${sha}/check-runs" \
-            --jq '[.check_runs[] | select(.name | test("format|lint|typecheck|tests|Python package"; "i"))] | if length == 0 then "missing" elif any(.conclusion != "success") then "failed" else "success" end')"
+          echo "Checking the 'Python package' workflow run for $sha"
+          # Key off the stable workflow file name (not per-job display names) so
+          # renaming a job cannot silently narrow the gate. The run-level
+          # conclusion already aggregates every job in the workflow.
+          conclusion="$(gh run list \
+            --workflow pythonpackage.yml --branch development \
+            --json headSha,status,conclusion --limit 30 \
+            --jq "[.[] | select(.headSha == \"${sha}\")] | first
+                  | if . == null then \"missing\"
+                    elif .status != \"completed\" then \"pending\"
+                    elif .conclusion == \"success\" then \"success\"
+                    else \"failed\" end")"
           echo "CI status: ${conclusion}"
           if [ "${conclusion}" != "success" ]; then
             echo "::error::development head is not green (${conclusion}); refusing to release"

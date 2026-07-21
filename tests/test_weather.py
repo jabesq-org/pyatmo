@@ -293,6 +293,30 @@ async def test_async_air_care_update(async_account):
     assert module.health_idx == 1
 
 
+async def test_register_public_weather_area_generates_unique_ids(async_account):
+    """Test that registering areas without area_id yields unique ids."""
+    lon_ne = "6.221652"
+    lat_ne = "46.610870"
+    lon_sw = "6.217828"
+    lat_sw = "46.596485"
+
+    area_id_1 = async_account.register_public_weather_area(
+        lat_ne,
+        lon_ne,
+        lat_sw,
+        lon_sw,
+    )
+    area_id_2 = async_account.register_public_weather_area(
+        lat_ne,
+        lon_ne,
+        lat_sw,
+        lon_sw,
+    )
+
+    assert area_id_1 != area_id_2
+    assert len(async_account.public_weather_areas) == 2
+
+
 async def test_async_public_weather_update(async_account):
     """Test basic public weather update."""
     lon_ne = "6.221652"

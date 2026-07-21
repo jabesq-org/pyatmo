@@ -1,6 +1,7 @@
 """Define tests for shutter module."""
 
 import json
+import logging
 from unittest.mock import AsyncMock, patch
 
 import anyio
@@ -114,4 +115,52 @@ async def test_async_shutters(async_home):
         mock_resp.assert_awaited_with(
             params=gen_json_data(100),
             endpoint="api/setstate",
+        )
+
+
+async def test_async_shutter_returns_false_on_setstate_body_errors(async_home, caplog):
+    """Test shutter command with setstate body errors."""
+    module_id = "0009999992"
+    module = async_home.modules[module_id]
+
+    response = {
+        "status": "ok",
+        "body": {
+            "home": {"id": "91763b24c43d3e344f424e8b"},
+            "errors": [{"code": 9, "id": module_id}],
+        },
+    }
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse(response, 200)),
+    ) as mock_resp:
+        with caplog.at_level(logging.WARNING, logger="pyatmo.home"):
+            assert not await module.async_open()
+        mock_resp.assert_awaited_with(
+            params={
+                "json": {
+                    "home": {
+                        "id": "91763b24c43d3e344f424e8b",
+                        "modules": [
+                            {
+                                "bridge": "12:34:56:30:d5:d4",
+                                "id": module_id,
+                                "target_position": 100,
+                            },
+                        ],
+                    },
+                },
+            },
+            endpoint="api/setstate",
+        )
+        assert len(caplog.records) == 1
+        record = caplog.records[0]
+        assert record.msg == (
+            "Set state response for home %s contains errors: status=%r errors=%r"
+        )
+        assert record.args == (
+            "91763b24c43d3e344f424e8b",
+            "ok",
+            response["body"]["errors"],
         )

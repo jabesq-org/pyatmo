@@ -18,6 +18,7 @@ from pyatmo.const import (
     SETSTATE_ENDPOINT,
     RawData,
 )
+from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
@@ -42,6 +43,11 @@ class AsyncAccount:
 
         self.auth: AbstractAsyncAuth = auth
         self.user: str | None = None
+        self.user_country: str | None = None
+        self.pending_user_consent: bool | None = None
+        self.unit_system: UnitSystem | None = None
+        self.unit_wind: WindUnit | None = None
+        self.unit_pressure: PressureUnit | None = None
         self.all_homes_id: dict[str, str] = {}
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
@@ -86,9 +92,24 @@ class AsyncAccount:
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
         )
-        self.raw_data = extract_raw_data(await resp.json(), "homes")
+        body = await resp.json()
+        self.raw_data = extract_raw_data(body, "homes")
 
-        self.user = self.raw_data.get("user", {}).get("email")
+        # Read the user block straight from the response body; keep it out of
+        # raw_data so consumers that serialize raw_data (e.g. Home Assistant
+        # diagnostics) do not leak the user's email/id.
+        user = body.get("body", {}).get("user", {})
+        self.user = user.get("email")
+        self.user_country = user.get("country")
+        self.pending_user_consent = user.get("pending_user_consent")
+        unit_system = user.get("unit_system")
+        unit_wind = user.get("unit_wind")
+        unit_pressure = user.get("unit_pressure")
+        self.unit_system = None if unit_system is None else UnitSystem(unit_system)
+        self.unit_wind = None if unit_wind is None else WindUnit(unit_wind)
+        self.unit_pressure = (
+            None if unit_pressure is None else PressureUnit(unit_pressure)
+        )
 
         self.process_topology(disabled_homes_ids=disabled_homes_ids)
 
@@ -154,9 +175,12 @@ class AsyncAccount:
         required_data_type: str | None = None,
         filtering: bool = False,
         *,
-        area_id: str = str(uuid4()),
+        area_id: str | None = None,
     ) -> str:
         """Register public weather area to monitor."""
+
+        if area_id is None:
+            area_id = str(uuid4())
 
         self.public_weather_areas[area_id] = modules.PublicWeatherArea(
             lat_ne,
@@ -266,10 +290,15 @@ class AsyncAccount:
                 )
                 device_data = normalize_weather_attributes(device_data)
                 if device_data["id"] not in self.modules:
-                    self.modules[device_data["id"]] = getattr(
+                    module_class: Any = getattr(
                         modules,
                         device_data["type"],
-                    )(
+                        None,
+                    )
+                    if module_class is None:
+                        LOG.info("Unknown device type %s", device_data["type"])
+                        module_class = modules.NLunknown
+                    self.modules[device_data["id"]] = module_class(
                         home=self,
                         module=device_data,
                     )

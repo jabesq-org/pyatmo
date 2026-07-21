@@ -19,6 +19,10 @@ ERRORS: dict[int, str] = {
 RawData = dict[str, Any]
 
 DEFAULT_BASE_URL: str = "https://api.netatmo.com/"
+# Alternative base URL for commands restricted on the public OAuth2 API.
+# app.netatmo.net accepts the same OAuth2 tokens but exposes endpoints
+# (e.g. siren_status) that api.netatmo.com currently rejects.
+SIREN_BASE_URL: str = "https://app.netatmo.net/"
 
 # Endpoints
 AUTH_REQ_ENDPOINT = "oauth2/token"
@@ -131,8 +135,10 @@ MAX_HISTORY_TIME_FRAME: int = 24 * 2 * 3600
 UNKNOWN = "unknown"
 
 # Error codes
+CONCURRENCY_ERROR_CODE = 11
 THROTTLING_ERROR_CODE = 26
 FORBIDDEN_ERROR_CODE = 403
+TOO_MANY_REQUESTS_ERROR_CODE = 429
 
 # Location constants
 GPS_COORDINATES_COUNT = 2

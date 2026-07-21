@@ -1,0 +1,92 @@
+name: Release · prepare
+
+# Manually cut a release: finalize the CHANGELOG for the next version and open a
+# release PR from `development` into the protected `master` branch. Merging that
+# PR triggers `release-publish.yml` (tag + GitHub Release + mergeback).
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Semantic version part to bump"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+# Serialize releases: never let two prepare runs race on the same version.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: development
+          fetch-depth: 0
+
+      - name: Ensure CI is green on the development head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse HEAD)"
+          echo "Checking the 'Python package' workflow run for $sha"
+          # Key off the stable workflow file name (not per-job display names) so
+          # renaming a job cannot silently narrow the gate. The run-level
+          # conclusion already aggregates every job in the workflow.
+          conclusion="$(gh run list \
+            --workflow pythonpackage.yml --branch development \
+            --json headSha,status,conclusion --limit 30 \
+            --jq "[.[] | select(.headSha == \"${sha}\")] | first
+                  | if . == null then \"missing\"
+                    elif .status != \"completed\" then \"pending\"
+                    elif .conclusion == \"success\" then \"success\"
+                    else \"failed\" end")"
+          echo "CI status: ${conclusion}"
+          if [ "${conclusion}" != "success" ]; then
+            echo "::error::development head is not green (${conclusion}); refusing to release"
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Finalize CHANGELOG
+        id: finalize
+        run: uv run python scripts/release.py --bump "${{ inputs.bump }}"
+
+      - name: Open release PR
+        env:
+          # PAT so the PR is created without requiring the "Allow GitHub Actions
+          # to create and approve pull requests" repo setting.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          VERSION: ${{ steps.finalize.outputs.version }}
+          NOTES: ${{ steps.finalize.outputs.notes }}
+        run: |
+          set -euo pipefail
+          branch="release/v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git switch -c "${branch}"
+          git commit -am "chore(release): v${VERSION}"
+          git push --force-with-lease origin "${branch}"
+          gh pr create \
+            --base master \
+            --head "${branch}" \
+            --title "Release v${VERSION}" \
+            --body "${NOTES}"

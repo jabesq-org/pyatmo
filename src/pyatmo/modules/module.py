@@ -13,17 +13,27 @@ from aiohttp import ClientConnectorError, ClientResponse
 
 from pyatmo.const import (
     GETMEASURE_ENDPOINT,
+    SETSTATE_ENDPOINT,
     WEBRTC_OFFER_ENDPOINT,
     WEBRTC_TERMINATE_ENDPOINT,
     RawData,
 )
 from pyatmo.exceptions import ApiError
-from pyatmo.modules.base_class import EntityBase, NetatmoBase, Place, update_name
+from pyatmo.modules.base_class import (
+    EntityBase,
+    NetatmoBase,
+    Place,
+    bridged_module_ids,
+    update_name,
+)
 from pyatmo.modules.device_types import (
     DEVICE_CATEGORY_MAP,
     ApplianceType,
+    BoilerControl,
+    BoilerError,
     DeviceCategory,
     DeviceType,
+    DhwControl,
     DoorTagCategory,
 )
 from pyatmo.webrtc import WebRTCAnswer, WebRTCStream
@@ -59,6 +69,13 @@ ATTRIBUTE_FILTER = {
     "history_features",
     "history_features_values",
     "appliance_type",
+    "doortag_category",
+    "last_seen",
+    "setup_date",
+    "boiler_control",
+    "boiler_error",
+    "dhw_control",
+    "error_code",
 }
 
 
@@ -73,7 +90,7 @@ def process_battery_state(data: str) -> int:
         "low": 25,
         "very_low": 10,
     }
-    return mapping[data]
+    return mapping.get(data, 0)
 
 
 class FirmwareMixin(EntityBase):
@@ -241,6 +258,18 @@ class BoilerMixin(EntityBase):
         self.boiler_valve_comfort_boost: bool | None = None
 
 
+class OpenThermMixin(EntityBase):
+    """Mixin for OpenTherm boiler diagnostics (OTH)."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize OpenTherm mixin."""
+
+        super().__init__(home, module)
+        self.boiler_control: BoilerControl | None = None
+        self.boiler_error: BoilerError | None = None
+        self.dhw_control: DhwControl | None = None
+
+
 class CoolerMixin(EntityBase):
     """Mixin for cooler data."""
 
@@ -377,6 +406,7 @@ class OffloadMixin(EntityBase):
 
         super().__init__(home, module)
         self.offload: bool | None = None
+        self.offload_meters: list[str] | None = None
 
 
 class SwitchMixin(EntityBase):
@@ -714,28 +744,44 @@ class SirenMixin(EntityBase):
         super().__init__(home, module)
         self.siren_status: str | None = None
 
-    async def async_set_siren_state(self, state: str) -> bool:
-        """Set siren state."""
+    async def async_set_siren_state(
+        self, state: str, base_url: str | None = None
+    ) -> bool:
+        """Set siren state.
 
-        json_siren_state = {
-            "modules": [
-                {
-                    "id": self.entity_id,
-                    "siren_status": state,
+        Uses the public OAuth2 API by default. Pass base_url=SIREN_BASE_URL
+        to route via app.netatmo.net, which currently accepts siren_status
+        where the public API rejects it (error code 21).
+        """
+
+        resp = await self.home.auth.async_post_api_request(
+            endpoint=SETSTATE_ENDPOINT,
+            base_url=base_url,
+            params={
+                "json": {
+                    "home": {
+                        "id": self.home.entity_id,
+                        "modules": [
+                            {
+                                "id": self.entity_id,
+                                "siren_status": state,
+                            },
+                        ],
+                    },
                 },
-            ],
-        }
-        return await self.home.async_set_state(json_siren_state)
+            },
+        )
+        return (await resp.json()).get("status") == "ok"
 
-    async def async_siren_on(self) -> bool:
+    async def async_siren_on(self, base_url: str | None = None) -> bool:
         """Turn on siren."""
 
-        return await self.async_set_siren_state("sound")
+        return await self.async_set_siren_state("sound", base_url=base_url)
 
-    async def async_siren_off(self) -> bool:
+    async def async_siren_off(self, base_url: str | None = None) -> bool:
         """Turn off siren."""
 
-        return await self.async_set_siren_state("no_sound")
+        return await self.async_set_siren_state("no_sound", base_url=base_url)
 
 
 class StatusMixin(EntityBase):
@@ -1242,6 +1288,9 @@ class Module(NetatmoBase):
 
     modules: list[str] | None
     reachable: bool | None
+    last_seen: int | None
+    setup_date: int | None
+    error_code: int | None
     features: set[str]
 
     def __init__(self, home: Home, module: ModuleT) -> None:
@@ -1254,8 +1303,11 @@ class Module(NetatmoBase):
         self.home = home
         self.room_id = module.get("room_id")
         self.reachable = module.get("reachable")
+        self.last_seen = module.get("last_seen")
+        self.setup_date = module.get("setup_date")
+        self.error_code = None
         self.bridge = module.get("bridge")
-        self.modules = module.get("modules_bridged")
+        self.modules = bridged_module_ids(module)
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
         self.features = set()
 

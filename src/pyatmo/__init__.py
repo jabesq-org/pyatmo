@@ -3,6 +3,7 @@
 from pyatmo import const, modules
 from pyatmo.account import AsyncAccount
 from pyatmo.auth import AbstractAsyncAuth
+from pyatmo.const import SIREN_BASE_URL
 from pyatmo.exceptions import (
     ApiError,
     ApiHomeReachabilityError,
@@ -20,6 +21,7 @@ from pyatmo.room import Room
 from pyatmo.webrtc import WebRTCStream
 
 __all__: list[str] = [
+    "SIREN_BASE_URL",
     "AbstractAsyncAuth",
     "ApiError",
     "ApiHomeReachabilityError",

@@ -52,6 +52,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - bump dependencies and tooling
 
+## [9.4.0]
+
+### Added
+
+- Support for WebRTC live stream for Netatmo Indoor Camera Advance (NPC)
+
+### Changed
+
+- bump dependencies and tooling
+
 ## [9.3.0]
 
 ### Added

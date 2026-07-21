@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [9.5.0] - 2026-07-21
+
 ### Added
 
 - Retry on Netatmo 429 concurrency errors with exponential backoff, honoring the
@@ -39,6 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classes
 - Handle the `auto` temperature control mode; unknown modes degrade to `None`
   instead of raising (#176631)
+
+## [9.4.0]
+
+### Added
+
+- Support for WebRTC live stream for Netatmo Indoor Camera Advance (NPC)
+
+### Changed
+
+- bump dependencies and tooling
 
 ## [9.4.0]
 
@@ -505,7 +517,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.5.0...HEAD
+[9.5.0]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...v9.5.0
 [9.4.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0
 [9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.2.3...v9.3.0
 [9.2.3]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...v9.2.3

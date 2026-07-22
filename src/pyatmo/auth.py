@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from json import JSONDecodeError
 import logging
 from typing import Any, Final
@@ -14,21 +16,87 @@ from aiohttp import (
     ClientTimeout,
     ContentTypeError,
 )
+from tenacity import (
+    RetryCallState,
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_combine,
+    wait_exponential,
+    wait_random,
+)
 
 from pyatmo.const import (
     AUTHORIZATION_HEADER,
+    CONCURRENCY_ERROR_CODE,
     DEFAULT_BASE_URL,
     ERRORS,
     FORBIDDEN_ERROR_CODE,
     THROTTLING_ERROR_CODE,
+    TOO_MANY_REQUESTS_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
 )
-from pyatmo.exceptions import ApiError, ApiThrottlingError
+from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT: Final[ClientTimeout] = ClientTimeout(total=20)
+
+# Retries to official API on 429 concurrency errors
+MAX_RETRIES = 4  # total attempts
+INITIAL_BACKOFF = 1  # seconds
+MULTIPLIER = 1
+MAX_BACKOFF = 8  # cap on a single fallback wait
+MAX_RETRY_AFTER = 60  # cap on an honored server Retry-After hint
+
+
+def _parse_retry_after(value: str | None) -> float | None:
+    """Parse a Retry-After header (RFC 7231) into seconds.
+
+    Accepts either a delta-seconds integer or an HTTP-date. Returns None when
+    the header is absent or unparseable. A date in the past clamps to 0.
+    """
+    if not value:
+        return None
+
+    value = value.strip()
+    if value.isdigit():
+        return float(value)
+
+    try:
+        retry_date = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+
+    if retry_date.tzinfo is None:
+        retry_date = retry_date.replace(tzinfo=UTC)
+
+    delta = (retry_date - datetime.now(UTC)).total_seconds()
+    return max(delta, 0.0)
+
+
+# Bounded exponential backoff with jitter. wait_exponential honors min/max
+# on all supported tenacity versions (wait_random_exponential only respects
+# min from 9.1.0), so combine it with wait_random for the jitter.
+_fallback_wait = wait_combine(
+    wait_exponential(multiplier=MULTIPLIER, min=INITIAL_BACKOFF, max=MAX_BACKOFF),
+    wait_random(0, 1),
+)
+
+
+def _wait_retry_after(retry_state: RetryCallState) -> float:
+    """Wait strategy honoring a server Retry-After, else bounded backoff.
+
+    Prefers the ``retry_after`` carried by ``ApiTooManyRequestError`` (capped
+    at ``MAX_RETRY_AFTER``); otherwise falls back to a jittered, bounded
+    exponential backoff.
+    """
+    exc = retry_state.outcome.exception() if retry_state.outcome else None
+    if isinstance(exc, ApiTooManyRequestError) and exc.retry_after is not None:
+        return min(exc.retry_after, MAX_RETRY_AFTER)
+    return _fallback_wait(retry_state)
 
 
 class AbstractAsyncAuth(ABC):
@@ -56,6 +124,10 @@ class AbstractAsyncAuth(ABC):
     ) -> bytes:
         """Wrap async get requests."""
 
+        # Note: the 429/concurrency retry lives on async_post_api_request only.
+        # Camera snapshots are best-effort and time-sensitive - retrying a live
+        # image seconds later has no value - so this path is deliberately not
+        # decorated.
         try:
             access_token: str = await self.async_get_access_token()
         except ClientError as err:
@@ -79,6 +151,13 @@ class AbstractAsyncAuth(ABC):
         msg = f"{resp.status} - invalid content-type in response when accessing '{url}'"
         raise ApiError(msg)
 
+    @retry(
+        retry=retry_if_exception_type(ApiTooManyRequestError),
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=_wait_retry_after,
+        before_sleep=before_sleep_log(LOG, logging.DEBUG),
+        reraise=True,
+    )
     async def async_post_api_request(
         self,
         endpoint: str,
@@ -154,18 +233,27 @@ class AbstractAsyncAuth(ABC):
         """Handle error response."""
         try:
             resp_json: dict[str, Any] = await resp.json()
+            error: dict[str, Any] = resp_json.get("error", {})
+            error_code = error.get("code")
 
             message: str = (
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
-                f"{resp_json['error']['message']} "
-                f"({resp_json['error']['code']}) "
+                f"{error.get('message')} "
+                f"({error_code}) "
                 f"when accessing '{url}'"
             )
 
             if (
+                resp_status == TOO_MANY_REQUESTS_ERROR_CODE
+                and error_code == CONCURRENCY_ERROR_CODE
+            ):
+                retry_after = _parse_retry_after(resp.headers.get("Retry-After"))
+                raise ApiTooManyRequestError(message, retry_after=retry_after)
+
+            if (
                 resp_status == FORBIDDEN_ERROR_CODE
-                and resp_json["error"]["code"] == THROTTLING_ERROR_CODE
+                and error_code == THROTTLING_ERROR_CODE
             ):
                 raise ApiThrottlingError(message)
 

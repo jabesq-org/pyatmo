@@ -351,3 +351,57 @@ class DoorTagCategory(StrEnum):
         msg: str = f"{key} category is unknown"
         LOG.warning(msg)
         return DoorTagCategory.unknown
+
+
+class BoilerControl(StrEnum):
+    """Boiler control mode reported by an OpenTherm gateway (OTH)."""
+
+    onoff = "onoff"
+    opentherm = "opentherm"
+    detecting = "detecting"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: object) -> Literal[BoilerControl.unknown]:
+        """Handle unknown boiler control values."""
+
+        msg: str = f"{key} boiler control is unknown"
+        LOG.warning(msg)
+        return BoilerControl.unknown
+
+
+class BoilerError(StrEnum):
+    """Boiler error reported by an OpenTherm gateway (OTH)."""
+
+    boiler_not_responding = "boiler_not_responding"
+    maintenance = "maintenance"
+    water_pressure = "water_pressure"
+    boiler_flame = "boiler_flame"
+    air_pressure = "air_pressure"
+    boiler_temperature = "boiler_temperature"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: object) -> Literal[BoilerError.unknown]:
+        """Handle unknown boiler error values."""
+
+        msg: str = f"{key} boiler error is unknown"
+        LOG.warning(msg)
+        return BoilerError.unknown
+
+
+class DhwControl(StrEnum):
+    """Domestic-hot-water control reported by an OpenTherm gateway (OTH)."""
+
+    none = "none"
+    instantaneous = "instantaneous"
+    water_tank = "water_tank"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: object) -> Literal[DhwControl.unknown]:
+        """Handle unknown domestic-hot-water control values."""
+
+        msg: str = f"{key} dhw control is unknown"
+        LOG.warning(msg)
+        return DhwControl.unknown

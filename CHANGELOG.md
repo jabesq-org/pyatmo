@@ -7,21 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [9.5.0] - 2026-07-21
+
 ### Added
 
--
+- Retry on Netatmo 429 concurrency errors with exponential backoff, honoring the
+  `Retry-After` header (#547)
+- Parse additional module attributes (`last_seen`, `setup_date`,
+  `offload_meters`, per-module `error_code`)
+- Parse OpenTherm boiler diagnostics on OTH modules (`boiler_control`,
+  `boiler_error`, `dhw_control`, `boiler_status`)
+- Parse room `type` and `therm_relay` from `/homesdata`
+- Parse the `/homesdata` user block (`country`, `pending_user_consent`, unit
+  preferences)
+- Parse `electricity` / `electricity_production` and `event` schedule payloads
+- Surface home geolocation (`altitude`, `coordinates`, `country`, `timezone`) on
+  `Home`
 
 ### Changed
 
--
+- Replace the room setpoint-mode/pilot-wire "invert" dicts with clearer named
+  helpers
 
 ### Fixed
 
--
+- Exclude `doortag_category` from the `NACamDoorTag` feature set (#500)
+- Populate `AsyncAccount.user` email from `/homesdata`, kept out of `raw_data`
+- Read bridged-children ids from both `module_bridged` and `modules_bridged`
+  spellings (#603)
+- Registering a module discovered via `/homestatus` no longer wipes home fields
+  or known modules
+- Alias legacy `/homesdata` module types (`NBD`, `NADoorTag`) to their canonical
+  classes
+- Handle the `auto` temperature control mode; unknown modes degrade to `None`
+  instead of raising (#176631)
 
-### Removed
+## [9.4.0]
 
--
+### Added
+
+- Support for WebRTC live stream for Netatmo Indoor Camera Advance (NPC)
+
+### Changed
+
+- bump dependencies and tooling
 
 ## [9.4.0]
 
@@ -488,45 +517,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...HEAD
-[9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0
-[9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...v9.3.0
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.5.0...HEAD
+[9.5.0]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...v9.5.0
+[9.4.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0
+[9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.2.3...v9.3.0
+[9.2.3]: https://github.com/jabesq-org/pyatmo/compare/v9.2.2...v9.2.3
 [9.2.2]: https://github.com/jabesq-org/pyatmo/compare/v9.2.1...v9.2.2
 [9.2.1]: https://github.com/jabesq-org/pyatmo/compare/v9.2.0...v9.2.1
 [9.2.0]: https://github.com/jabesq-org/pyatmo/compare/v9.1.0...v9.2.0
 [9.1.0]: https://github.com/jabesq-org/pyatmo/compare/v9.0.0...v9.1.0
 [9.0.0]: https://github.com/jabesq-org/pyatmo/compare/v8.1.0...v9.0.0
-[8.1.0]: https://github.com/jabesq/pyatmo/compare/v8.0.3...v8.1.0
-[8.0.3]: https://github.com/jabesq/pyatmo/compare/v8.0.2...v8.0.3
-[8.0.2]: https://github.com/jabesq/pyatmo/compare/v8.0.1...v8.0.2
-[8.0.1]: https://github.com/jabesq/pyatmo/compare/v8.0.0...v8.0.1
-[8.0.0]: https://github.com/jabesq/pyatmo/compare/v7.6.0...v8.0.0
-[7.6.0]: https://github.com/jabesq/pyatmo/compare/v7.5.0...v7.6.0
-[7.5.0]: https://github.com/jabesq/pyatmo/compare/v7.4.0...v7.5.0
-[7.4.0]: https://github.com/jabesq/pyatmo/compare/v7.3.0...v7.4.0
-[7.3.0]: https://github.com/jabesq/pyatmo/compare/v7.2.0...v7.3.0
-[7.2.0]: https://github.com/jabesq/pyatmo/compare/v7.1.1...v7.2.0
-[7.1.1]: https://github.com/jabesq/pyatmo/compare/v7.1.0...v7.1.1
-[7.1.0]: https://github.com/jabesq/pyatmo/compare/v7.0.1...v7.1.0
-[7.0.1]: https://github.com/jabesq/pyatmo/compare/v7.0.0...v7.0.1
-[7.0.0]: https://github.com/jabesq/pyatmo/compare/v6.2.4...v7.0.0
-[6.2.4]: https://github.com/jabesq/pyatmo/compare/v6.2.2...v6.2.4
-[6.2.2]: https://github.com/jabesq/pyatmo/compare/v6.2.1...v6.2.2
-[6.2.1]: https://github.com/jabesq/pyatmo/compare/v6.2.0...v6.2.1
-[6.2.0]: https://github.com/jabesq/pyatmo/compare/v6.1.0...v6.2.0
-[6.1.0]: https://github.com/jabesq/pyatmo/compare/v6.0.0...v6.1.0
-[6.0.0]: https://github.com/jabesq/pyatmo/compare/v5.2.3...v6.0.0
-[5.2.3]: https://github.com/jabesq/pyatmo/compare/v5.2.2...v5.2.3
-[5.2.2]: https://github.com/jabesq/pyatmo/compare/v5.2.1...v5.2.2
-[5.2.1]: https://github.com/jabesq/pyatmo/compare/v5.2.0...v5.2.1
-[5.2.0]: https://github.com/jabesq/pyatmo/compare/v5.1.0...v5.2.0
-[5.1.0]: https://github.com/jabesq/pyatmo/compare/v5.0.1...v5.1.0
-[5.0.1]: https://github.com/jabesq/pyatmo/compare/v5.0.0...v5.0.1
-[5.0.0]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v5.0.0
-[4.2.3]: https://github.com/jabesq/pyatmo/compare/v4.2.2...v4.2.3
-[4.2.2]: https://github.com/jabesq/pyatmo/compare/v4.2.1...v4.2.2
-[4.2.1]: https://github.com/jabesq/pyatmo/compare/v4.2.0...v4.2.1
-[4.2.0]: https://github.com/jabesq/pyatmo/compare/v4.1.0...v4.2.0
-[4.1.0]: https://github.com/jabesq/pyatmo/compare/v4.0.0...v4.1.0
-[4.0.0]: https://github.com/jabesq/pyatmo/compare/v3.3.1...v4.0.0
-[3.3.1]: https://github.com/jabesq/pyatmo/releases/tag/v3.3.1
+[8.1.0]: https://github.com/jabesq-org/pyatmo/compare/v8.0.3...v8.1.0
+[8.0.3]: https://github.com/jabesq-org/pyatmo/compare/v8.0.2...v8.0.3
+[8.0.2]: https://github.com/jabesq-org/pyatmo/compare/v8.0.1...v8.0.2
+[8.0.1]: https://github.com/jabesq-org/pyatmo/compare/v8.0.0...v8.0.1
+[8.0.0]: https://github.com/jabesq-org/pyatmo/compare/v7.6.0...v8.0.0
+[7.6.0]: https://github.com/jabesq-org/pyatmo/compare/v7.5.0...v7.6.0
+[7.5.0]: https://github.com/jabesq-org/pyatmo/compare/v7.4.0...v7.5.0
+[7.4.0]: https://github.com/jabesq-org/pyatmo/compare/v7.3.0...v7.4.0
+[7.3.0]: https://github.com/jabesq-org/pyatmo/compare/v7.2.0...v7.3.0
+[7.2.0]: https://github.com/jabesq-org/pyatmo/compare/v7.1.1...v7.2.0
+[7.1.1]: https://github.com/jabesq-org/pyatmo/compare/v7.1.0...v7.1.1
+[7.1.0]: https://github.com/jabesq-org/pyatmo/compare/v7.0.1...v7.1.0
+[7.0.1]: https://github.com/jabesq-org/pyatmo/compare/v7.0.0...v7.0.1
+[7.0.0]: https://github.com/jabesq-org/pyatmo/compare/v6.2.4...v7.0.0
+[6.2.4]: https://github.com/jabesq-org/pyatmo/compare/v6.2.2...v6.2.4
+[6.2.2]: https://github.com/jabesq-org/pyatmo/compare/v6.2.1...v6.2.2
+[6.2.1]: https://github.com/jabesq-org/pyatmo/compare/v6.2.0...v6.2.1
+[6.2.0]: https://github.com/jabesq-org/pyatmo/compare/v6.1.0...v6.2.0
+[6.1.0]: https://github.com/jabesq-org/pyatmo/compare/v6.0.0...v6.1.0
+[6.0.0]: https://github.com/jabesq-org/pyatmo/compare/v5.2.3...v6.0.0
+[5.2.3]: https://github.com/jabesq-org/pyatmo/compare/v5.2.2...v5.2.3
+[5.2.2]: https://github.com/jabesq-org/pyatmo/compare/v5.2.1...v5.2.2
+[5.2.1]: https://github.com/jabesq-org/pyatmo/compare/v5.2.0...v5.2.1
+[5.2.0]: https://github.com/jabesq-org/pyatmo/compare/v5.1.0...v5.2.0
+[5.1.0]: https://github.com/jabesq-org/pyatmo/compare/v5.0.1...v5.1.0
+[5.0.1]: https://github.com/jabesq-org/pyatmo/compare/v5.0.0...v5.0.1
+[5.0.0]: https://github.com/jabesq-org/pyatmo/compare/v4.2.2...v5.0.0
+[4.2.3]: https://github.com/jabesq-org/pyatmo/compare/v4.2.2...v4.2.3
+[4.2.2]: https://github.com/jabesq-org/pyatmo/compare/v4.2.1...v4.2.2
+[4.2.1]: https://github.com/jabesq-org/pyatmo/compare/v4.2.0...v4.2.1
+[4.2.0]: https://github.com/jabesq-org/pyatmo/compare/v4.1.0...v4.2.0
+[4.1.0]: https://github.com/jabesq-org/pyatmo/compare/v4.0.0...v4.1.0
+[4.0.0]: https://github.com/jabesq-org/pyatmo/compare/v3.3.1...v4.0.0
+[3.3.1]: https://github.com/jabesq-org/pyatmo/releases/tag/v3.3.1

@@ -1,0 +1,82 @@
+name: Release · publish
+
+# When a release PR (head branch `release/v*`) is merged into `master`, tag the
+# merge commit and create a GitHub Release with the CHANGELOG notes. The tag push
+# triggers `publish-to-pypi.yml`. Finally, open a mergeback PR into `development`
+# so the release commit and the reset `[unreleased]` scaffold return there.
+
+on:
+  pull_request:
+    types:
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Share the release lock with release-prepare and never cancel a publish midway.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Tag and release
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'master' &&
+      startsWith(github.event.pull_request.head.ref, 'release/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+          fetch-depth: 0
+          # PAT so the tag push below triggers publish-to-pypi.yml. Pushes made
+          # with the default GITHUB_TOKEN do not trigger other workflows.
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Resolve version from branch name
+        id: version
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: echo "version=${HEAD_REF#release/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+
+      - name: Extract release notes
+        run: python3 scripts/release.py --notes "${{ steps.version.outputs.version }}" > notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: notes.md
+
+      - name: Open mergeback PR into development
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          branch="mergeback/v${VERSION}"
+          git switch -c "${branch}" master
+          git push --force-with-lease origin "${branch}"
+          url="$(gh pr create \
+            --base development \
+            --head "${branch}" \
+            --title "Mergeback v${VERSION}" \
+            --body "Return release commit and reset \`[unreleased]\` to development.")"
+          # Best-effort: auto-merge needs repo auto-merge + required checks; if
+          # unavailable the PR stays open for a manual merge.
+          gh pr merge "${url}" --auto --merge \
+            || echo "::notice::auto-merge unavailable; merge ${url} manually"

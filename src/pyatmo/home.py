@@ -38,6 +38,14 @@ if TYPE_CHECKING:
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+# Legacy/typo module type strings some /homesdata schema variants document,
+# mapped to the canonical type the library implements. Defensive: the live API
+# is expected to send the canonical spelling.
+MODULE_TYPE_ALIASES: dict[str, str] = {
+    "NBD": "NDB",  # transposition of Smart Video Doorbell
+    "NADoorTag": "NACamDoorTag",  # legacy Smart Door/Window Sensor name
+}
+
 
 class Home:
     """Class to represent a Netatmo home."""
@@ -45,6 +53,10 @@ class Home:
     auth: AbstractAsyncAuth
     entity_id: str
     name: str
+    altitude: int | None = None
+    coordinates: list[float] | None = None
+    country: str | None = None
+    timezone: str | None = None
     rooms: dict[str, Room]
     modules: dict[str, Module]
     schedules: dict[str, Schedule]
@@ -62,6 +74,10 @@ class Home:
         self.auth = auth
         self.entity_id = raw_data["id"]
         self.name = raw_data.get("name", "Unknown")
+        self.altitude = raw_data.get("altitude")
+        self.coordinates = raw_data.get("coordinates")
+        self.country = raw_data.get("country")
+        self.timezone = raw_data.get("timezone")
         self.modules = {
             module["id"]: self.get_module(module)
             for module in raw_data.get("modules", [])
@@ -95,13 +111,21 @@ class Home:
     def get_module(self, module: dict) -> Module:
         """Return module."""
 
+        module_type = MODULE_TYPE_ALIASES.get(module["type"], module["type"])
+        if module_type != module["type"]:
+            LOG.debug("Aliased device type %s -> %s", module["type"], module_type)
+            # Normalize so both the class lookup and DeviceType(...) in
+            # Module.__init__ see the canonical type. Copy (not mutate) to avoid
+            # rewriting the shared raw_data dict, which consumers may serialize.
+            module = {**module, "type": module_type}
+
         try:
-            return getattr(modules, module["type"])(
+            return getattr(modules, module_type)(
                 home=self,
                 module=module,
             )
         except AttributeError:
-            LOG.info("Unknown device type %s", module["type"])
+            LOG.info("Unknown device type %s", module_type)
             return modules.NLunknown(
                 home=self,
                 module=module,
@@ -111,6 +135,14 @@ class Home:
         """Update topology."""
 
         self.name = raw_data.get("name", "Unknown")
+        # Geolocation is treated as sticky, unlike the live state below (name,
+        # therm mode, ...): it is effectively static per home and only carried
+        # in a full /homesdata payload, so a topology update that omits these
+        # keys keeps the previously populated values instead of wiping them.
+        self.altitude = raw_data.get("altitude", self.altitude)
+        self.coordinates = raw_data.get("coordinates", self.coordinates)
+        self.country = raw_data.get("country", self.country)
+        self.timezone = raw_data.get("timezone", self.timezone)
 
         raw_modules = raw_data.get("modules", [])
 
@@ -168,7 +200,17 @@ class Home:
         has_error = False
         for module in raw_data.get("errors", []):
             has_error = True
-            await self.modules[module["id"]].update({})
+            module_id = module["id"]
+            if module_id in self.modules:
+                await self.modules[module_id].update({})
+                # Set error_code AFTER update({}): update() reruns reflection
+                # (_update_attributes) which would otherwise reset it to None.
+                self.modules[module_id].error_code = module.get("code")
+            else:
+                LOG.warning(
+                    "Error reported for unknown module id (%s); skipping",
+                    module_id,
+                )
 
         data = raw_data["home"]
 
@@ -176,8 +218,16 @@ class Home:
         for module in data.get("modules", []):
             has_an_update = True
             if module["id"] not in self.modules:
-                self.update_topology({"modules": [module]})
+                # Register the newly-seen module directly. Routing through
+                # update_topology with a partial `{"modules": [...]}` payload
+                # would wipe home-level fields (name, therm state, geolocation)
+                # whose keys are absent from this /homestatus data.
+                self.modules[module["id"]] = self.get_module(module)
             await self.modules[module["id"]].update(module)
+            # Clear any error code from a previous /homestatus errors[] entry:
+            # the module is reported healthy again. Reflection in update() would
+            # otherwise carry the stale code forward (raw data has no error_code).
+            self.modules[module["id"]].error_code = None
 
         for room in data.get("rooms", []):
             has_an_update = True
@@ -330,11 +380,6 @@ class Home:
     async def async_set_state(self, data: dict[str, Any]) -> bool:
         """Set state using given data."""
         if not is_valid_state(data):
-            LOG.error(
-                "INVALID DATA Setting state for home (%s) according to %s",
-                self.entity_id,
-                data,
-            )
             msg = "Data for '/set_state' contains errors."
             raise InvalidStateError(msg)
         LOG.debug("Setting state for home (%s) according to %s", self.entity_id, data)
@@ -462,39 +507,9 @@ class Home:
         return (await resp.json()).get("status") == "ok"
 
 
-def is_valid_state(data: dict[str, Any] | None) -> bool:
-    """Check set state data, and return False if error(s) found."""
-    if data is None or (not isinstance(data, dict)):
-        return False
-
-    ret = False
-
-    for list_names in ["rooms", "modules"]:
-        if list_names in data:
-            if not isinstance(data[list_names], list) or len(data[list_names]) != 1:
-                return False
-
-            item = data[list_names][0]
-            if (
-                not isinstance(item, dict)
-                or "id" not in item
-                or not isinstance(item["id"], str)
-            ):
-                return False
-
-            if item["id"].lower() in ["none", "", "null", "undefined", "unknown"]:
-                return False
-
-            if (
-                list_names == "rooms"
-                and "therm_setpoint_mode" not in item
-                and "cooling_setpoint_mode" not in item
-            ):
-                return False
-
-            ret = True
-
-    return ret
+def is_valid_state(data: dict[str, Any]) -> bool:
+    """Check set state data."""
+    return data is not None
 
 
 def is_valid_schedule(schedule: Schedule) -> bool:
@@ -509,9 +524,19 @@ def is_valid_schedule(schedule: Schedule) -> bool:
 def get_temperature_control_mode(
     temperature_control_mode: str | None,
 ) -> TemperatureControlMode | None:
-    """Return temperature control mode."""
-    return (
-        TemperatureControlMode(temperature_control_mode)
-        if temperature_control_mode
-        else None
-    )
+    """Return temperature control mode.
+
+    Unknown values degrade to None with a warning rather than raising, so a
+    single unrecognized mode never aborts topology parsing for the whole
+    account.
+    """
+    if not temperature_control_mode:
+        return None
+    try:
+        return TemperatureControlMode(temperature_control_mode)
+    except ValueError:
+        LOG.warning(
+            "%s temperature control mode is unknown",
+            temperature_control_mode,
+        )
+        return None

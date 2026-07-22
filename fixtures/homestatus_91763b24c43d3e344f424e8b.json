@@ -62,6 +62,7 @@
         },
         {
           "id": "12:34:56:00:01:ae",
+          "last_seen": 1776675797,
           "reachable": true,
           "type": "NATherm1",
           "firmware_revision": 65,
@@ -136,6 +137,7 @@
         },
         {
           "boiler_control": "onoff",
+          "boiler_error": "water_pressure",
           "dhw_control": "none",
           "firmware_revision": 22,
           "hardware_version": 222,
@@ -223,6 +225,7 @@
           "id": "12:34:56:80:60:40",
           "type": "NLG",
           "offload": false,
+          "offload_meters": [],
           "firmware_revision": 211,
           "last_seen": 1644567372,
           "wifi_strength": 51,
@@ -233,6 +236,7 @@
           "type": "NLP",
           "on": true,
           "offload": false,
+          "offload_meters": ["98:76:54:32:10:ab"],
           "firmware_revision": 62,
           "last_seen": 1644569425,
           "power": 0,

@@ -1,14 +1,26 @@
 """Define tests for climate module."""
 
 import json
-from unittest.mock import AsyncMock, patch
+import logging
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import anyio
 import pytest
 
-from pyatmo import DeviceType, NoScheduleError
+from pyatmo import DeviceType, NoScheduleError, const
 from pyatmo.modules import NATherm1
-from pyatmo.modules.device_types import DeviceCategory
+from pyatmo.modules.device_types import (
+    BoilerControl,
+    BoilerError,
+    DeviceCategory,
+    DhwControl,
+)
+from pyatmo.modules.module import BoilerMixin, OpenThermMixin
+from pyatmo.modules.netatmo import OTH
+from pyatmo.room import (
+    climate_setpoint_mode_to_pilot_wire,
+    pilot_wire_to_climate_setpoint_mode,
+)
 from tests.common import MockResponse, fake_post_request
 from tests.conftest import does_not_raise
 
@@ -98,6 +110,57 @@ async def test_async_climate_OTH(async_home):
     assert len(module.modules) == 1
     assert module.wifi_strength == 57
     assert module.firmware_revision == 22
+    # coerced to enums, still string-comparable (StrEnum)
+    assert module.boiler_control is BoilerControl.onoff
+    assert module.boiler_error is BoilerError.water_pressure
+    assert module.dhw_control is DhwControl.none
+    assert module.boiler_control == "onoff"
+    assert module.boiler_error == "water_pressure"
+    assert module.dhw_control == "none"
+    # BoilerMixin field is now parsed; defaults to None when absent from the response
+    assert module.boiler_status is None
+
+
+async def test_oth_boiler_enum_unknown_value():
+    """Unknown enum values fall back to `unknown` instead of crashing parsing."""
+    module = OTH(MagicMock(), {"id": "x", "type": "OTH"})
+    module.update_topology(
+        {
+            "id": "x",
+            "type": "OTH",
+            "boiler_control": "brand_new_value",
+            "boiler_error": "brand_new_error",
+            "dhw_control": "brand_new_mode",
+        },
+    )
+    assert module.boiler_control is BoilerControl.unknown
+    assert module.boiler_error is BoilerError.unknown
+    assert module.dhw_control is DhwControl.unknown
+
+
+async def test_oth_boiler_enum_absent_no_warning(caplog):
+    """Absent boiler fields stay None and do not log spurious 'unknown' warnings."""
+    module = OTH(MagicMock(), {"id": "x", "type": "OTH"})
+    with caplog.at_level(logging.WARNING):
+        module.update_topology({"id": "x", "type": "OTH"})
+    assert module.boiler_control is None
+    assert module.boiler_error is None
+    assert module.dhw_control is None
+    assert "unknown" not in caplog.text.lower()
+
+
+async def test_async_climate_OTH_mixin_composition(async_home):
+    """Guard the OTH MRO: both boiler mixins run and no diagnostic field is skipped.
+
+    Protects against reordering the OTH base classes, which could silently drop
+    a mixin from the cooperative ``super().__init__`` chain.
+    """
+    module = async_home.modules["12:34:56:20:f5:44"]
+    assert isinstance(module, BoilerMixin)
+    assert isinstance(module, OpenThermMixin)
+    # every diagnostic field is initialised regardless of response content
+    for attr in ("boiler_control", "boiler_error", "dhw_control", "boiler_status"):
+        assert hasattr(module, attr)
 
 
 async def test_async_climate_BNS(async_home):
@@ -135,6 +198,18 @@ async def test_async_climate_initial_state(async_account):
     assert module.boiler_status is False
     assert module.battery == 75
     assert isinstance(module, NATherm1)
+
+
+async def test_async_climate_last_seen(async_account):
+    """last_seen is parsed for non-VELUX modules."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+
+    module = home.modules["12:34:56:00:01:ae"]
+    assert module.last_seen == 1776675797
+    # availability metadata, not a measurement feature
+    assert "last_seen" not in module.features
 
 
 async def test_async_climate_disconnected_state(async_account):
@@ -408,3 +483,40 @@ async def test_power_wire(async_home_multi):
     assert room.climate_type == DeviceType.NLC
     assert DeviceType.NLC in room.device_types
     assert room.support_pilot_wire is True
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected"),
+    [
+        (const.MANUAL, const.PILOT_WIRE_COMFORT),
+        (const.MAX, const.PILOT_WIRE_COMFORT),
+        (const.OFF, const.PILOT_WIRE_FROST_GUARD),
+        (const.HOME, const.PILOT_WIRE_COMFORT),
+        (const.FROSTGUARD, const.PILOT_WIRE_FROST_GUARD),
+        (const.SCHEDULE, const.PILOT_WIRE_COMFORT),
+        (const.AWAY, const.PILOT_WIRE_AWAY),
+        # unknown mode falls back to frost guard
+        ("nonsense", const.PILOT_WIRE_FROST_GUARD),
+    ],
+)
+def test_climate_setpoint_mode_to_pilot_wire(mode, expected):
+    """Test climate setpoint mode -> pilot wire preset mapping (frost-guard default)."""
+    assert climate_setpoint_mode_to_pilot_wire(mode) == expected
+
+
+@pytest.mark.parametrize(
+    ("pilot_wire", "expected"),
+    [
+        (const.PILOT_WIRE_COMFORT, const.MANUAL),
+        (const.PILOT_WIRE_AWAY, const.MANUAL),
+        (const.PILOT_WIRE_FROST_GUARD, const.FROSTGUARD),
+        (const.PILOT_WIRE_STAND_BY, const.FROSTGUARD),
+        (const.PILOT_WIRE_COMFORT_1, const.HOME),
+        (const.PILOT_WIRE_COMFORT_2, const.HOME),
+        # unknown pilot wire preset falls back to frost guard
+        ("nonsense", const.FROSTGUARD),
+    ],
+)
+def test_pilot_wire_to_climate_setpoint_mode(pilot_wire, expected):
+    """Test pilot wire preset -> canonical NLC setpoint mode mapping (frost-guard default)."""
+    assert pilot_wire_to_climate_setpoint_mode(pilot_wire) == expected

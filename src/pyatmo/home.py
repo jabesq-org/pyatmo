@@ -516,7 +516,7 @@ def is_valid_state(data: dict[str, Any] | None) -> bool:
 
     for list_names in ["rooms", "modules"]:
         if list_names in data:
-            # there should be only one "rooms" or "modules" list in the data
+            # there should be only one item in "rooms" or "modules" list in the data
             if not isinstance(data[list_names], list) or len(data[list_names]) != 1:
                 return False
 

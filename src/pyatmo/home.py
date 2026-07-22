@@ -507,9 +507,40 @@ class Home:
         return (await resp.json()).get("status") == "ok"
 
 
-def is_valid_state(data: dict[str, Any]) -> bool:
-    """Check set state data."""
-    return data is not None
+def is_valid_state(data: dict[str, Any] | None) -> bool:
+    """Check set state data, and return False if error(s) found."""
+    if data is None or (not isinstance(data, dict)):
+        return False
+
+    ret = False
+
+    for list_names in ["rooms", "modules"]:
+        if list_names in data:
+            # there should be only one "rooms" or "modules" list in the data
+            if not isinstance(data[list_names], list) or len(data[list_names]) != 1:
+                return False
+
+            item = data[list_names][0]
+            if (
+                not isinstance(item, dict)
+                or "id" not in item
+                or not isinstance(item["id"], str)
+            ):
+                return False
+
+            if item["id"].lower() in ["none", "", "null", "undefined", "unknown"]:
+                return False
+
+            if (
+                list_names == "rooms"
+                and "therm_setpoint_mode" not in item
+                and "cooling_setpoint_mode" not in item
+            ):
+                return False
+
+            ret = True
+
+    return ret
 
 
 def is_valid_schedule(schedule: Schedule) -> bool:

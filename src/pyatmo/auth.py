@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from json import JSONDecodeError
 import logging
-from typing import Any
+from typing import Any, Final
 
 from aiohttp import (
     ClientError,
@@ -41,6 +41,8 @@ from pyatmo.const import (
 from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
+DEFAULT_TIMEOUT: Final[ClientTimeout] = ClientTimeout(total=20)
 
 # Retries to official API on 429 concurrency errors
 MAX_RETRIES = 4  # total attempts
@@ -139,7 +141,7 @@ class AbstractAsyncAuth(ABC):
             url,
             params=params,
             headers=headers,
-            timeout=ClientTimeout(total=5),
+            timeout=DEFAULT_TIMEOUT,
         ) as resp:
             resp_content: bytes = await resp.read()
 
@@ -185,7 +187,7 @@ class AbstractAsyncAuth(ABC):
             url,
             **req_args,
             headers=headers,
-            timeout=ClientTimeout(total=5),
+            timeout=DEFAULT_TIMEOUT,
         ) as resp:
             return await self.process_response(resp, url)
 

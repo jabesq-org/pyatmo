@@ -13,7 +13,8 @@ jobs:
     name: Build and publish 📦 to PyPI
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      id-token: write # required for OIDC Trusted Publishing + PEP 740 attestations
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,5 +32,4 @@ jobs:
       - name: Publish 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.pypi_prod_token }}
           skip-existing: true

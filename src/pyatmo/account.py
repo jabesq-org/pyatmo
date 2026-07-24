@@ -73,8 +73,8 @@ class AsyncAccount:
         """
 
         self.disabled_homes_ids = set(disabled_homes_ids or [])
-        for home_id in self.disabled_homes_ids & self.homes.keys():
-            del self.homes[home_id]
+        for disabled_home_id in self.disabled_homes_ids & self.homes.keys():
+            del self.homes[disabled_home_id]
 
         for home in self.raw_data["homes"]:
             home_id: str = home.get("id", "Unknown")

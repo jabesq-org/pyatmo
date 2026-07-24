@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Filter homes via an optional `disabled_homes_ids` denylist on `AsyncAccount`.
+  Full inventory stays available as `home_names`.
+
+### Deprecated
+
+- `AsyncAccount.all_homes_id` — use `home_names` instead
+
 ## [9.5.0] - 2026-07-21
 
 ### Added

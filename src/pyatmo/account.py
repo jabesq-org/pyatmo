@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
+import warnings
 
 from pyatmo import modules
 from pyatmo.const import (
@@ -19,6 +20,7 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
+from pyatmo.exceptions import InvalidHomeError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
@@ -38,6 +40,7 @@ class AsyncAccount:
         self,
         auth: AbstractAsyncAuth,
         favorite_stations: bool = True,
+        disabled_homes_ids: list[str] | None = None,
     ) -> None:
         """Initialize the Netatmo account."""
 
@@ -48,7 +51,10 @@ class AsyncAccount:
         self.unit_system: UnitSystem | None = None
         self.unit_wind: WindUnit | None = None
         self.unit_pressure: PressureUnit | None = None
-        self.all_homes_id: dict[str, str] = {}
+        self.home_names: dict[str, str] = {}
+        self.disabled_homes_ids: list[str] = (
+            list(disabled_homes_ids) if disabled_homes_ids else []
+        )
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -62,16 +68,47 @@ class AsyncAccount:
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
 
+    @property
+    def all_homes_id(self) -> dict[str, str]:
+        """Return the home inventory (deprecated alias for `home_names`)."""
+        warnings.warn(
+            "all_homes_id is deprecated, use home_names instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.home_names
+
+    def set_disabled_homes(self, disabled_homes_ids: list[str] | None) -> None:
+        """Set the homes to filter out.
+
+        Applied on the next topology fetch and by the per-home update guards.
+        The list is copied so later mutation by the caller does not affect the
+        stored denylist.
+        """
+        self.disabled_homes_ids = list(disabled_homes_ids) if disabled_homes_ids else []
+
+    def _guard_home(self, home_id: str) -> None:
+        """Raise if home_id is filtered out, before making any API request."""
+        if home_id in self.disabled_homes_ids:
+            msg = f"Home {home_id} is disabled and cannot be queried"
+            raise InvalidHomeError(msg)
+
     def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
-        """Process topology information from /homesdata."""
+        """Process topology information from /homesdata.
+
+        If `disabled_homes_ids` is `None`, the stored `self.disabled_homes_ids`
+        denylist is used. Passing an explicit list (including an empty one)
+        overrides the stored denylist for this call only and does not mutate
+        the stored state.
+        """
 
         if disabled_homes_ids is None:
-            disabled_homes_ids = []
+            disabled_homes_ids = self.disabled_homes_ids
 
         for home in self.raw_data["homes"]:
             home_id: str = home.get("id", "Unknown")
             home_name: str = home.get("name", "Unknown")
-            self.all_homes_id[home_id] = home_name
+            self.home_names[home_id] = home_name
 
             if home_id in disabled_homes_ids:
                 if home_id in self.homes:
@@ -115,6 +152,7 @@ class AsyncAccount:
 
     async def async_update_status(self, home_id: str) -> None:
         """Retrieve status data from /homestatus."""
+        self._guard_home(home_id)
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
@@ -124,6 +162,7 @@ class AsyncAccount:
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
+        self._guard_home(home_id)
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
@@ -155,6 +194,7 @@ class AsyncAccount:
         days: int = 7,
     ) -> None:
         """Retrieve measures data from /getmeasure."""
+        self._guard_home(home_id)
 
         module: Module = self.homes[home_id].modules[module_id]
         if module.has_feature("historical_data"):
@@ -226,6 +266,7 @@ class AsyncAccount:
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:
         """Modify device state by passing JSON specific to the device."""
+        self._guard_home(home_id)
         LOG.debug("Setting state: %s", data)
 
         post_params: dict[str, Any] = {

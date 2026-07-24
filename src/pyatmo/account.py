@@ -49,6 +49,7 @@ class AsyncAccount:
         self.unit_wind: WindUnit | None = None
         self.unit_pressure: PressureUnit | None = None
         self.all_homes_id: dict[str, str] = {}
+        self.disabled_homes_ids: set[str] = set()
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -63,19 +64,24 @@ class AsyncAccount:
         )
 
     def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
-        """Process topology information from /homesdata."""
+        """Process topology information from /homesdata.
 
-        if disabled_homes_ids is None:
-            disabled_homes_ids = []
+        Homes listed in disabled_homes_ids are removed from the account and
+        their devices are ignored by later device updates. The selection is
+        remembered and replaced on every call; None or an empty list
+        re-enables all homes.
+        """
+
+        self.disabled_homes_ids = set(disabled_homes_ids or [])
+        for home_id in self.disabled_homes_ids & self.homes.keys():
+            del self.homes[home_id]
 
         for home in self.raw_data["homes"]:
             home_id: str = home.get("id", "Unknown")
             home_name: str = home.get("name", "Unknown")
             self.all_homes_id[home_id] = home_name
 
-            if home_id in disabled_homes_ids:
-                if home_id in self.homes:
-                    del self.homes[home_id]
+            if home_id in self.disabled_homes_ids:
                 continue
 
             if home_id in self.homes:
@@ -87,7 +93,11 @@ class AsyncAccount:
         self,
         disabled_homes_ids: list[str] | None = None,
     ) -> None:
-        """Retrieve topology data from /homesdata."""
+        """Retrieve topology data from /homesdata.
+
+        Homes listed in disabled_homes_ids are excluded from the account,
+        see process_topology.
+        """
 
         resp = await self.auth.async_post_api_request(
             endpoint=GETHOMESDATA_ENDPOINT,
@@ -247,12 +257,20 @@ class AsyncAccount:
         raw_data: RawData,
         area_id: str | None = None,
     ) -> None:
-        """Update device states."""
+        """Update device states.
+
+        Devices belonging to a disabled home are skipped, so that they do
+        not re-create the home pruned by process_topology.
+        """
         for device_data in raw_data.get("devices", {}):
-            if home_id := device_data.get(
+            home_id = device_data.get(
                 "home_id",
                 self.find_home_of_device(device_data),
-            ):
+            )
+            if home_id in self.disabled_homes_ids:
+                continue
+
+            if home_id:
                 if home_id not in self.homes:
                     modules_data: list[dict[str, Any]] = []
                     for module_data in device_data.get("modules", []):

@@ -42,6 +42,27 @@ async def async_account(async_auth):
 
 
 @pytest.fixture
+async def async_account_disabled_home(async_auth):
+    """AsyncAccount fixture with home 91763b24c43d3e344f424e8b disabled."""
+    account: pyatmo.AsyncAccount = pyatmo.AsyncAccount(async_auth)
+
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            fake_post_request,
+        ),
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+            fake_post_request,
+        ),
+    ):
+        await account.async_update_topology(
+            disabled_homes_ids=["91763b24c43d3e344f424e8b"],
+        )
+        yield account
+
+
+@pytest.fixture
 async def async_home(async_account):
     """AsyncClimate fixture for home_id 91763b24c43d3e344f424e8b."""
     home_id = "91763b24c43d3e344f424e8b"

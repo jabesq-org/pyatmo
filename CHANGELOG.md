@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Device updates (`/getstationsdata`, `/gethomecoachsdata`) no longer re-create
+- Device updates (`/getstationsdata`, `/gethomecoachsdata`) no longer recreate
   homes excluded via `disabled_homes_ids`; the selection made through
   `process_topology` is now remembered on the account
   (`AsyncAccount.disabled_homes_ids`) and devices of disabled homes are skipped

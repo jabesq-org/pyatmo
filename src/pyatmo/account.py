@@ -20,7 +20,6 @@ from pyatmo.const import (
     RawData,
 )
 from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
-from pyatmo.exceptions import InvalidHomeError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
@@ -79,28 +78,18 @@ class AsyncAccount:
         return self.home_names
 
     def set_disabled_homes(self, disabled_homes_ids: list[str] | None) -> None:
-        """Set the homes to filter out.
-
-        Applied on the next topology fetch and by the per-home update guards.
-        The list is copied so later mutation by the caller does not affect the
-        stored denylist.
-        """
+        """Set the homes to filter out."""
         self.disabled_homes_ids = list(disabled_homes_ids) if disabled_homes_ids else []
 
-    def _guard_home(self, home_id: str) -> None:
-        """Raise if home_id is filtered out, before making any API request."""
+    def _is_home_disabled(self, home_id: str) -> bool:
+        """Return True and log a warning if home_id is filtered out."""
         if home_id in self.disabled_homes_ids:
-            msg = f"Home {home_id} is disabled and cannot be queried"
-            raise InvalidHomeError(msg)
+            LOG.warning("Home %s is disabled; skipping request", home_id)
+            return True
+        return False
 
     def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
-        """Process topology information from /homesdata.
-
-        If `disabled_homes_ids` is `None`, the stored `self.disabled_homes_ids`
-        denylist is used. Passing an explicit list (including an empty one)
-        overrides the stored denylist for this call only and does not mutate
-        the stored state.
-        """
+        """Process topology information from /homesdata."""
 
         if disabled_homes_ids is None:
             disabled_homes_ids = self.disabled_homes_ids
@@ -152,7 +141,8 @@ class AsyncAccount:
 
     async def async_update_status(self, home_id: str) -> None:
         """Retrieve status data from /homestatus."""
-        self._guard_home(home_id)
+        if self._is_home_disabled(home_id):
+            return
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
@@ -162,7 +152,8 @@ class AsyncAccount:
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
-        self._guard_home(home_id)
+        if self._is_home_disabled(home_id):
+            return
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
@@ -194,7 +185,8 @@ class AsyncAccount:
         days: int = 7,
     ) -> None:
         """Retrieve measures data from /getmeasure."""
-        self._guard_home(home_id)
+        if self._is_home_disabled(home_id):
+            return
 
         module: Module = self.homes[home_id].modules[module_id]
         if module.has_feature("historical_data"):
@@ -266,7 +258,8 @@ class AsyncAccount:
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:
         """Modify device state by passing JSON specific to the device."""
-        self._guard_home(home_id)
+        if self._is_home_disabled(home_id):
+            return
         LOG.debug("Setting state: %s", data)
 
         post_params: dict[str, Any] = {
@@ -294,6 +287,8 @@ class AsyncAccount:
                 "home_id",
                 self.find_home_of_device(device_data),
             ):
+                if self._is_home_disabled(home_id):
+                    continue  # respect the denylist; do not resurrect filtered homes
                 if home_id not in self.homes:
                     modules_data: list[dict[str, Any]] = []
                     for module_data in device_data.get("modules", []):

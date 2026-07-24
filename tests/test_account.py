@@ -1,5 +1,6 @@
 """Define tests for the account module."""
 
+import logging
 from unittest.mock import patch
 
 import pytest
@@ -28,6 +29,28 @@ async def test_update_devices_unknown_type_falls_back_to_nlunknown(async_account
 
     assert device_id in async_account.modules
     assert isinstance(async_account.modules[device_id], modules.NLunknown)
+
+
+async def test_update_devices_skips_disabled_home(async_auth):
+    """A disabled home is not resurrected via the weather/aircare device path."""
+    home_id = "weather_home"
+    device_data = {
+        "_id": "00:11:22:33:44:55",
+        "type": "NAMain",
+        "home_id": home_id,
+        "home_name": "Weather Home",
+        "modules": [],
+    }
+
+    # Sanity: without the denylist the same data DOES create the home.
+    enabled = pyatmo.AsyncAccount(async_auth)
+    await enabled.update_devices({"devices": [dict(device_data)]})
+    assert home_id in enabled.homes
+
+    # With the home disabled it must not be added back.
+    disabled = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=[home_id])
+    await disabled.update_devices({"devices": [dict(device_data)]})
+    assert home_id not in disabled.homes
 
 
 async def test_home_names_is_full_inventory(async_account_multi):
@@ -127,41 +150,46 @@ async def test_topology_param_overrides_stored_and_does_not_mutate(async_auth):
     assert account.disabled_homes_ids == ["eeeeeeeeeffffffffffaaaaa"]
 
 
-async def test_update_status_disabled_home_raises_no_call(async_auth):
-    """A disabled home_id raises InvalidHomeError before any API request."""
+async def test_update_status_disabled_home_skips_call(async_auth, caplog):
+    """A disabled home_id logs a warning and makes no API request."""
     account = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=["home_disabled"])
 
-    with pytest.raises(pyatmo.exceptions.InvalidHomeError):
-        await account.async_update_status("home_disabled")
+    with caplog.at_level(logging.WARNING):
+        result = await account.async_update_status("home_disabled")
 
+    assert result is None
     async_auth.async_post_api_request.assert_not_called()
+    assert "home_disabled" in caplog.text
 
 
-async def test_update_events_disabled_home_raises(async_auth):
-    """A disabled home_id raises InvalidHomeError before any API request."""
+async def test_update_events_disabled_home_skips_call(async_auth, caplog):
+    """A disabled home_id logs a warning and makes no API request."""
     account = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=["home_disabled"])
 
-    with pytest.raises(pyatmo.exceptions.InvalidHomeError):
+    with caplog.at_level(logging.WARNING):
         await account.async_update_events("home_disabled")
 
     async_auth.async_post_api_request.assert_not_called()
+    assert "home_disabled" in caplog.text
 
 
-async def test_update_measures_disabled_home_raises(async_auth):
-    """A disabled home_id raises InvalidHomeError before any API request."""
+async def test_update_measures_disabled_home_skips_call(async_auth, caplog):
+    """A disabled home_id logs a warning and makes no API request."""
     account = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=["home_disabled"])
 
-    with pytest.raises(pyatmo.exceptions.InvalidHomeError):
+    with caplog.at_level(logging.WARNING):
         await account.async_update_measures("home_disabled", "module_x")
 
     async_auth.async_post_api_request.assert_not_called()
+    assert "home_disabled" in caplog.text
 
 
-async def test_set_state_disabled_home_raises(async_auth):
-    """A disabled home_id raises InvalidHomeError before any API request."""
+async def test_set_state_disabled_home_skips_call(async_auth, caplog):
+    """A disabled home_id logs a warning and makes no API request."""
     account = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=["home_disabled"])
 
-    with pytest.raises(pyatmo.exceptions.InvalidHomeError):
+    with caplog.at_level(logging.WARNING):
         await account.async_set_state("home_disabled", {"foo": "bar"})
 
     async_auth.async_post_api_request.assert_not_called()
+    assert "home_disabled" in caplog.text

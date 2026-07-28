@@ -9,7 +9,7 @@ from pyatmo.modules.device_types import DeviceCategory
 from tests.common import MockResponse, load_fixture
 
 
-async def test_async_velux_modules(async_auth, caplog):
+async def test_async_velux_modules(async_auth):
     """Test VELUX gateway and cover parsing."""
     homesdata = json.loads(load_fixture("homesdata_velux.json"))
     homestatus = json.loads(load_fixture("homestatus_velux_home_id.json"))
@@ -65,6 +65,7 @@ async def test_async_velux_modules(async_auth, caplog):
     assert blind.name == "Bedroom Blind"
 
     sensor = home.modules["velux_climate_sensor"]
+    assert isinstance(sensor, pyatmo.modules.NXS)
     assert {
         "device_type": sensor.device_type,
         "device_category": sensor.device_category,
@@ -98,6 +99,7 @@ async def test_async_velux_modules(async_auth, caplog):
     }
 
     departure_switch = home.modules["velux_departure_switch"]
+    assert isinstance(departure_switch, pyatmo.modules.NXD)
     assert {
         "device_type": departure_switch.device_type,
         "device_category": departure_switch.device_category,
@@ -161,7 +163,6 @@ async def test_async_velux_modules(async_auth, caplog):
         "max_comfort_humidity": 70,
         "max_comfort_co2": 1150,
     }
-    assert "device is unknown" not in caplog.text
 
 
 async def test_async_shutter_nxo(async_auth):

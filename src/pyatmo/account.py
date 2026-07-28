@@ -23,6 +23,7 @@ from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
+from pyatmo.webhook import WebhookResult, process_webhook
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
@@ -158,6 +159,10 @@ class AsyncAccount:
         )
         raw_data: RawData = extract_raw_data(await resp.json(), HOME)
         await self.homes[home_id].update(raw_data)
+
+    async def process_webhook(self, payload: dict[str, Any]) -> WebhookResult:
+        """Parse and merge a Netatmo webhook payload into the account model."""
+        return await process_webhook(self, payload)
 
     async def async_update_weather_stations(self) -> None:
         """Retrieve status data from /getstationsdata."""

@@ -86,7 +86,19 @@ class Room(NetatmoBase):
 
     climate_type: DeviceType | None = None
 
+    air_quality: int | None = None
+    algo_schedule_start: int | None = None
+    algo_status: int | None = None
+    auto_close_ts: int | None = None
+    co2: int | None = None
     humidity: int | None = None
+    lux: int | None = None
+    max_comfort_co2: int | None = None
+    max_comfort_humidity: int | None = None
+    max_comfort_temperature: int | None = None
+    min_comfort_humidity: int | None = None
+    min_comfort_temperature: int | None = None
+    temperature: int | None = None
     therm_measured_temperature: float | None = None
 
     reachable: bool | None = None
@@ -185,7 +197,19 @@ class Room(NetatmoBase):
     def update(self, raw_data: RawData) -> None:
         """Update room data."""
 
+        self.air_quality = raw_data.get("air_quality")
+        self.algo_schedule_start = raw_data.get("algo_schedule_start")
+        self.algo_status = raw_data.get("algo_status")
+        self.auto_close_ts = raw_data.get("auto_close_ts")
+        self.co2 = raw_data.get("co2")
         self.humidity = raw_data.get("humidity")
+        self.lux = raw_data.get("lux")
+        self.max_comfort_co2 = raw_data.get("max_comfort_co2")
+        self.max_comfort_humidity = raw_data.get("max_comfort_humidity")
+        self.max_comfort_temperature = raw_data.get("max_comfort_temperature")
+        self.min_comfort_humidity = raw_data.get("min_comfort_humidity")
+        self.min_comfort_temperature = raw_data.get("min_comfort_temperature")
+        self.temperature = raw_data.get("temperature")
         self.radiators_power = 0
 
         if self.climate_type == DeviceType.BNTH:

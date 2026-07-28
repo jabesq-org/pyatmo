@@ -76,6 +76,7 @@ ATTRIBUTE_FILTER = {
     "boiler_error",
     "dhw_control",
     "error_code",
+    "rf_state",
 }
 
 
@@ -119,6 +120,7 @@ class RfMixin(EntityBase):
         """Initialize rf mixin."""
 
         super().__init__(home, module)
+        self.rf_state: str | None = None
         self.rf_strength: int | None = None
 
 

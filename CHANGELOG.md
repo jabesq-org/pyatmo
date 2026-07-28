@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Filter homes via an optional `disabled_homes_ids` denylist on `AsyncAccount`.
+  Full inventory stays available as `all_home_names`.
+
+### Deprecated
+
+- `AsyncAccount.all_homes_id` — use `all_home_names` instead
+
+## [9.5.0] - 2026-07-21
+
+### Added
+
 - Retry on Netatmo 429 concurrency errors with exponential backoff, honoring the
   `Retry-After` header (#547)
 - Parse additional module attributes (`last_seen`, `setup_date`,
@@ -528,7 +539,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.6.0...HEAD
 [9.6.0]: https://github.com/jabesq-org/pyatmo/compare/v9.5.0...v9.6.0
 [9.5.0]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...v9.5.0
 [9.4.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0

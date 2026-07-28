@@ -147,18 +147,19 @@ def finalize_changelog(
     text: str,
     version: str,
     date: str,
+    prev: str,
     repo: str = REPO_DEFAULT,
 ) -> str:
     """Return ``text`` finalized for ``version``.
 
     Renames ``## [unreleased]`` to ``## [version] - date``, inserts a fresh empty
-    ``## [unreleased]`` on top, and updates the bottom compare links.
+    ``## [unreleased]`` on top, and adds the ``vprev...vversion`` compare link.
+    ``prev`` is the previous released version (the latest git tag), which is the
+    authoritative compare base even if the changelog on this branch lags behind.
     """
     if not has_unreleased_entries(text):
         msg = "the [unreleased] section has no entries; nothing to release"
         raise ReleaseError(msg)
-
-    prev = _unreleased_prev_version(text)
 
     # Locate the unreleased section and strip its empty subsections.
     start = end = header_end = None
@@ -177,27 +178,23 @@ def finalize_changelog(
     replacement = f"## [unreleased]\n\n## [{version}] - {date}\n{cleaned}"
     new_text = text[:start] + replacement + text[end:]
 
-    # Maintain the bottom compare links.
+    # Drop any lingering ``[unreleased]`` reference link. It is intentionally not
+    # maintained -- it was a perpetual merge-conflict source between development
+    # and master. Removing it here keeps finalize idempotent on old changelogs.
+    new_text = re.sub(r"(?m)^\[unreleased\]: .*\n?", "", new_text)
+
+    # Insert the versioned compare link above the previous one.
     base = f"https://github.com/{repo}/compare"
-    return re.sub(
-        r"^\[unreleased\]: .*$",
-        f"[unreleased]: {base}/v{version}...HEAD\n"
-        f"[{version}]: {base}/v{prev}...v{version}",
+    link = f"[{version}]: {base}/v{prev}...v{version}"
+    new_text, count = re.subn(
+        r"(?m)^(\[\d+\.\d+\.\d+\]: )",
+        f"{link}\n\\1",
         new_text,
         count=1,
-        flags=re.MULTILINE,
     )
-
-
-def _unreleased_prev_version(text: str) -> str:
-    """Return the version the ``[unreleased]`` compare link currently points at."""
-    m = re.search(
-        r"^\[unreleased\]: .*/compare/v([0-9.]+)\.\.\.HEAD", text, re.MULTILINE
-    )
-    if not m:
-        msg = "could not find the [unreleased] compare link"
-        raise ReleaseError(msg)
-    return m.group(1)
+    if count == 0:  # no existing version links; append at end
+        new_text = f"{new_text.rstrip()}\n{link}\n"
+    return new_text
 
 
 def _emit_output(version: str, notes: str) -> None:
@@ -214,11 +211,12 @@ def _emit_output(version: str, notes: str) -> None:
 def _cmd_bump(args: argparse.Namespace) -> int:
     text = CHANGELOG.read_text(encoding="utf-8")
     current = _latest_tag()
+    prev = current.removeprefix("v")
     version = bump_version(current, args.bump)
     date = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d")
 
     try:
-        new_text = finalize_changelog(text, version, date)
+        new_text = finalize_changelog(text, version, date, prev)
     except ReleaseError as err:
         print(f"error: {err}", file=sys.stderr)
         return 1

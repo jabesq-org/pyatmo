@@ -52,7 +52,10 @@ async def async_home(async_account):
 @pytest.fixture
 async def async_account_multi(async_auth):
     """AsyncAccount fixture."""
-    account: pyatmo.AsyncAccount = pyatmo.AsyncAccount(async_auth)
+    account: pyatmo.AsyncAccount = pyatmo.AsyncAccount(
+        async_auth,
+        disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"],
+    )
 
     with (
         patch(
@@ -64,9 +67,7 @@ async def async_account_multi(async_auth):
             fake_post_request_multi,
         ),
     ):
-        await account.async_update_topology(
-            disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"],
-        )
+        await account.async_update_topology()
         yield account
 
 

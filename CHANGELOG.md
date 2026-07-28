@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [9.6.0] - 2026-07-28
+
+### Added
+
+- Filter homes via an optional `disabled_homes_ids` denylist on `AsyncAccount`.
+  Full inventory stays available as `all_home_names`.
+
+### Deprecated
+
+- `AsyncAccount.all_homes_id` — use `all_home_names` instead
+
 ## [9.5.0] - 2026-07-21
 
 ### Added
@@ -517,7 +528,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
-[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.5.0...HEAD
+[unreleased]: https://github.com/jabesq-org/pyatmo/compare/v9.6.0...HEAD
+[9.6.0]: https://github.com/jabesq-org/pyatmo/compare/v9.5.0...v9.6.0
 [9.5.0]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...v9.5.0
 [9.4.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0
 [9.3.0]: https://github.com/jabesq-org/pyatmo/compare/v9.2.3...v9.3.0

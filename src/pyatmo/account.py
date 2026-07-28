@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
+import warnings
 
 from pyatmo import modules
 from pyatmo.const import (
@@ -38,6 +39,7 @@ class AsyncAccount:
         self,
         auth: AbstractAsyncAuth,
         favorite_stations: bool = True,
+        disabled_homes_ids: list[str] | None = None,
     ) -> None:
         """Initialize the Netatmo account."""
 
@@ -48,7 +50,10 @@ class AsyncAccount:
         self.unit_system: UnitSystem | None = None
         self.unit_wind: WindUnit | None = None
         self.unit_pressure: PressureUnit | None = None
-        self.all_homes_id: dict[str, str] = {}
+        self.all_home_names: dict[str, str] = {}
+        self.disabled_homes_ids: list[str] = (
+            list(disabled_homes_ids) if disabled_homes_ids else []
+        )
         self.homes: dict[str, Home] = {}
         self.raw_data: RawData = {}
         self.favorite_stations: bool = favorite_stations
@@ -62,18 +67,40 @@ class AsyncAccount:
             f"{self.__class__.__name__}(user={self.user}, home_ids={self.homes.keys()}"
         )
 
-    def process_topology(self, disabled_homes_ids: list[str] | None = None) -> None:
-        """Process topology information from /homesdata."""
+    @property
+    def all_homes_id(self) -> dict[str, str]:
+        """Return the home inventory (deprecated alias for `all_home_names`)."""
+        warnings.warn(
+            "all_homes_id is deprecated, use all_home_names instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.all_home_names
 
-        if disabled_homes_ids is None:
-            disabled_homes_ids = []
+    def set_disabled_homes(self, disabled_homes_ids: list[str] | None) -> None:
+        """Set the homes to filter out."""
+        self.disabled_homes_ids = list(disabled_homes_ids) if disabled_homes_ids else []
+
+    def _is_home_disabled(self, home_id: str) -> bool:
+        """Return True if home_id is filtered out by the denylist."""
+        return home_id in self.disabled_homes_ids
+
+    def _warn_if_disabled(self, home_id: str) -> bool:
+        """Return True (and warn) if home_id is disabled; callers return early."""
+        if self._is_home_disabled(home_id):
+            LOG.warning("Home %s is disabled; skipping request", home_id)
+            return True
+        return False
+
+    def process_topology(self) -> None:
+        """Process topology information from /homesdata."""
 
         for home in self.raw_data["homes"]:
             home_id: str = home.get("id", "Unknown")
             home_name: str = home.get("name", "Unknown")
-            self.all_homes_id[home_id] = home_name
+            self.all_home_names[home_id] = home_name
 
-            if home_id in disabled_homes_ids:
+            if self._is_home_disabled(home_id):
                 if home_id in self.homes:
                     del self.homes[home_id]
                 continue
@@ -83,10 +110,7 @@ class AsyncAccount:
             else:
                 self.homes[home_id] = Home(self.auth, raw_data=home)
 
-    async def async_update_topology(
-        self,
-        disabled_homes_ids: list[str] | None = None,
-    ) -> None:
+    async def async_update_topology(self) -> None:
         """Retrieve topology data from /homesdata."""
 
         resp = await self.auth.async_post_api_request(
@@ -111,10 +135,12 @@ class AsyncAccount:
             None if unit_pressure is None else PressureUnit(unit_pressure)
         )
 
-        self.process_topology(disabled_homes_ids=disabled_homes_ids)
+        self.process_topology()
 
     async def async_update_status(self, home_id: str) -> None:
         """Retrieve status data from /homestatus."""
+        if self._warn_if_disabled(home_id):
+            return
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
@@ -124,6 +150,8 @@ class AsyncAccount:
 
     async def async_update_events(self, home_id: str) -> None:
         """Retrieve events from /getevents."""
+        if self._warn_if_disabled(home_id):
+            return
         resp: ClientResponse = await self.auth.async_post_api_request(
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
@@ -155,6 +183,8 @@ class AsyncAccount:
         days: int = 7,
     ) -> None:
         """Retrieve measures data from /getmeasure."""
+        if self._warn_if_disabled(home_id):
+            return
 
         module: Module = self.homes[home_id].modules[module_id]
         if module.has_feature("historical_data"):
@@ -226,6 +256,8 @@ class AsyncAccount:
 
     async def async_set_state(self, home_id: str, data: dict[str, Any]) -> None:
         """Modify device state by passing JSON specific to the device."""
+        if self._warn_if_disabled(home_id):
+            return
         LOG.debug("Setting state: %s", data)
 
         post_params: dict[str, Any] = {
@@ -253,6 +285,10 @@ class AsyncAccount:
                 "home_id",
                 self.find_home_of_device(device_data),
             ):
+                home_name: str = device_data.get("home_name", "Unknown")
+                self.all_home_names.setdefault(home_id, home_name)
+                if self._is_home_disabled(home_id):
+                    continue  # respect the denylist; do not resurrect filtered homes
                 if home_id not in self.homes:
                     modules_data: list[dict[str, Any]] = []
                     for module_data in device_data.get("modules", []):
@@ -266,7 +302,7 @@ class AsyncAccount:
                         self.auth,
                         raw_data={
                             "id": home_id,
-                            "name": device_data.get("home_name", "Unknown"),
+                            "name": home_name,
                             "modules": modules_data,
                         },
                     )

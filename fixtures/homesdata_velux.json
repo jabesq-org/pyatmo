@@ -14,7 +14,9 @@
             "reachable": true,
             "modules_bridged": [
               "velux_opener_awning",
-              "velux_opener_blind"
+              "velux_opener_blind",
+              "velux_climate_sensor",
+              "velux_departure_switch"
             ],
             "pincode_enabled": false
           },
@@ -33,6 +35,21 @@
             "bridge": "velux_gateway_id",
             "room_id": "velux_room_id",
             "velux_type": "blind"
+          },
+          {
+            "id": "velux_climate_sensor",
+            "type": "NXS",
+            "name": "Bedroom Indoor Climate Sensor",
+            "bridge": "velux_gateway_id",
+            "room_id": "velux_room_id",
+            "setup_date": 1543250432
+          },
+          {
+            "id": "velux_departure_switch",
+            "type": "NXD",
+            "name": "Departure Switch",
+            "bridge": "velux_gateway_id",
+            "setup_date": 1542892682
           }
         ],
         "rooms": [
@@ -41,7 +58,8 @@
             "name": "Bedroom",
             "module_ids": [
               "velux_opener_awning",
-              "velux_opener_blind"
+              "velux_opener_blind",
+              "velux_climate_sensor"
             ]
           }
         ],

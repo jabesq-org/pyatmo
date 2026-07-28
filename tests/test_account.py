@@ -31,7 +31,7 @@ async def test_update_devices_unknown_type_falls_back_to_nlunknown(async_account
     assert isinstance(async_account.modules[device_id], modules.NLunknown)
 
 
-async def test_update_devices_skips_disabled_home(async_auth):
+async def test_update_devices_skips_disabled_home(async_auth, caplog):
     """A disabled home is not resurrected via the weather/aircare device path."""
     home_id = "weather_home"
     device_data = {
@@ -42,29 +42,36 @@ async def test_update_devices_skips_disabled_home(async_auth):
         "modules": [],
     }
 
-    # Sanity: without the denylist the same data DOES create the home.
+    # Sanity: without the denylist the same data DOES create the home, and the
+    # lazily-created home is registered in the full inventory too.
     enabled = pyatmo.AsyncAccount(async_auth)
     await enabled.update_devices({"devices": [dict(device_data)]})
     assert home_id in enabled.homes
+    assert enabled.all_home_names[home_id] == "Weather Home"
 
-    # With the home disabled it must not be added back.
+    # With the home disabled it must not be added to homes, but it stays in the
+    # inventory (like process_topology), and the bulk path stays silent
+    # (Netatmo returns all homes every time -- not worth a warning).
     disabled = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=[home_id])
-    await disabled.update_devices({"devices": [dict(device_data)]})
+    with caplog.at_level(logging.WARNING):
+        await disabled.update_devices({"devices": [dict(device_data)]})
     assert home_id not in disabled.homes
+    assert home_id in disabled.all_home_names  # still listed in inventory
+    assert "disabled" not in caplog.text
 
 
-async def test_home_names_is_full_inventory(async_account_multi):
-    """home_names contains every home, including disabled ones."""
-    names = async_account_multi.home_names
+async def test_all_home_names_is_full_inventory(async_account_multi):
+    """all_home_names contains every home, including disabled ones."""
+    names = async_account_multi.all_home_names
     assert names["aaaaaaaaaaabbbbbbbbbbccc"]  # kept home present
     assert names["eeeeeeeeeffffffffffaaaaa"]  # disabled home still listed
 
 
 async def test_all_homes_id_deprecated_alias(async_account_multi):
-    """all_homes_id returns home_names and warns about deprecation."""
-    with pytest.warns(DeprecationWarning, match="home_names"):
+    """all_homes_id returns all_home_names and warns about deprecation."""
+    with pytest.warns(DeprecationWarning, match="all_home_names"):
         legacy = async_account_multi.all_homes_id
-    assert legacy == async_account_multi.home_names
+    assert legacy == async_account_multi.all_home_names
 
 
 async def test_constructor_stores_disabled_homes_ids(async_auth):
@@ -116,11 +123,11 @@ async def test_topology_transition_enable_to_disable(async_auth):
         await account.async_update_topology()  # refetch respects new denylist
 
     assert home_id not in account.homes  # removed from active homes
-    assert home_id in account.home_names  # still in the inventory
+    assert home_id in account.all_home_names  # still in the inventory
 
 
-async def test_topology_uses_stored_denylist(async_auth):
-    """When no param is passed, stored disabled_homes_ids is applied."""
+async def test_topology_applies_stored_denylist(async_auth):
+    """Topology filtering uses the stored disabled_homes_ids denylist."""
     account = pyatmo.AsyncAccount(
         async_auth, disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"]
     )
@@ -132,22 +139,7 @@ async def test_topology_uses_stored_denylist(async_auth):
 
     assert "eeeeeeeeeffffffffffaaaaa" not in account.homes
     assert "aaaaaaaaaaabbbbbbbbbbccc" in account.homes
-    assert "eeeeeeeeeffffffffffaaaaa" in account.home_names
-
-
-async def test_topology_param_overrides_stored_and_does_not_mutate(async_auth):
-    """An explicit param overrides stored state for this call only."""
-    account = pyatmo.AsyncAccount(
-        async_auth, disabled_homes_ids=["eeeeeeeeeffffffffffaaaaa"]
-    )
-    with patch(
-        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-        fake_post_request_multi,
-    ):
-        await account.async_update_topology(disabled_homes_ids=[])
-
-    assert "eeeeeeeeeffffffffffaaaaa" in account.homes
-    assert account.disabled_homes_ids == ["eeeeeeeeeffffffffffaaaaa"]
+    assert "eeeeeeeeeffffffffffaaaaa" in account.all_home_names
 
 
 async def test_update_status_disabled_home_skips_call(async_auth, caplog):

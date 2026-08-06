@@ -292,6 +292,17 @@ class Home:
             None,
         )
 
+    def set_selected_schedule(self, schedule_id: str) -> None:
+        """Mark the given schedule as selected locally, without any API call."""
+        if not self.is_valid_schedule(schedule_id):
+            msg: str = f"{schedule_id} is not a valid schedule id"
+            raise NoScheduleError(msg)
+
+        schedule_type = self.schedules[schedule_id].type
+        for sid, schedule in self.schedules.items():
+            if schedule.type == schedule_type:
+                schedule.selected = sid == schedule_id
+
     def get_available_schedules(self) -> list[Schedule]:
         """Return available schedules for given home."""
 
@@ -301,6 +312,18 @@ class Home:
             if self.temperature_control_mode
             and schedule.type == SCHEDULE_TYPE_MAPPING[self.temperature_control_mode]
         ]
+
+    def get_schedule_by_name(self, name: str) -> Schedule | None:
+        """Return the selectable schedule with the given name, if any."""
+
+        return next(
+            (
+                schedule
+                for schedule in self.get_available_schedules()
+                if schedule.name == name
+            ),
+            None,
+        )
 
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""
@@ -375,7 +398,12 @@ class Home:
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
 
-        return (await resp.json()).get("status") == "ok"
+        if (await resp.json()).get("status") != "ok":
+            return False
+
+        self.set_selected_schedule(schedule_id)
+
+        return True
 
     async def async_set_state(self, data: dict[str, Any]) -> bool:
         """Set state using given data."""

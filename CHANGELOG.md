@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Parse VELUX ACTIVE indoor climate sensors (`NXS`), departure switches (`NXD`),
   and room climate data.
+- Resolve a schedule name to a schedule of the home's active temperature control mode
+- Track a schedule switch made outside the library, e.g. reported by a webhook
+
+### Fixed
+
+- Report the actually selected schedule after a schedule switch
 
 ## [9.6.0] - 2026-07-28
 

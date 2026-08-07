@@ -8,7 +8,7 @@ import anyio
 import pytest
 
 import pyatmo
-from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError
+from pyatmo import DeviceType, InvalidScheduleError, NoDeviceError, NoScheduleError
 from pyatmo.enums import (
     SCHEDULE_TYPE_MAPPING,
     PressureUnit,
@@ -618,3 +618,185 @@ async def test_home_init_auto_mode_parses_and_selects_schedule(async_auth):
     assert home.get_hg_temp() == 7
     assert home.get_away_temp() == 14
     assert [s.entity_id for s in home.get_available_schedules()] == ["sched-auto"]
+
+
+def _schedule_home_raw(schedules: list[dict], mode: str | None = "heating") -> dict:
+    """Return a minimal /homesdata home payload carrying the given schedules."""
+    raw_data: dict = {
+        "id": "schedule-home",
+        "name": "Schedule Home",
+        "schedules": schedules,
+    }
+    if mode is not None:
+        raw_data["temperature_control_mode"] = mode
+    return raw_data
+
+
+# A therm schedule pair plus a cooling schedule, so type scoping is observable.
+SCHEDULE_A = {"id": "sched-a", "name": "Winter", "type": "therm", "selected": True}
+SCHEDULE_B = {"id": "sched-b", "name": "Summer", "type": "therm"}
+SCHEDULE_COOL = {
+    "id": "sched-cool",
+    "name": "Summer",
+    "type": "cooling",
+    "selected": True,
+}
+
+
+async def test_schedule_update_topology_absent_selected_is_not_selected(async_auth):
+    """An omitted "selected" key means not selected, it must not stay sticky.
+
+    /homesdata only carries "selected" on the currently selected schedule, so
+    keeping the previous value made a once-selected schedule selected forever.
+    """
+    home = Home(async_auth, _schedule_home_raw([SCHEDULE_A]))
+    schedule = home.schedules["sched-a"]
+    assert schedule.selected is True
+
+    schedule.update_topology({"id": "sched-a", "name": "Winter", "type": "therm"})
+
+    assert schedule.selected is False
+
+
+@pytest.mark.parametrize(
+    "order",
+    [
+        # Dict insertion order follows the payload, and get_selected_schedule()
+        # returns the first match, so the stale-flag bug is only visible when
+        # the previously selected schedule is listed first.
+        ["sched-a", "sched-b"],
+        ["sched-b", "sched-a"],
+    ],
+)
+async def test_home_update_topology_switches_selected_schedule(async_auth, order):
+    """After a topology update only the newly selected schedule is selected."""
+    home = Home(async_auth, _schedule_home_raw([SCHEDULE_A, SCHEDULE_B]))
+    assert home.get_selected_schedule().entity_id == "sched-a"
+
+    updated = {
+        "sched-a": {"id": "sched-a", "name": "Winter", "type": "therm"},
+        "sched-b": {
+            "id": "sched-b",
+            "name": "Summer",
+            "type": "therm",
+            "selected": True,
+        },
+    }
+    home.update_topology(
+        _schedule_home_raw([updated[schedule_id] for schedule_id in order]),
+    )
+
+    assert home.schedules["sched-a"].selected is False
+    assert home.schedules["sched-b"].selected is True
+    assert home.get_selected_schedule().entity_id == "sched-b"
+
+
+async def test_async_switch_schedule_updates_selected_flags(async_auth):
+    """A successful switch flips the flags of the switched schedule type only."""
+    home = Home(
+        async_auth,
+        _schedule_home_raw([SCHEDULE_A, SCHEDULE_B, SCHEDULE_COOL]),
+    )
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse({"status": "ok"}, 200)),
+    ):
+        assert await home.async_switch_schedule("sched-b") is True
+
+    assert home.schedules["sched-b"].selected is True
+    assert home.schedules["sched-a"].selected is False
+    # Selection is tracked per type, the cooling schedule stays untouched.
+    assert home.schedules["sched-cool"].selected is True
+
+
+async def test_async_switch_schedule_error_keeps_selected_flags(async_auth):
+    """A failed switch must leave the cache to the next topology update."""
+    home = Home(async_auth, _schedule_home_raw([SCHEDULE_A, SCHEDULE_B]))
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse({"status": "error"}, 200)),
+    ):
+        assert await home.async_switch_schedule("sched-b") is False
+
+    assert home.schedules["sched-a"].selected is True
+    assert home.schedules["sched-b"].selected is False
+
+
+async def test_async_switch_schedule_invalid_id_keeps_selected_flags(async_auth):
+    """An unknown schedule id raises before anything is mutated."""
+    home = Home(async_auth, _schedule_home_raw([SCHEDULE_A, SCHEDULE_B]))
+
+    with pytest.raises(NoScheduleError):
+        await home.async_switch_schedule("does-not-exist")
+
+    assert home.schedules["sched-a"].selected is True
+    assert home.schedules["sched-b"].selected is False
+
+
+@pytest.mark.parametrize(
+    ("mode", "name", "expected"),
+    [
+        ("heating", "Winter", "sched-a"),
+        ("heating", "Summer", "sched-b"),
+        # "Summer" exists as a therm and a cooling schedule: the lookup is
+        # scoped to the active temperature control mode.
+        ("cooling", "Summer", "sched-cool"),
+        ("cooling", "Winter", None),
+        ("heating", "Unknown", None),
+        # Without a temperature control mode no schedule is selectable.
+        (None, "Winter", None),
+    ],
+)
+async def test_get_schedule_by_name(async_auth, mode, name, expected):
+    """Only schedules of the active type are resolvable by name."""
+    home = Home(
+        async_auth,
+        _schedule_home_raw([SCHEDULE_A, SCHEDULE_B, SCHEDULE_COOL], mode=mode),
+    )
+
+    schedule = home.get_schedule_by_name(name)
+
+    assert (schedule.entity_id if schedule else None) == expected
+
+
+@pytest.mark.parametrize(
+    ("schedule_id", "expected_selected"),
+    [
+        # The cooling schedule keeps its flag either way: selection is tracked
+        # per schedule type.
+        ("sched-a", ["sched-a", "sched-cool"]),
+        ("sched-b", ["sched-b", "sched-cool"]),
+        ("sched-cool", ["sched-a", "sched-cool"]),
+    ],
+)
+async def test_set_selected_schedule(async_auth, schedule_id, expected_selected):
+    """Selecting a schedule locally only affects schedules of its type."""
+    home = Home(
+        async_auth,
+        _schedule_home_raw([SCHEDULE_A, SCHEDULE_B, SCHEDULE_COOL]),
+    )
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(),
+    ) as mock_resp:
+        home.set_selected_schedule(schedule_id)
+
+    # The webhook path has nothing to POST, the switch already happened.
+    mock_resp.assert_not_awaited()
+    assert [
+        sid for sid, schedule in home.schedules.items() if schedule.selected
+    ] == expected_selected
+
+
+async def test_set_selected_schedule_invalid_id(async_auth):
+    """An unknown schedule id raises before anything is mutated."""
+    home = Home(async_auth, _schedule_home_raw([SCHEDULE_A, SCHEDULE_B]))
+
+    with pytest.raises(NoScheduleError):
+        home.set_selected_schedule("does-not-exist")
+
+    assert home.schedules["sched-a"].selected is True
+    assert home.schedules["sched-b"].selected is False

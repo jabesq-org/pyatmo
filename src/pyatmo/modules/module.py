@@ -76,6 +76,7 @@ ATTRIBUTE_FILTER = {
     "boiler_error",
     "dhw_control",
     "error_code",
+    "_reachable",
     "rf_state",
 }
 
@@ -1289,7 +1290,7 @@ class Module(NetatmoBase):
     room_id: str | None
 
     modules: list[str] | None
-    reachable: bool | None
+    _reachable: bool | None
     last_seen: int | None
     setup_date: int | None
     error_code: int | None
@@ -1304,7 +1305,7 @@ class Module(NetatmoBase):
 
         self.home = home
         self.room_id = module.get("room_id")
-        self.reachable = module.get("reachable")
+        self._reachable = module.get("reachable")
         self.last_seen = module.get("last_seen")
         self.setup_date = module.get("setup_date")
         self.error_code = None
@@ -1312,6 +1313,35 @@ class Module(NetatmoBase):
         self.modules = bridged_module_ids(module)
         self.device_category = DEVICE_CATEGORY_MAP.get(self.device_type)
         self.features = set()
+
+    @property
+    def reachable(self) -> bool | None:
+        """Return reachability, falling back to the parent for sub-modules.
+
+        The API reports `reachable` only on the parent entry of a multi-gang
+        module such as the Legrand NLIS, so a `#`-suffixed sub-module resolves
+        it from the parent. Resolving on read keeps this independent of the
+        order modules appear in the /homestatus payload.
+        """
+        if self._reachable is not None or "#" not in self.entity_id:
+            return self._reachable
+        parent = self.home.modules.get(self.entity_id.split("#", 1)[0])
+        return parent.reachable if parent else None
+
+    def mark_unreachable(self) -> None:
+        """Mark this module and its bridged children unreachable.
+
+        Sub-modules are skipped on purpose: a `#`-suffixed id resolves its
+        reachability from the parent module on read, and its own payload never
+        reports the key, so stamping it here would pin it unreachable for the
+        lifetime of the process.
+        """
+        self._reachable = False
+        for module_id in self.modules or []:
+            if "#" in module_id:
+                continue
+            if (module := self.home.modules.get(module_id)) is not None:
+                module.mark_unreachable()
 
     async def update(self, raw_data: RawData) -> None:
         """Update module with the latest data."""
@@ -1332,10 +1362,10 @@ class Module(NetatmoBase):
         if self.device_type == DeviceType.NLE:
             # if there is a bridge it means it is a leaf
             if self.bridge:
-                self.reachable = True
+                self._reachable = True
             elif self.modules:
                 # this NLE is a bridge itself : make it not available
-                self.reachable = False
+                self._reachable = False
 
         if not self.reachable and self.modules:
             # Update bridged modules and associated rooms
@@ -1349,6 +1379,9 @@ class Module(NetatmoBase):
         """Update features."""
 
         self.features.update({var for var in vars(self) if var not in ATTRIBUTE_FILTER})
+        # Every module carries `_reachable`, so this feature is universal — unlike
+        # `battery` below. Consumers gate entity creation on the public name.
+        self.features.add("reachable")
         if "battery_state" in vars(self) or "battery_percent" in vars(self):
             self.features.add("battery")
         if "wind_angle" in self.features:

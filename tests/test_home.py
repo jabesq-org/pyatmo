@@ -18,7 +18,7 @@ from pyatmo.enums import (
     WindUnit,
 )
 from pyatmo.home import Home, get_temperature_control_mode
-from tests.common import MockResponse
+from tests.common import MockResponse, load_fixture
 
 
 async def test_async_home(async_home):
@@ -280,6 +280,9 @@ async def test_async_home_module_error_code(async_account):
 
     assert module.error_code == 6
     assert "error_code" not in module.features
+    # The errored module and its bridged children are unreachable.
+    assert module.reachable is False
+    assert home.modules["12:34:56:00:01:ae"].reachable is False
 
     # Recovery: a subsequent healthy /homestatus update (the module is reported
     # in home.modules again) must clear the stale error code back to None.
@@ -800,3 +803,34 @@ async def test_set_selected_schedule_invalid_id(async_auth):
 
     assert home.schedules["sched-a"].selected is True
     assert home.schedules["sched-b"].selected is False
+
+
+async def test_async_home_module_reachable_feature(async_home):
+    """The private reachability attribute stays out of the public feature set."""
+    module = async_home.modules["12:34:56:00:01:ae"]
+    assert "reachable" in module.features
+    assert "_reachable" not in module.features
+
+
+async def test_async_home_module_reachable_absent_key_preserved(async_account):
+    """An absent `reachable` key keeps the previous value instead of forcing False."""
+    home_id = "91763b24c43d3e344f424e8b"
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+
+    module_id = "12:34:56:00:01:01:01:b6"
+    module = home.modules[module_id]
+    assert module.reachable is True
+
+    homestatus = json.loads(load_fixture("homestatus_91763b24c43d3e344f424e8b.json"))
+    for raw_module in homestatus["body"]["home"]["modules"]:
+        if raw_module["id"] == module_id:
+            del raw_module["reachable"]
+
+    with patch(
+        "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+        AsyncMock(return_value=MockResponse(homestatus, 200)),
+    ):
+        await async_account.async_update_status(home_id)
+
+    assert module.reachable is True

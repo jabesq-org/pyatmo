@@ -202,6 +202,10 @@ class Home:
             has_error = True
             module_id = module["id"]
             if module_id in self.modules:
+                # Mark BEFORE update({}): reflection now preserves the value, so
+                # the False survives and still drives the bridged-children and
+                # room cascade inside Module.update.
+                self.modules[module_id].mark_unreachable()
                 await self.modules[module_id].update({})
                 # Set error_code AFTER update({}): update() reruns reflection
                 # (_update_attributes) which would otherwise reset it to None.

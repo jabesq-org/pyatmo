@@ -1,0 +1,340 @@
+{
+  "body": {
+    "home": {
+      "id": "realshape_home_id",
+      "modules": [
+        {
+          "id": "12:34:56:aa:01:01",
+          "type": "NAMain",
+          "firmware_revision": 300,
+          "wifi_state": "full",
+          "wifi_strength": 45,
+          "ts": 1784572419,
+          "temperature": 25,
+          "co2": 421,
+          "humidity": 37,
+          "noise": 47,
+          "pressure": 1021.6,
+          "absolute_pressure": 1015.8
+        },
+        {
+          "id": "12:34:56:aa:02:02",
+          "type": "NAModule4",
+          "battery_state": "full",
+          "battery_level": 5811,
+          "firmware_revision": 53,
+          "rf_state": "medium",
+          "rf_strength": 77,
+          "last_seen": 1784572412,
+          "reachable": true,
+          "bridge": "12:34:56:aa:01:01",
+          "ts": 1784571950,
+          "temperature": 23,
+          "co2": 348,
+          "humidity": 38
+        },
+        {
+          "id": "12:34:56:aa:03:03",
+          "type": "NAModule3",
+          "battery_state": "medium",
+          "battery_level": 4916,
+          "firmware_revision": 14,
+          "rf_state": "full",
+          "rf_strength": 56,
+          "last_seen": 1784572412,
+          "reachable": true,
+          "bridge": "12:34:56:aa:01:01",
+          "ts": 1784571976,
+          "rain": 0,
+          "sum_rain_1": 0,
+          "sum_rain_24": 0
+        },
+        {
+          "id": "12:34:56:aa:04:04",
+          "type": "NAModule1",
+          "battery_state": "low",
+          "battery_level": 5048,
+          "firmware_revision": 53,
+          "rf_state": "full",
+          "rf_strength": 51,
+          "last_seen": 1784572405,
+          "reachable": true,
+          "bridge": "12:34:56:aa:01:01",
+          "ts": 1784571944,
+          "temperature": 26.4,
+          "humidity": 38
+        },
+        {
+          "id": "12:34:56:aa:05:05",
+          "type": "NAModule4",
+          "battery_state": "full",
+          "battery_level": 6028,
+          "firmware_revision": 53,
+          "rf_state": "very_low",
+          "rf_strength": 91,
+          "last_seen": 1784571784,
+          "reachable": true,
+          "bridge": "12:34:56:aa:01:01",
+          "ts": 1784571784,
+          "temperature": 23.1,
+          "co2": 420,
+          "humidity": 38
+        },
+        {
+          "id": "12:34:56:aa:07:07",
+          "type": "NAPlug",
+          "firmware_revision": 251,
+          "rf_strength": 108,
+          "wifi_strength": 35
+        },
+        {
+          "id": "12:34:56:aa:08:08",
+          "type": "NRV",
+          "battery_state": "full",
+          "battery_level": 3022,
+          "firmware_revision": 102,
+          "rf_strength": 80,
+          "reachable": true,
+          "bridge": "12:34:56:aa:07:07"
+        },
+        {
+          "id": "12:34:56:aa:09:09",
+          "type": "NRV",
+          "battery_state": "full",
+          "battery_level": 2959,
+          "firmware_revision": 102,
+          "rf_strength": 67,
+          "reachable": true,
+          "bridge": "12:34:56:aa:07:07"
+        },
+        {
+          "id": "12:34:56:aa:10:10",
+          "type": "NRV",
+          "battery_state": "high",
+          "battery_level": 2950,
+          "firmware_revision": 102,
+          "rf_strength": 70,
+          "reachable": true,
+          "bridge": "12:34:56:aa:07:07"
+        },
+        {
+          "id": "12:34:56:aa:06:06",
+          "type": "NACamera",
+          "firmware_revision": 5024000,
+          "wifi_state": "medium",
+          "wifi_strength": 67,
+          "sd_status": 4,
+          "alim_status": 2,
+          "vpn_url": "https://prodvpn-eu-0.netatmo.net/restricted/10/fixture/vpn",
+          "is_local": false,
+          "monitoring": "on"
+        },
+        {
+          "id": "12:34:56:aa:11:11",
+          "type": "NAC",
+          "firmware_revision": 1040,
+          "wifi_strength": 26,
+          "fan_speed": 1,
+          "fan_mode": "manual",
+          "fan_end_time": null,
+          "fan_setpoint_from": "parent",
+          "vertical_fan_swing_mode": "manual"
+        }
+      ],
+      "rooms": [
+        {
+          "id": "100004",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 21,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784236584,
+          "therm_setpoint_mode": "hg"
+        },
+        {
+          "id": "100003",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 25,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784236584,
+          "therm_setpoint_mode": "hg"
+        },
+        {
+          "id": "100005",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 24.5,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784236584,
+          "therm_setpoint_mode": "hg"
+        },
+        {
+          "id": "100002",
+          "reachable": true,
+          "humidity": 38,
+          "therm_measured_temperature": 23.7,
+          "auto_setpoint_temperature": 25,
+          "auto_setpoint_start_time": 0,
+          "auto_setpoint_end_time": null,
+          "auto_setpoint_mode": "home"
+        }
+      ],
+      "persons": [
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000001",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000002",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000003",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000004",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000005",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000006",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000007",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000008",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000009",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000010",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000011",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000012",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000013",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000014",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000015",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000016",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000017",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000018",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000019",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000020",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000021",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000022",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000023",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000024",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000025",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000026",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000027",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000028",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        },
+        {
+          "id": "91763b24-c43d-3e34-4f42-4e8b000029",
+          "out_of_sight": true,
+          "last_seen": 1559292264
+        }
+      ]
+    }
+  },
+  "status": "ok",
+  "time_server": 1559292264
+}

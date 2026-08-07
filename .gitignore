@@ -315,3 +315,6 @@ fabric.properties
 .idea
 
 __version__.py
+
+# Real API captures used to derive fixtures — contain personal data, never commit
+captures/

@@ -1,0 +1,1208 @@
+{
+  "status": "ok",
+  "body": {
+    "homes": [
+      {
+        "id": "ac_home_id",
+        "name": "AC Test Home",
+        "altitude": 100,
+        "coordinates": [
+          50.123456,
+          6.123456
+        ],
+        "country": "DE",
+        "timezone": "Europe/Berlin",
+        "rooms": [
+          {
+            "id": "ac_room_entry",
+            "name": "Entry",
+            "type": "custom",
+            "module_ids": [
+              "12:34:56:ac:00:06",
+              "12:34:56:ac:00:07"
+            ]
+          },
+          {
+            "id": "ac_room_living",
+            "name": "Living room",
+            "type": "livingroom",
+            "module_ids": [
+              "12:34:56:ac:00:01",
+              "12:34:56:ac:00:11"
+            ]
+          },
+          {
+            "id": "ac_room_bedroom_1",
+            "name": "Bedroom 1",
+            "type": "bedroom",
+            "module_ids": [
+              "12:34:56:ac:00:02",
+              "12:34:56:ac:00:09"
+            ]
+          },
+          {
+            "id": "ac_room_bedroom_2",
+            "name": "Bedroom 2",
+            "type": "bedroom",
+            "module_ids": [
+              "12:34:56:ac:00:05",
+              "12:34:56:ac:00:08"
+            ]
+          },
+          {
+            "id": "ac_room_bedroom_3",
+            "name": "Bedroom 3",
+            "type": "bedroom",
+            "module_ids": [
+              "12:34:56:ac:00:10"
+            ]
+          },
+          {
+            "id": "ac_room_balcony",
+            "name": "Balcony",
+            "type": "outdoor",
+            "module_ids": [
+              "12:34:56:ac:00:03",
+              "12:34:56:ac:00:04"
+            ]
+          }
+        ],
+        "modules": [
+          {
+            "id": "12:34:56:ac:00:01",
+            "type": "NAMain",
+            "name": "NAMain 1",
+            "setup_date": 1575100832,
+            "room_id": "ac_room_living",
+            "modules_bridged": [
+              "12:34:56:ac:00:02",
+              "12:34:56:ac:00:03",
+              "12:34:56:ac:00:04",
+              "12:34:56:ac:00:05"
+            ]
+          },
+          {
+            "id": "12:34:56:ac:00:02",
+            "type": "NAModule4",
+            "name": "NAModule4 2",
+            "setup_date": 1469862237,
+            "room_id": "ac_room_bedroom_1",
+            "bridge": "12:34:56:ac:00:01"
+          },
+          {
+            "id": "12:34:56:ac:00:03",
+            "type": "NAModule3",
+            "name": "NAModule3 3",
+            "setup_date": 1627115826,
+            "room_id": "ac_room_balcony",
+            "bridge": "12:34:56:ac:00:01"
+          },
+          {
+            "id": "12:34:56:ac:00:04",
+            "type": "NAModule1",
+            "name": "NAModule1 4",
+            "setup_date": 1747340660,
+            "room_id": "ac_room_balcony",
+            "bridge": "12:34:56:ac:00:01"
+          },
+          {
+            "id": "12:34:56:ac:00:05",
+            "type": "NAModule4",
+            "name": "NAModule4 5",
+            "setup_date": 1782931687,
+            "room_id": "ac_room_bedroom_2",
+            "bridge": "12:34:56:ac:00:01"
+          },
+          {
+            "id": "12:34:56:ac:00:06",
+            "type": "NACamera",
+            "name": "NACamera 6",
+            "setup_date": 1560171946,
+            "room_id": "ac_room_entry"
+          },
+          {
+            "id": "12:34:56:ac:00:07",
+            "type": "NAPlug",
+            "name": "NAPlug 7",
+            "setup_date": 1572173419,
+            "room_id": "ac_room_entry",
+            "modules_bridged": [
+              "12:34:56:ac:00:08",
+              "12:34:56:ac:00:09",
+              "12:34:56:ac:00:10"
+            ]
+          },
+          {
+            "id": "12:34:56:ac:00:08",
+            "type": "NRV",
+            "name": "NRV 8",
+            "setup_date": 1572173423,
+            "room_id": "ac_room_bedroom_2",
+            "bridge": "12:34:56:ac:00:07"
+          },
+          {
+            "id": "12:34:56:ac:00:09",
+            "type": "NRV",
+            "name": "NRV 9",
+            "setup_date": 1572174351,
+            "room_id": "ac_room_bedroom_1",
+            "bridge": "12:34:56:ac:00:07"
+          },
+          {
+            "id": "12:34:56:ac:00:10",
+            "type": "NRV",
+            "name": "NRV 10",
+            "setup_date": 1607174374,
+            "room_id": "ac_room_bedroom_3",
+            "bridge": "12:34:56:ac:00:07"
+          },
+          {
+            "id": "12:34:56:ac:00:11",
+            "type": "NAC",
+            "name": "NAC 11",
+            "setup_date": 1782751291,
+            "room_id": "ac_room_living"
+          }
+        ],
+        "temperature_control_mode": "auto",
+        "therm_mode": "hg",
+        "therm_setpoint_default_duration": 25,
+        "cooling_mode": "schedule",
+        "schedules": [
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 450
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1260
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1860
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2700
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3300
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4110
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4740
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5550
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6180
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 6990
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7710
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8490
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9180
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 9900
+              }
+            ],
+            "zones": [
+              {
+                "name": "Zone 1",
+                "id": 1,
+                "type": 1,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 15
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 16.5
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 16.5
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 15
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 16.5
+                  },
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 16.5
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              },
+              {
+                "name": "Zone 0",
+                "id": 0,
+                "type": 0,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 17
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 17
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              },
+              {
+                "name": "Zone 3",
+                "id": 3,
+                "type": 8,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 20
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 20
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 20
+                  },
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 20
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              },
+              {
+                "name": "Zone 4",
+                "id": 4,
+                "type": 5,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 16.5
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 18
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 18
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 16.5
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 18
+                  },
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 18
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              }
+            ],
+            "name": "Schedule 1",
+            "default": false,
+            "away_temp": 12,
+            "hg_temp": 7,
+            "id": "schedule_01",
+            "type": "therm",
+            "selected": true
+          },
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 480
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1320
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1860
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2760
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3300
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4200
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4740
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5640
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6180
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 7080
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7680
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8520
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9120
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 9960
+              }
+            ],
+            "zones": [
+              {
+                "name": "Zone 3",
+                "id": 3,
+                "type": 8,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 17
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 17
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 17
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 17
+                  },
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 17
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 17
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              },
+              {
+                "name": "Zone 4",
+                "id": 4,
+                "type": 5,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 16
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 16
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 16
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 16
+                  },
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 16
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 16
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              },
+              {
+                "name": "Zone 1",
+                "id": 1,
+                "type": 1,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 17
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 15
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 17
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 17
+                  },
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 15
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 17
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              },
+              {
+                "name": "Zone 0",
+                "id": 0,
+                "type": 0,
+                "rooms_temp": [
+                  {
+                    "room_id": "ac_room_bedroom_1",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_2",
+                    "temp": 16
+                  },
+                  {
+                    "room_id": "ac_room_bedroom_3",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "ac_room_bedroom_1",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "ac_room_bedroom_2",
+                    "therm_setpoint_temperature": 16
+                  },
+                  {
+                    "id": "ac_room_bedroom_3",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "ac_room_living",
+                    "therm_setpoint_mode": "off"
+                  }
+                ]
+              }
+            ],
+            "name": "Schedule 2",
+            "default": false,
+            "away_temp": 12,
+            "hg_temp": 7,
+            "id": "schedule_02",
+            "type": "therm"
+          },
+          {
+            "timetable": [
+              {
+                "m_offset": 0,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 420,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 480,
+                "zone_id": 2
+              },
+              {
+                "m_offset": 1140,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 1320,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 1860,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 1920,
+                "zone_id": 2
+              },
+              {
+                "m_offset": 2580,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 2760,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 3300,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 3360,
+                "zone_id": 2
+              },
+              {
+                "m_offset": 4020,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 4200,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 4740,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 4800,
+                "zone_id": 2
+              },
+              {
+                "m_offset": 5460,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 5640,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 6180,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 6240,
+                "zone_id": 2
+              },
+              {
+                "m_offset": 6900,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 7080,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 7620,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 8520,
+                "zone_id": 1
+              },
+              {
+                "m_offset": 9060,
+                "zone_id": 0
+              },
+              {
+                "m_offset": 9960,
+                "zone_id": 1
+              }
+            ],
+            "zones": [
+              {
+                "type": 0,
+                "id": 0,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "cooling_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "name": "Zone 0"
+              },
+              {
+                "type": 1,
+                "id": 1,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "cooling_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "name": "Zone 1"
+              },
+              {
+                "type": 5,
+                "id": 2,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "cooling_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "fan_mode": "manual",
+                    "fan_speed": 1,
+                    "id": "12:34:56:ac:00:11"
+                  }
+                ],
+                "name": "Zone 2"
+              }
+            ],
+            "default": false,
+            "cooling_away_temp": 30,
+            "away_temperature_mode": "off",
+            "id": "schedule_03",
+            "type": "cooling",
+            "selected": true,
+            "name": "Schedule 3"
+          },
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 420
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 480
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1140
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1320
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1860
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 1920
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 2580
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2760
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3300
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 3360
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4020
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4200
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4740
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 4800
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 5460
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5640
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6180
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 6240
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6900
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 7080
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7620
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8520
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9060
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 9960
+              }
+            ],
+            "zones": [
+              {
+                "id": 1,
+                "type": 1,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "auto_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "id": "12:34:56:ac:00:11",
+                    "fan_mode": "manual",
+                    "fan_speed": 1
+                  }
+                ],
+                "name": "Zone 1"
+              },
+              {
+                "id": 2,
+                "type": 5,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "auto_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "id": "12:34:56:ac:00:11",
+                    "fan_mode": "manual",
+                    "fan_speed": 1
+                  }
+                ],
+                "name": "Zone 2"
+              },
+              {
+                "name": "Zone 0",
+                "id": 0,
+                "type": 0,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "auto_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "id": "12:34:56:ac:00:11",
+                    "fan_mode": "manual",
+                    "fan_speed": 1
+                  }
+                ]
+              }
+            ],
+            "name": "Schedule 4",
+            "default": false,
+            "auto_away_temp": 30,
+            "away_temperature_mode": "off",
+            "id": "schedule_04",
+            "type": "auto"
+          },
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 420
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 480
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1140
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1320
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1860
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 1920
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 2580
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2760
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3300
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 3360
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4020
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4200
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4740
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 4800
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 5460
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5640
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6180
+              },
+              {
+                "zone_id": 2,
+                "m_offset": 6240
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6900
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 7080
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7620
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8520
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9060
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 9960
+              }
+            ],
+            "zones": [
+              {
+                "name": "Zone 0",
+                "id": 0,
+                "type": 0,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "auto_setpoint_temperature": 25
+                  }
+                ],
+                "modules": [
+                  {
+                    "id": "12:34:56:ac:00:11",
+                    "fan_mode": "manual",
+                    "fan_speed": 1
+                  }
+                ]
+              },
+              {
+                "name": "Zone 1",
+                "id": 1,
+                "type": 1,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "auto_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "id": "12:34:56:ac:00:11",
+                    "fan_mode": "manual",
+                    "fan_speed": 1
+                  }
+                ]
+              },
+              {
+                "name": "Zone 2",
+                "id": 2,
+                "type": 5,
+                "rooms": [
+                  {
+                    "id": "ac_room_living",
+                    "auto_setpoint_mode": "off"
+                  }
+                ],
+                "modules": [
+                  {
+                    "id": "12:34:56:ac:00:11",
+                    "fan_mode": "manual",
+                    "fan_speed": 1
+                  }
+                ]
+              }
+            ],
+            "name": "Schedule 5",
+            "default": false,
+            "auto_away_temp": 30,
+            "away_temperature_mode": "off",
+            "id": "schedule_05",
+            "type": "auto",
+            "selected": true
+          }
+        ]
+      }
+    ],
+    "user": {
+      "email": "user@example.com"
+    }
+  }
+}

@@ -175,6 +175,35 @@ async def test_bridge_recovery_releases_a_child_absent_from_the_status(async_acc
     assert home.modules[ORPHAN].reachable is None
 
 
+async def test_propagation_writes_nothing_onto_sub_modules(async_home):
+    """The walk must skip `#` ids rather than stamp them.
+
+    Asserted on `_reachable` rather than `reachable`, on purpose. Both walks share
+    `propagate_reachability`, so a change that drops the skip drops it from the mark and
+    the clear together and the resolved values come out unchanged -- the two cancel. Only
+    the stored value shows whether the skip is still there.
+
+    It has to be there: a sub-module's own payload never carries `reachable`, so a value
+    stamped here is lifted only if its parent happens to reappear in a later
+    `/homestatus` modules array. Resolving from the parent has no such dependency.
+    """
+    ecometer = async_home.modules[ECOMETER]
+    assert set(ecometer.modules) == set(SUB_METERS)
+
+    ecometer.mark_unreachable()
+
+    for sub_meter_id in SUB_METERS:
+        sub_meter = async_home.modules[sub_meter_id]
+        assert sub_meter._reachable is None, sub_meter_id  # noqa: SLF001
+        # Unset, yet correctly unreachable: resolved from the parent on read.
+        assert sub_meter.reachable is False, sub_meter_id
+
+    ecometer.clear_unreachable()
+
+    for sub_meter_id in SUB_METERS:
+        assert async_home.modules[sub_meter_id]._reachable is None, sub_meter_id  # noqa: SLF001
+
+
 async def test_mark_unreachable_survives_a_cycle_in_modules_bridged(async_home):
     """`modules_bridged` is unvalidated API data, so the walk must tolerate a cycle.
 

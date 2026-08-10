@@ -14,10 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve a schedule name to a schedule of the home's active temperature control mode
 - Track a schedule switch made outside the library, e.g. reported by a webhook
 
-### Fixed
-
-- Report the actually selected schedule after a schedule switch
-
 ### Changed
 
 - `Module.reachable` is now a read-only property that resolves `#`-suffixed
@@ -25,18 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of assigning to it.
 - A module listed in `/homestatus` without a `reachable` key now reads as
   reachable rather than unknown. Weather stations, thermostat relays, cameras,
-  smoke and CO detectors and the Legrand ecometer never report the key, so they
-  previously resolved `None`. The Legrand ecometer in particular was forced
-  unreachable outright and now reports as connected.
+  smoke and CO detectors, VELUX gateways and the Legrand ecometer never report
+  the key, so they previously resolved `None`. The Legrand ecometer in particular
+  was forced unreachable outright and now reports as connected.
 
 ### Fixed
 
+- Report the actually selected schedule after a schedule switch
 - Reachability of `#`-suffixed sub-modules now resolves from the parent module,
   so Legrand NLIS double switches are no longer reported unreachable
   ([home-assistant/core#178403](https://github.com/home-assistant/core/issues/178403))
 - An absent `reachable` key in a `/homestatus` payload now preserves the
-  previous value instead of meaning "unreachable". Modules that never report the
-  key (weather stations, OTH, VELUX gateways) are no longer pinned unreachable
+  previous value instead of meaning "unreachable"
 - A bridge that does not report `reachable` no longer overwrites its bridged
   children, and the rooms those children are in, with its own payload. Rooms
   missing from `/homestatus` kept the bridge's readings permanently — an outdoor

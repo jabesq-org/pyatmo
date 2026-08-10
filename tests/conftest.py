@@ -7,7 +7,12 @@ import pytest
 
 import pyatmo
 
-from .common import fake_post_request, fake_post_request_ac, fake_post_request_multi
+from .common import (
+    fake_post_request,
+    fake_post_request_ac,
+    fake_post_request_bridged,
+    fake_post_request_multi,
+)
 
 
 @contextmanager
@@ -108,3 +113,35 @@ async def async_home_ac(async_account_ac):
     home_id = "ac_home_id"
     await async_account_ac.async_update_status(home_id)
     return async_account_ac.homes[home_id]
+
+
+@pytest.fixture
+async def async_account_bridged(async_auth):
+    """AsyncAccount fixture for a second capture-derived home.
+
+    A different account from the AC home, with the same shape: bridges that never
+    report `reachable` and rooms missing from /homestatus. Use it to check that the
+    cascade behaviour is a property of the API, not of one capture.
+    """
+    account: pyatmo.AsyncAccount = pyatmo.AsyncAccount(async_auth)
+
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            fake_post_request_bridged,
+        ),
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_request",
+            fake_post_request_bridged,
+        ),
+    ):
+        await account.async_update_topology()
+        yield account
+
+
+@pytest.fixture
+async def async_home_bridged(async_account_bridged):
+    """Home fixture for the second capture-derived home, after /homestatus."""
+    home_id = "bridged_home_id"
+    await async_account_bridged.async_update_status(home_id)
+    return async_account_bridged.homes[home_id]

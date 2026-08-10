@@ -1,0 +1,114 @@
+{
+  "status": "ok",
+  "time_server": 1754000000,
+  "body": {
+    "home": {
+      "id": "bridged_home_id",
+      "rooms": [
+        {
+          "id": "bridged_room_livingroom",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 24,
+          "therm_setpoint_temperature": 16,
+          "therm_setpoint_start_time": 1786341634,
+          "therm_setpoint_mode": "schedule"
+        },
+        {
+          "id": "bridged_room_lobby",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 23.4,
+          "therm_setpoint_temperature": 16,
+          "therm_setpoint_start_time": 1786353835,
+          "therm_setpoint_mode": "schedule"
+        }
+      ],
+      "modules": [
+        {
+          "id": "12:34:56:bb:00:01",
+          "type": "NAMain",
+          "firmware_revision": 300,
+          "wifi_state": "medium",
+          "wifi_strength": 77,
+          "ts": 1786355824,
+          "temperature": 23.6,
+          "co2": 226,
+          "humidity": 47,
+          "noise": 44,
+          "pressure": 1014.3,
+          "absolute_pressure": 1010.4
+        },
+        {
+          "id": "12:34:56:bb:00:02",
+          "type": "NAModule1",
+          "battery_state": "full",
+          "battery_level": 5972,
+          "firmware_revision": 50,
+          "rf_state": "full",
+          "rf_strength": 8,
+          "last_seen": 1786355777,
+          "reachable": true,
+          "bridge": "12:34:56:bb:00:01",
+          "ts": 1786355623,
+          "temperature": 24.1,
+          "humidity": 47
+        },
+        {
+          "id": "12:34:56:bb:00:05",
+          "type": "NAPlug",
+          "firmware_revision": 300,
+          "rf_strength": 108,
+          "wifi_strength": 31
+        },
+        {
+          "id": "12:34:56:bb:00:06",
+          "type": "NATherm1",
+          "battery_state": "full",
+          "battery_level": 4658,
+          "firmware_revision": 80,
+          "rf_strength": 32,
+          "reachable": true,
+          "boiler_valve_comfort_boost": false,
+          "bridge": "12:34:56:bb:00:05",
+          "boiler_status": false
+        },
+        {
+          "id": "12:34:56:bb:00:07",
+          "type": "NRV",
+          "battery_state": "full",
+          "battery_level": 3123,
+          "firmware_revision": 102,
+          "rf_strength": 31,
+          "reachable": true,
+          "bridge": "12:34:56:bb:00:05"
+        },
+        {
+          "id": "12:34:56:bb:00:03",
+          "type": "NLG",
+          "offload": false,
+          "firmware_revision": 1600,
+          "last_seen": 1786352657,
+          "wifi_strength": 32,
+          "reachable": true,
+          "use_pincode": false
+        },
+        {
+          "id": "12:34:56:bb:00:04",
+          "type": "NLFE",
+          "on": false,
+          "brightness": 61,
+          "firmware_revision": 35,
+          "last_seen": 1786355314,
+          "power": 0,
+          "reachable": true,
+          "bridge": "12:34:56:bb:00:03"
+        }
+      ]
+    }
+  }
+}

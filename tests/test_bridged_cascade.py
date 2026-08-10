@@ -1,13 +1,4 @@
-"""Tests for the bridged-children cascade in `Module.update`.
-
-The cascade is the block that re-runs `update()` on a module's bridged children,
-and on those children's rooms, passing the *parent's* payload, whenever the parent
-resolves falsy `reachable`. These tests use the capture-derived AC home, whose
-`/homesdata` carries no `reachable` key on any module — as the real API does — so
-the bridges resolve `None` and the cascade actually fires.
-
-See docs/superpowers/specs/2026-08-07-bridged-cascade-design.md.
-"""
+"""Tests for the bridged-children cascade."""
 
 STATION = "12:34:56:ac:00:01"
 RELAY = "12:34:56:ac:00:07"
@@ -21,6 +12,12 @@ UNREPORTED_BRIDGED_ROOM = "ac_room_balcony"
 # Holds the camera and the relay. Nothing bridges into it and it is likewise absent
 # from the /homestatus rooms list, so it never gets updated at all.
 UNREPORTED_ISOLATED_ROOM = "ac_room_entry"
+
+# The second capture, from a different account. Its weather station bridges the
+# outdoor module the same way, so the same room gets the same wrong readings.
+BRIDGED_STATION = "12:34:56:bb:00:01"
+BRIDGED_CONTAMINATED_ROOM = "bridged_room_outdoor"
+BRIDGED_CONTROL_ROOM = "bridged_room_bedroom"
 
 
 async def test_homesdata_reports_no_reachability(async_account_ac):
@@ -96,3 +93,31 @@ async def test_cascade_leaves_the_bridged_module_itself_alone(async_home_ac):
     assert outdoor.bridge == STATION
     assert outdoor.room_id == UNREPORTED_BRIDGED_ROOM
     assert outdoor.temperature == 26.4
+
+
+async def test_second_capture_reproduces_the_contamination(async_home_bridged):
+    """Characterization: the same damage in a second home from a different account.
+
+    An outdoor room with no CO2 or humidity sensor of its own reports the *indoor*
+    station's `co2`, `humidity` and `temperature`, because the station bridges the
+    outdoor module that lives in that room and the room is missing from /homestatus.
+
+    This exists to show the cascade is a property of the API's shape rather than of
+    one capture. It inverts with the fix exactly as the AC home's version does.
+    """
+    home = async_home_bridged
+
+    station = home.modules[BRIDGED_STATION]
+    assert station.reachable is None
+    assert station.modules
+
+    contaminated = home.rooms[BRIDGED_CONTAMINATED_ROOM]
+    assert contaminated.co2 == 226
+    assert contaminated.humidity == 47
+    assert contaminated.temperature == 23.6
+    assert contaminated.radiators_power == 0
+
+    control = home.rooms[BRIDGED_CONTROL_ROOM]
+    assert control.co2 is None
+    assert control.humidity is None
+    assert control.radiators_power is None

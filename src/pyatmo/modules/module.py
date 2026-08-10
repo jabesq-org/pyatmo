@@ -1328,20 +1328,28 @@ class Module(NetatmoBase):
         parent = self.home.modules.get(self.entity_id.split("#", 1)[0])
         return parent.reachable if parent else None
 
-    def mark_unreachable(self) -> None:
+    def mark_unreachable(self, seen: set[str] | None = None) -> None:
         """Mark this module and its bridged children unreachable.
 
         Sub-modules are skipped on purpose: a `#`-suffixed id resolves its
         reachability from the parent module on read, and its own payload never
         reports the key, so stamping it here would pin it unreachable for the
         lifetime of the process.
+
+        `seen` guards the walk. `modules_bridged` is unvalidated API data, and a
+        cycle in it would otherwise recurse until the stack runs out.
         """
+        seen = set() if seen is None else seen
+        if self.entity_id in seen:
+            return
+        seen.add(self.entity_id)
+
         self._reachable = False
         for module_id in self.modules or []:
             if "#" in module_id:
                 continue
             if (module := self.home.modules.get(module_id)) is not None:
-                module.mark_unreachable()
+                module.mark_unreachable(seen)
 
     async def update(self, raw_data: RawData) -> None:
         """Update module with the latest data."""
@@ -1358,22 +1366,20 @@ class Module(NetatmoBase):
 
         self.update_features()
 
-        # If we have an NLE as a bridge all its bridged modules will have to be reachable
-        if self.device_type == DeviceType.NLE:
-            # if there is a bridge it means it is a leaf
-            if self.bridge:
-                self._reachable = True
-            elif self.modules:
-                # this NLE is a bridge itself : make it not available
-                self._reachable = False
-
-        if not self.reachable and self.modules:
-            # Update bridged modules and associated rooms
-            for module_id in self.modules:
-                module: Module = self.home.modules[module_id]
-                await module.update(raw_data)
-                if module.room_id:
-                    self.home.rooms[module.room_id].update(raw_data)
+        # Some modules are only ever signalled by their presence: the API lists them in
+        # /homestatus but never sends `reachable` for them (weather stations, relays,
+        # cameras, the Legrand ecometer). Presence is then the only signal there is, so
+        # treat it as reachable. Keyed on the shape of the entry, not on device type.
+        #
+        # `#`-suffixed sub-modules are excluded: `mark_unreachable()` skips them by
+        # design, so a value written here could never be cleared and they would hold a
+        # stale True through an outage. Leaving them unset lets `reachable` resolve them
+        # from their parent, which follows the outage correctly.
+        #
+        # `raw_data` must be non-empty: the errors[] path calls `update({})`, which must
+        # not resurrect a module `mark_unreachable()` just marked.
+        if raw_data and "reachable" not in raw_data and "#" not in self.entity_id:
+            self._reachable = True
 
     def update_features(self) -> None:
         """Update features."""

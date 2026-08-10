@@ -237,7 +237,10 @@ async def test_async_climate_disconnected_state(async_account):
         await async_account.async_update_status(home_id)
         mock_request.assert_called()
 
-    assert room.reachable is None
+    # The room keeps the `reachable` its own /homestatus entry last reported. Nothing
+    # synthesizes room reachability from the modules in it -- the API owns that field --
+    # so a room whose only thermostat is disconnected still reads as reachable.
+    assert room.reachable is True
     assert module.reachable is False
 
 

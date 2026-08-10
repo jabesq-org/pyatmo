@@ -31,9 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([home-assistant/core#178403](https://github.com/home-assistant/core/issues/178403))
 - An absent `reachable` key in a `/homestatus` payload now preserves the
   previous value instead of meaning "unreachable". Modules that never report the
-  key (weather stations, OTH, VELUX gateways) are no longer pinned unreachable,
-  and their bridged children are no longer overwritten with the parent module's
-  readings on every poll
+  key (weather stations, OTH, VELUX gateways) are no longer pinned unreachable
 
 ## [9.6.0] - 2026-07-28
 

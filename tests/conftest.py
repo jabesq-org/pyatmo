@@ -7,11 +7,7 @@ import pytest
 
 import pyatmo
 
-from .common import (
-    fake_post_request,
-    fake_post_request_multi,
-    fake_post_request_realshape,
-)
+from .common import fake_post_request, fake_post_request_ac, fake_post_request_multi
 
 
 @contextmanager
@@ -83,8 +79,8 @@ async def async_home_multi(async_account_multi):
 
 
 @pytest.fixture
-async def async_account_realshape(async_auth):
-    """AsyncAccount fixture for the capture-derived home.
+async def async_account_ac(async_auth):
+    """AsyncAccount fixture for the capture-derived AC home.
 
     Unlike `homesdata.json`, this home's /homesdata carries no `reachable` key on
     any module, which is what the real API does. Use it for anything that depends
@@ -95,11 +91,11 @@ async def async_account_realshape(async_auth):
     with (
         patch(
             "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
-            fake_post_request_realshape,
+            fake_post_request_ac,
         ),
         patch(
             "pyatmo.auth.AbstractAsyncAuth.async_post_request",
-            fake_post_request_realshape,
+            fake_post_request_ac,
         ),
     ):
         await account.async_update_topology()
@@ -107,8 +103,8 @@ async def async_account_realshape(async_auth):
 
 
 @pytest.fixture
-async def async_home_realshape(async_account_realshape):
-    """Home fixture for the capture-derived home, after a /homestatus update."""
-    home_id = "realshape_home_id"
-    await async_account_realshape.async_update_status(home_id)
-    return async_account_realshape.homes[home_id]
+async def async_home_ac(async_account_ac):
+    """Home fixture for the capture-derived AC home, after a /homestatus update."""
+    home_id = "ac_home_id"
+    await async_account_ac.async_update_status(home_id)
+    return async_account_ac.homes[home_id]

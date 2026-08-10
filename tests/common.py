@@ -83,6 +83,6 @@ async def fake_post_request_multi(*args, **kwargs):
     return await fake_post_request(*args, **kwargs)
 
 
-async def fake_post_request_realshape(*args, **kwargs):
-    kwargs["POSTFIX"] = "realshape"
+async def fake_post_request_ac(*args, **kwargs):
+    kwargs["POSTFIX"] = "ac"
     return await fake_post_request(*args, **kwargs)

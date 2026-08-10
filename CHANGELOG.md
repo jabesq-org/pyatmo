@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/homesdata` no longer raises `KeyError` out of `async_update_status`
 - A cycle in a bridge's `modules_bridged` no longer raises `RecursionError` from
   `Module.mark_unreachable()`
+- A bridged module that is declared in `/homesdata` but never listed in
+  `/homestatus` no longer stays unreachable for good after a single outage of its
+  bridge. Nothing ever describes such a module, so the mark it inherited could not
+  be lifted by any later payload
 
 ## [9.6.0] - 2026-07-28
 

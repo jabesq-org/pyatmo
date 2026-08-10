@@ -1351,6 +1351,29 @@ class Module(NetatmoBase):
             if (module := self.home.modules.get(module_id)) is not None:
                 module.mark_unreachable(seen)
 
+    def clear_unreachable(self, seen: set[str] | None = None) -> None:
+        """Drop the mark `mark_unreachable()` left, on this module and its children.
+
+        Reachability becomes unknown rather than reachable: the next payload decides.
+        A bridged child that never appears in `/homestatus` has no payload of its own,
+        so without this it would hold the `False` it inherited from a single outage of
+        its bridge for the lifetime of the process.
+
+        Mirrors `mark_unreachable()` exactly -- same `#` skip, same `seen` guard -- so
+        that whatever the mark reached, the clear reaches too.
+        """
+        seen = set() if seen is None else seen
+        if self.entity_id in seen:
+            return
+        seen.add(self.entity_id)
+
+        self._reachable = None
+        for module_id in self.modules or []:
+            if "#" in module_id:
+                continue
+            if (module := self.home.modules.get(module_id)) is not None:
+                module.clear_unreachable(seen)
+
     async def update(self, raw_data: RawData) -> None:
         """Update module with the latest data."""
 

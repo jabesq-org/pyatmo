@@ -227,6 +227,16 @@ class Home:
                 # would wipe home-level fields (name, therm state, geolocation)
                 # whose keys are absent from this /homestatus data.
                 self.modules[module["id"]] = self.get_module(module)
+            if self.modules[module["id"]].error_code is not None:
+                # Reported healthy again after an errors[] entry. Drop the mark
+                # BEFORE update(), because reflection passes the attribute's current
+                # value as its fallback -- clearing afterwards would leave the stale
+                # False in place for exactly the poll that reports recovery.
+                #
+                # The error_code condition is an optimisation, not a correctness
+                # guard: clearing unconditionally gives the same results but walks
+                # every bridge's children on every poll.
+                self.modules[module["id"]].clear_unreachable()
             await self.modules[module["id"]].update(module)
             # Clear any error code from a previous /homestatus errors[] entry:
             # the module is reported healthy again. Reflection in update() would

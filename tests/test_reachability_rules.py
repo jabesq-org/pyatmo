@@ -23,6 +23,12 @@ HOME_ID = "91763b24c43d3e344f424e8b"
 ECOMETER = "12:34:56:00:16:0e"
 SUB_METERS = [f"{ECOMETER}#{index}" for index in range(9)]
 
+# A Legrand gateway bridging 16 modules. One of them is declared in /homesdata but
+# never appears in /homestatus, so nothing ever calls its `update()`.
+GATEWAY = "12:34:56:80:60:40"
+ORPHAN = "12:34:56:00:01:01:01:a1"
+SIBLING = "12:34:56:00:01:01:01:b1"
+
 
 async def test_root_module_without_the_key_resolves_reachable(async_home_ac):
     """A bridge that never reports `reachable` reads as reachable, not unknown.
@@ -114,6 +120,59 @@ async def test_a_reported_false_wins_over_presence(async_account):
         await async_account.async_update_status(HOME_ID)
 
     assert home.modules[ECOMETER].reachable is False
+
+
+async def test_bridge_recovery_releases_a_child_absent_from_the_status(async_account):
+    """A bridged child never listed in /homestatus must not latch unreachable.
+
+    `mark_unreachable()` stamps `False` on it through the gateway's recursion, but
+    nothing ever calls its `update()`, so no later payload can lift the mark. Without
+    the clear on recovery it reads `False` for the lifetime of the process -- and
+    `False`, unlike `None`, makes Home Assistant mark the entity unavailable.
+    """
+    await async_account.async_update_status(HOME_ID)
+    home = async_account.homes[HOME_ID]
+    assert home.modules[ORPHAN].reachable is None
+    assert home.modules[SIBLING].reachable is True
+
+    outage = {
+        "status": "ok",
+        "body": {
+            "home": {"id": HOME_ID, "modules": []},
+            "errors": [{"code": 3, "id": GATEWAY}],
+        },
+    }
+    # The gateway is back but reports no `reachable`, and the orphan is absent as always.
+    recovered = {
+        "status": "ok",
+        "body": {
+            "home": {
+                "id": HOME_ID,
+                "modules": [
+                    {"id": GATEWAY, "type": "NLG", "firmware_revision": 222},
+                    {"id": SIBLING, "type": "NLF", "reachable": True},
+                ],
+            },
+        },
+    }
+
+    async def poll(payload):
+        with patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            AsyncMock(return_value=MockResponse(payload, 200)),
+        ):
+            await async_account.async_update_status(HOME_ID)
+
+    await poll(outage)
+    assert home.modules[GATEWAY].reachable is False
+    assert home.modules[ORPHAN].reachable is False
+    assert home.modules[SIBLING].reachable is False
+
+    await poll(recovered)
+    assert home.modules[GATEWAY].reachable is True
+    assert home.modules[SIBLING].reachable is True
+    # Unknown again, not stuck unreachable: no payload has ever described it.
+    assert home.modules[ORPHAN].reachable is None
 
 
 async def test_mark_unreachable_survives_a_cycle_in_modules_bridged(async_home):

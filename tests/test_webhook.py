@@ -52,6 +52,7 @@ def test_webhook_types_exported_from_package():
     [
         ("set_point", "display_change", WebhookKind.STATE),
         ("cancel_set_point", "display_change", WebhookKind.STATE),
+        ("setpoint_event", "display_change", WebhookKind.STATE),
         ("therm_mode", "home_event_changed", WebhookKind.STATE),
         ("on", "NACamera-on", WebhookKind.STATE),
         ("off", "NACamera-off", WebhookKind.STATE),
@@ -227,6 +228,52 @@ async def test_process_webhook_set_point_updates_room(async_account):
     # Telemetry not present in the webhook payload must be preserved, not wiped.
     assert room.therm_measured_temperature == 19.8
     assert room.reachable is True
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_setpoint_event_alias_merges_room(async_account):
+    """Real `display_change` payloads use `setpoint_event`, not `set_point`.
+
+    Redacted/remapped real capture: home/room ids point at the fixture home,
+    `user_id` dropped.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    room = async_account.homes[home_id].rooms["2746182631"]
+    assert room.therm_setpoint_mode == "away"  # precondition from fixture
+    assert room.therm_setpoint_temperature == 12  # precondition from fixture
+    assert room.therm_measured_temperature == 19.8  # precondition from fixture
+
+    payload = {
+        "home": {
+            "id": home_id,
+            "rooms": [
+                {
+                    "id": "2746182631",
+                    "therm_setpoint_start_time": 1786428433,
+                    "therm_setpoint_mode": "manual",
+                    "therm_setpoint_end_time": 1786439233,
+                    "therm_setpoint_temperature": 13.5,
+                },
+            ],
+        },
+        "correlation_id": "3656857635745554143",
+        "type": "setpoint_event",
+        "home_id": home_id,
+        "device_id": "12:34:56:00:bc:24",
+        "event_type": "setpoint_event",
+        "room_id": "2746182631",
+        "mode": "manual",
+        "temperature": 13.5,
+        "push_type": "display_change",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == ["2746182631"]
+    assert room.therm_setpoint_mode == "manual"
+    assert room.therm_setpoint_temperature == 13.5
+    # Telemetry not present in the webhook payload must be preserved, not wiped.
+    assert room.therm_measured_temperature == 19.8
 
 
 @pytest.mark.usefixtures("async_home")
@@ -956,3 +1003,156 @@ async def test_process_webhook_never_suspends(async_account):
             coro.send(None)
     finally:
         coro.close()
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_modules_merges_dimmer(async_account):
+    """The `device_event` envelope's `extra_params.modules[]` merges via Module.update.
+
+    Redacted/remapped real capture: dimmer id points at the fixture's NLF
+    module (fixture start: on=False, brightness=63).
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "00:11:22:33:00:11:45:fe"
+    dimmer = async_account.homes[home_id].modules[module_id]
+    assert dimmer.on is False  # precondition from fixture
+    assert dimmer.brightness == 63  # precondition from fixture
+
+    payload = {
+        "extra_params": {
+            "correlation_id": 13915705160800893000,
+            "modules": [
+                {
+                    "brightness": 33,
+                    "on": True,
+                    "power": 0,
+                    "reachable": True,
+                    "room_id": "2313121935",
+                    "id": module_id,
+                    "type": "NLF",
+                },
+            ],
+            "sequence_id": 12675,
+            "source": "netcom",
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == [module_id]
+    assert dimmer.on is True
+    assert dimmer.brightness == 33
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_modules_skips_camera(async_account):
+    """A camera named in `extra_params.modules[]` must never be merged.
+
+    `Camera.update` performs network I/O (`async_update_camera_urls`), which
+    must never run on the webhook response path. Current real captures only
+    carry dimmers/switches, but this guards defensively against a future
+    payload naming a camera.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    camera_id = "12:34:56:00:f1:62"  # NACamera, in fixture
+
+    payload = {
+        "extra_params": {
+            "modules": [{"id": camera_id, "type": "NACamera", "monitoring": "off"}],
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == []
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_energy_setpoint_no_merge(async_account):
+    """An `extra_params.event_type` energy event surfaces as EVENT, no merge.
+
+    Netatmo also sends the same change as a top-level `display_change`
+    payload, which is the authoritative, cleanly-keyed source for the room
+    merge; merging this differently-keyed variant too would double-apply.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    room = async_account.homes[home_id].rooms["2746182631"]
+    assert room.therm_setpoint_mode == "away"  # precondition from fixture
+
+    payload = {
+        "extra_params": {
+            "device_type": "NAPlug",
+            "event_type": "setpoint_event",
+            "mode": "manual",
+            "room_id": "2746182631",
+            "temperature": 13.5,
+            "therm_measured_temperature": 23.3,
+            "ts": 1786428434,
+            "ts_begin": 1786428433,
+            "ts_end": 1786439233,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.EVENT
+    assert result.events[0].event_type == "setpoint_event"
+    assert result.touched_ids == ["12:34:56:00:bc:24"]
+    # No speculative merge: the room's setpoint must be untouched by this path.
+    assert room.therm_setpoint_mode == "away"
+
+
+async def test_process_webhook_device_event_unknown_home_no_mutation(async_account):
+    payload = {
+        "extra_params": {
+            "modules": [{"id": "00:11:22:33:00:11:45:fe", "on": True}],
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": "does-not-exist",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == []
+
+
+async def test_process_webhook_device_event_empty_extra_params(async_account):
+    payload = {
+        "extra_params": {},
+        "push_type": "device_event",
+        "home_id": "91763b24c43d3e344f424e8b",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.UNKNOWN
+
+
+async def test_process_webhook_device_event_temperature_variation(async_account):
+    """A second energy-event shape (`temperature_variation_event`) surfaces as EVENT."""
+    payload = {
+        "extra_params": {
+            "device_type": "NAPlug",
+            "event_type": "temperature_variation_event",
+            "mode": "home",
+            "room_id": "2746182631",
+            "setpoint": 19,
+            "temperature": 23.5,
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": "91763b24c43d3e344f424e8b",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.EVENT
+    assert result.events[0].event_type == "temperature_variation_event"

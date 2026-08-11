@@ -1589,6 +1589,7 @@ async def test_process_webhook_device_event_empty_extra_params(async_account):
 
     assert result.kind is WebhookKind.UNKNOWN
     assert result.refresh_scope == frozenset()
+    assert result.events == []
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1768,3 +1769,36 @@ async def test_process_webhook_device_event_boiler_off_maps_false(async_account)
     result = await process_webhook(async_account, payload)
 
     assert result.events[0].boiler_status is False
+
+
+async def test_process_webhook_device_event_diagnosis_event_surfaces(async_account):
+    """Real capture, redacted: `type`-keyed device_event surfaces as EVENT, no merge."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_count_before = len(async_account.homes[home_id].modules)
+
+    payload = {
+        "extra_params": {
+            "type": "diagnosis_event",
+            "diagnosis_content": {
+                "modules": [
+                    {
+                        "firmware_revision": 62,
+                        "id": "12:34:56:00:01:34:64:98",
+                        "type": "NLPM",
+                    },
+                ],
+                "type": "ota_limit_reached",
+            },
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.EVENT
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "diagnosis_event"
+    assert result.touched_ids == ["12:34:56:3c:63:b2"]
+    assert result.refresh_scope == frozenset()
+    assert len(async_account.homes[home_id].modules) == module_count_before

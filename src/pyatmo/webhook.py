@@ -38,6 +38,17 @@ EVENT_TYPE_TEMPERATURE_VARIATION_EVENT = "temperature_variation_event"
 EVENT_TYPE_MOTOR_DATA_EVENT = "motor_data_event"
 EVENT_TYPE_BOILER_EVENT = "boiler_event"
 
+# device_event energy `event_type`s with a known merge; anything else with a
+# resolved type (e.g. diagnosis_event) is surfaced as an EVENT, unmerged.
+_DEVICE_ENERGY_EVENT_TYPES = frozenset(
+    {
+        EVENT_TYPE_TEMPERATURE_VARIATION_EVENT,
+        EVENT_TYPE_SETPOINT_EVENT,
+        EVENT_TYPE_MOTOR_DATA_EVENT,
+        EVENT_TYPE_BOILER_EVENT,
+    },
+)
+
 WEBHOOK_ACTIVATION = "webhook_activation"
 WEBHOOK_DEACTIVATION = "webhook_deactivation"
 WEBHOOK_DEVICE_EVENT = "device_event"
@@ -285,8 +296,10 @@ def build_webhook_events(
             for module in modules
         ]
 
-    event_type = str_or_none(payload.get("event_type")) or str_or_none(
-        extra.get("event_type"),
+    event_type = (
+        str_or_none(payload.get("event_type"))
+        or str_or_none(extra.get("event_type"))
+        or str_or_none(extra.get("type"))
     )
     if event_type is None:
         return []
@@ -402,8 +415,9 @@ async def _process_device_event(
             refresh_scope=refresh_scope,
         )
 
-    event_type = str_or_none(extra.get("event_type"))
-    if event_type:
+    event_type = str_or_none(extra.get("event_type")) or str_or_none(extra.get("type"))
+
+    if event_type in _DEVICE_ENERGY_EVENT_TYPES:
         touched, unresolved = _merge_device_energy_event(
             account,
             home_id,
@@ -421,6 +435,18 @@ async def _process_device_event(
             WebhookKind.STATE,
             touched_ids=touched,
             refresh_scope=refresh_scope,
+        )
+
+    if event_type is not None:
+        # Unrecognized device-event type (e.g. diagnosis_event): no known
+        # merge target, surface it as an EVENT instead of dropping it.
+        device_id = str_or_none(payload.get("device_id"))
+        return WebhookResult(
+            home_id,
+            event_type,
+            WEBHOOK_DEVICE_EVENT,
+            WebhookKind.EVENT,
+            touched_ids=[device_id] if device_id else [],
         )
 
     return WebhookResult(home_id, None, WEBHOOK_DEVICE_EVENT, WebhookKind.UNKNOWN)

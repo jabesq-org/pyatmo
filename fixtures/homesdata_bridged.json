@@ -1,0 +1,418 @@
+{
+  "status": "ok",
+  "body": {
+    "homes": [
+      {
+        "id": "bridged_home_id",
+        "name": "Bridged Test Home",
+        "country": "DE",
+        "timezone": "Europe/Berlin",
+        "rooms": [
+          {
+            "id": "bridged_room_bedroom",
+            "name": "Fixture home rooms[] name 1",
+            "type": "bedroom",
+            "module_ids": [
+              "12:34:56:bb:00:01",
+              "12:34:56:bb:00:04",
+              "12:34:56:bb:00:05"
+            ]
+          },
+          {
+            "id": "bridged_room_lobby",
+            "name": "Fixture home rooms[] name 2",
+            "type": "lobby",
+            "module_ids": [
+              "12:34:56:bb:00:06"
+            ]
+          },
+          {
+            "id": "bridged_room_livingroom",
+            "name": "Fixture home rooms[] name 3",
+            "type": "livingroom",
+            "module_ids": [
+              "12:34:56:bb:00:03",
+              "12:34:56:bb:00:07"
+            ]
+          },
+          {
+            "id": "bridged_room_outdoor",
+            "name": "Fixture home rooms[] name 4",
+            "type": "outdoor",
+            "module_ids": [
+              "12:34:56:bb:00:02"
+            ]
+          }
+        ],
+        "modules": [
+          {
+            "id": "12:34:56:bb:00:01",
+            "type": "NAMain",
+            "name": "Fixture home modules[] name 1",
+            "setup_date": 1786352030,
+            "room_id": "bridged_room_bedroom",
+            "modules_bridged": [
+              "12:34:56:bb:00:02"
+            ]
+          },
+          {
+            "id": "12:34:56:bb:00:02",
+            "type": "NAModule1",
+            "name": "Fixture home modules[] name 2",
+            "setup_date": 1786352031,
+            "room_id": "bridged_room_outdoor",
+            "bridge": "12:34:56:bb:00:01"
+          },
+          {
+            "id": "12:34:56:bb:00:03",
+            "type": "NLG",
+            "name": "Fixture home modules[] name 3",
+            "setup_date": 1784819514,
+            "room_id": "bridged_room_livingroom",
+            "modules_bridged": [
+              "12:34:56:bb:00:04"
+            ]
+          },
+          {
+            "id": "12:34:56:bb:00:04",
+            "type": "NLFE",
+            "name": "Fixture home modules[] name 4",
+            "setup_date": 1785416521,
+            "room_id": "bridged_room_bedroom",
+            "bridge": "12:34:56:bb:00:03"
+          },
+          {
+            "id": "12:34:56:bb:00:05",
+            "type": "NAPlug",
+            "name": "Fixture home modules[] name 5",
+            "setup_date": 1784799384,
+            "room_id": "bridged_room_bedroom",
+            "modules_bridged": [
+              "12:34:56:bb:00:06",
+              "12:34:56:bb:00:07"
+            ]
+          },
+          {
+            "id": "12:34:56:bb:00:06",
+            "type": "NATherm1",
+            "name": "Fixture home modules[] name 6",
+            "setup_date": 1784799387,
+            "room_id": "bridged_room_lobby",
+            "bridge": "12:34:56:bb:00:05"
+          },
+          {
+            "id": "12:34:56:bb:00:07",
+            "type": "NRV",
+            "name": "Fixture home modules[] name 7",
+            "setup_date": 1785417027,
+            "room_id": "bridged_room_livingroom",
+            "bridge": "12:34:56:bb:00:05"
+          }
+        ],
+        "temperature_control_mode": "heating",
+        "therm_mode": "schedule",
+        "therm_setpoint_default_duration": 180,
+        "schedules": [
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 420
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 480
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1140
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1320
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1860
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 1920
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 2580
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2760
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3300
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 3360
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4020
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4200
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4740
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 4800
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 5460
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5640
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6180
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 6240
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6900
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 7080
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7620
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8520
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9060
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 9960
+              }
+            ],
+            "zones": [
+              {
+                "name": "Fixture home schedules[] zones[] name 1",
+                "id": 0,
+                "type": 0,
+                "rooms_temp": [
+                  {
+                    "room_id": "bridged_room_lobby",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "bridged_room_livingroom",
+                    "temp": 19
+                  }
+                ],
+                "modules": [],
+                "rooms": [
+                  {
+                    "id": "bridged_room_lobby",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "bridged_room_livingroom",
+                    "therm_setpoint_temperature": 19
+                  }
+                ]
+              },
+              {
+                "name": "Fixture home schedules[] zones[] name 2",
+                "id": 1,
+                "type": 1,
+                "rooms_temp": [
+                  {
+                    "room_id": "bridged_room_lobby",
+                    "temp": 16
+                  },
+                  {
+                    "room_id": "bridged_room_livingroom",
+                    "temp": 17
+                  }
+                ],
+                "modules": [],
+                "rooms": [
+                  {
+                    "id": "bridged_room_lobby",
+                    "therm_setpoint_temperature": 16
+                  },
+                  {
+                    "id": "bridged_room_livingroom",
+                    "therm_setpoint_temperature": 17
+                  }
+                ]
+              },
+              {
+                "name": "Fixture home schedules[] zones[] name 3",
+                "id": 3,
+                "type": 8,
+                "rooms_temp": [
+                  {
+                    "room_id": "bridged_room_lobby",
+                    "temp": 19
+                  },
+                  {
+                    "room_id": "bridged_room_livingroom",
+                    "temp": 19
+                  }
+                ],
+                "modules": [],
+                "rooms": [
+                  {
+                    "id": "bridged_room_lobby",
+                    "therm_setpoint_temperature": 19
+                  },
+                  {
+                    "id": "bridged_room_livingroom",
+                    "therm_setpoint_temperature": 19
+                  }
+                ]
+              },
+              {
+                "name": "Fixture home schedules[] zones[] name 4",
+                "id": 4,
+                "type": 5,
+                "rooms_temp": [
+                  {
+                    "room_id": "bridged_room_lobby",
+                    "temp": 16
+                  },
+                  {
+                    "room_id": "bridged_room_livingroom",
+                    "temp": 16
+                  }
+                ],
+                "modules": [],
+                "rooms": [
+                  {
+                    "id": "bridged_room_lobby",
+                    "therm_setpoint_temperature": 16
+                  },
+                  {
+                    "id": "bridged_room_livingroom",
+                    "therm_setpoint_temperature": 16
+                  }
+                ]
+              }
+            ],
+            "name": "Fixture home schedules[] name 1",
+            "default": false,
+            "away_temp": 12,
+            "hg_temp": 7,
+            "id": "bridged_schedule_1",
+            "type": "therm",
+            "selected": true
+          },
+          {
+            "timetable": [
+              {
+                "zone_id": 0,
+                "m_offset": 1080
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 2520
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3960
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 5400
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6840
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 8280
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9720
+              }
+            ],
+            "zones": [
+              {
+                "name": "Fixture home schedules[] zones[] name 5",
+                "id": 0,
+                "modules": [],
+                "scenarios": [
+                  "1"
+                ]
+              }
+            ],
+            "name": "Fixture home schedules[] name 2",
+            "default": false,
+            "timetable_sunrise": [],
+            "timetable_sunset": [],
+            "id": "bridged_schedule_2",
+            "type": "event",
+            "selected": true
+          },
+          {
+            "timetable": [
+              {
+                "zone_id": 0,
+                "m_offset": 0
+              }
+            ],
+            "zones": [
+              {
+                "name": "Fixture home schedules[] zones[] name 6",
+                "id": 0,
+                "price": 0.194,
+                "price_type": "basic"
+              }
+            ],
+            "name": "Fixture home schedules[] name 3",
+            "default": false,
+            "power_threshold": 9,
+            "contract_power_unit": "kVA",
+            "version": 2,
+            "id": "bridged_schedule_3",
+            "type": "electricity",
+            "selected": true
+          }
+        ]
+      }
+    ],
+    "user": {
+      "language": "en-GB",
+      "locale": "en-GB",
+      "feel_like_algorithm": 0,
+      "unit_pressure": 0,
+      "unit_system": 0,
+      "unit_wind": 0
+    }
+  }
+}

@@ -46,7 +46,9 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "modules": bridged_module_ids,
     "device_type": lambda x, y: DeviceType(x.get("type", y)),
     "event_type": lambda x, y: EventTypes(x.get("type", y)),
-    "reachable": lambda x, _: x.get("reachable", False),
+    # Keyed on the private attribute: an absent `reachable` key means the API
+    # did not report it, not that the module is unreachable.
+    "_reachable": lambda x, y: x.get("reachable", y),
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
     "battery_level": lambda x, _: x.get("battery_vp", x.get("battery_level")),
     "place": lambda x, y: Place(x["place"]) if isinstance(x.get("place"), dict) else y,

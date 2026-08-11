@@ -40,7 +40,12 @@ async def test_async_velux_modules(async_auth):
     assert gateway.locked is True
     assert gateway.locking is False
     assert gateway.secure is True
-    assert gateway.modules == ["velux_opener_awning", "velux_opener_blind"]
+    assert gateway.modules == [
+        "velux_opener_awning",
+        "velux_opener_blind",
+        "velux_climate_sensor",
+        "velux_departure_switch",
+    ]
 
     opener = home.modules["velux_opener_awning"]
     assert opener.device_type == DeviceType.NXO
@@ -59,8 +64,105 @@ async def test_async_velux_modules(async_auth):
     blind = home.modules["velux_opener_blind"]
     assert blind.name == "Bedroom Blind"
 
+    sensor = home.modules["velux_climate_sensor"]
+    assert isinstance(sensor, pyatmo.modules.NXS)
+    assert {
+        "device_type": sensor.device_type,
+        "device_category": sensor.device_category,
+        "name": sensor.name,
+        "bridge": sensor.bridge,
+        "room_id": sensor.room_id,
+        "setup_date": sensor.setup_date,
+        "reachable": sensor.reachable,
+        "battery_level": sensor.battery_level,
+        "battery_percent": sensor.battery_percent,
+        "battery_state": sensor.battery_state,
+        "rf_state": sensor.rf_state,
+        "rf_strength": sensor.rf_strength,
+        "firmware_revision": sensor.firmware_revision,
+        "last_seen": sensor.last_seen,
+    } == {
+        "device_type": DeviceType.NXS,
+        "device_category": DeviceCategory.sensor,
+        "name": "Bedroom Indoor Climate Sensor",
+        "bridge": "velux_gateway_id",
+        "room_id": "velux_room_id",
+        "setup_date": 1543250432,
+        "reachable": True,
+        "battery_level": 3724,
+        "battery_percent": 38,
+        "battery_state": "medium",
+        "rf_state": "high",
+        "rf_strength": 64,
+        "firmware_revision": 16,
+        "last_seen": 1776675797,
+    }
+
+    departure_switch = home.modules["velux_departure_switch"]
+    assert isinstance(departure_switch, pyatmo.modules.NXD)
+    assert {
+        "device_type": departure_switch.device_type,
+        "device_category": departure_switch.device_category,
+        "name": departure_switch.name,
+        "bridge": departure_switch.bridge,
+        "room_id": departure_switch.room_id,
+        "setup_date": departure_switch.setup_date,
+        "reachable": departure_switch.reachable,
+        "battery_level": departure_switch.battery_level,
+        "battery_percent": departure_switch.battery_percent,
+        "battery_state": departure_switch.battery_state,
+        "rf_state": departure_switch.rf_state,
+        "rf_strength": departure_switch.rf_strength,
+        "firmware_revision": departure_switch.firmware_revision,
+        "last_seen": departure_switch.last_seen,
+    } == {
+        "device_type": DeviceType.NXD,
+        "device_category": None,
+        "name": "Departure Switch",
+        "bridge": "velux_gateway_id",
+        "room_id": None,
+        "setup_date": 1542892682,
+        "reachable": True,
+        "battery_level": 2332,
+        "battery_percent": 18,
+        "battery_state": "low",
+        "rf_state": "low",
+        "rf_strength": 76,
+        "firmware_revision": 16,
+        "last_seen": 1776675797,
+    }
+
     room = home.rooms["velux_room_id"]
-    assert room.device_types == {DeviceType.NXO}
+    assert room.device_types == {DeviceType.NXO, DeviceType.NXS}
+    assert {
+        "temperature": room.temperature,
+        "co2": room.co2,
+        "humidity": room.humidity,
+        "lux": room.lux,
+        "air_quality": room.air_quality,
+        "algo_status": room.algo_status,
+        "algo_schedule_start": room.algo_schedule_start,
+        "auto_close_ts": room.auto_close_ts,
+        "min_comfort_temperature": room.min_comfort_temperature,
+        "max_comfort_temperature": room.max_comfort_temperature,
+        "min_comfort_humidity": room.min_comfort_humidity,
+        "max_comfort_humidity": room.max_comfort_humidity,
+        "max_comfort_co2": room.max_comfort_co2,
+    } == {
+        "temperature": 249,
+        "co2": 812,
+        "humidity": 56,
+        "lux": 6,
+        "air_quality": 1,
+        "algo_status": 1,
+        "algo_schedule_start": 600,
+        "auto_close_ts": 0,
+        "min_comfort_temperature": 180,
+        "max_comfort_temperature": 230,
+        "min_comfort_humidity": 20,
+        "max_comfort_humidity": 70,
+        "max_comfort_co2": 1150,
+    }
 
 
 async def test_async_shutter_nxo(async_auth):

@@ -69,7 +69,9 @@ class Schedule(NetatmoBase):
         """Update the schedule topology."""
         super().update_topology(raw_data)
 
-        self.selected = raw_data.get("selected", self.selected)
+        # /homesdata only sets "selected" on the currently selected schedule and
+        # omits the key everywhere else, so an absent key means "not selected".
+        self.selected = raw_data.get("selected", False)
         self.default = raw_data.get("default", self.default)
         self.hg_temp = raw_data.get("hg_temp", self.hg_temp)
         self.away_temp = raw_data.get("away_temp", self.away_temp)

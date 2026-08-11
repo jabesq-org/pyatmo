@@ -4,10 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyatmo.modules.module import EntityBase, Module, Shutter, WifiMixin
+from pyatmo.modules.module import (
+    BatteryMixin,
+    EntityBase,
+    FirmwareMixin,
+    Module,
+    RfMixin,
+    Shutter,
+    WifiMixin,
+)
 
 if TYPE_CHECKING:
-    from pyatmo.const import RawData
     from pyatmo.home import Home
     from pyatmo.modules.module import ModuleT
 
@@ -47,15 +54,17 @@ class VeluxOpenerMixin(EntityBase):
         self.velux_type: str | None = None
 
 
+class NXD(FirmwareMixin, RfMixin, BatteryMixin, Module):
+    """Class to represent a VELUX ACTIVE departure switch."""
+
+
 class NXG(VeluxGatewayMixin, WifiMixin, Module):
     """Class to represent a VELUX ACTIVE gateway."""
-
-    async def update(self, raw_data: RawData) -> None:
-        """Update gateway state without cascading gateway data into bridged covers."""
-
-        self.update_topology(raw_data)
-        self.update_features()
 
 
 class NXO(VeluxOpenerMixin, Shutter):
     """Class to represent a VELUX ACTIVE opener / cover."""
+
+
+class NXS(FirmwareMixin, RfMixin, BatteryMixin, Module):
+    """Class to represent a VELUX ACTIVE indoor climate sensor."""

@@ -202,6 +202,10 @@ class Home:
             has_error = True
             module_id = module["id"]
             if module_id in self.modules:
+                # Mark BEFORE update({}): reflection now preserves the value, so
+                # the False survives and still drives the bridged-children and
+                # room cascade inside Module.update.
+                self.modules[module_id].mark_unreachable()
                 await self.modules[module_id].update({})
                 # Set error_code AFTER update({}): update() reruns reflection
                 # (_update_attributes) which would otherwise reset it to None.
@@ -223,6 +227,16 @@ class Home:
                 # would wipe home-level fields (name, therm state, geolocation)
                 # whose keys are absent from this /homestatus data.
                 self.modules[module["id"]] = self.get_module(module)
+            if self.modules[module["id"]].error_code is not None:
+                # Reported healthy again after an errors[] entry. Drop the mark
+                # BEFORE update(), because reflection passes the attribute's current
+                # value as its fallback -- clearing afterwards would leave the stale
+                # False in place for exactly the poll that reports recovery.
+                #
+                # The error_code condition is an optimisation, not a correctness
+                # guard: clearing unconditionally gives the same results but walks
+                # every bridge's children on every poll.
+                self.modules[module["id"]].clear_unreachable()
             await self.modules[module["id"]].update(module)
             # Clear any error code from a previous /homestatus errors[] entry:
             # the module is reported healthy again. Reflection in update() would
@@ -292,6 +306,17 @@ class Home:
             None,
         )
 
+    def set_selected_schedule(self, schedule_id: str) -> None:
+        """Mark the given schedule as selected locally, without any API call."""
+        if not self.is_valid_schedule(schedule_id):
+            msg: str = f"{schedule_id} is not a valid schedule id"
+            raise NoScheduleError(msg)
+
+        schedule_type = self.schedules[schedule_id].type
+        for sid, schedule in self.schedules.items():
+            if schedule.type == schedule_type:
+                schedule.selected = sid == schedule_id
+
     def get_available_schedules(self) -> list[Schedule]:
         """Return available schedules for given home."""
 
@@ -301,6 +326,18 @@ class Home:
             if self.temperature_control_mode
             and schedule.type == SCHEDULE_TYPE_MAPPING[self.temperature_control_mode]
         ]
+
+    def get_schedule_by_name(self, name: str) -> Schedule | None:
+        """Return the selectable schedule with the given name, if any."""
+
+        return next(
+            (
+                schedule
+                for schedule in self.get_available_schedules()
+                if schedule.name == name
+            ),
+            None,
+        )
 
     def is_valid_schedule(self, schedule_id: str) -> bool:
         """Check if valid schedule."""
@@ -375,7 +412,12 @@ class Home:
             params={"home_id": self.entity_id, "schedule_id": schedule_id},
         )
 
-        return (await resp.json()).get("status") == "ok"
+        if (await resp.json()).get("status") != "ok":
+            return False
+
+        self.set_selected_schedule(schedule_id)
+
+        return True
 
     async def async_set_state(self, data: dict[str, Any]) -> bool:
         """Set state using given data."""

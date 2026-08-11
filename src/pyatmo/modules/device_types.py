@@ -102,8 +102,10 @@ class DeviceType(StrEnum):
     NBS = "NBS"  # swing shutter
 
     # VELUX ACTIVE
+    NXD = "NXD"  # departure switch
     NXG = "NXG"  # gateway
     NXO = "NXO"  # opener / cover
+    NXS = "NXS"  # indoor climate sensor
 
     # Somfy
     TPSRS = "TPSRS"  # Somfy io shutter
@@ -168,6 +170,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NBR: DeviceCategory.shutter,
     DeviceType.NBO: DeviceCategory.shutter,
     DeviceType.NXO: DeviceCategory.shutter,
+    DeviceType.NXS: DeviceCategory.sensor,
     DeviceType.NLP: DeviceCategory.switch,
     DeviceType.NLPM: DeviceCategory.switch,
     DeviceType.NLPBS: DeviceCategory.switch,
@@ -287,8 +290,10 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NBO: ("Bubbendorf", "Orientable Shutter"),
     DeviceType.NBS: ("Bubbendorf", "Swing Shutter"),
     # VELUX ACTIVE
+    DeviceType.NXD: ("VELUX ACTIVE", "Departure Switch"),
     DeviceType.NXG: ("VELUX ACTIVE", "Gateway"),
     DeviceType.NXO: ("VELUX ACTIVE", "Opener"),
+    DeviceType.NXS: ("VELUX ACTIVE", "Indoor Climate Sensor"),
     # Somfy
     DeviceType.TPSRS: ("Somfy", "io Shutter"),
     # 3rd Party

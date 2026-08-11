@@ -1,0 +1,528 @@
+{
+  "status": "ok",
+  "body": {
+    "homes": [
+      {
+        "id": "legrand_home_id",
+        "name": "Legrand Test Home",
+        "altitude": 100,
+        "coordinates": [
+          50.123456,
+          6.123456
+        ],
+        "country": "DE",
+        "timezone": "Europe/Berlin",
+        "rooms": [
+          {
+            "id": "legrand_room_dining",
+            "name": "Dining room",
+            "type": "dining_room",
+            "module_ids": [
+              "12:34:56:aa:00:04",
+              "12:34:56:aa:00:05",
+              "12:34:56:aa:00:06",
+              "12:34:56:aa:00:07",
+              "12:34:56:aa:00:08"
+            ]
+          },
+          {
+            "id": "legrand_room_stairs",
+            "name": "Stairs",
+            "type": "stairs",
+            "module_ids": [
+              "12:34:56:aa:00:01",
+              "12:34:56:aa:00:02",
+              "12:34:56:aa:00:03"
+            ]
+          }
+        ],
+        "modules": [
+          {
+            "id": "12:34:56:aa:00:01",
+            "type": "NLG",
+            "name": "NLG 1",
+            "setup_date": 1737802488,
+            "room_id": "legrand_room_stairs",
+            "modules_bridged": [
+              "12:34:56:aa:00:02",
+              "12:34:56:aa:00:02#1",
+              "12:34:56:aa:00:02#2",
+              "12:34:56:aa:00:02#3"
+            ]
+          },
+          {
+            "id": "12:34:56:aa:00:02",
+            "type": "NLY",
+            "name": "NLY 2",
+            "setup_date": 1737802490,
+            "room_id": "legrand_room_stairs",
+            "bridge": "12:34:56:aa:00:01"
+          },
+          {
+            "id": "12:34:56:aa:00:02#1",
+            "type": "NLY",
+            "name": "NLY 3",
+            "setup_date": 1737802490,
+            "bridge": "12:34:56:aa:00:01"
+          },
+          {
+            "id": "12:34:56:aa:00:02#2",
+            "type": "NLY",
+            "name": "NLY 4",
+            "setup_date": 1737802490,
+            "bridge": "12:34:56:aa:00:01"
+          },
+          {
+            "id": "12:34:56:aa:00:02#3",
+            "type": "NLY",
+            "name": "NLY 5",
+            "setup_date": 1737802490,
+            "bridge": "12:34:56:aa:00:01"
+          },
+          {
+            "id": "12:34:56:aa:00:03",
+            "type": "NSD",
+            "name": "NSD 6",
+            "setup_date": 1693384625,
+            "room_id": "legrand_room_stairs"
+          },
+          {
+            "id": "12:34:56:aa:00:04",
+            "type": "NCO",
+            "name": "NCO 7",
+            "setup_date": 1764519734,
+            "room_id": "legrand_room_dining"
+          },
+          {
+            "id": "12:34:56:aa:00:05",
+            "type": "NACamera",
+            "name": "NACamera 8",
+            "setup_date": 1672243866,
+            "room_id": "legrand_room_dining",
+            "modules_bridged": [
+              "12:34:56:aa:00:06"
+            ]
+          },
+          {
+            "id": "12:34:56:aa:00:06",
+            "type": "NIS",
+            "setup_date": 1689324692,
+            "room_id": "legrand_room_dining",
+            "bridge": "12:34:56:aa:00:05",
+            "name": "NIS 9"
+          },
+          {
+            "id": "12:34:56:aa:00:07",
+            "type": "NAPlug",
+            "name": "NAPlug 10",
+            "setup_date": 1653757088,
+            "room_id": "legrand_room_dining",
+            "modules_bridged": [
+              "12:34:56:aa:00:08"
+            ]
+          },
+          {
+            "id": "12:34:56:aa:00:08",
+            "type": "NATherm1",
+            "name": "NATherm1 11",
+            "setup_date": 1653757089,
+            "room_id": "legrand_room_dining",
+            "bridge": "12:34:56:aa:00:07"
+          }
+        ],
+        "temperature_control_mode": "heating",
+        "therm_mode": "hg",
+        "therm_setpoint_default_duration": 180,
+        "schedules": [
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 480
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 660
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 840
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 1020
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 1140
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 1260
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1380
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1920
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 2100
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 2280
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 2460
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 2580
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 2700
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2820
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3360
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 3540
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3720
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 3900
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 4020
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 4140
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4260
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4800
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 4980
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 5160
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 5340
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 5460
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 5580
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5700
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6240
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 6420
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6600
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 6780
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 6900
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 7020
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 7140
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7680
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 7860
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 8040
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 8220
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 8340
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 8460
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8580
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9120
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 9300
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 9480
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 9660
+              },
+              {
+                "zone_id": 4,
+                "m_offset": 9780
+              },
+              {
+                "zone_id": 3,
+                "m_offset": 9900
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 10020
+              }
+            ],
+            "zones": [
+              {
+                "name": "Zone 4",
+                "id": 4,
+                "type": 5,
+                "rooms_temp": [
+                  {
+                    "room_id": "legrand_room_dining",
+                    "temp": 16
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "legrand_room_dining",
+                    "therm_setpoint_temperature": 16
+                  }
+                ]
+              },
+              {
+                "name": "Zone 0",
+                "id": 0,
+                "type": 0,
+                "rooms_temp": [
+                  {
+                    "room_id": "legrand_room_dining",
+                    "temp": 20
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "legrand_room_dining",
+                    "therm_setpoint_temperature": 20
+                  }
+                ]
+              },
+              {
+                "name": "Zone 3",
+                "id": 3,
+                "type": 8,
+                "rooms_temp": [
+                  {
+                    "room_id": "legrand_room_dining",
+                    "temp": 21
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "legrand_room_dining",
+                    "therm_setpoint_temperature": 21
+                  }
+                ]
+              },
+              {
+                "name": "Zone 1",
+                "id": 1,
+                "type": 1,
+                "rooms_temp": [
+                  {
+                    "room_id": "legrand_room_dining",
+                    "temp": 18.5
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "legrand_room_dining",
+                    "therm_setpoint_temperature": 18.5
+                  }
+                ]
+              },
+              {
+                "name": "Zone 9003",
+                "id": 9003,
+                "type": 4,
+                "rooms_temp": [
+                  {
+                    "room_id": "legrand_room_dining",
+                    "temp": 25
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "legrand_room_dining",
+                    "therm_setpoint_temperature": 25
+                  }
+                ]
+              }
+            ],
+            "name": "Schedule 1",
+            "default": false,
+            "away_temp": 12,
+            "hg_temp": 7,
+            "id": "schedule_01",
+            "type": "therm",
+            "selected": true
+          },
+          {
+            "timetable": [
+              {
+                "zone_id": 1,
+                "m_offset": 0
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 296
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 1256
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 1736
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 2696
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 3176
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 4136
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 4616
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 5576
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 6056
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 7016
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 7496
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 8456
+              },
+              {
+                "zone_id": 0,
+                "m_offset": 8936
+              },
+              {
+                "zone_id": 1,
+                "m_offset": 9896
+              }
+            ],
+            "zones": [
+              {
+                "name": "Zone 0",
+                "id": 0,
+                "price": 0.15318,
+                "price_type": "peak"
+              },
+              {
+                "name": "Zone 1",
+                "id": 1,
+                "price": 0.10388,
+                "price_type": "off_peak"
+              }
+            ],
+            "name": "Schedule 2",
+            "default": false,
+            "power_threshold": 15,
+            "contract_power_unit": "kW",
+            "version": 2,
+            "id": "schedule_02",
+            "type": "electricity",
+            "selected": true
+          }
+        ]
+      }
+    ],
+    "user": {
+      "email": "user@example.com"
+    }
+  }
+}

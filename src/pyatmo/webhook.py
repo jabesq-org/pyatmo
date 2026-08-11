@@ -16,7 +16,12 @@ if TYPE_CHECKING:
 
     from pyatmo.account import AsyncAccount
     from pyatmo.home import Home
-    from pyatmo.modules.module import FloodlightMixin, MonitoringMixin
+    from pyatmo.modules.module import (
+        BoilerMixin,
+        FloodlightMixin,
+        MonitoringMixin,
+        ShutterMixin,
+    )
     from pyatmo.room import Room
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -30,13 +35,15 @@ EVENT_TYPE_SETPOINT_EVENT = "setpoint_event"
 EVENT_TYPE_THERM_MODE = "therm_mode"
 EVENT_TYPE_SCHEDULE = "schedule"
 EVENT_TYPE_TEMPERATURE_VARIATION_EVENT = "temperature_variation_event"
+EVENT_TYPE_MOTOR_DATA_EVENT = "motor_data_event"
+EVENT_TYPE_BOILER_EVENT = "boiler_event"
 
 WEBHOOK_ACTIVATION = "webhook_activation"
 WEBHOOK_DEACTIVATION = "webhook_deactivation"
 WEBHOOK_DEVICE_EVENT = "device_event"
 WEBHOOK_TOPOLOGY_CHANGED = "topology_changed"
 CAMERA_CONNECTION_WEBHOOKS = frozenset(
-    {"NACamera-connection", "NOC-connection", "NDB-connection"},
+    {"NACamera-connection", "NOC-connection", "NDB-connection", "NPC-connection"},
 )
 
 STATE_EVENT_TYPES = frozenset(
@@ -61,6 +68,16 @@ _ROOM_SETPOINT_KEYS: dict[str, Callable[[Any], Any]] = {
     "cooling_setpoint_temperature": number_or_none,
     "cooling_setpoint_start_time": number_or_none,
     "cooling_setpoint_end_time": number_or_none,
+}
+
+_DEVICE_EVENT_ATTRIBUTE_MAP: dict[str, str] = {
+    "wifi_status": "wifi_strength",
+    "rf_status": "rf_strength",
+    "firmware": "firmware_revision",
+    "pressure_sea": "pressure",
+    "pressure_abs": "absolute_pressure",
+    "noise_current": "noise",
+    "trend_temperature": "temp_trend",
 }
 
 _EXTRA_EVENT_TYPES = frozenset(
@@ -93,6 +110,7 @@ class LifecycleStatus(Enum):
     ACTIVATION = "activation"
     DEACTIVATION = "deactivation"
     CONNECTION = "connection"
+    DISCONNECTION = "disconnection"
 
 
 class RefreshScope(Enum):
@@ -114,6 +132,7 @@ class WebhookEvent:
     device_id: str | None = None
     room_id: str | None = None
     mode: str | None = None
+    boiler_status: bool | None = None
     person_id: str | None = None
     person_name: str | None = None
     is_known: bool | None = None
@@ -149,7 +168,10 @@ def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
     """Route a webhook payload to a WebhookKind by event_type/push_type."""
     if push_type in (WEBHOOK_ACTIVATION, WEBHOOK_DEACTIVATION):
         return WebhookKind.LIFECYCLE
-    if push_type in CAMERA_CONNECTION_WEBHOOKS:
+    if push_type in CAMERA_CONNECTION_WEBHOOKS or event_type in (
+        "connection",
+        "disconnection",
+    ):
         return WebhookKind.LIFECYCLE
     if event_type in STATE_EVENT_TYPES:
         return WebhookKind.STATE
@@ -176,6 +198,14 @@ def _bool_or_none(value: Any) -> bool | None:  # noqa: ANN401
     return value if isinstance(value, bool) else None
 
 
+def _map_boiler_status(raw: Any) -> bool | None:  # noqa: ANN401
+    if raw == "boiler_on":
+        return True
+    if raw == "boiler_off":
+        return False
+    return None
+
+
 def _resolve_person_name(home: Home | None, person_id: str | None) -> str | None:
     if home is None or person_id is None:
         return None
@@ -194,12 +224,14 @@ def _shared_event_fields(
         "event_type": event_type,
         "push_type": push_type,
         "home_id": home_id,
-        "module_id": str_or_none(payload.get("module_id")),
+        "module_id": str_or_none(payload.get("module_id"))
+        or str_or_none(extra.get("module_id")),
         "camera_id": str_or_none(payload.get("camera_id")),
         "device_id": str_or_none(payload.get("device_id")),
         "room_id": str_or_none(payload.get("room_id"))
         or str_or_none(extra.get("room_id")),
         "mode": str_or_none(payload.get("mode")) or str_or_none(extra.get("mode")),
+        "boiler_status": _map_boiler_status(extra.get("boiler_status")),
         "sub_type": str_or_none(payload.get("sub_type")),
         "snapshot_url": str_or_none(payload.get("snapshot_url")),
         "vignette_url": str_or_none(payload.get("vignette_url")),
@@ -322,7 +354,7 @@ def _process_standard_envelope(
     kind = classify(event_type, push_type)
 
     if kind is WebhookKind.LIFECYCLE:
-        return _process_lifecycle(home_id, event_type, push_type)
+        return _process_lifecycle(account, home_id, event_type, push_type, payload)
 
     if kind is WebhookKind.STATE:
         return _process_state(account, home_id, event_type, push_type, payload)
@@ -362,8 +394,9 @@ async def _process_device_event(
 
     event_type = str_or_none(extra.get("event_type"))
     if event_type:
-        # Merge measured temperature only; setpoints stay authoritative via display_change.
-        touched = _merge_device_energy_temperature(account, home_id, event_type, extra)
+        touched = _merge_device_energy_event(
+            account, home_id, payload, event_type, extra
+        )
         return WebhookResult(
             home_id,
             event_type,
@@ -373,6 +406,69 @@ async def _process_device_event(
         )
 
     return WebhookResult(home_id, None, WEBHOOK_DEVICE_EVENT, WebhookKind.UNKNOWN)
+
+
+def _merge_device_energy_event(
+    account: AsyncAccount,
+    home_id: str | None,
+    payload: dict[str, Any],
+    event_type: str,
+    extra: dict[str, Any],
+) -> list[str]:
+    if event_type == EVENT_TYPE_MOTOR_DATA_EVENT:
+        return _merge_motor_data_event(account, home_id, extra)
+    if event_type == EVENT_TYPE_BOILER_EVENT:
+        return _merge_boiler_event(account, home_id, payload, extra)
+    # setpoint_event / temperature_variation_event -- room telemetry merge.
+    # Setpoints stay authoritative via display_change; never merged here.
+    return _merge_device_energy_temperature(account, home_id, event_type, extra)
+
+
+def _merge_motor_data_event(
+    account: AsyncAccount,
+    home_id: str | None,
+    extra: dict[str, Any],
+) -> list[str]:
+    module_id = str_or_none(extra.get("module_id"))
+    if not module_id:
+        return []
+    position = number_or_none(extra.get("current_position"))
+    home = account.homes.get(home_id) if home_id else None
+    module = home.modules.get(module_id) if home is not None else None
+    if module is None or position is None or not hasattr(module, "current_position"):
+        return []
+    cast("ShutterMixin", module).current_position = int(position)
+    return [module_id]
+
+
+def _merge_boiler_event(
+    account: AsyncAccount,
+    home_id: str | None,
+    payload: dict[str, Any],
+    extra: dict[str, Any],
+) -> list[str]:
+    device_id = str_or_none(payload.get("device_id"))
+    fallback = [device_id] if device_id else []
+
+    mapped = _map_boiler_status(extra.get("boiler_status"))
+    home = account.homes.get(home_id) if home_id else None
+    if mapped is None or home is None:
+        return fallback
+
+    boiler_modules = [
+        module for module in home.modules.values() if hasattr(module, "boiler_status")
+    ]
+    target = next(
+        (m for m in boiler_modules if getattr(m, "bridge", None) == device_id),
+        None,
+    )
+    if target is None and len(boiler_modules) == 1:
+        target = boiler_modules[0]
+    if target is None:
+        return fallback
+
+    cast("BoilerMixin", target).boiler_status = mapped
+    return [target.entity_id]
 
 
 def _device_event_measured_temperature(
@@ -402,6 +498,10 @@ def _merge_device_energy_temperature(
     return [room.entity_id]
 
 
+def _normalize_device_event_module(module_data: dict[str, Any]) -> dict[str, Any]:
+    return {_DEVICE_EVENT_ATTRIBUTE_MAP.get(k, k): v for k, v in module_data.items()}
+
+
 async def _merge_device_modules(
     account: AsyncAccount,
     home_id: str | None,
@@ -419,7 +519,7 @@ async def _merge_device_modules(
         if getattr(module, "device_category", None) == DeviceCategory.camera:
             # Camera.update() does network I/O; never run that from a webhook.
             continue
-        await module.update(module_data)
+        await module.update(_normalize_device_event_module(module_data))
         touched.append(module.entity_id)
     return touched
 
@@ -566,25 +666,63 @@ def _process_event(
     )
 
 
+def _is_disconnection(event_type: str | None, push_type: str | None) -> bool:
+    return (
+        event_type == "disconnection"
+        or push_type == "disconnection"
+        or (push_type is not None and push_type.endswith("-disconnection"))
+    )
+
+
 def _process_lifecycle(
+    account: AsyncAccount,
     home_id: str | None,
     event_type: str | None,
     push_type: str | None,
+    payload: dict[str, Any],
 ) -> WebhookResult:
     if push_type == WEBHOOK_ACTIVATION:
-        lifecycle = LifecycleStatus.ACTIVATION
-        refresh_scope = None
-    elif push_type == WEBHOOK_DEACTIVATION:
-        lifecycle = LifecycleStatus.DEACTIVATION
-        refresh_scope = None
-    else:
-        lifecycle = LifecycleStatus.CONNECTION
-        refresh_scope = RefreshScope.STATUS
+        return WebhookResult(
+            home_id,
+            event_type,
+            push_type,
+            WebhookKind.LIFECYCLE,
+            lifecycle=LifecycleStatus.ACTIVATION,
+        )
+    if push_type == WEBHOOK_DEACTIVATION:
+        return WebhookResult(
+            home_id,
+            event_type,
+            push_type,
+            WebhookKind.LIFECYCLE,
+            lifecycle=LifecycleStatus.DEACTIVATION,
+        )
+
+    home = account.homes.get(home_id) if home_id else None
+    camera_id = _camera_id(payload)
+    module = home.modules.get(camera_id) if home is not None and camera_id else None
+    touched = [camera_id] if module is not None else []
+
+    if _is_disconnection(event_type, push_type):
+        if module is not None:
+            module.mark_unreachable()
+        return WebhookResult(
+            home_id,
+            event_type,
+            push_type,
+            WebhookKind.LIFECYCLE,
+            touched_ids=touched,
+            lifecycle=LifecycleStatus.DISCONNECTION,
+        )
+
+    if module is not None:
+        module.mark_reachable()
     return WebhookResult(
         home_id,
         event_type,
         push_type,
         WebhookKind.LIFECYCLE,
-        refresh_scope=refresh_scope,
-        lifecycle=lifecycle,
+        touched_ids=touched,
+        refresh_scope=RefreshScope.STATUS,
+        lifecycle=LifecycleStatus.CONNECTION,
     )

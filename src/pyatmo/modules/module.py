@@ -1399,6 +1399,10 @@ class Module(NetatmoBase):
         """
         propagate_reachability(self, False, seen)
 
+    def mark_reachable(self, seen: set[str] | None = None) -> None:
+        """Mark this module and its children reachable, e.g. from a reconnect webhook."""
+        propagate_reachability(self, True, seen)
+
     def clear_unreachable(self, seen: set[str] | None = None) -> None:
         """Drop the mark `mark_unreachable()` left, on this module and its children.
 

@@ -204,6 +204,27 @@ async def test_propagation_writes_nothing_onto_sub_modules(async_home):
         assert async_home.modules[sub_meter_id]._reachable is None, sub_meter_id  # noqa: SLF001
 
 
+async def test_mark_reachable_propagates_to_bridged_children(async_home):
+    """`mark_reachable()` stamps True definitively, unlike `clear_unreachable()`.
+
+    A reconnect webhook is itself proof of reachability, not merely grounds to
+    defer to the next payload, so this differs from `clear_unreachable()` in the
+    value it writes but shares its propagation walk: bridged children follow,
+    `#`-suffixed sub-modules are skipped and resolve from the parent on read.
+    """
+    ecometer = async_home.modules[ECOMETER]
+    ecometer.mark_unreachable()
+    assert ecometer.reachable is False
+
+    ecometer.mark_reachable()
+
+    assert ecometer.reachable is True
+    for sub_meter_id in SUB_METERS:
+        sub_meter = async_home.modules[sub_meter_id]
+        assert sub_meter._reachable is None, sub_meter_id  # noqa: SLF001
+        assert sub_meter.reachable is True, sub_meter_id
+
+
 async def test_mark_unreachable_survives_a_cycle_in_modules_bridged(async_home):
     """`modules_bridged` is unvalidated API data, so the walk must tolerate a cycle.
 

@@ -70,10 +70,13 @@ def test_webhook_types_exported_from_package():
         ("schedule", "home_event_changed", WebhookKind.TOPOLOGY_DIRTY),
         ("person", "NACamera-person", WebhookKind.EVENT),
         ("movement", "NACamera-movement", WebhookKind.EVENT),
-        ("disconnection", "NACamera-disconnection", WebhookKind.EVENT),
+        ("disconnection", "NACamera-disconnection", WebhookKind.LIFECYCLE),
         (None, "webhook_activation", WebhookKind.LIFECYCLE),
         (None, "webhook_deactivation", WebhookKind.LIFECYCLE),
         ("connection", "NACamera-connection", WebhookKind.LIFECYCLE),
+        ("connection", "connection", WebhookKind.LIFECYCLE),
+        ("disconnection", "disconnection", WebhookKind.LIFECYCLE),
+        (None, "NPC-connection", WebhookKind.LIFECYCLE),
         ("something_new", "brand_new_push", WebhookKind.UNKNOWN),
     ],
 )
@@ -180,6 +183,63 @@ async def test_process_webhook_camera_connection_full_surfaces_event(async_accou
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.CONNECTION
     assert result.needs_refresh is True
+    assert result.touched_ids == ["12:34:56:00:f1:62"]
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "connection"
+
+
+async def test_process_webhook_npc_connection_bare(async_account):
+    """NPC (Netatmo Smart Video Doorbell) reconnect, no event_type."""
+    result = await process_webhook(async_account, {"push_type": "NPC-connection"})
+    assert result.kind is WebhookKind.LIFECYCLE
+    assert result.lifecycle is LifecycleStatus.CONNECTION
+    assert result.refresh_scope is RefreshScope.STATUS
+    assert result.events == []
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_camera_disconnection_then_connection_flips_reachable(
+    async_account,
+):
+    """Real captures, redacted: disconnection marks unreachable, connection clears it."""
+    home_id = "91763b24c43d3e344f424e8b"
+    camera_id = "12:34:56:00:f1:62"
+    camera = async_account.homes[home_id].modules[camera_id]
+    assert camera.reachable is True
+
+    result = await process_webhook(
+        async_account,
+        {
+            "event_type": "disconnection",
+            "camera_id": camera_id,
+            "device_id": camera_id,
+            "home_id": home_id,
+            "push_type": "disconnection",
+        },
+    )
+    assert result.kind is WebhookKind.LIFECYCLE
+    assert result.lifecycle is LifecycleStatus.DISCONNECTION
+    assert result.refresh_scope is None
+    assert camera.reachable is False
+    assert result.touched_ids == [camera_id]
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "disconnection"
+
+    result = await process_webhook(
+        async_account,
+        {
+            "event_type": "connection",
+            "camera_id": camera_id,
+            "device_id": camera_id,
+            "home_id": home_id,
+            "push_type": "connection",
+        },
+    )
+    assert result.kind is WebhookKind.LIFECYCLE
+    assert result.lifecycle is LifecycleStatus.CONNECTION
+    assert result.refresh_scope is RefreshScope.STATUS
+    assert camera.reachable is True
+    assert result.touched_ids == [camera_id]
     assert len(result.events) == 1
     assert result.events[0].event_type == "connection"
 
@@ -1280,6 +1340,59 @@ async def test_process_webhook_device_event_modules_merges_dimmer(async_account)
 
 
 @pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_normalizes_weather_keys(async_account):
+    """Real capture, redacted: weather keys renamed to model attrs before merge."""
+    home_id = "91763b24c43d3e344f424e8b"
+    main_id = "12:34:56:80:bb:26"
+    child_id = "12:34:56:80:1c:42"
+    main = async_account.homes[home_id].modules[main_id]
+    child = async_account.homes[home_id].modules[child_id]
+    assert main.wifi_strength == 45
+
+    payload = {
+        "extra_params": {
+            "modules": [
+                {
+                    "id": main_id,
+                    "wifi_status": 66,
+                    "pressure_sea": 1015.3,
+                    "pressure_abs": 1011.4,
+                    "noise_current": 43,
+                    "temperature": 22,
+                    "co2": 381,
+                    "humidity": 51,
+                    "trend_temperature": "stable",
+                    "firmware": 300,
+                },
+                {
+                    "id": child_id,
+                    "temperature": 22,
+                    "humidity": 52,
+                    "rf_status": 5,
+                    "battery_vp": 5960,
+                },
+            ],
+        },
+        "push_type": "device_event",
+        "device_id": main_id,
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert main_id in result.touched_ids
+    assert child_id in result.touched_ids
+    assert main.wifi_strength == 66
+    assert main.pressure == 1015.3
+    assert main.absolute_pressure == 1011.4
+    assert main.noise == 43
+    assert main.temperature == 22
+    assert main.co2 == 381
+    assert child.rf_strength == 5
+    assert child.temperature == 22
+
+
+@pytest.mark.usefixtures("async_home")
 async def test_process_webhook_device_event_modules_skips_camera(async_account):
     """Camera modules must never be merged (network I/O guard)."""
     home_id = "91763b24c43d3e344f424e8b"
@@ -1396,3 +1509,118 @@ async def test_process_webhook_device_event_temperature_variation_merges_room(
     assert len(result.events) == 1
     assert result.events[0].event_type == "temperature_variation_event"
     assert result.events[0].mode == "home"
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_motor_data_event_merges_position(
+    async_account,
+):
+    """Real capture, remapped: current_position merges onto the fixture's NBR cover."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "0009999992"
+    cover = async_account.homes[home_id].modules[module_id]
+    assert cover.current_position == 0
+
+    payload = {
+        "extra_params": {
+            "event_type": "motor_data_event",
+            "module_id": module_id,
+            "current_position": 2229,
+            "motor_cmd": 0,
+            "device_type": "NAPlug",
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == [module_id]
+    assert cover.current_position == 2229
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "motor_data_event"
+    assert result.events[0].module_id == module_id
+
+
+async def test_process_webhook_device_event_motor_data_event_unknown_module(
+    async_account,
+):
+    """An unresolvable module_id: no crash, touched_ids empty, event still surfaced."""
+    payload = {
+        "extra_params": {
+            "event_type": "motor_data_event",
+            "module_id": "does-not-exist",
+            "current_position": 2229,
+            "motor_cmd": 0,
+            "device_type": "NAPlug",
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": "91763b24c43d3e344f424e8b",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == []
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "motor_data_event"
+    assert result.events[0].module_id == "does-not-exist"
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_boiler_event_surfaces_status(
+    async_account,
+):
+    """Real capture, remapped: boiler_status surfaces on the event regardless of merge.
+
+    The fixture has four boiler_status modules and none is bridged to the
+    (remapped) device_id, so the merge is ambiguous and skipped.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    home = async_account.homes[home_id]
+    natherm1 = home.modules["12:34:56:00:01:ae"]
+    oth = home.modules["12:34:56:20:f5:44"]
+    natherm1_before = natherm1.boiler_status
+    oth_before = oth.boiler_status
+
+    payload = {
+        "extra_params": {
+            "event_type": "boiler_event",
+            "boiler_status": "boiler_on",
+            "device_type": "NAPlug",
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "boiler_event"
+    assert result.events[0].boiler_status is True
+    assert natherm1.boiler_status == natherm1_before
+    assert oth.boiler_status == oth_before
+    assert result.touched_ids == ["12:34:56:00:bc:24"]
+
+
+async def test_process_webhook_device_event_boiler_off_maps_false(async_account):
+    """boiler_off maps to False on the surfaced event."""
+    payload = {
+        "extra_params": {
+            "event_type": "boiler_event",
+            "boiler_status": "boiler_off",
+            "device_type": "NAPlug",
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": "91763b24c43d3e344f424e8b",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.events[0].boiler_status is False

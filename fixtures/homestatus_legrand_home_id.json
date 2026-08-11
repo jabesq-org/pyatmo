@@ -1,0 +1,119 @@
+{
+  "status": "ok",
+  "body": {
+    "home": {
+      "id": "legrand_home_id",
+      "rooms": [
+        {
+          "id": "legrand_room_dining",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 26.6,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784408455,
+          "therm_setpoint_mode": "hg"
+        }
+      ],
+      "modules": [
+        {
+          "id": "12:34:56:aa:00:07",
+          "type": "NAPlug",
+          "firmware_revision": 300,
+          "rf_strength": 105,
+          "wifi_strength": 38
+        },
+        {
+          "id": "12:34:56:aa:00:08",
+          "type": "NATherm1",
+          "battery_state": "high",
+          "battery_level": 3919,
+          "firmware_revision": 80,
+          "rf_strength": 32,
+          "reachable": true,
+          "boiler_valve_comfort_boost": false,
+          "bridge": "12:34:56:aa:00:07",
+          "boiler_status": false
+        },
+        {
+          "id": "12:34:56:aa:00:05",
+          "type": "NACamera",
+          "firmware_revision": 5024000,
+          "wifi_state": "full",
+          "wifi_strength": 39,
+          "sd_status": 4,
+          "alim_status": 2,
+          "vpn_url": "https://prodvpn-eu-2.netatmo.net/restricted/10.255.123.45/609e27de5699fb18147ab47d06846631/MTRPn_BeWCav5RBq4U1OMDruTW4dkQ0NuMwNDAw11g,,",
+          "is_local": false,
+          "monitoring": "on"
+        },
+        {
+          "id": "12:34:56:aa:00:06",
+          "type": "NIS",
+          "battery_state": "medium",
+          "battery_level": 5835,
+          "firmware_revision": 1000,
+          "rf_state": "low",
+          "rf_strength": 70,
+          "last_seen": 1786301279,
+          "reachable": true,
+          "bridge": "12:34:56:aa:00:05",
+          "status": "no_sound",
+          "monitoring": "off"
+        },
+        {
+          "id": "12:34:56:aa:00:01",
+          "type": "NLG",
+          "offload": false,
+          "firmware_revision": 1600,
+          "last_seen": 1786300811,
+          "wifi_strength": 68,
+          "reachable": true,
+          "use_pincode": false
+        },
+        {
+          "id": "12:34:56:aa:00:02",
+          "type": "NLY",
+          "firmware_revision": 8,
+          "last_seen": 1786301280,
+          "power": 160,
+          "reachable": true,
+          "bridge": "12:34:56:aa:00:01"
+        },
+        {
+          "id": "12:34:56:aa:00:02#1",
+          "type": "NLY",
+          "power": 0,
+          "bridge": "12:34:56:aa:00:01"
+        },
+        {
+          "id": "12:34:56:aa:00:02#2",
+          "type": "NLY",
+          "power": 64,
+          "bridge": "12:34:56:aa:00:01"
+        },
+        {
+          "id": "12:34:56:aa:00:02#3",
+          "type": "NLY",
+          "power": 96,
+          "bridge": "12:34:56:aa:00:01"
+        },
+        {
+          "id": "12:34:56:aa:00:03",
+          "type": "NSD",
+          "firmware_revision": 1150,
+          "last_seen": 1785299287,
+          "wifi_strength": 50
+        },
+        {
+          "id": "12:34:56:aa:00:04",
+          "type": "NCO",
+          "firmware_revision": 1100,
+          "last_seen": 1785018210,
+          "wifi_strength": 46
+        }
+      ]
+    }
+  }
+}

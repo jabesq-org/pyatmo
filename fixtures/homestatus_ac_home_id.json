@@ -1,0 +1,192 @@
+{
+  "status": "ok",
+  "body": {
+    "home": {
+      "id": "ac_home_id",
+      "rooms": [
+        {
+          "id": "ac_room_bedroom_2",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 21,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784236584,
+          "therm_setpoint_mode": "hg"
+        },
+        {
+          "id": "ac_room_bedroom_1",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 25,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784236584,
+          "therm_setpoint_mode": "hg"
+        },
+        {
+          "id": "ac_room_bedroom_3",
+          "reachable": true,
+          "anticipating": false,
+          "heating_power_request": 0,
+          "open_window": false,
+          "therm_measured_temperature": 24.5,
+          "therm_setpoint_temperature": 7,
+          "therm_setpoint_start_time": 1784236584,
+          "therm_setpoint_mode": "hg"
+        },
+        {
+          "id": "ac_room_living",
+          "reachable": true,
+          "humidity": 38,
+          "therm_measured_temperature": 23.7,
+          "auto_setpoint_temperature": 25,
+          "auto_setpoint_start_time": 0,
+          "auto_setpoint_end_time": null,
+          "auto_setpoint_mode": "home"
+        }
+      ],
+      "modules": [
+        {
+          "id": "12:34:56:ac:00:01",
+          "type": "NAMain",
+          "firmware_revision": 300,
+          "wifi_state": "full",
+          "wifi_strength": 45,
+          "ts": 1784572419,
+          "temperature": 25,
+          "co2": 421,
+          "humidity": 37,
+          "noise": 47,
+          "pressure": 1021.6,
+          "absolute_pressure": 1015.8
+        },
+        {
+          "id": "12:34:56:ac:00:02",
+          "type": "NAModule4",
+          "battery_state": "full",
+          "battery_level": 5811,
+          "firmware_revision": 53,
+          "rf_state": "medium",
+          "rf_strength": 77,
+          "last_seen": 1784572412,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:01",
+          "ts": 1784571950,
+          "temperature": 23,
+          "co2": 348,
+          "humidity": 38
+        },
+        {
+          "id": "12:34:56:ac:00:03",
+          "type": "NAModule3",
+          "battery_state": "medium",
+          "battery_level": 4916,
+          "firmware_revision": 14,
+          "rf_state": "full",
+          "rf_strength": 56,
+          "last_seen": 1784572412,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:01",
+          "ts": 1784571976,
+          "rain": 0,
+          "sum_rain_1": 0,
+          "sum_rain_24": 0
+        },
+        {
+          "id": "12:34:56:ac:00:04",
+          "type": "NAModule1",
+          "battery_state": "low",
+          "battery_level": 5048,
+          "firmware_revision": 53,
+          "rf_state": "full",
+          "rf_strength": 51,
+          "last_seen": 1784572405,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:01",
+          "ts": 1784571944,
+          "temperature": 26.4,
+          "humidity": 38
+        },
+        {
+          "id": "12:34:56:ac:00:05",
+          "type": "NAModule4",
+          "battery_state": "full",
+          "battery_level": 6028,
+          "firmware_revision": 53,
+          "rf_state": "very_low",
+          "rf_strength": 91,
+          "last_seen": 1784571784,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:01",
+          "ts": 1784571784,
+          "temperature": 23.1,
+          "co2": 420,
+          "humidity": 38
+        },
+        {
+          "id": "12:34:56:ac:00:07",
+          "type": "NAPlug",
+          "firmware_revision": 251,
+          "rf_strength": 108,
+          "wifi_strength": 35
+        },
+        {
+          "id": "12:34:56:ac:00:08",
+          "type": "NRV",
+          "battery_state": "full",
+          "battery_level": 3022,
+          "firmware_revision": 102,
+          "rf_strength": 80,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:07"
+        },
+        {
+          "id": "12:34:56:ac:00:09",
+          "type": "NRV",
+          "battery_state": "full",
+          "battery_level": 2959,
+          "firmware_revision": 102,
+          "rf_strength": 67,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:07"
+        },
+        {
+          "id": "12:34:56:ac:00:10",
+          "type": "NRV",
+          "battery_state": "high",
+          "battery_level": 2950,
+          "firmware_revision": 102,
+          "rf_strength": 70,
+          "reachable": true,
+          "bridge": "12:34:56:ac:00:07"
+        },
+        {
+          "id": "12:34:56:ac:00:06",
+          "type": "NACamera",
+          "firmware_revision": 5024000,
+          "wifi_state": "medium",
+          "wifi_strength": 67,
+          "sd_status": 4,
+          "alim_status": 2,
+          "vpn_url": "https://prodvpn-eu-2.netatmo.net/restricted/10.255.123.45/609e27de5699fb18147ab47d06846631/MTRPn_BeWCav5RBq4U1OMDruTW4dkQ0NuMwNDAw11g,,",
+          "is_local": false,
+          "monitoring": "on"
+        },
+        {
+          "id": "12:34:56:ac:00:11",
+          "type": "NAC",
+          "firmware_revision": 1040,
+          "wifi_strength": 26,
+          "fan_speed": 1,
+          "fan_mode": "manual",
+          "fan_end_time": null,
+          "fan_setpoint_from": "parent",
+          "vertical_fan_swing_mode": "manual"
+        }
+      ]
+    }
+  }
+}

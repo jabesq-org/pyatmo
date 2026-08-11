@@ -14,26 +14,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve a schedule name to a schedule of the home's active temperature control mode
 - Track a schedule switch made outside the library, e.g. reported by a webhook
 
-### Fixed
-
-- Report the actually selected schedule after a schedule switch
-
 ### Changed
 
 - `Module.reachable` is now a read-only property that resolves `#`-suffixed
   sub-modules from their parent module. Use `Module.mark_unreachable()` instead
   of assigning to it.
+- A module listed in `/homestatus` without a `reachable` key now reads as
+  reachable rather than unknown. Weather stations, thermostat relays, cameras,
+  smoke and CO detectors, VELUX gateways and the Legrand ecometer never report
+  the key, so they previously resolved `None`. The Legrand ecometer in particular
+  was forced unreachable outright and now reports as connected.
 
 ### Fixed
 
+- Report the actually selected schedule after a schedule switch
 - Reachability of `#`-suffixed sub-modules now resolves from the parent module,
   so Legrand NLIS double switches are no longer reported unreachable
   ([home-assistant/core#178403](https://github.com/home-assistant/core/issues/178403))
 - An absent `reachable` key in a `/homestatus` payload now preserves the
-  previous value instead of meaning "unreachable". Modules that never report the
-  key (weather stations, OTH, VELUX gateways) are no longer pinned unreachable,
-  and their bridged children are no longer overwritten with the parent module's
-  readings on every poll
+  previous value instead of meaning "unreachable"
+- A bridge that does not report `reachable` no longer overwrites its bridged
+  children, and the rooms those children are in, with its own payload. Rooms
+  missing from `/homestatus` kept the bridge's readings permanently — an outdoor
+  room would report the indoor weather station's CO2 and humidity
+- `errors[]` naming a bridge whose bridged children sit in rooms absent from
+  `/homesdata` no longer raises `KeyError` out of `async_update_status`
+- A cycle in a bridge's `modules_bridged` no longer raises `RecursionError` from
+  `Module.mark_unreachable()`
+- A bridged module that is declared in `/homesdata` but never listed in
+  `/homestatus` no longer stays unreachable for good after a single outage of its
+  bridge. Nothing ever describes such a module, so the mark it inherited could not
+  be lifted by any later payload
 
 ## [9.6.0] - 2026-07-28
 

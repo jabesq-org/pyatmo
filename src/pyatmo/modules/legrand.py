@@ -81,7 +81,7 @@ class NLIS(Switch):
     def __init__(self, home: Home, module: ModuleT) -> None:
         """Initialize NLIS module."""
         super().__init__(home, module)
-        if "#" not in self.entity_id:
+        if not self.is_sub_module:
             # This is a workaround for the fact the this module type has three entries in the API
             # but one of them is not a light switch
             self.device_category = None

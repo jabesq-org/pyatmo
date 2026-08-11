@@ -63,17 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Filter homes via an optional `disabled_homes_ids` denylist on `AsyncAccount`.
-  Full inventory stays available as `all_home_names`.
-
-### Deprecated
-
-- `AsyncAccount.all_homes_id` — use `all_home_names` instead
-
-## [9.5.0] - 2026-07-21
-
-### Added
-
 - Retry on Netatmo 429 concurrency errors with exponential backoff, honoring the
   `Retry-After` header (#547)
 - Parse additional module attributes (`last_seen`, `setup_date`,

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [9.7.0] - 2026-08-11
+
 ### Added
 
 - Parse VELUX ACTIVE indoor climate sensors (`NXS`), departure switches (`NXD`),
@@ -578,6 +580,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
+[9.7.0]: https://github.com/jabesq-org/pyatmo/compare/v9.6.0...v9.7.0
 [9.6.0]: https://github.com/jabesq-org/pyatmo/compare/v9.5.0...v9.6.0
 [9.5.0]: https://github.com/jabesq-org/pyatmo/compare/v9.4.0...v9.5.0
 [9.4.0]: https://github.com/jabesq-org/pyatmo/compare/v9.3.0...v9.4.0

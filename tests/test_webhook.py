@@ -10,6 +10,7 @@ from pyatmo.room import Room
 from pyatmo.webhook import (
     _ROOM_SETPOINT_KEYS,
     LifecycleStatus,
+    RefreshScope,
     WebhookEvent,
     WebhookKind,
     WebhookResult,
@@ -30,6 +31,7 @@ def test_webhook_result_defaults():
     assert result.touched_ids == []
     assert result.events == []
     assert result.needs_refresh is False
+    assert result.refresh_scope is None
     assert result.lifecycle is None
 
 
@@ -45,6 +47,7 @@ def test_webhook_types_exported_from_package():
     assert pyatmo.WebhookKind is WebhookKind
     assert pyatmo.WebhookEvent is WebhookEvent
     assert pyatmo.LifecycleStatus is LifecycleStatus
+    assert pyatmo.RefreshScope is RefreshScope
 
 
 @pytest.mark.parametrize(
@@ -117,6 +120,7 @@ async def test_process_webhook_activation(async_account):
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.ACTIVATION
     assert result.needs_refresh is False
+    assert result.refresh_scope is None
 
 
 async def test_process_webhook_deactivation(async_account):
@@ -126,6 +130,8 @@ async def test_process_webhook_deactivation(async_account):
     )
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.DEACTIVATION
+    assert result.needs_refresh is False
+    assert result.refresh_scope is None
 
 
 async def test_process_webhook_camera_connection_needs_refresh(async_account):
@@ -136,6 +142,7 @@ async def test_process_webhook_camera_connection_needs_refresh(async_account):
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.CONNECTION
     assert result.needs_refresh is True
+    assert result.refresh_scope is RefreshScope.STATUS
 
 
 async def test_process_webhook_unknown(async_account):
@@ -184,6 +191,7 @@ async def test_process_webhook_movement_event(async_account):
     assert result.kind is WebhookKind.EVENT
     assert result.events[0].event_type == "movement"
     assert result.touched_ids == ["12:34:56:00:f1:62"]
+    assert result.refresh_scope is None
 
 
 @pytest.mark.usefixtures("async_home")
@@ -348,6 +356,7 @@ async def test_process_webhook_therm_mode_updates_home(async_account):
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == [home_id]
     assert home.therm_mode == "hg"
+    assert result.refresh_scope is None
 
 
 @pytest.mark.usefixtures("async_home")
@@ -593,6 +602,7 @@ async def test_process_webhook_schedule_needs_refresh(async_account):
     result = await process_webhook(async_account, payload)
     assert result.kind is WebhookKind.TOPOLOGY_DIRTY
     assert result.needs_refresh is True
+    assert result.refresh_scope is RefreshScope.TOPOLOGY
     assert result.touched_ids == []
 
 
@@ -679,6 +689,7 @@ async def test_process_webhook_topology_changed_variants(
 
     assert result.kind is WebhookKind.TOPOLOGY_DIRTY
     assert result.needs_refresh is True
+    assert result.refresh_scope is RefreshScope.TOPOLOGY
     assert result.event_type == expected_change
     assert result.touched_ids == expected_touched
 

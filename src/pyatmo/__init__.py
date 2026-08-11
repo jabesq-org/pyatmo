@@ -18,7 +18,13 @@ from pyatmo.home import Home
 from pyatmo.modules import Module
 from pyatmo.modules.device_types import DeviceType
 from pyatmo.room import Room
-from pyatmo.webhook import LifecycleStatus, WebhookEvent, WebhookKind, WebhookResult
+from pyatmo.webhook import (
+    LifecycleStatus,
+    RefreshScope,
+    WebhookEvent,
+    WebhookKind,
+    WebhookResult,
+)
 from pyatmo.webrtc import WebRTCStream
 
 __all__: list[str] = [
@@ -37,6 +43,7 @@ __all__: list[str] = [
     "Module",
     "NoDeviceError",
     "NoScheduleError",
+    "RefreshScope",
     "Room",
     "WebRTCStream",
     "WebhookEvent",

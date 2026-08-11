@@ -100,6 +100,18 @@ class LifecycleStatus(Enum):
     CONNECTION = "connection"
 
 
+class RefreshScope(Enum):
+    """Which poll a consumer should run to reconcile after a webhook.
+
+    TOPOLOGY -> async_update_topology (/homesdata): structural or schedule
+    changes. STATUS -> async_update_status (/homestatus): live device state,
+    e.g. after a camera reconnect.
+    """
+
+    TOPOLOGY = "topology"
+    STATUS = "status"
+
+
 @dataclass(frozen=True)
 class WebhookEvent:
     """A parsed webhook event (distinct from the /getevents Event stream).
@@ -140,8 +152,13 @@ class WebhookResult:
     kind: WebhookKind
     touched_ids: list[str] = field(default_factory=list)
     events: list[WebhookEvent] = field(default_factory=list)
-    needs_refresh: bool = False
+    refresh_scope: RefreshScope | None = None
     lifecycle: LifecycleStatus | None = None
+
+    @property
+    def needs_refresh(self) -> bool:
+        """True when the consumer should poll; see `refresh_scope` for which."""
+        return self.refresh_scope is not None
 
 
 def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
@@ -270,7 +287,7 @@ def _process_standard_envelope(
             event_type,
             push_type,
             WebhookKind.TOPOLOGY_DIRTY,
-            needs_refresh=True,
+            refresh_scope=RefreshScope.TOPOLOGY,
         )
 
     return WebhookResult(home_id, event_type, push_type, WebhookKind.UNKNOWN)
@@ -370,7 +387,7 @@ def _process_topology_changed(
         WEBHOOK_TOPOLOGY_CHANGED,
         WebhookKind.TOPOLOGY_DIRTY,
         touched_ids=_touched_from_payload(payload),
-        needs_refresh=True,
+        refresh_scope=RefreshScope.TOPOLOGY,
     )
 
 
@@ -518,18 +535,18 @@ def _process_lifecycle(
 ) -> WebhookResult:
     if push_type == WEBHOOK_ACTIVATION:
         lifecycle = LifecycleStatus.ACTIVATION
-        needs_refresh = False
+        refresh_scope = None
     elif push_type == WEBHOOK_DEACTIVATION:
         lifecycle = LifecycleStatus.DEACTIVATION
-        needs_refresh = False
+        refresh_scope = None
     else:  # camera reconnect
         lifecycle = LifecycleStatus.CONNECTION
-        needs_refresh = True
+        refresh_scope = RefreshScope.STATUS
     return WebhookResult(
         home_id,
         event_type,
         push_type,
         WebhookKind.LIFECYCLE,
-        needs_refresh=needs_refresh,
+        refresh_scope=refresh_scope,
         lifecycle=lifecycle,
     )

@@ -14,7 +14,7 @@ from pyatmo.webhook import (
     WebhookEvent,
     WebhookKind,
     WebhookResult,
-    build_webhook_event,
+    build_webhook_events,
     classify,
     process_webhook,
     resolve_home_id,
@@ -37,7 +37,14 @@ def test_webhook_result_defaults():
 
 def test_webhook_event_defaults():
     event = WebhookEvent(event_type="person", push_type="NACamera-person", home_id="h1")
-    assert event.person_ids == []
+    assert event.person_id is None
+    assert event.person_name is None
+    assert event.is_known is None
+    assert event.face_url is None
+    assert event.room_id is None
+    assert event.mode is None
+    assert event.vignette_url is None
+    assert event.event_id is None
     assert event.raw == {}
     assert event.camera_id is None
 
@@ -90,7 +97,7 @@ def test_resolve_home_id_missing():
     assert resolve_home_id({"event_type": "on"}) is None
 
 
-def test_build_webhook_event_person():
+def test_build_webhook_events_person_fan_out():
     payload = {
         "persons": [
             {"id": "p1", "is_known": True},
@@ -104,15 +111,24 @@ def test_build_webhook_event_person():
         "message": "seen",
         "push_type": "NACamera-person",
     }
-    event = build_webhook_event(payload)
-    assert event.event_type == "person"
-    assert event.push_type == "NACamera-person"
-    assert event.home_id == "h1"
-    assert event.camera_id == "cam1"
-    assert event.person_ids == ["p1", "p2"]
-    assert event.snapshot_url == "https://example/snap"
-    assert event.message == "seen"
-    assert event.raw is payload
+    events = build_webhook_events(payload, home=None)
+    assert len(events) == 2
+
+    first, second = events
+    assert first.event_type == "person"
+    assert first.push_type == "NACamera-person"
+    assert first.home_id == "h1"
+    assert first.camera_id == "cam1"
+    assert first.snapshot_url == "https://example/snap"
+    assert first.message == "seen"
+    assert first.raw is payload
+    assert first.person_id == "p1"
+    assert first.is_known is True
+    # no home passed -> name unresolved
+    assert first.person_name is None
+
+    assert second.person_id == "p2"
+    assert second.is_known is False
 
 
 async def test_process_webhook_activation(async_account):
@@ -121,6 +137,7 @@ async def test_process_webhook_activation(async_account):
     assert result.lifecycle is LifecycleStatus.ACTIVATION
     assert result.needs_refresh is False
     assert result.refresh_scope is None
+    assert result.events == []
 
 
 async def test_process_webhook_deactivation(async_account):
@@ -132,9 +149,11 @@ async def test_process_webhook_deactivation(async_account):
     assert result.lifecycle is LifecycleStatus.DEACTIVATION
     assert result.needs_refresh is False
     assert result.refresh_scope is None
+    assert result.events == []
 
 
 async def test_process_webhook_camera_connection_needs_refresh(async_account):
+    """Bare reconnect: no event_type -> no event."""
     result = await process_webhook(
         async_account,
         {"push_type": "NACamera-connection"},
@@ -143,6 +162,26 @@ async def test_process_webhook_camera_connection_needs_refresh(async_account):
     assert result.lifecycle is LifecycleStatus.CONNECTION
     assert result.needs_refresh is True
     assert result.refresh_scope is RefreshScope.STATUS
+    assert result.events == []
+
+
+async def test_process_webhook_camera_connection_full_surfaces_event(async_account):
+    """Full reconnect payload: event_type present -> surfaces an event."""
+    result = await process_webhook(
+        async_account,
+        {
+            "event_type": "connection",
+            "push_type": "NACamera-connection",
+            "camera_id": "12:34:56:00:f1:62",
+            "device_id": "12:34:56:00:f1:62",
+            "home_id": "91763b24c43d3e344f424e8b",
+        },
+    )
+    assert result.kind is WebhookKind.LIFECYCLE
+    assert result.lifecycle is LifecycleStatus.CONNECTION
+    assert result.needs_refresh is True
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "connection"
 
 
 async def test_process_webhook_unknown(async_account):
@@ -176,7 +215,9 @@ async def test_process_webhook_person_event(async_account):
     assert len(result.events) == 1
     event = result.events[0]
     assert event.event_type == "person"
-    assert event.person_ids == ["91827374-7e04-5298-83ad-a0cb8372dff1"]
+    assert event.person_id == "91827374-7e04-5298-83ad-a0cb8372dff1"
+    assert event.is_known is True
+    assert event.person_name == "John Doe"
 
 
 async def test_process_webhook_movement_event(async_account):
@@ -194,14 +235,69 @@ async def test_process_webhook_movement_event(async_account):
     assert result.refresh_scope is None
 
 
+async def test_process_webhook_camera_human_event(async_account):
+    """Real camera `human` capture, redacted."""
+    payload = {
+        "snapshot_id": "6a7ab5a5616f56de6c0ea337",
+        "snapshot_url": "https://example/snapshot.jpg",
+        "vignette_id": "6a7ab5a5616f56de6c0ea338",
+        "vignette_url": "https://example/vignette.jpg",
+        "event_type": "human",
+        "camera_id": "12:34:56:00:f1:62",
+        "device_id": "12:34:56:00:f1:62",
+        "home_id": "91763b24c43d3e344f424e8b",
+        "event_id": "6a7ab5a5a5d9e433642e230c",
+        "message": "Person erfasst Esszimmer",
+        "push_type": "NACamera-human",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.EVENT
+    assert len(result.events) == 1
+    event = result.events[0]
+    assert event.event_type == "human"
+    assert event.camera_id == "12:34:56:00:f1:62"
+    assert event.snapshot_url == "https://example/snapshot.jpg"
+    assert event.vignette_url == "https://example/vignette.jpg"
+    assert event.event_id == "6a7ab5a5a5d9e433642e230c"
+    assert event.message == "Person erfasst Esszimmer"
+
+
+async def test_process_webhook_person_event_fan_out_two_persons(async_account):
+    """One known id (name resolves), one unknown (name stays None)."""
+    payload = {
+        "persons": [
+            {"id": "91827374-7e04-5298-83ad-a0cb8372dff1", "is_known": True},
+            {"id": "unknown-person-id-0001", "is_known": False},
+        ],
+        "event_type": "person",
+        "camera_id": "12:34:56:00:f1:62",
+        "device_id": "12:34:56:00:f1:62",
+        "home_id": "91763b24c43d3e344f424e8b",
+        "push_type": "NACamera-person",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.EVENT
+    assert len(result.events) == 2
+
+    known, unknown = result.events
+    assert known.person_id == "91827374-7e04-5298-83ad-a0cb8372dff1"
+    assert known.is_known is True
+    assert known.person_name == "John Doe"
+
+    assert unknown.person_id == "unknown-person-id-0001"
+    assert unknown.is_known is False
+    assert unknown.person_name is None
+
+
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_set_point_updates_room(async_account):
-    # async_home loads status for this home; async_account is its parent.
     home_id = "91763b24c43d3e344f424e8b"
     room = async_account.homes[home_id].rooms["2746182631"]
-    assert room.therm_setpoint_mode == "away"  # precondition from fixture
-    assert room.therm_measured_temperature == 19.8  # precondition from fixture
-    assert room.reachable is True  # precondition from fixture
+    assert room.therm_setpoint_mode == "away"
+    assert room.therm_measured_temperature == 19.8
+    assert room.reachable is True
 
     payload = {
         "room_id": "2746182631",
@@ -233,23 +329,19 @@ async def test_process_webhook_set_point_updates_room(async_account):
     assert result.touched_ids == ["2746182631"]
     assert room.therm_setpoint_mode == "manual"
     assert room.therm_setpoint_temperature == 21
-    # Telemetry not present in the webhook payload must be preserved, not wiped.
+    # preserved, not wiped
     assert room.therm_measured_temperature == 19.8
     assert room.reachable is True
 
 
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_setpoint_event_alias_merges_room(async_account):
-    """Real `display_change` payloads use `setpoint_event`, not `set_point`.
-
-    Redacted/remapped real capture: home/room ids point at the fixture home,
-    `user_id` dropped.
-    """
+    """Real capture: `display_change` uses `setpoint_event`, not `set_point`."""
     home_id = "91763b24c43d3e344f424e8b"
     room = async_account.homes[home_id].rooms["2746182631"]
-    assert room.therm_setpoint_mode == "away"  # precondition from fixture
-    assert room.therm_setpoint_temperature == 12  # precondition from fixture
-    assert room.therm_measured_temperature == 19.8  # precondition from fixture
+    assert room.therm_setpoint_mode == "away"
+    assert room.therm_setpoint_temperature == 12
+    assert room.therm_measured_temperature == 19.8
 
     payload = {
         "home": {
@@ -280,8 +372,11 @@ async def test_process_webhook_setpoint_event_alias_merges_room(async_account):
     assert result.touched_ids == ["2746182631"]
     assert room.therm_setpoint_mode == "manual"
     assert room.therm_setpoint_temperature == 13.5
-    # Telemetry not present in the webhook payload must be preserved, not wiped.
+    # preserved, not wiped
     assert room.therm_measured_temperature == 19.8
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "setpoint_event"
+    assert result.events[0].mode == "manual"
 
 
 @pytest.mark.usefixtures("async_home")
@@ -342,7 +437,7 @@ async def test_process_webhook_set_point_unknown_home_no_mutation(async_account)
 async def test_process_webhook_therm_mode_updates_home(async_account):
     home_id = "91763b24c43d3e344f424e8b"
     home = async_account.homes[home_id]
-    assert home.therm_mode == "schedule"  # precondition from fixture
+    assert home.therm_mode == "schedule"
 
     payload = {
         "event_type": "therm_mode",
@@ -360,6 +455,29 @@ async def test_process_webhook_therm_mode_updates_home(async_account):
 
 
 @pytest.mark.usefixtures("async_home")
+async def test_process_webhook_therm_mode_real_capture_surfaces_event(async_account):
+    """Real capture, redacted: STATE result also carries a matching event."""
+    home_id = "91763b24c43d3e344f424e8b"
+    home = async_account.homes[home_id]
+    assert home.therm_mode == "schedule"
+
+    payload = {
+        "home_id": home_id,
+        "event_type": "therm_mode",
+        "home": {"id": home_id, "therm_mode": "away"},
+        "mode": "away",
+        "push_type": "home_event_changed",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert home.therm_mode == "away"
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "therm_mode"
+    assert result.events[0].mode == "away"
+
+
+@pytest.mark.usefixtures("async_home")
 @pytest.mark.parametrize(
     "home_block",
     [None, "x", {"id": "91763b24c43d3e344f424e8b"}],
@@ -370,7 +488,7 @@ async def test_process_webhook_therm_mode_without_mode_touches_nothing(
 ):
     home_id = "91763b24c43d3e344f424e8b"
     home = async_account.homes[home_id]
-    assert home.therm_mode == "schedule"  # precondition from fixture
+    assert home.therm_mode == "schedule"
 
     payload = {
         "event_type": "therm_mode",
@@ -392,7 +510,7 @@ async def test_process_webhook_camera_off(async_account):
     home_id = "91763b24c43d3e344f424e8b"
     camera_id = "12:34:56:00:f1:62"
     camera = async_account.homes[home_id].modules[camera_id]
-    assert camera.monitoring is True  # precondition from fixture
+    assert camera.monitoring is True
 
     payload = {
         "event_type": "off",
@@ -562,7 +680,7 @@ async def test_process_webhook_light_mode_without_sub_type_keeps_value(
     home_id = "91763b24c43d3e344f424e8b"
     camera_id = "12:34:56:10:b9:0e"  # NOC, has floodlight attr
     camera = async_account.homes[home_id].modules[camera_id]
-    assert camera.floodlight == "auto"  # precondition from fixture
+    assert camera.floodlight == "auto"
 
     payload = {
         "event_type": "light_mode",
@@ -678,13 +796,7 @@ async def test_process_webhook_topology_changed_variants(
     expected_change,
     expected_touched,
 ):
-    """Real `topology_changed` captures route to TOPOLOGY_DIRTY, not UNKNOWN.
-
-    Covers the three observed `change` variants: module_updated,
-    module_assigned_to_room, device_updated. `event_type` carries the
-    `change` value; `touched_ids` is the deduped device_id/module_id set from
-    `_touched_from_payload` (device_id before module_id).
-    """
+    """Covers the three observed `change` variants; real captures, redacted."""
     result = await process_webhook(async_account, payload)
 
     assert result.kind is WebhookKind.TOPOLOGY_DIRTY
@@ -692,16 +804,12 @@ async def test_process_webhook_topology_changed_variants(
     assert result.refresh_scope is RefreshScope.TOPOLOGY
     assert result.event_type == expected_change
     assert result.touched_ids == expected_touched
+    assert result.events == []
 
 
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_topology_changed_does_not_merge_modules(async_account):
-    """The partial `home.modules[]` in a `topology_changed` payload is not applied.
-
-    A full `async_update_topology` refresh (signalled by `needs_refresh`) is
-    the authoritative way to pick up structural changes -- merging the partial
-    list here would risk creating a half-initialized module.
-    """
+    """Partial `home.modules[]` is not applied; a full refresh is authoritative."""
     home_id = "91763b24c43d3e344f424e8b"
     home = async_account.homes[home_id]
     module_count_before = len(home.modules)
@@ -792,7 +900,9 @@ async def test_process_webhook_malformed_persons_no_raise(async_account, persons
 
     assert result.kind is WebhookKind.EVENT
     assert result.touched_ids == []
-    assert result.events[0].person_ids == []
+    # No usable persons[] -> falls back to a single event, person_id unset.
+    assert len(result.events) == 1
+    assert result.events[0].person_id is None
 
 
 @pytest.mark.parametrize("rooms", [None, ["x"]])
@@ -904,7 +1014,7 @@ async def test_process_webhook_non_str_sub_type_keeps_model_clean(async_account)
     home_id = "91763b24c43d3e344f424e8b"
     camera_id = "12:34:56:10:b9:0e"  # NOC, has floodlight attr
     camera = async_account.homes[home_id].modules[camera_id]
-    assert camera.floodlight == "auto"  # precondition from fixture
+    assert camera.floodlight == "auto"
 
     result = await process_webhook(
         async_account,
@@ -926,7 +1036,7 @@ async def test_process_webhook_non_str_therm_mode_keeps_model_clean(async_accoun
     """A malformed therm_mode must not land on the home's therm_mode attribute."""
     home_id = "91763b24c43d3e344f424e8b"
     home = async_account.homes[home_id]
-    assert home.therm_mode == "schedule"  # precondition from fixture
+    assert home.therm_mode == "schedule"
 
     result = await process_webhook(
         async_account,
@@ -942,7 +1052,7 @@ async def test_process_webhook_non_str_therm_mode_keeps_model_clean(async_accoun
 
 
 async def test_process_webhook_person_ids_are_strings(async_account):
-    """Non-string person ids are dropped, matching the touched_ids guard."""
+    """Fan-out is per raw person entry, not a filtered list of valid ids."""
     result = await process_webhook(
         async_account,
         {
@@ -953,7 +1063,8 @@ async def test_process_webhook_person_ids_are_strings(async_account):
         },
     )
 
-    assert result.events[0].person_ids == ["p1"]
+    assert len(result.events) == 3
+    assert [event.person_id for event in result.events] == [None, None, "p1"]
 
 
 async def test_process_webhook_event_id_fields_are_strings(async_account):
@@ -979,8 +1090,8 @@ async def test_process_webhook_set_point_rejects_wrongly_typed_values(async_acco
     """A malformed setpoint value is dropped, preserving the known-good value."""
     home_id = "91763b24c43d3e344f424e8b"
     room = async_account.homes[home_id].rooms["2746182631"]
-    assert room.therm_setpoint_mode == "away"  # precondition from fixture
-    assert room.therm_setpoint_temperature == 12  # precondition from fixture
+    assert room.therm_setpoint_mode == "away"
+    assert room.therm_setpoint_temperature == 12
 
     result = await process_webhook(
         async_account,
@@ -1032,7 +1143,7 @@ async def test_process_webhook_set_point_explicit_null_clears_value(async_accoun
     """An explicit `null` clears the field; only wrong types are rejected."""
     home_id = "91763b24c43d3e344f424e8b"
     room = async_account.homes[home_id].rooms["2746182631"]
-    assert room.therm_setpoint_mode == "away"  # precondition from fixture
+    assert room.therm_setpoint_mode == "away"
 
     result = await process_webhook(
         async_account,
@@ -1095,13 +1206,7 @@ async def test_process_webhook_set_point_without_setpoint_keys_reports_nothing(
 
 
 def test_room_setpoint_keys_match_room_annotations():
-    """Every coercer matches the type `Room` declares for that field.
-
-    `_ROOM_SETPOINT_KEYS` duplicates type knowledge that already lives on
-    `Room`, so drift would silently reject a valid value rather than fail. This
-    pins the two together. Read `__annotations__` directly: `get_type_hints`
-    cannot resolve `Room`'s `TYPE_CHECKING`-only names.
-    """
+    """Pins `_ROOM_SETPOINT_KEYS` coercers to `Room`'s declared types."""
     coercer_for = {
         "str|None": str_or_none,
         "int|None": number_or_none,
@@ -1118,15 +1223,7 @@ def test_room_setpoint_keys_match_room_annotations():
 
 
 async def test_process_webhook_never_suspends(async_account):
-    """`process_webhook` must run to completion without yielding to the loop.
-
-    Netatmo requires a webhook endpoint to answer immediately and deactivates
-    one that does not, so the merge deliberately performs no I/O. Awaiting
-    anything here -- an `async_update_*` refresh being the tempting one -- would
-    put network latency, including the 429 backoff in `auth.py`, on the response
-    path. Driving the coroutine one step must therefore finish it: a suspension
-    yields instead of raising `StopIteration`.
-    """
+    """A suspension would yield instead of raising `StopIteration`."""
     payload = {
         "event_type": "movement",
         "push_type": "NACamera-movement",
@@ -1143,16 +1240,12 @@ async def test_process_webhook_never_suspends(async_account):
 
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_device_event_modules_merges_dimmer(async_account):
-    """The `device_event` envelope's `extra_params.modules[]` merges via Module.update.
-
-    Redacted/remapped real capture: dimmer id points at the fixture's NLF
-    module (fixture start: on=False, brightness=63).
-    """
+    """Real capture, remapped to the fixture's NLF dimmer."""
     home_id = "91763b24c43d3e344f424e8b"
     module_id = "00:11:22:33:00:11:45:fe"
     dimmer = async_account.homes[home_id].modules[module_id]
-    assert dimmer.on is False  # precondition from fixture
-    assert dimmer.brightness == 63  # precondition from fixture
+    assert dimmer.on is False
+    assert dimmer.brightness == 63
 
     payload = {
         "extra_params": {
@@ -1181,17 +1274,14 @@ async def test_process_webhook_device_event_modules_merges_dimmer(async_account)
     assert result.touched_ids == [module_id]
     assert dimmer.on is True
     assert dimmer.brightness == 33
+    assert len(result.events) == 1
+    assert result.events[0].event_type is None
+    assert result.events[0].module_id == module_id
 
 
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_device_event_modules_skips_camera(async_account):
-    """A camera named in `extra_params.modules[]` must never be merged.
-
-    `Camera.update` performs network I/O (`async_update_camera_urls`), which
-    must never run on the webhook response path. Current real captures only
-    carry dimmers/switches, but this guards defensively against a future
-    payload naming a camera.
-    """
+    """Camera modules must never be merged (network I/O guard)."""
     home_id = "91763b24c43d3e344f424e8b"
     camera_id = "12:34:56:00:f1:62"  # NACamera, in fixture
 
@@ -1210,28 +1300,27 @@ async def test_process_webhook_device_event_modules_skips_camera(async_account):
 
 
 @pytest.mark.usefixtures("async_home")
-async def test_process_webhook_device_event_energy_setpoint_no_merge(async_account):
-    """An `extra_params.event_type` energy event surfaces as EVENT, no merge.
-
-    Netatmo also sends the same change as a top-level `display_change`
-    payload, which is the authoritative, cleanly-keyed source for the room
-    merge; merging this differently-keyed variant too would double-apply.
-    """
+async def test_process_webhook_device_event_setpoint_event_merges_measured_temperature(
+    async_account,
+):
+    """Real capture, remapped: touched_ids is the room, not the NAPlug relay (S7)."""
     home_id = "91763b24c43d3e344f424e8b"
     room = async_account.homes[home_id].rooms["2746182631"]
-    assert room.therm_setpoint_mode == "away"  # precondition from fixture
+    assert room.therm_measured_temperature == 19.8
+    assert room.therm_setpoint_mode == "away"
+    assert room.therm_setpoint_temperature == 12
 
     payload = {
         "extra_params": {
             "device_type": "NAPlug",
             "event_type": "setpoint_event",
-            "mode": "manual",
+            "mode": "home",
             "room_id": "2746182631",
-            "temperature": 13.5,
+            "temperature": 16,
             "therm_measured_temperature": 23.3,
-            "ts": 1786428434,
-            "ts_begin": 1786428433,
-            "ts_end": 1786439233,
+            "ts": 1786428073,
+            "ts_begin": 0,
+            "ts_end": 0,
         },
         "push_type": "device_event",
         "device_id": "12:34:56:00:bc:24",
@@ -1239,11 +1328,15 @@ async def test_process_webhook_device_event_energy_setpoint_no_merge(async_accou
     }
     result = await process_webhook(async_account, payload)
 
-    assert result.kind is WebhookKind.EVENT
-    assert result.events[0].event_type == "setpoint_event"
-    assert result.touched_ids == ["12:34:56:00:bc:24"]
-    # No speculative merge: the room's setpoint must be untouched by this path.
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == ["2746182631"]
+    assert room.therm_measured_temperature == 23.3
+    # setpoint not applied; only display_change is authoritative for that
     assert room.therm_setpoint_mode == "away"
+    assert room.therm_setpoint_temperature == 12
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "setpoint_event"
+    assert result.events[0].mode == "home"
 
 
 async def test_process_webhook_device_event_unknown_home_no_mutation(async_account):
@@ -1272,8 +1365,15 @@ async def test_process_webhook_device_event_empty_extra_params(async_account):
     assert result.kind is WebhookKind.UNKNOWN
 
 
-async def test_process_webhook_device_event_temperature_variation(async_account):
-    """A second energy-event shape (`temperature_variation_event`) surfaces as EVENT."""
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_temperature_variation_merges_room(
+    async_account,
+):
+    """Real capture, remapped; keyed under `temperature`, not `therm_measured_temperature`."""
+    home_id = "91763b24c43d3e344f424e8b"
+    room = async_account.homes[home_id].rooms["2746182631"]
+    assert room.therm_measured_temperature == 19.8
+
     payload = {
         "extra_params": {
             "device_type": "NAPlug",
@@ -1286,9 +1386,13 @@ async def test_process_webhook_device_event_temperature_variation(async_account)
         },
         "push_type": "device_event",
         "device_id": "12:34:56:00:bc:24",
-        "home_id": "91763b24c43d3e344f424e8b",
+        "home_id": home_id,
     }
     result = await process_webhook(async_account, payload)
 
-    assert result.kind is WebhookKind.EVENT
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == ["2746182631"]
+    assert room.therm_measured_temperature == 23.5
+    assert len(result.events) == 1
     assert result.events[0].event_type == "temperature_variation_event"
+    assert result.events[0].mode == "home"

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 import logging
 from typing import TYPE_CHECKING, Any, cast
@@ -26,19 +26,14 @@ EVENT_TYPE_OFF = "off"
 EVENT_TYPE_LIGHT_MODE = "light_mode"
 EVENT_TYPE_SET_POINT = "set_point"
 EVENT_TYPE_CANCEL_SET_POINT = "cancel_set_point"
-# Real `display_change` payloads use this name instead of `set_point`; same
-# nested `home.rooms[]` therm_setpoint_* keys, so it is treated as an alias.
 EVENT_TYPE_SETPOINT_EVENT = "setpoint_event"
 EVENT_TYPE_THERM_MODE = "therm_mode"
 EVENT_TYPE_SCHEDULE = "schedule"
+EVENT_TYPE_TEMPERATURE_VARIATION_EVENT = "temperature_variation_event"
 
 WEBHOOK_ACTIVATION = "webhook_activation"
 WEBHOOK_DEACTIVATION = "webhook_deactivation"
-# A second envelope format: no top-level event_type, real content nested in
-# `extra_params`. Routed by `_process_device_event`, before `classify()`.
 WEBHOOK_DEVICE_EVENT = "device_event"
-# Structural change (module added / moved to a room / firmware or device
-# update). No top-level event_type; a `change` field names the variant.
 WEBHOOK_TOPOLOGY_CHANGED = "topology_changed"
 CAMERA_CONNECTION_WEBHOOKS = frozenset(
     {"NACamera-connection", "NOC-connection", "NDB-connection"},
@@ -101,12 +96,7 @@ class LifecycleStatus(Enum):
 
 
 class RefreshScope(Enum):
-    """Which poll a consumer should run to reconcile after a webhook.
-
-    TOPOLOGY -> async_update_topology (/homesdata): structural or schedule
-    changes. STATUS -> async_update_status (/homestatus): live device state,
-    e.g. after a camera reconnect.
-    """
+    """Which poll a consumer should run to reconcile after a webhook."""
 
     TOPOLOGY = "topology"
     STATUS = "status"
@@ -114,12 +104,7 @@ class RefreshScope(Enum):
 
 @dataclass(frozen=True)
 class WebhookEvent:
-    """A parsed webhook event (distinct from the /getevents Event stream).
-
-    `frozen` prevents rebinding an attribute but not mutating one: `person_ids`
-    and `raw` stay mutable, so instances are not hashable and `hash()` or set
-    membership raises `TypeError`. Compare them by value instead.
-    """
+    """A parsed webhook event (distinct from the /getevents Event stream)."""
 
     event_type: str | None
     push_type: str | None
@@ -127,24 +112,23 @@ class WebhookEvent:
     module_id: str | None = None
     camera_id: str | None = None
     device_id: str | None = None
-    person_ids: list[str] = field(default_factory=list)
+    room_id: str | None = None
+    mode: str | None = None
+    person_id: str | None = None
+    person_name: str | None = None
+    is_known: bool | None = None
+    face_url: str | None = None
     sub_type: str | None = None
     snapshot_url: str | None = None
+    vignette_url: str | None = None
+    event_id: str | None = None
     message: str | None = None
     raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class WebhookResult:
-    """Outcome of processing one webhook payload.
-
-    Not hashable, for the same reason as `WebhookEvent`: `touched_ids` and
-    `events` stay mutable despite `frozen`. Compare by value instead.
-
-    The `touched_ids` namespace depends on `event_type` -- room ids for
-    set_point and cancel_set_point, the home id for therm_mode, module ids for
-    on/off, light_mode and EVENT payloads.
-    """
+    """Outcome of processing one webhook payload."""
 
     home_id: str | None
     event_type: str | None
@@ -184,62 +168,124 @@ def resolve_home_id(payload: dict[str, Any]) -> str | None:
 
 
 def _extra_params(payload: dict[str, Any]) -> dict[str, Any]:
-    """Return the `device_event` envelope's `extra_params` block, or `{}`.
-
-    That envelope nests its real content here instead of at the top level;
-    callers must tolerate a missing or malformed block without raising.
-    """
     extra = payload.get("extra_params")
     return extra if isinstance(extra, dict) else {}
 
 
-def build_webhook_event(payload: dict[str, Any]) -> WebhookEvent:
-    """Build a WebhookEvent from an EVENT-class payload.
+def _bool_or_none(value: Any) -> bool | None:  # noqa: ANN401
+    return value if isinstance(value, bool) else None
 
-    `event_type` falls back to `extra_params.event_type` for the
-    `device_event` envelope, which carries no top-level `event_type`.
-    """
+
+def _resolve_person_name(home: Home | None, person_id: str | None) -> str | None:
+    if home is None or person_id is None:
+        return None
+    person = home.persons.get(person_id)
+    return getattr(person, "pseudo", None)
+
+
+def _shared_event_fields(
+    payload: dict[str, Any],
+    extra: dict[str, Any],
+    home_id: str | None,
+    push_type: str | None,
+    event_type: str | None,
+) -> dict[str, Any]:
+    return {
+        "event_type": event_type,
+        "push_type": push_type,
+        "home_id": home_id,
+        "module_id": str_or_none(payload.get("module_id")),
+        "camera_id": str_or_none(payload.get("camera_id")),
+        "device_id": str_or_none(payload.get("device_id")),
+        "room_id": str_or_none(payload.get("room_id"))
+        or str_or_none(extra.get("room_id")),
+        "mode": str_or_none(payload.get("mode")) or str_or_none(extra.get("mode")),
+        "sub_type": str_or_none(payload.get("sub_type")),
+        "snapshot_url": str_or_none(payload.get("snapshot_url")),
+        "vignette_url": str_or_none(payload.get("vignette_url")),
+        "event_id": str_or_none(payload.get("event_id")),
+        "message": str_or_none(payload.get("message")),
+        "raw": payload,
+    }
+
+
+def _build_person_event(
+    payload: dict[str, Any],
+    extra: dict[str, Any],
+    person: dict[str, Any],
+    *,
+    home: Home | None,
+    home_id: str | None,
+    push_type: str | None,
+) -> WebhookEvent:
+    person_id = str_or_none(person.get("id"))
     return WebhookEvent(
-        event_type=str_or_none(payload.get("event_type"))
-        or str_or_none(_extra_params(payload).get("event_type")),
-        push_type=str_or_none(payload.get("push_type")),
-        home_id=resolve_home_id(payload),
-        module_id=str_or_none(payload.get("module_id")),
-        camera_id=str_or_none(payload.get("camera_id")),
-        device_id=str_or_none(payload.get("device_id")),
-        person_ids=[
-            person_id
-            for person in dict_entries(payload.get("persons"))
-            if (person_id := str_or_none(person.get("id")))
-        ],
-        sub_type=str_or_none(payload.get("sub_type")),
-        snapshot_url=str_or_none(payload.get("snapshot_url")),
-        message=str_or_none(payload.get("message")),
-        raw=payload,
+        **_shared_event_fields(payload, extra, home_id, push_type, "person"),
+        person_id=person_id,
+        is_known=_bool_or_none(person.get("is_known")),
+        face_url=str_or_none(person.get("face_url")),
+        person_name=_resolve_person_name(home, person_id),
     )
+
+
+def build_webhook_events(
+    payload: dict[str, Any],
+    home: Home | None,
+) -> list[WebhookEvent]:
+    """Build the WebhookEvent(s) a payload carries, regardless of `kind`."""
+    extra = _extra_params(payload)
+    home_id = resolve_home_id(payload)
+    push_type = str_or_none(payload.get("push_type"))
+
+    modules = dict_entries(extra.get("modules"))
+    if modules:
+        device_id = str_or_none(payload.get("device_id"))
+        return [
+            WebhookEvent(
+                event_type=None,
+                push_type=push_type,
+                home_id=home_id,
+                module_id=str_or_none(module.get("id")),
+                room_id=str_or_none(module.get("room_id")),
+                device_id=device_id,
+                raw=payload,
+            )
+            for module in modules
+        ]
+
+    event_type = str_or_none(payload.get("event_type")) or str_or_none(
+        extra.get("event_type"),
+    )
+    if event_type is None:
+        return []
+
+    if event_type == "person":
+        persons = dict_entries(payload.get("persons"))
+        if persons:
+            return [
+                _build_person_event(
+                    payload,
+                    extra,
+                    person,
+                    home=home,
+                    home_id=home_id,
+                    push_type=push_type,
+                )
+                for person in persons
+            ]
+
+    return [
+        WebhookEvent(
+            **_shared_event_fields(payload, extra, home_id, push_type, event_type),
+        ),
+    ]
 
 
 async def process_webhook(
     account: AsyncAccount,
     payload: dict[str, Any],
 ) -> WebhookResult:
-    """Parse, normalize, and merge a Netatmo webhook payload.
-
-    Performs no I/O and never suspends for the standard envelope, because
-    Netatmo requires a webhook endpoint to answer immediately and deactivates
-    one that does not. Do not add an `await` here: it would put network
-    latency, including the 429 backoff in `auth.py`, on the response path. The
-    `device_event` envelope is the one documented exception: its module merge
-    goes through `Module.update`, which is `async` but performs no I/O of its
-    own for the plain (non-Camera) modules it is used for today.
-
-    Merging is therefore best-effort. An `async_update_*` call already in flight
-    fetched its snapshot before this payload arrived, and will overwrite the
-    merge when it completes; the next successful poll restores the true state,
-    since the server is authoritative. Callers that need the merge to survive
-    should answer the webhook first and then apply the result in a task ordered
-    after any in-flight refresh -- `needs_refresh` schedules that follow-up.
-    """
+    """Parse, normalize, and merge a Netatmo webhook payload."""
     event_type = str_or_none(payload.get("event_type"))
     push_type = str_or_none(payload.get("push_type"))
     home_id = resolve_home_id(payload)
@@ -248,13 +294,22 @@ async def process_webhook(
         LOG.debug("Webhook payload without event_type/push_type: %s", payload)
         return WebhookResult(home_id, event_type, push_type, WebhookKind.UNKNOWN)
 
+    # No await here except device_event's module merge -- never suspend on the webhook response path.
     if push_type == WEBHOOK_DEVICE_EVENT:
-        return await _process_device_event(account, payload)
+        result = await _process_device_event(account, payload)
+    elif push_type == WEBHOOK_TOPOLOGY_CHANGED:
+        result = _process_topology_changed(home_id, payload)
+    else:
+        result = _process_standard_envelope(
+            account,
+            home_id,
+            event_type,
+            push_type,
+            payload,
+        )
 
-    if push_type == WEBHOOK_TOPOLOGY_CHANGED:
-        return _process_topology_changed(home_id, payload)
-
-    return _process_standard_envelope(account, home_id, event_type, push_type, payload)
+    home = account.homes.get(home_id) if home_id else None
+    return replace(result, events=build_webhook_events(payload, home))
 
 
 def _process_standard_envelope(
@@ -264,12 +319,6 @@ def _process_standard_envelope(
     push_type: str | None,
     payload: dict[str, Any],
 ) -> WebhookResult:
-    """Route the standard top-level-`event_type` envelope via `classify()`.
-
-    Split out of `process_webhook` so `device_event` -- which carries no
-    top-level `event_type` and is routed before `classify()` runs -- cannot
-    reach here, keeping `classify()` pure for this envelope shape.
-    """
     kind = classify(event_type, push_type)
 
     if kind is WebhookKind.LIFECYCLE:
@@ -297,20 +346,6 @@ async def _process_device_event(
     account: AsyncAccount,
     payload: dict[str, Any],
 ) -> WebhookResult:
-    """Route a `device_event` envelope by its `extra_params` contents.
-
-    - `extra_params.modules[]` present -> STATE, merged via `Module.update`
-      (reflection-based, so it keeps attributes absent from the partial
-      payload, unlike `Room.update`).
-    - else `extra_params.event_type` present (energy events such as
-      `setpoint_event`/`temperature_variation_event`) -> EVENT, surfaced only;
-      no state merge. These use a different key schema (`temperature`/
-      `setpoint`/`ts_begin`/`ts_end`, not `therm_setpoint_*`) than the
-      top-level `display_change` payload Netatmo also sends for the same
-      change, which is the authoritative, cleanly-keyed source for the room
-      merge -- merging both would double-apply.
-    - else -> UNKNOWN, no mutation.
-    """
     extra = _extra_params(payload)
     home_id = resolve_home_id(payload)
     modules = dict_entries(extra.get("modules"))
@@ -327,17 +362,44 @@ async def _process_device_event(
 
     event_type = str_or_none(extra.get("event_type"))
     if event_type:
-        device_id = str_or_none(payload.get("device_id"))
+        # Merge measured temperature only; setpoints stay authoritative via display_change.
+        touched = _merge_device_energy_temperature(account, home_id, event_type, extra)
         return WebhookResult(
             home_id,
             event_type,
             WEBHOOK_DEVICE_EVENT,
-            WebhookKind.EVENT,
-            touched_ids=[device_id] if device_id else [],
-            events=[build_webhook_event(payload)],
+            WebhookKind.STATE,
+            touched_ids=touched,
         )
 
     return WebhookResult(home_id, None, WEBHOOK_DEVICE_EVENT, WebhookKind.UNKNOWN)
+
+
+def _device_event_measured_temperature(
+    event_type: str,
+    extra: dict[str, Any],
+) -> float | None:
+    if event_type == EVENT_TYPE_TEMPERATURE_VARIATION_EVENT:
+        return number_or_none(extra.get("temperature"))
+    if event_type == EVENT_TYPE_SETPOINT_EVENT:
+        return number_or_none(extra.get("therm_measured_temperature"))
+    return None
+
+
+def _merge_device_energy_temperature(
+    account: AsyncAccount,
+    home_id: str | None,
+    event_type: str,
+    extra: dict[str, Any],
+) -> list[str]:
+    room_id = str_or_none(extra.get("room_id"))
+    home = account.homes.get(home_id) if home_id else None
+    room = home.rooms.get(room_id) if home is not None and room_id else None
+    measured = _device_event_measured_temperature(event_type, extra)
+    if room is None or measured is None:
+        return []
+    room.therm_measured_temperature = measured
+    return [room.entity_id]
 
 
 async def _merge_device_modules(
@@ -345,15 +407,6 @@ async def _merge_device_modules(
     home_id: str | None,
     modules: list[dict[str, Any]],
 ) -> list[str]:
-    """Merge each module via `Module.update`, a safe partial merge.
-
-    Unlike `Room.update`, `Module.update` is reflection-based and preserves
-    attributes absent from the partial payload. Camera-category modules are
-    skipped: `Camera.update` calls `async_update_camera_urls`, which performs
-    network I/O and must never run on the webhook response path. Current
-    `device_event` payloads only carry dimmers/switches, but this guards
-    defensively against a future payload naming a camera.
-    """
     home = account.homes.get(home_id) if home_id else None
     if home is None:
         return []
@@ -364,6 +417,7 @@ async def _merge_device_modules(
         if module is None:
             continue
         if getattr(module, "device_category", None) == DeviceCategory.camera:
+            # Camera.update() does network I/O; never run that from a webhook.
             continue
         await module.update(module_data)
         touched.append(module.entity_id)
@@ -374,13 +428,6 @@ def _process_topology_changed(
     home_id: str | None,
     payload: dict[str, Any],
 ) -> WebhookResult:
-    """Route a `topology_changed` envelope to TOPOLOGY_DIRTY.
-
-    The payload carries a partial `home.modules[]`, but it is not merged: a
-    full `async_update_topology` refresh (signalled by `needs_refresh`) is the
-    authoritative way to pick up structural changes. `event_type` carries the
-    `change` variant; `touched_ids` the module/device ids referenced.
-    """
     return WebhookResult(
         home_id,
         str_or_none(payload.get("change")),
@@ -435,7 +482,6 @@ def _process_state(
 
 
 def _merge_rooms(home: Home, payload: dict[str, Any]) -> list[str]:
-    """Merge only the setpoint fields present in the payload into each room."""
     touched: list[str] = []
     home_data = payload.get("home")
     if not isinstance(home_data, dict):
@@ -451,12 +497,6 @@ def _merge_rooms(home: Home, payload: dict[str, Any]) -> list[str]:
 
 
 def _merge_room_setpoints(room_obj: Room, room: dict[str, Any]) -> bool:
-    """Apply the payload's setpoint fields to `room_obj`; return True if any stuck.
-
-    An explicit `null` is honoured and clears the field, since that is how a
-    cancelled setpoint arrives. A value of the wrong type is dropped instead,
-    so a malformed payload cannot overwrite a known-good reading.
-    """
     applied = False
     for key, coerce in _ROOM_SETPOINT_KEYS.items():
         if key not in room:
@@ -503,7 +543,6 @@ def _merge_camera_floodlight(home: Home, payload: dict[str, Any]) -> list[str]:
 
 
 def _touched_from_payload(payload: dict[str, Any]) -> list[str]:
-    """De-duplicated device/camera/module ids referenced by the payload."""
     ids: list[str] = []
     for key in ("device_id", "camera_id", "module_id"):
         value = str_or_none(payload.get(key))
@@ -524,7 +563,6 @@ def _process_event(
         push_type,
         WebhookKind.EVENT,
         touched_ids=_touched_from_payload(payload),
-        events=[build_webhook_event(payload)],
     )
 
 
@@ -539,7 +577,7 @@ def _process_lifecycle(
     elif push_type == WEBHOOK_DEACTIVATION:
         lifecycle = LifecycleStatus.DEACTIVATION
         refresh_scope = None
-    else:  # camera reconnect
+    else:
         lifecycle = LifecycleStatus.CONNECTION
         refresh_scope = RefreshScope.STATUS
     return WebhookResult(

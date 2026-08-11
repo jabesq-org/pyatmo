@@ -31,7 +31,7 @@ def test_webhook_result_defaults():
     assert result.touched_ids == []
     assert result.events == []
     assert result.needs_refresh is False
-    assert result.refresh_scope is None
+    assert result.refresh_scope == frozenset()
     assert result.lifecycle is None
 
 
@@ -139,7 +139,7 @@ async def test_process_webhook_activation(async_account):
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.ACTIVATION
     assert result.needs_refresh is False
-    assert result.refresh_scope is None
+    assert result.refresh_scope == frozenset()
     assert result.events == []
 
 
@@ -151,7 +151,7 @@ async def test_process_webhook_deactivation(async_account):
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.DEACTIVATION
     assert result.needs_refresh is False
-    assert result.refresh_scope is None
+    assert result.refresh_scope == frozenset()
     assert result.events == []
 
 
@@ -164,7 +164,7 @@ async def test_process_webhook_camera_connection_needs_refresh(async_account):
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.CONNECTION
     assert result.needs_refresh is True
-    assert result.refresh_scope is RefreshScope.STATUS
+    assert result.refresh_scope == frozenset({RefreshScope.STATUS})
     assert result.events == []
 
 
@@ -193,7 +193,7 @@ async def test_process_webhook_npc_connection_bare(async_account):
     result = await process_webhook(async_account, {"push_type": "NPC-connection"})
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.CONNECTION
-    assert result.refresh_scope is RefreshScope.STATUS
+    assert result.refresh_scope == frozenset({RefreshScope.STATUS})
     assert result.events == []
 
 
@@ -219,7 +219,7 @@ async def test_process_webhook_camera_disconnection_then_connection_flips_reacha
     )
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.DISCONNECTION
-    assert result.refresh_scope is None
+    assert result.refresh_scope == frozenset()
     assert camera.reachable is False
     assert result.touched_ids == [camera_id]
     assert len(result.events) == 1
@@ -237,7 +237,7 @@ async def test_process_webhook_camera_disconnection_then_connection_flips_reacha
     )
     assert result.kind is WebhookKind.LIFECYCLE
     assert result.lifecycle is LifecycleStatus.CONNECTION
-    assert result.refresh_scope is RefreshScope.STATUS
+    assert result.refresh_scope == frozenset({RefreshScope.STATUS})
     assert camera.reachable is True
     assert result.touched_ids == [camera_id]
     assert len(result.events) == 1
@@ -245,17 +245,21 @@ async def test_process_webhook_camera_disconnection_then_connection_flips_reacha
 
 
 async def test_process_webhook_unknown(async_account):
+    """An unrecognized event_type still surfaces as an event (S5)."""
     result = await process_webhook(
         async_account,
-        {"event_type": "brand_new", "push_type": "brand_new_push"},
+        {"event_type": "brand_new_thing", "push_type": "brand_new_push"},
     )
     assert result.kind is WebhookKind.UNKNOWN
     assert result.touched_ids == []
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "brand_new_thing"
 
 
 async def test_process_webhook_malformed_no_event(async_account):
     result = await process_webhook(async_account, {})
     assert result.kind is WebhookKind.UNKNOWN
+    assert result.events == []
 
 
 async def test_process_webhook_person_event(async_account):
@@ -292,7 +296,7 @@ async def test_process_webhook_movement_event(async_account):
     assert result.kind is WebhookKind.EVENT
     assert result.events[0].event_type == "movement"
     assert result.touched_ids == ["12:34:56:00:f1:62"]
-    assert result.refresh_scope is None
+    assert result.refresh_scope == frozenset()
 
 
 async def test_process_webhook_camera_human_event(async_account):
@@ -460,6 +464,27 @@ async def test_process_webhook_set_point_partial_room_match(async_account):
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == ["2746182631"]
     assert room.therm_setpoint_mode == "manual"
+    assert result.refresh_scope == frozenset()
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_set_point_unknown_room_self_heals(async_account):
+    """A room id that doesn't match any known room adds TOPOLOGY (S4)."""
+    home_id = "91763b24c43d3e344f424e8b"
+
+    payload = {
+        "event_type": "set_point",
+        "home": {
+            "id": home_id,
+            "rooms": [{"id": "does-not-exist", "therm_setpoint_mode": "manual"}],
+        },
+        "push_type": "display_change",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -480,9 +505,12 @@ async def test_process_webhook_set_point_without_usable_home_block(
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    # Malformed/missing home block -- not evidence of a stale topology.
+    assert result.refresh_scope == frozenset()
 
 
 async def test_process_webhook_set_point_unknown_home_no_mutation(async_account):
+    """An unknown home_id self-heals with a TOPOLOGY refresh (S4)."""
     payload = {
         "home": {"id": "does-not-exist", "rooms": [{"id": "r1"}], "modules": []},
         "event_type": "set_point",
@@ -491,6 +519,7 @@ async def test_process_webhook_set_point_unknown_home_no_mutation(async_account)
     result = await process_webhook(async_account, payload)
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -511,7 +540,7 @@ async def test_process_webhook_therm_mode_updates_home(async_account):
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == [home_id]
     assert home.therm_mode == "hg"
-    assert result.refresh_scope is None
+    assert result.refresh_scope == frozenset({RefreshScope.STATUS})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -563,6 +592,7 @@ async def test_process_webhook_therm_mode_without_mode_touches_nothing(
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
     assert home.therm_mode == "schedule"
+    assert result.refresh_scope == frozenset({RefreshScope.STATUS})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -643,10 +673,14 @@ async def test_process_webhook_light_mode_no_floodlight_attr(async_account):
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    # The module resolved fine, it just doesn't support floodlight -- not a
+    # stale topology, so no TOPOLOGY refresh.
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_light_mode_unresolvable_camera(async_account):
+    """A camera id that isn't in the home self-heals with TOPOLOGY (S4)."""
     home_id = "91763b24c43d3e344f424e8b"
     camera_id = "99:99:99:99:99:99"
 
@@ -662,10 +696,12 @@ async def test_process_webhook_light_mode_unresolvable_camera(async_account):
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_camera_on_unresolvable_camera(async_account):
+    """A camera id that isn't in the home self-heals with TOPOLOGY (S4)."""
     home_id = "91763b24c43d3e344f424e8b"
     camera_id = "99:99:99:99:99:99"
 
@@ -680,6 +716,7 @@ async def test_process_webhook_camera_on_unresolvable_camera(async_account):
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -698,6 +735,7 @@ async def test_process_webhook_camera_off_unresolvable_camera(async_account):
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -715,6 +753,9 @@ async def test_process_webhook_camera_monitoring_without_camera_id(
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    # No camera_id/device_id at all -- nothing was referenced, so nothing to
+    # self-heal.
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
@@ -729,6 +770,7 @@ async def test_process_webhook_light_mode_without_camera_id(async_account):
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
@@ -780,7 +822,9 @@ async def test_process_webhook_schedule_needs_refresh(async_account):
     result = await process_webhook(async_account, payload)
     assert result.kind is WebhookKind.TOPOLOGY_DIRTY
     assert result.needs_refresh is True
-    assert result.refresh_scope is RefreshScope.TOPOLOGY
+    assert result.refresh_scope == frozenset(
+        {RefreshScope.TOPOLOGY, RefreshScope.STATUS}
+    )
     assert result.touched_ids == []
 
 
@@ -861,7 +905,7 @@ async def test_process_webhook_topology_changed_variants(
 
     assert result.kind is WebhookKind.TOPOLOGY_DIRTY
     assert result.needs_refresh is True
-    assert result.refresh_scope is RefreshScope.TOPOLOGY
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
     assert result.event_type == expected_change
     assert result.touched_ids == expected_touched
     assert result.events == []
@@ -1089,6 +1133,9 @@ async def test_process_webhook_non_str_sub_type_keeps_model_clean(async_account)
 
     assert result.touched_ids == []
     assert camera.floodlight == "auto"
+    # The camera resolved fine, only its sub_type was malformed -- not a
+    # stale topology, so no TOPOLOGY refresh.
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1109,6 +1156,8 @@ async def test_process_webhook_non_str_therm_mode_keeps_model_clean(async_accoun
 
     assert result.touched_ids == []
     assert home.therm_mode == "schedule"
+    # home is known, so therm_mode always resolves to a status poll (S1).
+    assert result.refresh_scope == frozenset({RefreshScope.STATUS})
 
 
 async def test_process_webhook_person_ids_are_strings(async_account):
@@ -1263,6 +1312,9 @@ async def test_process_webhook_set_point_without_setpoint_keys_reports_nothing(
     )
 
     assert result.touched_ids == []
+    # The room resolved fine, it just had nothing to merge -- not a stale
+    # topology, so no TOPOLOGY refresh.
+    assert result.refresh_scope == frozenset()
 
 
 def test_room_setpoint_keys_match_room_annotations():
@@ -1337,6 +1389,61 @@ async def test_process_webhook_device_event_modules_merges_dimmer(async_account)
     assert len(result.events) == 1
     assert result.events[0].event_type is None
     assert result.events[0].module_id == module_id
+    # Every module in the payload was merged -- no self-heal needed.
+    assert result.refresh_scope == frozenset()
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_modules_unknown_module_self_heals(
+    async_account,
+):
+    """A module id that isn't in the home self-heals with TOPOLOGY (S4)."""
+    home_id = "91763b24c43d3e344f424e8b"
+
+    payload = {
+        "extra_params": {
+            "modules": [{"id": "does-not-exist", "on": True}],
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_modules_mixed_known_and_unknown(
+    async_account,
+):
+    """One known module merges; one unknown id still self-heals with TOPOLOGY."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "00:11:22:33:00:11:45:fe"
+    dimmer = async_account.homes[home_id].modules[module_id]
+    assert dimmer.on is False
+    assert dimmer.brightness == 63
+
+    payload = {
+        "extra_params": {
+            "modules": [
+                {"id": module_id, "on": True, "brightness": 33},
+                {"id": "does-not-exist", "on": True},
+            ],
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == [module_id]
+    assert dimmer.on is True
+    assert dimmer.brightness == 33
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1410,6 +1517,9 @@ async def test_process_webhook_device_event_modules_skips_camera(async_account):
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    # The camera is present in the home, just deliberately skipped -- not a
+    # missing entity, so no topology self-heal.
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1450,6 +1560,7 @@ async def test_process_webhook_device_event_setpoint_event_merges_measured_tempe
     assert len(result.events) == 1
     assert result.events[0].event_type == "setpoint_event"
     assert result.events[0].mode == "home"
+    assert result.refresh_scope == frozenset()
 
 
 async def test_process_webhook_device_event_unknown_home_no_mutation(async_account):
@@ -1465,6 +1576,7 @@ async def test_process_webhook_device_event_unknown_home_no_mutation(async_accou
 
     assert result.kind is WebhookKind.STATE
     assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 async def test_process_webhook_device_event_empty_extra_params(async_account):
@@ -1476,6 +1588,7 @@ async def test_process_webhook_device_event_empty_extra_params(async_account):
     result = await process_webhook(async_account, payload)
 
     assert result.kind is WebhookKind.UNKNOWN
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1509,6 +1622,7 @@ async def test_process_webhook_device_event_temperature_variation_merges_room(
     assert len(result.events) == 1
     assert result.events[0].event_type == "temperature_variation_event"
     assert result.events[0].mode == "home"
+    assert result.refresh_scope == frozenset()
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1542,6 +1656,33 @@ async def test_process_webhook_device_event_motor_data_event_merges_position(
     assert len(result.events) == 1
     assert result.events[0].event_type == "motor_data_event"
     assert result.events[0].module_id == module_id
+    assert result.refresh_scope == frozenset()
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_temperature_variation_unknown_room(
+    async_account,
+):
+    """A room_id that isn't in the home self-heals with TOPOLOGY (S4)."""
+    payload = {
+        "extra_params": {
+            "device_type": "NAPlug",
+            "event_type": "temperature_variation_event",
+            "mode": "home",
+            "room_id": "does-not-exist",
+            "setpoint": 19,
+            "temperature": 23.5,
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": "91763b24c43d3e344f424e8b",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == []
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 async def test_process_webhook_device_event_motor_data_event_unknown_module(
@@ -1568,6 +1709,7 @@ async def test_process_webhook_device_event_motor_data_event_unknown_module(
     assert len(result.events) == 1
     assert result.events[0].event_type == "motor_data_event"
     assert result.events[0].module_id == "does-not-exist"
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
 
 
 @pytest.mark.usefixtures("async_home")
@@ -1606,6 +1748,8 @@ async def test_process_webhook_device_event_boiler_event_surfaces_status(
     assert natherm1.boiler_status == natherm1_before
     assert oth.boiler_status == oth_before
     assert result.touched_ids == ["12:34:56:00:bc:24"]
+    # Ambiguous skip is expected, not a missing entity -- never self-heals.
+    assert result.refresh_scope == frozenset()
 
 
 async def test_process_webhook_device_event_boiler_off_maps_false(async_account):

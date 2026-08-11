@@ -155,13 +155,13 @@ class WebhookResult:
     kind: WebhookKind
     touched_ids: list[str] = field(default_factory=list)
     events: list[WebhookEvent] = field(default_factory=list)
-    refresh_scope: RefreshScope | None = None
+    refresh_scope: frozenset[RefreshScope] = frozenset()
     lifecycle: LifecycleStatus | None = None
 
     @property
     def needs_refresh(self) -> bool:
         """True when the consumer should poll; see `refresh_scope` for which."""
-        return self.refresh_scope is not None
+        return bool(self.refresh_scope)
 
 
 def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
@@ -368,9 +368,12 @@ def _process_standard_envelope(
             event_type,
             push_type,
             WebhookKind.TOPOLOGY_DIRTY,
-            refresh_scope=RefreshScope.TOPOLOGY,
+            refresh_scope=frozenset({RefreshScope.TOPOLOGY, RefreshScope.STATUS}),
         )
 
+    LOG.debug(
+        "Unrecognized webhook (event_type=%s, push_type=%s)", event_type, push_type
+    )
     return WebhookResult(home_id, event_type, push_type, WebhookKind.UNKNOWN)
 
 
@@ -383,19 +386,33 @@ async def _process_device_event(
     modules = dict_entries(extra.get("modules"))
 
     if modules:
-        touched = await _merge_device_modules(account, home_id, modules)
+        touched, unresolved = await _merge_device_modules(account, home_id, modules)
+        # A module id named in the payload but not present in the home (not
+        # merely skipped, e.g. a camera) means the consumer should re-fetch
+        # topology.
+        refresh_scope = (
+            frozenset({RefreshScope.TOPOLOGY}) if unresolved else frozenset()
+        )
         return WebhookResult(
             home_id,
             str_or_none(extra.get("event_type")),
             WEBHOOK_DEVICE_EVENT,
             WebhookKind.STATE,
             touched_ids=touched,
+            refresh_scope=refresh_scope,
         )
 
     event_type = str_or_none(extra.get("event_type"))
     if event_type:
-        touched = _merge_device_energy_event(
-            account, home_id, payload, event_type, extra
+        touched, unresolved = _merge_device_energy_event(
+            account,
+            home_id,
+            payload,
+            event_type,
+            extra,
+        )
+        refresh_scope = (
+            frozenset({RefreshScope.TOPOLOGY}) if unresolved else frozenset()
         )
         return WebhookResult(
             home_id,
@@ -403,6 +420,7 @@ async def _process_device_event(
             WEBHOOK_DEVICE_EVENT,
             WebhookKind.STATE,
             touched_ids=touched,
+            refresh_scope=refresh_scope,
         )
 
     return WebhookResult(home_id, None, WEBHOOK_DEVICE_EVENT, WebhookKind.UNKNOWN)
@@ -414,11 +432,16 @@ def _merge_device_energy_event(
     payload: dict[str, Any],
     event_type: str,
     extra: dict[str, Any],
-) -> list[str]:
+) -> tuple[list[str], bool]:
+    """Return (touched ids, whether a referenced room/module id was not found).
+
+    `boiler_event` never reports unresolved: an ambiguous skip (no bridge
+    match, more than one candidate) is expected, not a missing entity.
+    """
     if event_type == EVENT_TYPE_MOTOR_DATA_EVENT:
         return _merge_motor_data_event(account, home_id, extra)
     if event_type == EVENT_TYPE_BOILER_EVENT:
-        return _merge_boiler_event(account, home_id, payload, extra)
+        return _merge_boiler_event(account, home_id, payload, extra), False
     # setpoint_event / temperature_variation_event -- room telemetry merge.
     # Setpoints stay authoritative via display_change; never merged here.
     return _merge_device_energy_temperature(account, home_id, event_type, extra)
@@ -428,17 +451,19 @@ def _merge_motor_data_event(
     account: AsyncAccount,
     home_id: str | None,
     extra: dict[str, Any],
-) -> list[str]:
+) -> tuple[list[str], bool]:
     module_id = str_or_none(extra.get("module_id"))
     if not module_id:
-        return []
-    position = number_or_none(extra.get("current_position"))
+        return [], False
     home = account.homes.get(home_id) if home_id else None
     module = home.modules.get(module_id) if home is not None else None
-    if module is None or position is None or not hasattr(module, "current_position"):
-        return []
+    if module is None:
+        return [], True
+    position = number_or_none(extra.get("current_position"))
+    if position is None or not hasattr(module, "current_position"):
+        return [], False
     cast("ShutterMixin", module).current_position = int(position)
-    return [module_id]
+    return [module_id], False
 
 
 def _merge_boiler_event(
@@ -487,15 +512,19 @@ def _merge_device_energy_temperature(
     home_id: str | None,
     event_type: str,
     extra: dict[str, Any],
-) -> list[str]:
+) -> tuple[list[str], bool]:
     room_id = str_or_none(extra.get("room_id"))
+    if not room_id:
+        return [], False
     home = account.homes.get(home_id) if home_id else None
-    room = home.rooms.get(room_id) if home is not None and room_id else None
+    room = home.rooms.get(room_id) if home is not None else None
+    if room is None:
+        return [], True
     measured = _device_event_measured_temperature(event_type, extra)
-    if room is None or measured is None:
-        return []
+    if measured is None:
+        return [], False
     room.therm_measured_temperature = measured
-    return [room.entity_id]
+    return [room.entity_id], False
 
 
 def _normalize_device_event_module(module_data: dict[str, Any]) -> dict[str, Any]:
@@ -506,22 +535,30 @@ async def _merge_device_modules(
     account: AsyncAccount,
     home_id: str | None,
     modules: list[dict[str, Any]],
-) -> list[str]:
+) -> tuple[list[str], bool]:
+    """Return (touched ids, whether a present module id was not in the home).
+
+    A camera that is present but skipped (I/O guard) and an entry with a
+    missing/non-string id both count as resolved: `unresolved` stays False
+    for them. A malformed id is not a missing entity.
+    """
     home = account.homes.get(home_id) if home_id else None
-    if home is None:
-        return []
     touched: list[str] = []
+    unresolved = False
     for module_data in modules:
         module_id = str_or_none(module_data.get("id"))
-        module = home.modules.get(module_id) if module_id else None
+        if not module_id:
+            continue
+        module = home.modules.get(module_id) if home is not None else None
         if module is None:
+            unresolved = True
             continue
         if getattr(module, "device_category", None) == DeviceCategory.camera:
             # Camera.update() does network I/O; never run that from a webhook.
             continue
         await module.update(_normalize_device_event_module(module_data))
         touched.append(module.entity_id)
-    return touched
+    return touched, unresolved
 
 
 def _process_topology_changed(
@@ -534,7 +571,7 @@ def _process_topology_changed(
         WEBHOOK_TOPOLOGY_CHANGED,
         WebhookKind.TOPOLOGY_DIRTY,
         touched_ids=_touched_from_payload(payload),
-        refresh_scope=RefreshScope.TOPOLOGY,
+        refresh_scope=frozenset({RefreshScope.TOPOLOGY}),
     )
 
 
@@ -548,15 +585,24 @@ def _process_state(
     home = account.homes.get(home_id) if home_id else None
     if home_id is None or home is None:
         LOG.debug("Webhook STATE payload for unknown home %s; skipping", home_id)
-        return WebhookResult(home_id, event_type, push_type, WebhookKind.STATE)
+        return WebhookResult(
+            home_id,
+            event_type,
+            push_type,
+            WebhookKind.STATE,
+            refresh_scope=frozenset({RefreshScope.TOPOLOGY}),
+        )
 
     touched: list[str] = []
+    refresh_scope: frozenset[RefreshScope] = frozenset()
     if event_type in (
         EVENT_TYPE_SET_POINT,
         EVENT_TYPE_CANCEL_SET_POINT,
         EVENT_TYPE_SETPOINT_EVENT,
     ):
-        touched = _merge_rooms(home, payload)
+        touched, unresolved = _merge_rooms(home, payload)
+        if not touched and unresolved:
+            refresh_scope = frozenset({RefreshScope.TOPOLOGY})
     elif event_type == EVENT_TYPE_THERM_MODE:
         home_data = payload.get("home")
         therm_mode = (
@@ -567,10 +613,17 @@ def _process_state(
         if therm_mode is not None:
             home.therm_mode = therm_mode
             touched = [home_id]
+        # therm_mode changes every room's effective setpoint server-side; home
+        # is already known here, so this always resolves to a status poll.
+        refresh_scope = frozenset({RefreshScope.STATUS})
     elif event_type in (EVENT_TYPE_ON, EVENT_TYPE_OFF):
-        touched = _merge_camera_monitoring(home, event_type, payload)
+        touched, unresolved = _merge_camera_monitoring(home, event_type, payload)
+        if not touched and unresolved:
+            refresh_scope = frozenset({RefreshScope.TOPOLOGY})
     elif event_type == EVENT_TYPE_LIGHT_MODE:
-        touched = _merge_camera_floodlight(home, payload)
+        touched, unresolved = _merge_camera_floodlight(home, payload)
+        if not touched and unresolved:
+            refresh_scope = frozenset({RefreshScope.TOPOLOGY})
 
     return WebhookResult(
         home_id,
@@ -578,22 +631,27 @@ def _process_state(
         push_type,
         WebhookKind.STATE,
         touched_ids=touched,
+        refresh_scope=refresh_scope,
     )
 
 
-def _merge_rooms(home: Home, payload: dict[str, Any]) -> list[str]:
+def _merge_rooms(home: Home, payload: dict[str, Any]) -> tuple[list[str], bool]:
+    """Return (touched room ids, whether a referenced room id was not found)."""
     touched: list[str] = []
+    unresolved = False
     home_data = payload.get("home")
     if not isinstance(home_data, dict):
-        return touched
+        return touched, unresolved
     for room in dict_entries(home_data.get("rooms")):
         room_id = str_or_none(room.get("id"))
         room_obj = home.rooms.get(room_id) if room_id else None
         if room_obj is None:
+            if room_id:
+                unresolved = True
             continue
         if _merge_room_setpoints(room_obj, room):
             touched.append(room_obj.entity_id)
-    return touched
+    return touched, unresolved
 
 
 def _merge_room_setpoints(room_obj: Room, room: dict[str, Any]) -> bool:
@@ -619,27 +677,36 @@ def _merge_camera_monitoring(
     home: Home,
     event_type: str | None,
     payload: dict[str, Any],
-) -> list[str]:
+) -> tuple[list[str], bool]:
+    """Return (touched ids, whether a referenced camera id was not found)."""
     camera_id = _camera_id(payload)
     if not camera_id:
-        return []
+        return [], False
     module = home.modules.get(camera_id)
-    if module is None or not hasattr(module, "monitoring"):
-        return []
+    if module is None:
+        return [], True
+    if not hasattr(module, "monitoring"):
+        return [], False
     cast("MonitoringMixin", module).monitoring = event_type == EVENT_TYPE_ON
-    return [camera_id]
+    return [camera_id], False
 
 
-def _merge_camera_floodlight(home: Home, payload: dict[str, Any]) -> list[str]:
+def _merge_camera_floodlight(
+    home: Home,
+    payload: dict[str, Any],
+) -> tuple[list[str], bool]:
+    """Return (touched ids, whether a referenced camera id was not found)."""
     camera_id = _camera_id(payload)
     if not camera_id:
-        return []
+        return [], False
     module = home.modules.get(camera_id)
+    if module is None:
+        return [], True
     sub_type = str_or_none(payload.get("sub_type"))
-    if module is None or sub_type is None or not hasattr(module, "floodlight"):
-        return []
+    if sub_type is None or not hasattr(module, "floodlight"):
+        return [], False
     cast("FloodlightMixin", module).floodlight = sub_type
-    return [camera_id]
+    return [camera_id], False
 
 
 def _touched_from_payload(payload: dict[str, Any]) -> list[str]:
@@ -723,6 +790,6 @@ def _process_lifecycle(
         push_type,
         WebhookKind.LIFECYCLE,
         touched_ids=touched,
-        refresh_scope=RefreshScope.STATUS,
+        refresh_scope=frozenset({RefreshScope.STATUS}),
         lifecycle=LifecycleStatus.CONNECTION,
     )

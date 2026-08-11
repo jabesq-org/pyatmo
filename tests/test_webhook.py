@@ -596,6 +596,131 @@ async def test_process_webhook_schedule_needs_refresh(async_account):
     assert result.touched_ids == []
 
 
+@pytest.mark.parametrize(
+    ("payload", "expected_change", "expected_touched"),
+    [
+        (
+            {
+                "change": "module_updated",
+                "device_id": "12:34:56:3c:63:b2",
+                "module_id": "12:34:56:00:01:34:64:98",
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "id": "12:34:56:00:01:34:64:98",
+                            "bridge": "12:34:56:3c:63:b2",
+                            "name": "Mobile outlet 1",
+                        },
+                    ],
+                },
+                "push_type": "topology_changed",
+            },
+            "module_updated",
+            ["12:34:56:3c:63:b2", "12:34:56:00:01:34:64:98"],
+        ),
+        (
+            {
+                "change": "module_assigned_to_room",
+                "home_id": "91763b24c43d3e344f424e8b",
+                "module_id": "12:34:56:00:01:34:64:98",
+                "device_id": "12:34:56:3c:63:b2",
+                "room_id": "2313121935",
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "id": "12:34:56:00:01:34:64:98",
+                            "bridge": "12:34:56:3c:63:b2",
+                            "room": "2313121935",
+                        },
+                    ],
+                },
+                "push_type": "topology_changed",
+            },
+            "module_assigned_to_room",
+            ["12:34:56:3c:63:b2", "12:34:56:00:01:34:64:98"],
+        ),
+        (
+            {
+                "change": "device_updated",
+                "device_id": "12:34:56:3c:63:b2",
+                "home_id": "91763b24c43d3e344f424e8b",
+                "home": {
+                    "id": "91763b24c43d3e344f424e8b",
+                    "modules": [
+                        {
+                            "id": "12:34:56:00:01:2b:02:46",
+                            "bridge": "12:34:56:3c:63:b2",
+                        },
+                    ],
+                },
+                "push_type": "topology_changed",
+            },
+            "device_updated",
+            ["12:34:56:3c:63:b2"],
+        ),
+    ],
+)
+async def test_process_webhook_topology_changed_variants(
+    async_account,
+    payload,
+    expected_change,
+    expected_touched,
+):
+    """Real `topology_changed` captures route to TOPOLOGY_DIRTY, not UNKNOWN.
+
+    Covers the three observed `change` variants: module_updated,
+    module_assigned_to_room, device_updated. `event_type` carries the
+    `change` value; `touched_ids` is the deduped device_id/module_id set from
+    `_touched_from_payload` (device_id before module_id).
+    """
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.TOPOLOGY_DIRTY
+    assert result.needs_refresh is True
+    assert result.event_type == expected_change
+    assert result.touched_ids == expected_touched
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_topology_changed_does_not_merge_modules(async_account):
+    """The partial `home.modules[]` in a `topology_changed` payload is not applied.
+
+    A full `async_update_topology` refresh (signalled by `needs_refresh`) is
+    the authoritative way to pick up structural changes -- merging the partial
+    list here would risk creating a half-initialized module.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    home = async_account.homes[home_id]
+    module_count_before = len(home.modules)
+    known_module_id = "12:34:56:00:01:ae"  # NATherm1, in fixture
+    assert known_module_id in home.modules
+
+    payload = {
+        "change": "module_updated",
+        "device_id": "12:34:56:3c:63:b2",
+        "module_id": "12:34:56:00:01:34:64:98",
+        "home": {
+            "id": home_id,
+            "modules": [
+                {
+                    "id": "12:34:56:00:01:34:64:98",
+                    "bridge": "12:34:56:3c:63:b2",
+                    "name": "Mobile outlet 1",
+                },
+            ],
+        },
+        "push_type": "topology_changed",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.TOPOLOGY_DIRTY
+    assert len(home.modules) == module_count_before
+    assert "12:34:56:00:01:34:64:98" not in home.modules
+    assert known_module_id in home.modules
+
+
 async def test_account_process_webhook_delegates(async_account):
     result = await async_account.process_webhook({"push_type": "webhook_activation"})
     assert result.kind is WebhookKind.LIFECYCLE

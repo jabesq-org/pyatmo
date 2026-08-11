@@ -37,6 +37,9 @@ WEBHOOK_DEACTIVATION = "webhook_deactivation"
 # A second envelope format: no top-level event_type, real content nested in
 # `extra_params`. Routed by `_process_device_event`, before `classify()`.
 WEBHOOK_DEVICE_EVENT = "device_event"
+# Structural change (module added / moved to a room / firmware or device
+# update). No top-level event_type; a `change` field names the variant.
+WEBHOOK_TOPOLOGY_CHANGED = "topology_changed"
 CAMERA_CONNECTION_WEBHOOKS = frozenset(
     {"NACamera-connection", "NOC-connection", "NDB-connection"},
 )
@@ -231,6 +234,9 @@ async def process_webhook(
     if push_type == WEBHOOK_DEVICE_EVENT:
         return await _process_device_event(account, payload)
 
+    if push_type == WEBHOOK_TOPOLOGY_CHANGED:
+        return _process_topology_changed(home_id, payload)
+
     return _process_standard_envelope(account, home_id, event_type, push_type, payload)
 
 
@@ -345,6 +351,27 @@ async def _merge_device_modules(
         await module.update(module_data)
         touched.append(module.entity_id)
     return touched
+
+
+def _process_topology_changed(
+    home_id: str | None,
+    payload: dict[str, Any],
+) -> WebhookResult:
+    """Route a `topology_changed` envelope to TOPOLOGY_DIRTY.
+
+    The payload carries a partial `home.modules[]`, but it is not merged: a
+    full `async_update_topology` refresh (signalled by `needs_refresh`) is the
+    authoritative way to pick up structural changes. `event_type` carries the
+    `change` variant; `touched_ids` the module/device ids referenced.
+    """
+    return WebhookResult(
+        home_id,
+        str_or_none(payload.get("change")),
+        WEBHOOK_TOPOLOGY_CHANGED,
+        WebhookKind.TOPOLOGY_DIRTY,
+        touched_ids=_touched_from_payload(payload),
+        needs_refresh=True,
+    )
 
 
 def _process_state(

@@ -37,6 +37,7 @@ EVENT_TYPE_SCHEDULE = "schedule"
 EVENT_TYPE_TEMPERATURE_VARIATION_EVENT = "temperature_variation_event"
 EVENT_TYPE_MOTOR_DATA_EVENT = "motor_data_event"
 EVENT_TYPE_BOILER_EVENT = "boiler_event"
+EVENT_TYPE_HEATING_POWER_REQUEST_EVENT = "heating_power_request_event"
 
 # device_event energy `event_type`s with a known merge; anything else with a
 # resolved type (e.g. diagnosis_event) is surfaced as an EVENT, unmerged.
@@ -46,6 +47,7 @@ _DEVICE_ENERGY_EVENT_TYPES = frozenset(
         EVENT_TYPE_SETPOINT_EVENT,
         EVENT_TYPE_MOTOR_DATA_EVENT,
         EVENT_TYPE_BOILER_EVENT,
+        EVENT_TYPE_HEATING_POWER_REQUEST_EVENT,
     },
 )
 
@@ -468,6 +470,8 @@ def _merge_device_energy_event(
         return _merge_motor_data_event(account, home_id, extra)
     if event_type == EVENT_TYPE_BOILER_EVENT:
         return _merge_boiler_event(account, home_id, payload, extra), False
+    if event_type == EVENT_TYPE_HEATING_POWER_REQUEST_EVENT:
+        return _merge_heating_power_request_event(account, home_id, extra)
     # setpoint_event / temperature_variation_event -- room telemetry merge.
     # Setpoints stay authoritative via display_change; never merged here.
     return _merge_device_energy_temperature(account, home_id, event_type, extra)
@@ -520,6 +524,25 @@ def _merge_boiler_event(
 
     cast("BoilerMixin", target).boiler_status = mapped
     return [target.entity_id]
+
+
+def _merge_heating_power_request_event(
+    account: AsyncAccount,
+    home_id: str | None,
+    extra: dict[str, Any],
+) -> tuple[list[str], bool]:
+    room_id = str_or_none(extra.get("room_id"))
+    if not room_id:
+        return [], False
+    home = account.homes.get(home_id) if home_id else None
+    room = home.rooms.get(room_id) if home is not None else None
+    if room is None:
+        return [], True
+    request = number_or_none(extra.get("heating_power_request"))
+    if request is None:
+        return [], False
+    room.heating_power_request = int(request)
+    return [room.entity_id], False
 
 
 def _device_event_measured_temperature(

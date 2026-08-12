@@ -1661,6 +1661,60 @@ async def test_process_webhook_device_event_motor_data_event_merges_position(
 
 
 @pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_heating_power_request_merges_room(
+    async_account,
+):
+    """Real capture: heating demand % merges onto the room, drives HVAC action."""
+    home_id = "91763b24c43d3e344f424e8b"
+    room = async_account.homes[home_id].rooms["2940411577"]
+    assert room.heating_power_request == 0
+
+    payload = {
+        "extra_params": {
+            "device_type": "NAPlug",
+            "event_type": "heating_power_request_event",
+            "heating_power_request": 100,
+            "room_id": "2940411577",
+            "ts": 1786522899,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == ["2940411577"]
+    assert room.heating_power_request == 100
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "heating_power_request_event"
+    assert result.refresh_scope == frozenset()
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_heating_power_request_unknown_room(
+    async_account,
+):
+    """An unknown room_id self-heals with TOPOLOGY."""
+    payload = {
+        "extra_params": {
+            "device_type": "NAPlug",
+            "event_type": "heating_power_request_event",
+            "heating_power_request": 100,
+            "room_id": "does-not-exist",
+            "ts": 1786522899,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": "91763b24c43d3e344f424e8b",
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.refresh_scope == frozenset({RefreshScope.TOPOLOGY})
+
+
+@pytest.mark.usefixtures("async_home")
 async def test_process_webhook_device_event_temperature_variation_unknown_room(
     async_account,
 ):

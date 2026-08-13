@@ -37,6 +37,7 @@ from pyatmo.const import (
     TOO_MANY_REQUESTS_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
+    WEBHOOK_URL_LIST_ENDPOINT,
 )
 from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
 
@@ -124,7 +125,7 @@ class AbstractAsyncAuth(ABC):
     ) -> bytes:
         """Wrap async get requests."""
 
-        # Note: the 429/concurrency retry lives on async_post_api_request only.
+        # Note: the 429/concurrency retry lives on the *_api_request wrappers.
         # Camera snapshots are best-effort and time-sensitive - retrying a live
         # image seconds later has no value - so this path is deliberately not
         # decorated.
@@ -186,6 +187,44 @@ class AbstractAsyncAuth(ABC):
         async with self.websession.post(
             url,
             **req_args,
+            headers=headers,
+            timeout=DEFAULT_TIMEOUT,
+        ) as resp:
+            return await self.process_response(resp, url)
+
+    @retry(
+        retry=retry_if_exception_type(ApiTooManyRequestError),
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=_wait_retry_after,
+        before_sleep=before_sleep_log(LOG, logging.DEBUG),
+        reraise=True,
+    )
+    async def async_get_api_request(
+        self,
+        endpoint: str,
+        base_url: str | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> ClientResponse:
+        """Wrap async get requests returning JSON."""
+
+        return await self.async_get_request(
+            url=(base_url or self.base_url) + endpoint,
+            params=params,
+        )
+
+    async def async_get_request(
+        self,
+        url: str,
+        params: dict[str, Any] | None = None,
+    ) -> ClientResponse:
+        """Wrap async get requests returning JSON."""
+
+        access_token: str = await self.get_access_token()
+        headers: dict[str, str] = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+
+        async with self.websession.get(
+            url,
+            params=params,
             headers=headers,
             timeout=DEFAULT_TIMEOUT,
         ) as resp:
@@ -310,3 +349,52 @@ class AbstractAsyncAuth(ABC):
             raise ApiError(msg) from exc
         else:
             LOG.debug("dropwebhook: %s", resp)
+
+    async def async_list_webhooks(self) -> list[str]:
+        """Return the webhook URLs currently registered for this application.
+
+        An empty list is positive evidence that no webhook is registered. A
+        banned webhook still appears here, so this proves a webhook is
+        registered - not that anything is delivered to it.
+
+        Raises ``ApiError`` whenever the check could not be completed, which
+        includes a payload that cannot be parsed or does not have the expected
+        shape: an unreadable answer is not evidence of an absent registration,
+        and callers deciding on webhook health must be able to tell the two
+        apart.
+        """
+        try:
+            resp: ClientResponse = await self.async_get_api_request(
+                endpoint=WEBHOOK_URL_LIST_ENDPOINT,
+            )
+        except TimeoutError as exc:
+            msg: str = "Webhook listing timed out"
+            raise ApiError(msg) from exc
+
+        try:
+            resp_json: Any = await resp.json()
+        except (JSONDecodeError, ContentTypeError) as exc:
+            msg = "Invalid response when listing webhooks"
+            raise ApiError(msg) from exc
+
+        body: Any = resp_json.get("body") if isinstance(resp_json, dict) else None
+        if not isinstance(body, list):
+            # Messages carry types only - a webhook URL is a capability URL.
+            msg = f"Unexpected payload when listing webhooks: {type(body).__name__}"
+            raise ApiError(msg)
+
+        webhooks: list[str] = []
+        for entry in body:
+            url: Any = entry.get("url") if isinstance(entry, dict) else None
+            if not isinstance(url, str):
+                # Keys only, never values, for the same reason.
+                detail: Any = (
+                    sorted(entry) if isinstance(entry, dict) else type(entry).__name__
+                )
+                msg = f"Unexpected webhook entry when listing webhooks: {detail}"
+                raise ApiError(msg)
+            webhooks.append(url)
+
+        LOG.debug("list_webhooks: %s", webhooks)
+
+        return webhooks

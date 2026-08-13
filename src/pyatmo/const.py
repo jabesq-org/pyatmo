@@ -29,6 +29,8 @@ AUTH_REQ_ENDPOINT = "oauth2/token"
 AUTH_URL_ENDPOINT = "oauth2/authorize"
 WEBHOOK_URL_ADD_ENDPOINT = "api/addwebhook"
 WEBHOOK_URL_DROP_ENDPOINT = "api/dropwebhook"
+# Note: unlike the add/drop endpoints this one carries no "api/" prefix.
+WEBHOOK_URL_LIST_ENDPOINT = "webhooks/v1/"
 
 GETHOMESDATA_ENDPOINT = "api/homesdata"
 GETHOMESTATUS_ENDPOINT = "api/homestatus"

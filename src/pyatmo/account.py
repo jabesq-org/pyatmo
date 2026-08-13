@@ -60,6 +60,7 @@ class AsyncAccount:
         self.favorite_stations: bool = favorite_stations
         self.public_weather_areas: dict[str, modules.PublicWeatherArea] = {}
         self.modules: dict[str, Module] = {}
+        self.last_webhook_at: float | None = None
 
     def __repr__(self) -> str:
         """Return the representation."""

@@ -1856,3 +1856,23 @@ async def test_process_webhook_device_event_diagnosis_event_surfaces(async_accou
     assert result.touched_ids == ["12:34:56:3c:63:b2"]
     assert result.refresh_scope == frozenset()
     assert len(async_account.homes[home_id].modules) == module_count_before
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_records_delivery_time(async_account):
+    """Any processed payload records when it arrived."""
+    assert async_account.last_webhook_at is None
+
+    await process_webhook(async_account, {"push_type": "webhook_activation"})
+
+    assert async_account.last_webhook_at is not None
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_records_delivery_time_for_unknown_payloads(
+    async_account,
+):
+    """An unrecognised payload still proves the webhook path is delivering."""
+    await process_webhook(async_account, {"push_type": "display_change"})
+
+    assert async_account.last_webhook_at is not None

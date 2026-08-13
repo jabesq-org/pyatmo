@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from enum import Enum
 import logging
+from time import time
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from pyatmo.event import EventTypes
@@ -333,6 +334,10 @@ async def process_webhook(
     payload: dict[str, Any],
 ) -> WebhookResult:
     """Parse, normalize, and merge a Netatmo webhook payload."""
+    # Delivery of anything, including a payload this library cannot classify,
+    # proves the webhook path works end to end.
+    account.last_webhook_at = time()
+
     event_type = str_or_none(payload.get("event_type"))
     push_type = str_or_none(payload.get("push_type"))
     home_id = resolve_home_id(payload)

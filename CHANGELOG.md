@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Report which webhook URLs are registered, so a registration that was dropped
+  or overwritten can be detected. A banned webhook is still listed, so this
+  proves a webhook is registered - not that anything reaches it
+- Record when the last webhook payload arrived, including payloads the library
+  cannot classify
+- Support authenticated JSON GET requests, alongside the existing POST support
+
 ## [9.8.0] - 2026-08-13
 
 ### Added

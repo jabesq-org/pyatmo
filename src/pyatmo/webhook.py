@@ -803,6 +803,12 @@ def _is_disconnection(event_type: str | None, push_type: str | None) -> bool:
     )
 
 
+_PUSH_LIFECYCLE: dict[str | None, LifecycleStatus] = {
+    WEBHOOK_ACTIVATION: LifecycleStatus.ACTIVATION,
+    WEBHOOK_DEACTIVATION: LifecycleStatus.DEACTIVATION,
+}
+
+
 def _process_lifecycle(
     account: AsyncAccount,
     home_id: str | None,
@@ -810,23 +816,26 @@ def _process_lifecycle(
     push_type: str | None,
     payload: dict[str, Any],
 ) -> WebhookResult:
-    if push_type == WEBHOOK_ACTIVATION:
+    lifecycle = _PUSH_LIFECYCLE.get(push_type)
+    if lifecycle is not None:
         return WebhookResult(
             home_id,
             event_type,
             push_type,
             WebhookKind.LIFECYCLE,
-            lifecycle=LifecycleStatus.ACTIVATION,
+            lifecycle=lifecycle,
         )
-    if push_type == WEBHOOK_DEACTIVATION:
-        return WebhookResult(
-            home_id,
-            event_type,
-            push_type,
-            WebhookKind.LIFECYCLE,
-            lifecycle=LifecycleStatus.DEACTIVATION,
-        )
+    return _process_connectivity(account, home_id, event_type, push_type, payload)
 
+
+def _process_connectivity(
+    account: AsyncAccount,
+    home_id: str | None,
+    event_type: str | None,
+    push_type: str | None,
+    payload: dict[str, Any],
+) -> WebhookResult:
+    """Merge camera reachability from a connection/disconnection webhook."""
     home = account.homes.get(home_id) if home_id else None
     camera_id = _camera_id(payload)
     module = home.modules.get(camera_id) if home is not None and camera_id else None

@@ -70,3 +70,7 @@ Another way to run the tests is by using `tox`. This runs the tests against the 
 or by specifying a python version
 
     tox -e py310
+
+## Releasing
+
+Maintainers: see [docs/release-process.md](docs/release-process.md).

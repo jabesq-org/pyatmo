@@ -71,12 +71,24 @@ jobs:
           branch="mergeback/v${VERSION}"
           git switch -c "${branch}" master
           git push --force-with-lease origin "${branch}"
+          body="$(cat <<'EOF'
+          Return the release commit and the reset `[unreleased]` scaffold to development.
+
+          **Pick "Create a merge commit" from the merge dropdown -- not "Squash and
+          merge", not "Rebase and merge".** Either of those leaves `master` off
+          `development`'s history, which makes the next release PR conflict in
+          `CHANGELOG.md` and makes `setuptools_scm` version development builds from a
+          stale tag. `release-prepare.yml` refuses to cut a release while that is true.
+          EOF
+          )"
           url="$(gh pr create \
             --base development \
             --head "${branch}" \
             --title "Mergeback v${VERSION}" \
-            --body "Return release commit and reset \`[unreleased]\` to development.")"
-          # Best-effort: auto-merge needs repo auto-merge + required checks; if
-          # unavailable the PR stays open for a manual merge.
+            --body "${body}")"
+          # --merge pins the method to a merge commit server-side and --auto waits
+          # for the required approval, so no human picks a merge method. Needs
+          # "Allow auto-merge" enabled on the repository; if it is off the PR stays
+          # open and must be merged manually AS A MERGE COMMIT.
           gh pr merge "${url}" --auto --merge \
-            || echo "::notice::auto-merge unavailable; merge ${url} manually"
+            || echo "::warning::auto-merge unavailable; merge ${url} manually as a merge commit"

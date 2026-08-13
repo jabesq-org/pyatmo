@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Process Netatmo webhook payloads - merge state,
+  surface events, and signal refresh needs
+
 ## [9.7.0] - 2026-08-11
 
 ### Added

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any
 
 from pyatmo.exceptions import NoDeviceError
 
@@ -13,21 +13,61 @@ if TYPE_CHECKING:
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
+def str_or_none(value: Any) -> str | None:  # noqa: ANN401
+    """Return `value` if it is a string, else `None`.
+
+    Raw Netatmo scalars are not guaranteed to match their documented type.
+    Treating a wrongly-typed one as absent keeps unhashable values out of the
+    `home`/`room`/`module` id lookups, which would otherwise raise `TypeError`,
+    and keeps them off the model. Webhook payloads are the harshest case, since
+    they are caller-supplied and arrive from a public endpoint.
+    """
+    if isinstance(value, str):
+        return value
+    if value is not None:
+        LOG.debug("Discarding non-string value: %r", value)
+    return None
+
+
+def number_or_none(value: Any) -> float | None:  # noqa: ANN401
+    """Return `value` if it is a real number, else `None`.
+
+    `bool` is rejected even though it is an `int` subclass: it is never a real
+    measurement, and letting it through would store `True` as a temperature.
+    Numeric strings are rejected too rather than parsed, so a wrongly-typed
+    payload cannot overwrite a known-good reading.
+    """
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return value
+    if value is not None:
+        LOG.debug("Discarding non-numeric value: %r", value)
+    return None
+
+
+def dict_entries(value: Any) -> list[dict[str, Any]]:  # noqa: ANN401
+    """Return only the dict entries of a raw list, tolerating malformed input.
+
+    Netatmo webhook payloads are caller-supplied and arrive from a public
+    endpoint, so a list field may be absent, `null`, or hold anything at all.
+    """
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, dict)]
+
+
 def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
     """Fix known errors in station ids like superfluous spaces."""
 
     if not raw_data:
         return raw_data
 
-    for station in raw_data:
-        if not isinstance(station, dict):
-            continue
+    for station in dict_entries(raw_data):
         if station.get("_id") is None:
             continue
 
-        station["_id"] = cast("dict", station)["_id"].replace(" ", "")
+        station["_id"] = station["_id"].replace(" ", "")
 
-        for module in station.get("modules", {}):
+        for module in station.get("modules", []):
             module["_id"] = module["_id"].replace(" ", "")
 
     return raw_data

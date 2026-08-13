@@ -31,7 +31,10 @@ if TYPE_CHECKING:
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def bridged_module_ids(raw_data: dict[str, Any], default: Any = None) -> Any:  # noqa: ANN401
+def bridged_module_ids(
+    raw_data: dict[str, Any],
+    default: Any = None,  # noqa: ANN401
+) -> Any:  # noqa: ANN401
     """Return the bridged-children module ids.
 
     The /homesdata schema documents this list as `module_bridged` in some

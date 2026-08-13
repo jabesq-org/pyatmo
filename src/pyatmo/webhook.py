@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from enum import Enum
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from pyatmo.event import EventTypes
 from pyatmo.helpers import dict_entries, number_or_none, str_or_none
@@ -392,6 +392,24 @@ def _process_standard_envelope(
     return WebhookResult(home_id, event_type, push_type, WebhookKind.UNKNOWN)
 
 
+class MergeOutcome(NamedTuple):
+    """Result of a best-effort model merge.
+
+    `unresolved` is True only when the payload named an entity that is not
+    loaded in the home -- a missing entity worth a topology re-fetch. A
+    deliberately skipped (camera) or ambiguous (no `module_id`) target leaves
+    it False.
+    """
+
+    touched: list[str]
+    unresolved: bool
+
+
+def _topology_if_unresolved(unresolved: bool) -> frozenset[RefreshScope]:
+    """Map a missing-entity flag to a topology re-fetch, else no refresh."""
+    return frozenset({RefreshScope.TOPOLOGY}) if unresolved else frozenset()
+
+
 async def _process_device_event(
     account: AsyncAccount,
     payload: dict[str, Any],
@@ -405,9 +423,7 @@ async def _process_device_event(
         # A module id named in the payload but not present in the home (not
         # merely skipped, e.g. a camera) means the consumer should re-fetch
         # topology.
-        refresh_scope = (
-            frozenset({RefreshScope.TOPOLOGY}) if unresolved else frozenset()
-        )
+        refresh_scope = _topology_if_unresolved(unresolved)
         return WebhookResult(
             home_id,
             str_or_none(extra.get("event_type")),
@@ -427,9 +443,7 @@ async def _process_device_event(
             event_type,
             extra,
         )
-        refresh_scope = (
-            frozenset({RefreshScope.TOPOLOGY}) if unresolved else frozenset()
-        )
+        refresh_scope = _topology_if_unresolved(unresolved)
         return WebhookResult(
             home_id,
             event_type,
@@ -460,8 +474,8 @@ def _merge_device_energy_event(
     payload: dict[str, Any],
     event_type: str,
     extra: dict[str, Any],
-) -> tuple[list[str], bool]:
-    """Return (touched ids, whether a referenced room/module id was not found).
+) -> MergeOutcome:
+    """Dispatch an energy device_event to its room/module merge.
 
     `boiler_event` never reports unresolved: an ambiguous skip (no bridge
     match, more than one candidate) is expected, not a missing entity.
@@ -469,7 +483,9 @@ def _merge_device_energy_event(
     if event_type == EVENT_TYPE_MOTOR_DATA_EVENT:
         return _merge_motor_data_event(account, home_id, extra)
     if event_type == EVENT_TYPE_BOILER_EVENT:
-        return _merge_boiler_event(account, home_id, payload, extra), False
+        return MergeOutcome(
+            _merge_boiler_event(account, home_id, payload, extra), False
+        )
     if event_type == EVENT_TYPE_HEATING_POWER_REQUEST_EVENT:
         return _merge_heating_power_request_event(account, home_id, extra)
     # setpoint_event / temperature_variation_event -- room telemetry merge.
@@ -481,19 +497,19 @@ def _merge_motor_data_event(
     account: AsyncAccount,
     home_id: str | None,
     extra: dict[str, Any],
-) -> tuple[list[str], bool]:
+) -> MergeOutcome:
     module_id = str_or_none(extra.get("module_id"))
     if not module_id:
-        return [], False
+        return MergeOutcome([], False)
     home = account.homes.get(home_id) if home_id else None
     module = home.modules.get(module_id) if home is not None else None
     if module is None:
-        return [], True
+        return MergeOutcome([], True)
     position = number_or_none(extra.get("current_position"))
     if position is None or not hasattr(module, "current_position"):
-        return [], False
+        return MergeOutcome([], False)
     cast("ShutterMixin", module).current_position = int(position)
-    return [module_id], False
+    return MergeOutcome([module_id], False)
 
 
 def _merge_boiler_event(
@@ -530,19 +546,19 @@ def _merge_heating_power_request_event(
     account: AsyncAccount,
     home_id: str | None,
     extra: dict[str, Any],
-) -> tuple[list[str], bool]:
+) -> MergeOutcome:
     room_id = str_or_none(extra.get("room_id"))
     if not room_id:
-        return [], False
+        return MergeOutcome([], False)
     home = account.homes.get(home_id) if home_id else None
     room = home.rooms.get(room_id) if home is not None else None
     if room is None:
-        return [], True
+        return MergeOutcome([], True)
     request = number_or_none(extra.get("heating_power_request"))
     if request is None:
-        return [], False
+        return MergeOutcome([], False)
     room.heating_power_request = int(request)
-    return [room.entity_id], False
+    return MergeOutcome([room.entity_id], False)
 
 
 def _device_event_measured_temperature(
@@ -561,19 +577,19 @@ def _merge_device_energy_temperature(
     home_id: str | None,
     event_type: str,
     extra: dict[str, Any],
-) -> tuple[list[str], bool]:
+) -> MergeOutcome:
     room_id = str_or_none(extra.get("room_id"))
     if not room_id:
-        return [], False
+        return MergeOutcome([], False)
     home = account.homes.get(home_id) if home_id else None
     room = home.rooms.get(room_id) if home is not None else None
     if room is None:
-        return [], True
+        return MergeOutcome([], True)
     measured = _device_event_measured_temperature(event_type, extra)
     if measured is None:
-        return [], False
+        return MergeOutcome([], False)
     room.therm_measured_temperature = measured
-    return [room.entity_id], False
+    return MergeOutcome([room.entity_id], False)
 
 
 def _normalize_device_event_module(module_data: dict[str, Any]) -> dict[str, Any]:
@@ -584,8 +600,8 @@ async def _merge_device_modules(
     account: AsyncAccount,
     home_id: str | None,
     modules: list[dict[str, Any]],
-) -> tuple[list[str], bool]:
-    """Return (touched ids, whether a present module id was not in the home).
+) -> MergeOutcome:
+    """Merge each device_event module's fields into the loaded model.
 
     A camera that is present but skipped (I/O guard) and an entry with a
     missing/non-string id both count as resolved: `unresolved` stays False
@@ -607,7 +623,7 @@ async def _merge_device_modules(
             continue
         await module.update(_normalize_device_event_module(module_data))
         touched.append(module.entity_id)
-    return touched, unresolved
+    return MergeOutcome(touched, unresolved)
 
 
 def _process_topology_changed(
@@ -650,8 +666,7 @@ def _process_state(
         EVENT_TYPE_SETPOINT_EVENT,
     ):
         touched, unresolved = _merge_rooms(home, payload)
-        if not touched and unresolved:
-            refresh_scope = frozenset({RefreshScope.TOPOLOGY})
+        refresh_scope = _topology_if_unresolved(not touched and unresolved)
     elif event_type == EVENT_TYPE_THERM_MODE:
         home_data = payload.get("home")
         therm_mode = (
@@ -667,12 +682,10 @@ def _process_state(
         refresh_scope = frozenset({RefreshScope.STATUS})
     elif event_type in (EVENT_TYPE_ON, EVENT_TYPE_OFF):
         touched, unresolved = _merge_camera_monitoring(home, event_type, payload)
-        if not touched and unresolved:
-            refresh_scope = frozenset({RefreshScope.TOPOLOGY})
+        refresh_scope = _topology_if_unresolved(not touched and unresolved)
     elif event_type == EVENT_TYPE_LIGHT_MODE:
         touched, unresolved = _merge_camera_floodlight(home, payload)
-        if not touched and unresolved:
-            refresh_scope = frozenset({RefreshScope.TOPOLOGY})
+        refresh_scope = _topology_if_unresolved(not touched and unresolved)
 
     return WebhookResult(
         home_id,
@@ -684,13 +697,13 @@ def _process_state(
     )
 
 
-def _merge_rooms(home: Home, payload: dict[str, Any]) -> tuple[list[str], bool]:
-    """Return (touched room ids, whether a referenced room id was not found)."""
+def _merge_rooms(home: Home, payload: dict[str, Any]) -> MergeOutcome:
+    """Merge setpoint keys for each room named in the payload."""
     touched: list[str] = []
     unresolved = False
     home_data = payload.get("home")
     if not isinstance(home_data, dict):
-        return touched, unresolved
+        return MergeOutcome(touched, unresolved)
     for room in dict_entries(home_data.get("rooms")):
         room_id = str_or_none(room.get("id"))
         room_obj = home.rooms.get(room_id) if room_id else None
@@ -700,7 +713,7 @@ def _merge_rooms(home: Home, payload: dict[str, Any]) -> tuple[list[str], bool]:
             continue
         if _merge_room_setpoints(room_obj, room):
             touched.append(room_obj.entity_id)
-    return touched, unresolved
+    return MergeOutcome(touched, unresolved)
 
 
 def _merge_room_setpoints(room_obj: Room, room: dict[str, Any]) -> bool:
@@ -726,36 +739,36 @@ def _merge_camera_monitoring(
     home: Home,
     event_type: str | None,
     payload: dict[str, Any],
-) -> tuple[list[str], bool]:
-    """Return (touched ids, whether a referenced camera id was not found)."""
+) -> MergeOutcome:
+    """Merge camera monitoring on/off state."""
     camera_id = _camera_id(payload)
     if not camera_id:
-        return [], False
+        return MergeOutcome([], False)
     module = home.modules.get(camera_id)
     if module is None:
-        return [], True
+        return MergeOutcome([], True)
     if not hasattr(module, "monitoring"):
-        return [], False
+        return MergeOutcome([], False)
     cast("MonitoringMixin", module).monitoring = event_type == EVENT_TYPE_ON
-    return [camera_id], False
+    return MergeOutcome([camera_id], False)
 
 
 def _merge_camera_floodlight(
     home: Home,
     payload: dict[str, Any],
-) -> tuple[list[str], bool]:
-    """Return (touched ids, whether a referenced camera id was not found)."""
+) -> MergeOutcome:
+    """Merge camera floodlight (light_mode) state."""
     camera_id = _camera_id(payload)
     if not camera_id:
-        return [], False
+        return MergeOutcome([], False)
     module = home.modules.get(camera_id)
     if module is None:
-        return [], True
+        return MergeOutcome([], True)
     sub_type = str_or_none(payload.get("sub_type"))
     if sub_type is None or not hasattr(module, "floodlight"):
-        return [], False
+        return MergeOutcome([], False)
     cast("FloodlightMixin", module).floodlight = sub_type
-    return [camera_id], False
+    return MergeOutcome([camera_id], False)
 
 
 def _touched_from_payload(payload: dict[str, Any]) -> list[str]:
@@ -817,7 +830,7 @@ def _process_lifecycle(
     home = account.homes.get(home_id) if home_id else None
     camera_id = _camera_id(payload)
     module = home.modules.get(camera_id) if home is not None and camera_id else None
-    touched = [camera_id] if module is not None else []
+    touched = [camera_id] if camera_id and module is not None else []
 
     if _is_disconnection(event_type, push_type):
         if module is not None:

@@ -63,7 +63,6 @@ MAX_RETRY_AFTER = 60  # cap on an honored server Retry-After hint
 
 # Rendering of a webhook URL for logs - see _redact_webhook_url.
 REDACTED_PLACEHOLDER: Final[str] = "<redacted>"
-REDACTED_TAIL_LENGTH: Final[int] = 4
 
 
 def _parse_retry_after(value: str | None) -> float | None:
@@ -109,10 +108,12 @@ def _redact_webhook_url(url: str) -> str:
     report, so a URL logged whole ends up attached to public issues.
 
     Keeps the scheme and host - enough to tell a Nabu Casa cloudhook from a
-    self-hosted endpoint - elides the secret, and keeps a short tail so the
-    same webhook can be correlated across log lines without the rendered value
-    being usable. Anything without a recognizable scheme and host is redacted
-    whole, since its shape gives no reason to believe any part is safe.
+    self-hosted endpoint - and elides the path entirely. No part of the secret
+    is rendered, not even a short tail: these logs are routinely pasted into
+    public bug reports, which is worth more than being able to tell two
+    webhooks on one host apart. Anything without a recognizable scheme and host
+    is redacted whole, since its shape gives no reason to believe any part is
+    safe.
 
     Never raises: a logging helper that throws would break the very caller it
     is meant to protect.
@@ -131,11 +132,6 @@ def _redact_webhook_url(url: str) -> str:
 
     if not secret:
         return origin
-
-    # Only keep a tail when the secret is long enough that the tail is a small
-    # part of it - four of five characters would be worse than none.
-    if len(secret) > 2 * REDACTED_TAIL_LENGTH:
-        return f"{origin}/...{secret[-REDACTED_TAIL_LENGTH:]}"
 
     return f"{origin}/..."
 

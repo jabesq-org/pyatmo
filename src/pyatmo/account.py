@@ -16,10 +16,12 @@ from pyatmo.const import (
     GETPUBLIC_DATA_ENDPOINT,
     GETSTATIONDATA_ENDPOINT,
     HOME,
+    INVALID_HOME_ERROR_CODE,
     SETSTATE_ENDPOINT,
     RawData,
 )
 from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
+from pyatmo.exceptions import ApiError, InvalidHomeError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
@@ -140,13 +142,31 @@ class AsyncAccount:
         self.process_topology()
 
     async def async_update_status(self, home_id: str) -> None:
-        """Retrieve status data from /homestatus."""
+        """Retrieve status data from /homestatus.
+
+        Raises ``InvalidHomeError`` when the API refuses the home id. That
+        verdict can only be reached here: the API answers with the generic
+        invalid-parameter code 21, which other endpoints also use for their own
+        parameters, so it means "invalid home id" only because this call sent
+        one.
+        """
         if self._warn_if_disabled(home_id):
             return
-        resp: ClientResponse = await self.auth.async_post_api_request(
-            endpoint=GETHOMESTATUS_ENDPOINT,
-            params={"home_id": home_id},
-        )
+        try:
+            resp: ClientResponse = await self.auth.async_post_api_request(
+                endpoint=GETHOMESTATUS_ENDPOINT,
+                params={"home_id": home_id},
+            )
+        except ApiError as exc:
+            # InvalidHomeError is itself an ApiError, so it is let through
+            # rather than wrapped in a second one.
+            if isinstance(exc, InvalidHomeError) or exc.code != INVALID_HOME_ERROR_CODE:
+                raise
+            raise InvalidHomeError(
+                str(exc),
+                status=exc.status,
+                code=exc.code,
+            ) from exc
         raw_data: RawData = extract_raw_data(await resp.json(), HOME, home_id)
         await self.homes[home_id].update(raw_data, do_raise_for_reachability_error=True)
 

@@ -203,6 +203,64 @@ async def test_update_status_body_less_response_names_the_home(async_account, ca
     assert f"for home {home_id}" in caplog.text
 
 
+async def test_update_status_rejected_home_raises_invalid_home_error(async_account):
+    """A home the API rejects with 400 + code 21 surfaces as InvalidHomeError.
+
+    The translation lives here rather than in the auth layer: code 21 is a
+    generic invalid-parameter code Netatmo also answers `addwebhook` with, so
+    only the caller that sent a home id can read it as a rejected home.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    message = "400 - Bad request - Invalid home_id (21) when accessing '/homestatus'"
+
+    async def _rejected(*_args, **_kwargs):
+        raise pyatmo.exceptions.ApiError(message, status=400, code=21)
+
+    with (
+        patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request", _rejected),
+        pytest.raises(pyatmo.exceptions.InvalidHomeError) as exc_info,
+    ):
+        await async_account.async_update_status(home_id)
+
+    assert str(exc_info.value) == message
+    assert exc_info.value.code == 21
+    assert exc_info.value.status == 400
+    assert isinstance(exc_info.value.__cause__, pyatmo.exceptions.ApiError)
+
+
+async def test_update_status_other_api_error_stays_generic(async_account):
+    """Any other API failure passes through unchanged.
+
+    Only code 21 means the home id was refused; everything else stays a plain
+    ApiError so a caller does not stop polling a home over an unrelated fault.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    message = (
+        "400 - Bad request - Invalid access token (2) when accessing '/homestatus'"
+    )
+
+    async def _rejected(*_args, **_kwargs):
+        raise pyatmo.exceptions.ApiError(message, status=400, code=2)
+
+    with (
+        patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request", _rejected),
+        pytest.raises(pyatmo.exceptions.ApiError) as exc_info,
+    ):
+        await async_account.async_update_status(home_id)
+
+    assert not isinstance(exc_info.value, pyatmo.exceptions.InvalidHomeError)
+    assert str(exc_info.value) == message
+
+
+def test_invalid_home_error_is_an_api_error():
+    """Consumers catching ApiError keep catching this one.
+
+    Home Assistant's `async_fetch_data` catches `ApiError`; anything else
+    escapes and breaks its update loop.
+    """
+    assert issubclass(pyatmo.exceptions.InvalidHomeError, pyatmo.exceptions.ApiError)
+
+
 async def test_update_events_body_less_response_names_the_home(async_account):
     """/getevents gets the same treatment as /homestatus."""
     home_id = "91763b24c43d3e344f424e8b"

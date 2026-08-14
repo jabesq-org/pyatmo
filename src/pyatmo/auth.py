@@ -30,24 +30,17 @@ from tenacity import (
 
 from pyatmo.const import (
     AUTHORIZATION_HEADER,
-    BAD_REQUEST_ERROR_CODE,
     CONCURRENCY_ERROR_CODE,
     DEFAULT_BASE_URL,
     ERRORS,
     FORBIDDEN_ERROR_CODE,
-    INVALID_HOME_ERROR_CODE,
     THROTTLING_ERROR_CODE,
     TOO_MANY_REQUESTS_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
     WEBHOOK_URL_LIST_ENDPOINT,
 )
-from pyatmo.exceptions import (
-    ApiError,
-    ApiThrottlingError,
-    ApiTooManyRequestError,
-    InvalidHomeError,
-)
+from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
 from pyatmo.helpers import home_suffix
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -373,21 +366,25 @@ class AbstractAsyncAuth(ABC):
                 and error_code == CONCURRENCY_ERROR_CODE
             ):
                 retry_after = _parse_retry_after(resp.headers.get("Retry-After"))
-                raise ApiTooManyRequestError(message, retry_after=retry_after)
+                raise ApiTooManyRequestError(
+                    message,
+                    retry_after=retry_after,
+                    status=resp_status,
+                    code=error_code,
+                )
 
             if (
                 resp_status == FORBIDDEN_ERROR_CODE
                 and error_code == THROTTLING_ERROR_CODE
             ):
-                raise ApiThrottlingError(message)
+                raise ApiThrottlingError(message, status=resp_status, code=error_code)
 
-            if (
-                resp_status == BAD_REQUEST_ERROR_CODE
-                and error_code == INVALID_HOME_ERROR_CODE
-            ):
-                raise InvalidHomeError(message)
-
-            raise ApiError(message)
+            # Deliberately no special case for a rejected home id here: the
+            # code that says so - 21 - is a generic invalid-parameter code that
+            # addwebhook also answers a bad URL with, and this layer sees only a
+            # status, a code and a URL. Callers with the request context in hand
+            # read the code off the exception; see AsyncAccount.async_update_status.
+            raise ApiError(message, status=resp_status, code=error_code)
 
         except (JSONDecodeError, ContentTypeError) as exc:
             msg: str = (
@@ -396,7 +393,8 @@ class AbstractAsyncAuth(ABC):
                 f"when accessing '{url}'"
                 f"{home_suffix}"
             )
-            raise ApiError(msg) from exc
+            # No code: the body that would have carried it could not be read.
+            raise ApiError(msg, status=resp_status) from exc
 
     async def handle_success_response(
         self,

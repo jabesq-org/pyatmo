@@ -70,6 +70,29 @@ def test_too_many_request_error_defaults_retry_after_none():
     assert ApiTooManyRequestError("boom").retry_after is None
 
 
+@pytest.mark.parametrize("cls", [ApiError, ApiTooManyRequestError])
+def test_api_error_constructs_without_arguments(cls):
+    """Every argument stays optional, as before status and code existed.
+
+    These are public exception classes that used to inherit
+    ``Exception.__init__``, so downstream code may construct them bare.
+    """
+    err = cls()
+
+    assert str(err) == ""
+    assert err.status is None
+    assert err.code is None
+
+
+def test_api_error_carries_status_and_code():
+    """Both are exposed for a caller that must tell one error code apart."""
+    err = ApiError("boom", status=400, code=21)
+
+    assert str(err) == "boom"
+    assert err.status == 400
+    assert err.code == 21
+
+
 def test_parse_retry_after_delta_seconds():
     """A numeric Retry-After header parses to float seconds."""
     assert _parse_retry_after("5") == 5.0
@@ -678,25 +701,76 @@ async def test_get_api_request_reraises_after_exhaustion(auth):
     assert calls == MAX_RETRIES
 
 
-async def test_handle_error_400_code_21_raises_invalid_home(auth):
-    """400 + code 21 raises InvalidHomeError, not a bare ApiError."""
+async def test_handle_error_400_code_21_stays_generic(auth):
+    """400 + code 21 is a plain ApiError carrying the code.
+
+    Code 21 is a generic invalid-parameter code, not "invalid home id": the
+    auth layer sees only a status, a code and a URL, so it cannot know what the
+    caller asked for. Translating it is the caller's job.
+    """
     resp = MockResponse({"error": {"code": 21, "message": "Invalid home_id"}}, 400)
 
-    with pytest.raises(InvalidHomeError):
+    with pytest.raises(ApiError) as exc_info:
         await auth.handle_error_response(resp, 400, "https://x/y")
+
+    assert not isinstance(exc_info.value, InvalidHomeError)
+    assert exc_info.value.code == 21
+
+
+async def test_addwebhook_rejected_url_is_not_an_invalid_home():
+    """A URL Netatmo refuses must not surface as a rejected home.
+
+    ``addwebhook`` answers a URL whose host does not resolve with the very same
+    ``400`` + code 21 that ``/homestatus`` answers a rejected home id with
+    (both measured 2026-08-14). A consumer acting on ``InvalidHomeError`` would
+    stop polling a perfectly good home because of a webhook registration
+    mistake.
+    """
+
+    class _Session:
+        def post(self, _url, **_kwargs):
+            return MockResponse(
+                {"error": {"code": 21, "message": "Invalid url parameter"}},
+                400,
+            )
+
+    auth = _Auth(websession=_Session())
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.async_addwebhook("https://does-not-resolve.invalid/hook")
+
+    assert not isinstance(exc_info.value, InvalidHomeError)
+    assert exc_info.value.code == 21
+
+
+async def test_handle_error_exposes_status_and_code(auth):
+    """The exception carries what the caller needs to interpret the failure."""
+    resp = MockResponse({"error": {"code": 21, "message": "Invalid home_id"}}, 400)
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 400, "https://x/y")
+
+    assert exc_info.value.status == 400
+    assert exc_info.value.code == 21
+
+
+async def test_handle_error_unparsable_body_exposes_status_without_code(auth):
+    """An unreadable body yields the status it came with and no code."""
+    resp = _UnparsableResponse(ContentTypeError(None, ()))
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 400, "https://x/y")
+
+    assert exc_info.value.status == 400
+    assert exc_info.value.code is None
 
 
 async def test_handle_error_400_without_code_21_stays_generic(auth):
-    """Another 400 is still an ApiError, so only the known code is special-cased."""
+    """Any other 400 is an ApiError too - no error code is special-cased here."""
     resp = MockResponse({"error": {"code": 2, "message": "Invalid access token"}}, 400)
 
     with pytest.raises(ApiError):
         await auth.handle_error_response(resp, 400, "https://x/y")
-
-
-def test_invalid_home_error_is_an_api_error():
-    """Consumers catching ApiError keep catching this one."""
-    assert issubclass(InvalidHomeError, ApiError)
 
 
 async def test_handle_error_names_the_home_from_params(auth):
@@ -707,7 +781,7 @@ async def test_handle_error_names_the_home_from_params(auth):
     """
     resp = MockResponse({"error": {"code": 21, "message": "Invalid home_id"}}, 400)
 
-    with pytest.raises(InvalidHomeError) as exc_info:
+    with pytest.raises(ApiError) as exc_info:
         await auth.handle_error_response(
             resp,
             400,
@@ -755,7 +829,7 @@ async def test_process_response_logs_the_home_id(auth, caplog):
 
     with (
         caplog.at_level(logging.DEBUG, logger="pyatmo.auth"),
-        pytest.raises(InvalidHomeError),
+        pytest.raises(ApiError),
     ):
         await auth.process_response(
             resp,
@@ -812,7 +886,7 @@ async def test_post_request_passes_params_to_the_error_path():
 
     auth = _Auth(websession=_Session())
 
-    with pytest.raises(InvalidHomeError) as exc_info:
+    with pytest.raises(ApiError) as exc_info:
         await auth.async_post_request(
             "https://x/api/homestatus",
             params={"home_id": "5ed02c730474377f3443794a"},
@@ -833,7 +907,7 @@ async def test_get_request_passes_params_to_the_error_path():
 
     auth = _Auth(websession=_Session())
 
-    with pytest.raises(InvalidHomeError) as exc_info:
+    with pytest.raises(ApiError) as exc_info:
         await auth.async_get_request(
             "https://x/api/homestatus",
             params={"home_id": "5ed02c730474377f3443794a"},

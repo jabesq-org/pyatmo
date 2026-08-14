@@ -20,7 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- A home rejected by the API now raises, so existing handlers still catch it
+- A home Netatmo permanently refuses now fails in its own distinct way, so it
+  can be dropped rather than retried forever. Existing error handling still
+  catches it
+- Errors now carry the status and error code Netatmo sent back, so one kind of
+  failure can be told apart from another
 - Error logs and messages now name the home they came from
 
 ### Fixed

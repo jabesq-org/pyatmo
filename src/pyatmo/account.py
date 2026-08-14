@@ -147,7 +147,7 @@ class AsyncAccount:
             endpoint=GETHOMESTATUS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data: RawData = extract_raw_data(await resp.json(), HOME)
+        raw_data: RawData = extract_raw_data(await resp.json(), HOME, home_id)
         await self.homes[home_id].update(raw_data, do_raise_for_reachability_error=True)
 
     async def async_update_events(self, home_id: str) -> None:
@@ -158,7 +158,7 @@ class AsyncAccount:
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data: RawData = extract_raw_data(await resp.json(), HOME)
+        raw_data: RawData = extract_raw_data(await resp.json(), HOME, home_id)
         await self.homes[home_id].update(raw_data)
 
     async def process_webhook(self, payload: dict[str, Any]) -> WebhookResult:
@@ -287,9 +287,10 @@ class AsyncAccount:
     ) -> None:
         """Update device states."""
         for device_data in raw_data.get("devices", {}):
-            if home_id := device_data.get(
-                "home_id",
-                self.find_home_of_device(device_data),
+            # `or`, not `get(..., default)`: the fallback scans every home and must
+            # not run for a device that already named the home it belongs to.
+            if home_id := device_data.get("home_id") or self.find_home_of_device(
+                device_data
             ):
                 home_name: str = device_data.get("home_name", "Unknown")
                 self.all_home_names.setdefault(home_id, home_name)
@@ -316,7 +317,14 @@ class AsyncAccount:
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
-                LOG.debug("No home %s (%s) found.", home_id, home_id)
+                # home_id is falsy here by definition, so name the device
+                # instead -- it is the only thing that could lead someone to the
+                # cause.
+                LOG.debug(
+                    "Skipping device %s (%s): belongs to no known home",
+                    device_data.get("_id"),
+                    device_data.get("type"),
+                )
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id

@@ -7,8 +7,9 @@ import pytest
 
 import pyatmo
 from pyatmo import modules
+from pyatmo.exceptions import NoDeviceError
 
-from .common import fake_post_request_multi
+from .common import MockResponse, fake_post_request_multi
 
 
 async def test_update_devices_unknown_type_falls_back_to_nlunknown(async_account):
@@ -176,6 +177,51 @@ async def test_update_measures_disabled_home_skips_call(async_auth, caplog):
     assert "home_disabled" in caplog.text
 
 
+async def test_update_status_body_less_response_names_the_home(async_account, caplog):
+    """A 200 without a `body` names the home the /homestatus call was for.
+
+    The real API answers `{"status": "ok", "time_server": ...}` for some homes,
+    and the resulting NoDeviceError used to be unattributable on an account
+    holding more than one home.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+
+    async def _body_less_response(*_args, **_kwargs):
+        return MockResponse({"status": "ok", "time_server": 1786656837}, 200)
+
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            _body_less_response,
+        ),
+        caplog.at_level(logging.DEBUG, logger="pyatmo.helpers"),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        await async_account.async_update_status(home_id)
+
+    assert f"for home {home_id}" in str(exc_info.value)
+    assert f"for home {home_id}" in caplog.text
+
+
+async def test_update_events_body_less_response_names_the_home(async_account):
+    """/getevents gets the same treatment as /homestatus."""
+    home_id = "91763b24c43d3e344f424e8b"
+
+    async def _body_less_response(*_args, **_kwargs):
+        return MockResponse({"status": "ok", "time_server": 1786656837}, 200)
+
+    with (
+        patch(
+            "pyatmo.auth.AbstractAsyncAuth.async_post_api_request",
+            _body_less_response,
+        ),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        await async_account.async_update_events(home_id)
+
+    assert f"for home {home_id}" in str(exc_info.value)
+
+
 async def test_set_state_disabled_home_skips_call(async_auth, caplog):
     """A disabled home_id logs a warning and makes no API request."""
     account = pyatmo.AsyncAccount(async_auth, disabled_homes_ids=["home_disabled"])
@@ -185,3 +231,44 @@ async def test_set_state_disabled_home_skips_call(async_auth, caplog):
 
     async_auth.async_post_api_request.assert_not_called()
     assert "home_disabled" in caplog.text
+
+
+async def test_update_devices_names_the_device_it_cannot_place(
+    async_account,
+    caplog,
+):
+    """A device with no resolvable home is identified, not logged as None.
+
+    Standalone weather and air-care devices legitimately reach this branch, so
+    the line is expected traffic and must not be silenced -- but it named
+    nothing, rendering as "None (None)" for every such device.
+    """
+    device_data = {"_id": "99:99:99:99:99:99", "type": "NAMain"}
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.account"):
+        await async_account.update_devices({"devices": [device_data]})
+
+    assert "99:99:99:99:99:99" in caplog.text
+    assert "NAMain" in caplog.text
+    assert "None (None)" not in caplog.text
+
+
+async def test_update_devices_does_not_search_when_the_home_is_known(async_account):
+    """The fallback search must not run for a device that names its home.
+
+    ``NHC`` because the later standalone-device check short-circuits on that
+    type; any other type would call ``find_home_of_device`` again from there,
+    for the unrelated question of whether the device is a member of a home.
+    """
+    device_data = {
+        "_id": "99:99:99:99:99:99",
+        "type": "NHC",
+        "home_id": "known_home",
+        "home_name": "Known",
+        "modules": [],
+    }
+
+    with patch.object(async_account, "find_home_of_device") as mock_find:
+        await async_account.update_devices({"devices": [device_data]})
+
+    mock_find.assert_not_called()

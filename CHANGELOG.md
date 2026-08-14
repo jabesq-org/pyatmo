@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Record when the last webhook payload arrived, including payloads the library
   cannot classify
 - Support authenticated JSON GET requests, alongside the existing POST support
+- `Home.has_status` tells you up front whether a home can be polled, so the ones
+  Netatmo refuses need never be called
+
+### Changed
+
+- A home rejected by the API now raises, so existing handlers still catch it
+- Error logs and messages now name the home they came from
+
+### Fixed
+
+- Webhook URLs are redacted in logs. They are secrets, and debug logs end up in
+  bug reports
+- Devices belonging to no known home are named in the log
+- Stop searching every home for a device that already said which home it is in
 
 ## [9.8.0] - 2026-08-13
 

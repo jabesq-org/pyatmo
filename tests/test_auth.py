@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 from json import JSONDecodeError
+import logging
 
 from aiohttp import ContentTypeError
 import pytest
@@ -17,9 +18,15 @@ from pyatmo.auth import (
     MAX_RETRY_AFTER,
     AbstractAsyncAuth,
     _parse_retry_after,
+    _redact_webhook_url,
     _wait_retry_after,
 )
-from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
+from pyatmo.exceptions import (
+    ApiError,
+    ApiThrottlingError,
+    ApiTooManyRequestError,
+    InvalidHomeError,
+)
 
 from .common import MockResponse
 
@@ -232,6 +239,91 @@ async def test_post_api_request_does_not_retry_other_errors(auth):
     assert calls == 1
 
 
+# Obviously fake, shaped like a Nabu Casa cloudhook. Never use a real one: a
+# webhook URL is a capability URL, and this file is public.
+FAKE_SECRET = "gAAAAABn0tR34LacApab1l1tyUrlJUSTF4KEd0N0tUs3z9Qb="
+FAKE_CLOUDHOOK = f"https://hooks.nabu.casa/{FAKE_SECRET}"
+
+
+def test_redact_webhook_url_keeps_origin_elides_secret_keeps_tail():
+    """The scheme and host survive; the capability secret does not.
+
+    The host distinguishes a Nabu Casa cloudhook from a self-hosted endpoint,
+    and the short tail lets a reader correlate the same webhook across log
+    lines without holding anything usable.
+    """
+    redacted = _redact_webhook_url(FAKE_CLOUDHOOK)
+
+    assert redacted == "https://hooks.nabu.casa/...9Qb="
+    assert FAKE_SECRET not in redacted
+    assert FAKE_SECRET[:-4] not in redacted
+
+
+def test_redact_webhook_url_keeps_a_self_hosted_host():
+    """A self-hosted endpoint stays recognizable as such."""
+    redacted = _redact_webhook_url(
+        "https://hass.example.org:8123/api/webhook/s3cr3t-webhook-id-4242",
+    )
+
+    assert redacted == "https://hass.example.org:8123/...4242"
+    assert "s3cr3t-webhook-id" not in redacted
+    assert "/api/webhook/" not in redacted
+
+
+def test_redact_webhook_url_without_path_returns_the_origin():
+    """No path means no secret to elide."""
+    assert _redact_webhook_url("https://example.com") == "https://example.com"
+
+
+def test_redact_webhook_url_short_path_keeps_no_tail():
+    """A path too short to keep a tail from is elided whole.
+
+    Showing four of five secret characters would be worse than showing none.
+    """
+    redacted = _redact_webhook_url("https://example.com/s3cr3t")
+
+    assert redacted == "https://example.com/..."
+    assert "s3cr3t" not in redacted
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "",
+        "not-a-url",
+        "hooks.nabu.casa/s3cr3t",
+        "/api/webhook/s3cr3t",
+        "https:///s3cr3t",
+        "s3cr3t",
+    ],
+)
+def test_redact_webhook_url_redacts_anything_without_an_origin(value):
+    """Without a recognizable scheme and host, nothing is assumed safe."""
+    redacted = _redact_webhook_url(value)
+
+    assert redacted == "<redacted>"
+    assert "s3cr3t" not in redacted
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "",
+        " ",
+        "https://[oops",
+        "https://[::1",
+        "http://",
+        "://",
+        "\x00",
+        "https://example.com/" + "x" * 10000,
+        FAKE_CLOUDHOOK,
+    ],
+)
+def test_redact_webhook_url_never_raises(value):
+    """A logging helper that throws would break the caller it was meant to protect."""
+    assert isinstance(_redact_webhook_url(value), str)
+
+
 def _stub_get(auth, payload=None, exc=None):
     """Replace the auth GET transport with a stub returning ``payload``."""
     seen = {}
@@ -404,6 +496,111 @@ async def test_list_webhooks_unparsable_body_raises_api_error(auth, exc):
         await auth.async_list_webhooks()
 
 
+async def test_list_webhooks_debug_log_redacts_the_url(auth, caplog):
+    """DEBUG is what users enable to file a bug report, so it reaches issues.
+
+    The registered URL must therefore never reach the log in full: anyone
+    holding it can POST forged Netatmo events into that user's instance.
+    """
+    _stub_get(auth, {"status": "ok", "body": [{"url": FAKE_CLOUDHOOK}]})
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"):
+        await auth.async_list_webhooks()
+
+    assert FAKE_SECRET not in caplog.text
+    assert FAKE_SECRET[:-4] not in caplog.text
+    assert "list_webhooks: 1 registered" in caplog.text
+    assert "https://hooks.nabu.casa/...9Qb=" in caplog.text
+
+
+async def test_list_webhooks_debug_log_counts_every_url(auth, caplog):
+    """The count is the useful part, and it stays truthful for several hooks."""
+    _stub_get(
+        auth,
+        {
+            "status": "ok",
+            "body": [
+                {"url": "https://a.example.com/s3cr3t-aaaa"},
+                {"url": "https://b.example.com/s3cr3t-bbbb"},
+            ],
+        },
+    )
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"):
+        await auth.async_list_webhooks()
+
+    assert "list_webhooks: 2 registered" in caplog.text
+    assert "s3cr3t" not in caplog.text
+    assert "https://a.example.com/...aaaa" in caplog.text
+    assert "https://b.example.com/...bbbb" in caplog.text
+
+
+async def test_list_webhooks_debug_log_reports_zero(auth, caplog):
+    """An empty listing is the interesting case for a health check."""
+    _stub_get(auth, {"status": "ok", "body": []})
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"):
+        await auth.async_list_webhooks()
+
+    assert "list_webhooks: 0 registered" in caplog.text
+
+
+class _ReprResponse(MockResponse):
+    """A response whose repr matches aiohttp's ClientResponse.__repr__.
+
+    aiohttp renders ``<ClientResponse(<request url>) [<status> <reason>]>``
+    followed by the response headers, so a repr can only leak what the request
+    URL carried.
+    """
+
+    def __init__(self, url, status=200, headers=None):
+        super().__init__({"status": "ok"}, status, headers)
+        self.url = url
+
+    def __repr__(self):
+        return f"<ClientResponse({self.url}) [{self.status} OK]>\n{self.headers}\n"
+
+
+class _RecordingSession:
+    """Session capturing how the request was built, returning a repr-faithful response."""
+
+    def __init__(self):
+        self.seen = {}
+
+    def post(self, url, **kwargs):
+        self.seen["url"] = url
+        self.seen.update(kwargs)
+        return _ReprResponse(url)
+
+
+async def test_addwebhook_sends_the_url_in_the_body_not_the_query():
+    """The registration URL must stay out of the request URL.
+
+    ``async_addwebhook`` logs the ClientResponse, whose repr renders the
+    request URL. That is only safe while the webhook URL travels as form data.
+    """
+    session = _RecordingSession()
+    auth = _Auth(websession=session)
+
+    await auth.async_addwebhook(FAKE_CLOUDHOOK)
+
+    assert session.seen["url"] == "https://api.netatmo.com/api/addwebhook"
+    assert session.seen["data"] == {"url": FAKE_CLOUDHOOK}
+    assert "params" not in session.seen
+
+
+async def test_addwebhook_debug_log_does_not_leak_the_url(caplog):
+    """The addwebhook debug line renders a response, never the registered URL."""
+    auth = _Auth(websession=_RecordingSession())
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"):
+        await auth.async_addwebhook(FAKE_CLOUDHOOK)
+
+    assert FAKE_SECRET not in caplog.text
+    assert "hooks.nabu.casa" not in caplog.text
+    assert "addwebhook:" in caplog.text
+
+
 async def test_get_request_uses_bearer_token_and_returns_response():
     """The GET transport sends the bearer header and returns the response."""
     resp = MockResponse(
@@ -476,3 +673,167 @@ async def test_get_api_request_reraises_after_exhaustion(auth):
         await auth.async_get_api_request(endpoint="webhooks/v1/")
 
     assert calls == MAX_RETRIES
+
+
+async def test_handle_error_400_code_21_raises_invalid_home(auth):
+    """400 + code 21 raises InvalidHomeError, not a bare ApiError."""
+    resp = MockResponse({"error": {"code": 21, "message": "Invalid home_id"}}, 400)
+
+    with pytest.raises(InvalidHomeError):
+        await auth.handle_error_response(resp, 400, "https://x/y")
+
+
+async def test_handle_error_400_without_code_21_stays_generic(auth):
+    """Another 400 is still an ApiError, so only the known code is special-cased."""
+    resp = MockResponse({"error": {"code": 2, "message": "Invalid access token"}}, 400)
+
+    with pytest.raises(ApiError):
+        await auth.handle_error_response(resp, 400, "https://x/y")
+
+
+def test_invalid_home_error_is_an_api_error():
+    """Consumers catching ApiError keep catching this one."""
+    assert issubclass(InvalidHomeError, ApiError)
+
+
+async def test_handle_error_names_the_home_from_params(auth):
+    """The rejected home id reaches the exception message.
+
+    The home id travels in the POST body, not the URL, so without this a
+    consumer cannot tell which of its homes the API rejected.
+    """
+    resp = MockResponse({"error": {"code": 21, "message": "Invalid home_id"}}, 400)
+
+    with pytest.raises(InvalidHomeError) as exc_info:
+        await auth.handle_error_response(
+            resp,
+            400,
+            "https://x/homestatus",
+            params={"home_id": "5ed02c730474377f3443794a"},
+        )
+
+    assert "for home 5ed02c730474377f3443794a" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "params",
+    [None, {}, {"app_types": "app_security"}],
+)
+async def test_handle_error_without_home_id_keeps_message_unchanged(auth, params):
+    """A request carrying no home id logs and raises exactly as it did before."""
+    resp = MockResponse({"error": {"code": 2, "message": "Invalid access token"}}, 400)
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 400, "https://x/y", params=params)
+
+    message = str(exc_info.value)
+    assert "for home" not in message
+    assert message.endswith("when accessing 'https://x/y'")
+
+
+async def test_handle_error_unparsable_body_names_the_home(auth):
+    """The fallback message for an unreadable body also names the home."""
+    resp = _UnparsableResponse(ContentTypeError(None, ()))
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(
+            resp,
+            400,
+            "https://x/homestatus",
+            params={"home_id": "5ed02c730474377f3443794a"},
+        )
+
+    assert "for home 5ed02c730474377f3443794a" in str(exc_info.value)
+
+
+async def test_process_response_logs_the_home_id(auth, caplog):
+    """The debug line names the home the failed request was for."""
+    resp = MockResponse({"error": {"code": 21, "message": "Invalid home_id"}}, 400)
+
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.auth"),
+        pytest.raises(InvalidHomeError),
+    ):
+        await auth.process_response(
+            resp,
+            "https://x/homestatus",
+            params={"home_id": "5ed02c730474377f3443794a"},
+        )
+
+    assert "for home 5ed02c730474377f3443794a" in caplog.text
+
+
+async def test_process_response_log_unchanged_without_home_id(auth, caplog):
+    """Without a home id the debug line carries no empty 'for home' noise."""
+    resp = MockResponse({"error": {"code": 2, "message": "nope"}}, 400)
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"), pytest.raises(ApiError):
+        await auth.process_response(resp, "https://x/y")
+
+    assert "The Netatmo API returned" in caplog.text
+    assert "for home" not in caplog.text
+
+
+async def test_error_path_never_leaks_the_webhook_url(auth, caplog):
+    """Only the home id is taken from params - the webhook_id stays secret.
+
+    async_post_request also carries ``params={"url": ...}`` for webhook
+    registration, and that URL embeds the secret webhook_id.
+    """
+    webhook_url = "https://hass.example/api/webhook/s3cr3t-webhook-id"
+    resp = MockResponse({"error": {"code": 2, "message": "nope"}}, 400)
+
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.auth"),
+        pytest.raises(ApiError) as exc_info,
+    ):
+        await auth.process_response(
+            resp,
+            "https://x/addwebhook",
+            params={"url": webhook_url},
+        )
+
+    assert "s3cr3t-webhook-id" not in str(exc_info.value)
+    assert "s3cr3t-webhook-id" not in caplog.text
+
+
+async def test_post_request_passes_params_to_the_error_path():
+    """The POST transport hands its params to the shared error handling."""
+
+    class _Session:
+        def post(self, _url, **_kwargs):
+            return MockResponse(
+                {"error": {"code": 21, "message": "Invalid home_id"}},
+                400,
+            )
+
+    auth = _Auth(websession=_Session())
+
+    with pytest.raises(InvalidHomeError) as exc_info:
+        await auth.async_post_request(
+            "https://x/api/homestatus",
+            params={"home_id": "5ed02c730474377f3443794a"},
+        )
+
+    assert "for home 5ed02c730474377f3443794a" in str(exc_info.value)
+
+
+async def test_get_request_passes_params_to_the_error_path():
+    """The GET transport hands its params to the shared error handling."""
+
+    class _Session:
+        def get(self, _url, **_kwargs):
+            return MockResponse(
+                {"error": {"code": 21, "message": "Invalid home_id"}},
+                400,
+            )
+
+    auth = _Auth(websession=_Session())
+
+    with pytest.raises(InvalidHomeError) as exc_info:
+        await auth.async_get_request(
+            "https://x/api/homestatus",
+            params={"home_id": "5ed02c730474377f3443794a"},
+        )
+
+    assert "for home 5ed02c730474377f3443794a" in str(exc_info.value)

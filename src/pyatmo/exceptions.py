@@ -9,10 +9,6 @@ class InvalidScheduleError(Exception):
     """Raised when an invalid schedule is encountered."""
 
 
-class InvalidHomeError(Exception):
-    """Raised when an invalid home is encountered."""
-
-
 class InvalidRoomError(Exception):
     """Raised when an invalid room is encountered."""
 
@@ -23,6 +19,14 @@ class NoDeviceError(Exception):
 
 class ApiError(Exception):
     """Raised when an API error is encountered."""
+
+
+class InvalidHomeError(ApiError):
+    """Raised when the API rejects a home id.
+
+    Deterministic: the same home id will be rejected on every future call, so a
+    caller should stop polling that home rather than retry it.
+    """
 
 
 class ApiThrottlingError(ApiError):

@@ -8,6 +8,7 @@ from email.utils import parsedate_to_datetime
 from json import JSONDecodeError
 import logging
 from typing import Any, Final
+from urllib.parse import urlsplit
 
 from aiohttp import (
     ClientError,
@@ -29,17 +30,25 @@ from tenacity import (
 
 from pyatmo.const import (
     AUTHORIZATION_HEADER,
+    BAD_REQUEST_ERROR_CODE,
     CONCURRENCY_ERROR_CODE,
     DEFAULT_BASE_URL,
     ERRORS,
     FORBIDDEN_ERROR_CODE,
+    INVALID_HOME_ERROR_CODE,
     THROTTLING_ERROR_CODE,
     TOO_MANY_REQUESTS_ERROR_CODE,
     WEBHOOK_URL_ADD_ENDPOINT,
     WEBHOOK_URL_DROP_ENDPOINT,
     WEBHOOK_URL_LIST_ENDPOINT,
 )
-from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
+from pyatmo.exceptions import (
+    ApiError,
+    ApiThrottlingError,
+    ApiTooManyRequestError,
+    InvalidHomeError,
+)
+from pyatmo.helpers import home_suffix
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -51,6 +60,10 @@ INITIAL_BACKOFF = 1  # seconds
 MULTIPLIER = 1
 MAX_BACKOFF = 8  # cap on a single fallback wait
 MAX_RETRY_AFTER = 60  # cap on an honored server Retry-After hint
+
+# Rendering of a webhook URL for logs - see _redact_webhook_url.
+REDACTED_PLACEHOLDER: Final[str] = "<redacted>"
+REDACTED_TAIL_LENGTH: Final[int] = 4
 
 
 def _parse_retry_after(value: str | None) -> float | None:
@@ -85,6 +98,56 @@ _fallback_wait = wait_combine(
     wait_exponential(multiplier=MULTIPLIER, min=INITIAL_BACKOFF, max=MAX_BACKOFF),
     wait_random(0, 1),
 )
+
+
+def _redact_webhook_url(url: str) -> str:
+    """Render a webhook URL in a form that is safe to log.
+
+    A webhook URL is a capability URL: its path carries a secret, and anyone
+    holding it can POST forged Netatmo events into the consumer's instance.
+    DEBUG is exactly the level users are asked to enable when filing a bug
+    report, so a URL logged whole ends up attached to public issues.
+
+    Keeps the scheme and host - enough to tell a Nabu Casa cloudhook from a
+    self-hosted endpoint - elides the secret, and keeps a short tail so the
+    same webhook can be correlated across log lines without the rendered value
+    being usable. Anything without a recognizable scheme and host is redacted
+    whole, since its shape gives no reason to believe any part is safe.
+
+    Never raises: a logging helper that throws would break the very caller it
+    is meant to protect.
+    """
+    try:
+        parts = urlsplit(url)
+        if not parts.scheme or not parts.netloc:
+            return REDACTED_PLACEHOLDER
+
+        # urlsplit lowercases only the scheme, so the origin keeps its length
+        # and the remainder can be sliced off by it.
+        origin: str = f"{parts.scheme}://{parts.netloc}"
+        secret: str = url[len(origin) :]
+    except (AttributeError, TypeError, ValueError):
+        return REDACTED_PLACEHOLDER
+
+    if not secret:
+        return origin
+
+    # Only keep a tail when the secret is long enough that the tail is a small
+    # part of it - four of five characters would be worse than none.
+    if len(secret) > 2 * REDACTED_TAIL_LENGTH:
+        return f"{origin}/...{secret[-REDACTED_TAIL_LENGTH:]}"
+
+    return f"{origin}/..."
+
+
+def _home_suffix(params: dict[str, Any] | None) -> str:
+    """Return ``" for home <id>"`` for a request params dict, else ``""``.
+
+    Only the home id is read out of the params: the same params carry secrets
+    on other endpoints - webhook registration passes the webhook URL, which
+    embeds the webhook_id - so the dict must never be logged or rendered whole.
+    """
+    return home_suffix((params or {}).get("home_id"))
 
 
 def _wait_retry_after(retry_state: RetryCallState) -> float:
@@ -190,7 +253,7 @@ class AbstractAsyncAuth(ABC):
             headers=headers,
             timeout=DEFAULT_TIMEOUT,
         ) as resp:
-            return await self.process_response(resp, url)
+            return await self.process_response(resp, url, params=params)
 
     @retry(
         retry=retry_if_exception_type(ApiTooManyRequestError),
@@ -228,7 +291,7 @@ class AbstractAsyncAuth(ABC):
             headers=headers,
             timeout=DEFAULT_TIMEOUT,
         ) as resp:
-            return await self.process_response(resp, url)
+            return await self.process_response(resp, url, params=params)
 
     async def get_access_token(self) -> str:
         """Get access token."""
@@ -252,14 +315,29 @@ class AbstractAsyncAuth(ABC):
 
         return req_args
 
-    async def process_response(self, resp: ClientResponse, url: str) -> ClientResponse:
-        """Process response."""
+    async def process_response(
+        self,
+        resp: ClientResponse,
+        url: str,
+        params: dict[str, Any] | None = None,
+    ) -> ClientResponse:
+        """Process response.
+
+        ``params`` is the request payload; it is used solely to name the home
+        the failed request was for - the home id travels in the body, not the
+        URL, so an error is otherwise unattributable.
+        """
         resp_status: int = resp.status
         resp_content: bytes = await resp.read()
 
         if not resp.ok:
-            LOG.debug("The Netatmo API returned %s (%s)", resp_content, resp_status)
-            await self.handle_error_response(resp, resp_status, url)
+            LOG.debug(
+                "The Netatmo API returned %s (%s)%s",
+                resp_content,
+                resp_status,
+                _home_suffix(params),
+            )
+            await self.handle_error_response(resp, resp_status, url, params)
 
         return await self.handle_success_response(resp, resp_content)
 
@@ -268,8 +346,11 @@ class AbstractAsyncAuth(ABC):
         resp: ClientResponse,
         resp_status: int,
         url: str,
+        params: dict[str, Any] | None = None,
     ) -> None:
         """Handle error response."""
+        home_suffix: str = _home_suffix(params)
+
         try:
             resp_json: dict[str, Any] = await resp.json()
             error: dict[str, Any] = resp_json.get("error", {})
@@ -281,6 +362,7 @@ class AbstractAsyncAuth(ABC):
                 f"{error.get('message')} "
                 f"({error_code}) "
                 f"when accessing '{url}'"
+                f"{home_suffix}"
             )
 
             if (
@@ -296,6 +378,12 @@ class AbstractAsyncAuth(ABC):
             ):
                 raise ApiThrottlingError(message)
 
+            if (
+                resp_status == BAD_REQUEST_ERROR_CODE
+                and error_code == INVALID_HOME_ERROR_CODE
+            ):
+                raise InvalidHomeError(message)
+
             raise ApiError(message)
 
         except (JSONDecodeError, ContentTypeError) as exc:
@@ -303,6 +391,7 @@ class AbstractAsyncAuth(ABC):
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
                 f"when accessing '{url}'"
+                f"{home_suffix}"
             )
             raise ApiError(msg) from exc
 
@@ -395,6 +484,12 @@ class AbstractAsyncAuth(ABC):
                 raise ApiError(msg)
             webhooks.append(url)
 
-        LOG.debug("list_webhooks: %s", webhooks)
+        # Count first: it is the part a health check reads. The URLs are
+        # capability URLs, so they are only ever rendered redacted.
+        LOG.debug(
+            "list_webhooks: %s registered %s",
+            len(webhooks),
+            [_redact_webhook_url(url) for url in webhooks],
+        )
 
         return webhooks

@@ -16,6 +16,7 @@ from pyatmo.auth import (
     MAX_BACKOFF,
     MAX_RETRIES,
     MAX_RETRY_AFTER,
+    REDACTED_TAIL_LENGTH,
     AbstractAsyncAuth,
     _parse_retry_after,
     _redact_webhook_url,
@@ -245,18 +246,18 @@ FAKE_SECRET = "gAAAAABn0tR34LacApab1l1tyUrlJUSTF4KEd0N0tUs3z9Qb="
 FAKE_CLOUDHOOK = f"https://hooks.nabu.casa/{FAKE_SECRET}"
 
 
-def test_redact_webhook_url_keeps_origin_elides_secret():
-    """The scheme and host survive; no part of the capability secret does.
+def test_redact_webhook_url_keeps_origin_elides_secret_keeps_tail():
+    """The scheme and host survive; all but the last few secret chars do not.
 
-    The host distinguishes a Nabu Casa cloudhook from a self-hosted endpoint.
-    Not even a trailing fragment of the secret is kept: these logs are pasted
-    into public bug reports, which outweighs telling two webhooks on one host
-    apart.
+    The host distinguishes a Nabu Casa cloudhook from a self-hosted endpoint,
+    and the short tail lets a reader tell two webhooks apart and follow one
+    across log lines. The tail is a deliberate, bounded exception -- nothing
+    beyond REDACTED_TAIL_LENGTH characters may ever reach a log.
     """
     redacted = _redact_webhook_url(FAKE_CLOUDHOOK)
 
-    assert redacted == "https://hooks.nabu.casa/..."
-    for length in range(1, len(FAKE_SECRET) + 1):
+    assert redacted == "https://hooks.nabu.casa/...9Qb="
+    for length in range(REDACTED_TAIL_LENGTH + 1, len(FAKE_SECRET) + 1):
         assert FAKE_SECRET[-length:] not in redacted
 
 
@@ -266,9 +267,8 @@ def test_redact_webhook_url_keeps_a_self_hosted_host():
         "https://hass.example.org:8123/api/webhook/s3cr3t-webhook-id-4242",
     )
 
-    assert redacted == "https://hass.example.org:8123/..."
+    assert redacted == "https://hass.example.org:8123/...4242"
     assert "s3cr3t-webhook-id" not in redacted
-    assert "4242" not in redacted
     assert "/api/webhook/" not in redacted
 
 
@@ -277,8 +277,11 @@ def test_redact_webhook_url_without_path_returns_the_origin():
     assert _redact_webhook_url("https://example.com") == "https://example.com"
 
 
-def test_redact_webhook_url_short_path_is_elided_too():
-    """A short path is a secret like any other and is elided whole."""
+def test_redact_webhook_url_short_path_keeps_no_tail():
+    """A path too short to keep a tail from is elided whole.
+
+    Showing four of five secret characters would be worse than showing none.
+    """
     redacted = _redact_webhook_url("https://example.com/s3cr3t")
 
     assert redacted == "https://example.com/..."
@@ -507,10 +510,10 @@ async def test_list_webhooks_debug_log_redacts_the_url(auth, caplog):
         await auth.async_list_webhooks()
 
     assert FAKE_SECRET not in caplog.text
-    for length in range(4, len(FAKE_SECRET) + 1):
+    for length in range(REDACTED_TAIL_LENGTH + 1, len(FAKE_SECRET) + 1):
         assert FAKE_SECRET[-length:] not in caplog.text
     assert "list_webhooks: 1 registered" in caplog.text
-    assert "https://hooks.nabu.casa/..." in caplog.text
+    assert "https://hooks.nabu.casa/...9Qb=" in caplog.text
 
 
 async def test_list_webhooks_debug_log_counts_every_url(auth, caplog):
@@ -531,10 +534,8 @@ async def test_list_webhooks_debug_log_counts_every_url(auth, caplog):
 
     assert "list_webhooks: 2 registered" in caplog.text
     assert "s3cr3t" not in caplog.text
-    assert "aaaa" not in caplog.text
-    assert "bbbb" not in caplog.text
-    assert "https://a.example.com/..." in caplog.text
-    assert "https://b.example.com/..." in caplog.text
+    assert "https://a.example.com/...aaaa" in caplog.text
+    assert "https://b.example.com/...bbbb" in caplog.text
 
 
 async def test_list_webhooks_debug_log_reports_zero(auth, caplog):

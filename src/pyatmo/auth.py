@@ -63,6 +63,7 @@ MAX_RETRY_AFTER = 60  # cap on an honored server Retry-After hint
 
 # Rendering of a webhook URL for logs - see _redact_webhook_url.
 REDACTED_PLACEHOLDER: Final[str] = "<redacted>"
+REDACTED_TAIL_LENGTH: Final[int] = 4
 
 
 def _parse_retry_after(value: str | None) -> float | None:
@@ -102,18 +103,19 @@ _fallback_wait = wait_combine(
 def _redact_webhook_url(url: str) -> str:
     """Render a webhook URL in a form that is safe to log.
 
-    A webhook URL is a capability URL: its path carries a secret, and anyone
-    holding it can POST forged Netatmo events into the consumer's instance.
+    A webhook URL is a capability URL: the URL is itself the credential, and
+    anyone holding it can POST forged Netatmo events into the consumer's
+    instance.
     DEBUG is exactly the level users are asked to enable when filing a bug
     report, so a URL logged whole ends up attached to public issues.
 
     Keeps the scheme and host - enough to tell a Nabu Casa cloudhook from a
-    self-hosted endpoint - and elides the path entirely. No part of the secret
-    is rendered, not even a short tail: these logs are routinely pasted into
-    public bug reports, which is worth more than being able to tell two
-    webhooks on one host apart. Anything without a recognizable scheme and host
-    is redacted whole, since its shape gives no reason to believe any part is
-    safe.
+    self-hosted endpoint - elides the path, and keeps a short tail so a reader
+    can tell two webhooks apart and follow one across log lines. Those few
+    characters of a high-entropy path cannot be reconstructed from, but they do
+    reach the log: the trade is deliberate, not an oversight. Anything without
+    a recognizable scheme and host is redacted whole, since its shape gives no
+    reason to believe any part is safe.
 
     Never raises: a logging helper that throws would break the very caller it
     is meant to protect.
@@ -126,12 +128,17 @@ def _redact_webhook_url(url: str) -> str:
         # urlsplit lowercases only the scheme, so the origin keeps its length
         # and the remainder can be sliced off by it.
         origin: str = f"{parts.scheme}://{parts.netloc}"
-        secret: str = url[len(origin) :]
+        path: str = url[len(origin) :]
     except (AttributeError, TypeError, ValueError):
         return REDACTED_PLACEHOLDER
 
-    if not secret:
+    if not path:
         return origin
+
+    # Only keep a tail when the path is long enough that the tail is a small
+    # part of it - four of five characters would be worse than none.
+    if len(path) > 2 * REDACTED_TAIL_LENGTH:
+        return f"{origin}/...{path[-REDACTED_TAIL_LENGTH:]}"
 
     return f"{origin}/..."
 

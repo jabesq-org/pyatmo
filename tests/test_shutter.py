@@ -18,6 +18,9 @@ async def test_async_shutter_NBR(async_home):
     assert module.device_type == DeviceType.NBR
     assert module.firmware_revision == 16
     assert module.current_position == 0
+    assert module.can_set_target_position is True
+    assert module.can_report_position is True
+    assert module.can_move_to_preferred_position is True
 
 
 async def test_async_shutter_Z3V(async_home):
@@ -28,6 +31,9 @@ async def test_async_shutter_Z3V(async_home):
     assert module.device_type == DeviceType.Z3V
     assert module.firmware_revision == 16
     assert module.current_position == 0
+    assert module.can_set_target_position is True
+    assert module.can_report_position is True
+    assert module.can_move_to_preferred_position is True
 
 
 async def test_async_shutter_NBO(async_home):
@@ -38,6 +44,9 @@ async def test_async_shutter_NBO(async_home):
     assert module.device_type == DeviceType.NBO
     assert module.firmware_revision == 22
     assert module.current_position == 0
+    assert module.can_set_target_position is True
+    assert module.can_report_position is True
+    assert module.can_move_to_preferred_position is True
 
 
 async def test_async_shutters(async_home):

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Advertise shutter capabilities on `ShutterMixin`: `can_set_target_position`,
   `can_report_position` and `can_move_to_preferred_position`, so consumers no longer
   have to branch on device type
+- Derive BTicino MyHome Server 1 shutter capabilities per actor from the
+  `target_position:step` the actor reports
 
 ## [9.8.0] - 2026-08-13
 

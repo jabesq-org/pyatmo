@@ -25,9 +25,24 @@ async def test_async_shutter_bnas_calibrated(async_home_bticino):
     assert module.can_move_to_preferred_position is False
 
 
+async def test_async_shutter_bnas_step_survives_topology_update(
+    async_account_bticino,
+    async_home_bticino,
+):
+    """A /homesdata refresh carries no step and must not drop the known one."""
+    module = async_home_bticino.modules["bticino_shutter_calibrated"]
+    assert module.can_set_target_position is True
+
+    await async_account_bticino.async_update_topology()
+
+    assert module.target_position__step == 5
+    assert module.can_set_target_position is True
+    assert module.can_report_position is True
+
+
 async def test_async_shutter_bnas_unknown_step(async_home_bticino):
     """An actor with no reported step is treated as not positionable."""
-    module = async_home_bticino.modules["bticino_shutter_uncalibrated"]
+    module = async_home_bticino.modules["bticino_shutter_calibrated"]
     module.target_position__step = None
     assert module.can_set_target_position is False
     assert module.can_report_position is False

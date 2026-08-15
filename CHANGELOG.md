@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Derive BTicino MyHome Server 1 shutter capabilities per actor from the
   `target_position:step` the actor reports
 
+### Fixed
+
+- Keep `target_position:step` across topology updates, which do not report it
+
 ## [9.8.0] - 2026-08-13
 
 ### Added

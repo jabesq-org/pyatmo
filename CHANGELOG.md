@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Error messages for HTTP 409 and 429 name the status instead of leaving a
+  blank where it should be
 - Webhook URLs are redacted in logs. They are secrets, and debug logs end up in
   bug reports
 - Devices belonging to no known home are named in the log

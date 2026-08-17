@@ -309,7 +309,99 @@ An empty `touched_ids` with `kind is STATE` is normal, not an error.
   will `KeyError` if nothing has subscribed to that signal yet. Guard as
   `notify_home_subscribers` does above.
 
-## 9. Homes that cannot be polled
+## 9. Registering a webhook, and telling whether it works
+
+Netatmo suspends delivery to an endpoint that answers slowly, and never tells you through the
+API. A suspended endpoint still accepts `addwebhook` with a `200` and still appears in the
+registration list, so neither registration success nor a listing proves anything is delivered.
+
+**Registration is deduplicated on the URL value, not on the call** — measured against a live
+account on 2026-08-14 and since confirmed by Netatmo support, who state that calling
+`addwebhook` for an already registered URL does not trigger another activation:
+
+| call | result |
+|---|---|
+| `addwebhook` with the URL already registered | `{"status":"ok"}`, no activation push |
+| `addwebhook` with a **different** URL | registration replaced silently, `webhook_activation` follows, no `dropwebhook` involved |
+| `dropwebhook` then `addwebhook` | `webhook_activation` follows |
+
+**An activation is not prompt.** One measured run took ~31 s; Netatmo state that activations
+currently still go through their **legacy delivery system** and were delayed by one to two
+minutes in their own tests. Budget for tens of seconds to a couple of minutes, and never for a
+fixed figure.
+
+**Do not build a liveness probe on activations.** Eliciting one means pointing the webhook
+somewhere else and back, which leaves a window in which no working webhook is registered, and a
+failed re-add leaves the consumer with none at all — and the answer arrives minutes later, if
+the URL changed at all.
+
+What to use instead:
+
+- `auth.async_list_webhooks()` reports which URLs are currently registered. It detects a
+  webhook that was dropped, or overwritten by another client sharing the credentials. It does
+  **not** reveal a suspension or a ban.
+- `account.last_webhook_at` is set on every processed payload, including ones this library
+  classifies as `UNKNOWN`. Delivery of anything proves the path works.
+
+### Bans and suspensions
+
+**There is no API to check ban status.** Only the developer portal at
+<https://dev.netatmo.com/apps/> shows it. Netatmo describe two mechanisms:
+
+- The **legacy ban is application-level** — it affects every webhook of the application, mainly
+  topology and camera events. It triggers after **five consecutive delivery failures** and
+  clears after **24 hours**, or immediately when unbanned by hand in the portal.
+- The **new system uses a per-webhook-URL circuit breaker**, which can suspend deliveries for up
+  to **10 minutes**.
+
+For a consumer that means silence shorter than ~10 minutes may be nothing worse than a
+circuit-breaker window, while silence lasting far longer points at the 24-hour application ban.
+Neither is observable through the API, which is exactly why `async_list_webhooks` is documented
+as proving registration and not delivery.
+
+### The `webhooks/v1` endpoints
+
+They exist alongside the legacy `api/addwebhook` and `api/dropwebhook`, and were measured on
+2026-08-15:
+
+| call | result |
+|---|---|
+| `GET webhooks/v1/` | `200`, `{"status", "time_server", "body": [{"url": …}]}` — entries carry **only a url, no id** |
+| `POST webhooks/v1` with `{"url": …}` | `200` |
+| `POST webhooks/v1` with one already registered | `409`, `{"code":"WH009","message":"webhook limit reached for this application"}` |
+| `DELETE webhooks/v1`, no body | `200`, the application's webhook is cleared |
+
+The limit is **one webhook per application**, which is what the `409` means.
+
+Netatmo state that the webhook management endpoints **work for both delivery systems**: how a
+webhook is registered says nothing about which system delivers it. pyatmo therefore deliberately
+keeps writing through the legacy `api/addwebhook` / `api/dropwebhook` and only *reads* through
+`GET webhooks/v1/`. Writing through v1 would mean delete-then-post, because of the
+one-webhook limit — opening a window with no registration at all — and would buy no delivery
+benefit in exchange.
+
+### Failure shapes worth recognising
+
+**`addwebhook` validates the host at registration time.** A URL whose host does not resolve is
+rejected with `400` and `{"error":{"code":21,"message":"Invalid url parameter"}}`. An
+unreachable endpoint therefore cannot be registered at all, which is why a webhook that stops
+working can only be produced by registering a working URL and then breaking it. Code 21 is a
+generic invalid-parameter code — `/homestatus` answers a rejected home id with the same pair —
+so this surfaces as a plain `ApiError` carrying `status == 400` and `code == 21`, never as
+`InvalidHomeError`.
+
+**Error codes are not always integers.** The `api/*` endpoints answer with integers (11, 21,
+26), `webhooks/v1` with strings such as `"WH009"`. `ApiError.code` is typed `int | str | None`
+and passes through whatever arrived; compare against the shape you expect.
+
+**A request stopped by Netatmo's edge/WAF has no JSON at all.** The body is HTML, so it surfaces
+as an `ApiError` carrying a status and `code is None`.
+
+**Space registration calls out.** Four `addwebhook` calls in quick succession returned
+`{"error":{"code":27,"message":"Service temporarily unavailable"}}`, which looks like a
+per-endpoint rate limit rather than a real outage.
+
+## 10. Homes that cannot be polled
 
 `/homesdata` lists homes that `/homestatus` refuses, in two different ways. Measured
 against a live account on 2026-08-13, three of six homes could not be polled: one
@@ -322,9 +414,11 @@ Two ways to avoid spending calls on one:
   unpollable homes have in common. Check it before scheduling a poll. Device
   category plays no part: `/homestatus` does report weather modules, so excluding
   them would hide a home that polls fine.
-- `InvalidHomeError` is raised when the API rejects a home id. It is deterministic
-  -- the same id fails every time -- so stop polling that home rather than retrying
-  it. It subclasses `ApiError`, so existing handlers still catch it.
+- `InvalidHomeError` is raised by `async_update_status` when the API rejects the home
+  id it sent. It is deterministic -- the same id fails every time -- so stop polling
+  that home rather than retrying it. It subclasses `ApiError`, so existing handlers
+  still catch it. The underlying error code is generic (see §9), so only this call
+  translates it; every other `ApiError` means something else.
 
 `NoDeviceError`, raised for the empty-body case, is deliberately **not** a signal to
 stop. It also covers an empty `homes` list and empty weather or air-care data, where

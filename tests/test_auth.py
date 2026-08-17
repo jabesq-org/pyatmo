@@ -22,6 +22,7 @@ from pyatmo.auth import (
     _redact_webhook_url,
     _wait_retry_after,
 )
+from pyatmo.const import CONCURRENCY_ERROR_CODE, THROTTLING_ERROR_CODE
 from pyatmo.exceptions import (
     ApiError,
     ApiThrottlingError,
@@ -763,6 +764,59 @@ async def test_handle_error_unparsable_body_exposes_status_without_code(auth):
 
     assert exc_info.value.status == 400
     assert exc_info.value.code is None
+
+
+async def test_handle_error_409_string_code_renders_the_status_name(auth):
+    """A ``webhooks/v1`` conflict renders a complete message and keeps its code.
+
+    ``POST webhooks/v1`` answers a second registration with ``409`` and a
+    *string* code (measured 2026-08-15). Without a 409 entry in ``ERRORS`` the
+    message rendered with an empty middle field.
+    """
+    resp = MockResponse(
+        {"error": {"code": "WH009", "message": "webhook limit reached"}},
+        409,
+    )
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 409, "https://x/y")
+
+    assert "409 - Conflict - webhook limit reached (WH009)" in str(exc_info.value)
+    assert exc_info.value.status == 409
+    assert exc_info.value.code == "WH009"
+
+
+async def test_handle_error_string_code_never_matches_an_integer_code(auth):
+    """A string code must not be mistaken for one of the integer codes.
+
+    The auth layer branches on ``code == 11`` / ``code == 26``; a string code
+    equals neither, so the generic ``ApiError`` is raised and the code reaches
+    the caller unconverted.
+    """
+    resp = MockResponse(
+        {"error": {"code": "WH009", "message": "webhook limit reached"}},
+        429,
+    )
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 429, "https://x/y")
+
+    assert not isinstance(exc_info.value, ApiTooManyRequestError)
+    assert "429 - Too Many Requests - " in str(exc_info.value)
+    assert exc_info.value.code == "WH009"
+    assert exc_info.value.code != CONCURRENCY_ERROR_CODE
+
+
+async def test_handle_error_403_string_code_is_not_throttling(auth):
+    """The 403 branch is likewise keyed on the integer code 26."""
+    resp = MockResponse({"error": {"code": "WH001", "message": "nope"}}, 403)
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 403, "https://x/y")
+
+    assert not isinstance(exc_info.value, ApiThrottlingError)
+    assert exc_info.value.code == "WH001"
+    assert exc_info.value.code != THROTTLING_ERROR_CODE
 
 
 async def test_handle_error_400_without_code_21_stays_generic(auth):

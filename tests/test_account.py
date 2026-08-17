@@ -7,6 +7,7 @@ import pytest
 
 import pyatmo
 from pyatmo import modules
+from pyatmo.const import INVALID_HOME_ERROR_CODE
 from pyatmo.exceptions import NoDeviceError
 
 from .common import MockResponse, fake_post_request_multi
@@ -250,6 +251,31 @@ async def test_update_status_other_api_error_stays_generic(async_account):
 
     assert not isinstance(exc_info.value, pyatmo.exceptions.InvalidHomeError)
     assert str(exc_info.value) == message
+
+
+async def test_update_status_string_error_code_stays_generic(async_account):
+    """A string error code is never read as the rejected-home code 21.
+
+    ``webhooks/v1`` answers with string codes such as ``WH009`` while the
+    ``api/*`` endpoints answer with integers, so an ``ApiError`` reaching this
+    caller may carry either. A string equals no integer constant, so the error
+    passes through untranslated and with its code intact.
+    """
+    home_id = "91763b24c43d3e344f424e8b"
+    message = "409 - Conflict - webhook limit reached (WH009)"
+
+    async def _rejected(*_args, **_kwargs):
+        raise pyatmo.exceptions.ApiError(message, status=409, code="WH009")
+
+    with (
+        patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request", _rejected),
+        pytest.raises(pyatmo.exceptions.ApiError) as exc_info,
+    ):
+        await async_account.async_update_status(home_id)
+
+    assert not isinstance(exc_info.value, pyatmo.exceptions.InvalidHomeError)
+    assert exc_info.value.code == "WH009"
+    assert exc_info.value.code != INVALID_HOME_ERROR_CODE
 
 
 def test_invalid_home_error_is_an_api_error():

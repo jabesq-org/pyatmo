@@ -28,13 +28,19 @@ class ApiError(Exception):
     ``400`` + code 21 answers both a rejected home id and an ``addwebhook``
     URL whose host does not resolve. Only a caller that knows what it asked
     for can turn such a pair into a specific exception.
+
+    ``code`` is typed ``int | str`` because Netatmo is not consistent: the
+    legacy ``api/*`` endpoints answer with integers (11, 21, 26), while
+    ``webhooks/v1`` answers with strings such as ``"WH009"``. Whatever arrived
+    is passed through unconverted, so a comparison against an integer code
+    simply does not match a string one.
     """
 
     def __init__(
         self,
         message: str = "",
         status: int | None = None,
-        code: int | None = None,
+        code: int | str | None = None,
     ) -> None:
         """Initialize with the HTTP status and Netatmo error code, when known.
 
@@ -75,7 +81,7 @@ class ApiTooManyRequestError(ApiError):
         message: str = "",
         retry_after: float | None = None,
         status: int | None = None,
-        code: int | None = None,
+        code: int | str | None = None,
     ) -> None:
         """Initialize with an optional server-provided retry delay (seconds)."""
         super().__init__(message, status=status, code=code)

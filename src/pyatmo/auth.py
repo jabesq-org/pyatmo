@@ -35,6 +35,7 @@ from pyatmo.const import (
     DEFAULT_BASE_URL,
     ERRORS,
     FORBIDDEN_ERROR_CODE,
+    HOME,
     THROTTLING_ERROR_CODE,
     TOO_MANY_REQUESTS_ERROR_CODE,
     WEBHOOK_ENDPOINT,
@@ -143,13 +144,16 @@ def _redact_webhook_url(url: str) -> str:
 
 
 def _home_suffix(params: dict[str, Any] | None) -> str:
-    """Return ``" for home <id>"`` for a request params dict, else ``""``.
+    """Postfix a log message with the home the request names."""
+    params = params or {}
 
-    Only the home id is read out of the params: the same params carry secrets
-    on other endpoints - webhook registration passes the webhook URL, which
-    embeds the webhook_id - so the dict must never be logged or rendered whole.
-    """
-    return home_suffix((params or {}).get("home_id"))
+    home_id: Any = params.get("home_id")
+    if not home_id:
+        body: Any = params.get("json")
+        home: Any = body.get(HOME) if isinstance(body, dict) else None
+        home_id = home.get("id") if isinstance(home, dict) else None
+
+    return home_suffix(home_id if isinstance(home_id, str) else None)
 
 
 def _wait_retry_after(retry_state: RetryCallState) -> float:
@@ -382,7 +386,7 @@ class AbstractAsyncAuth(ABC):
         params: dict[str, Any] | None = None,
     ) -> None:
         """Handle error response."""
-        home_suffix: str = _home_suffix(params)
+        suffix: str = _home_suffix(params)
 
         try:
             resp_json: dict[str, Any] = await resp.json()
@@ -395,7 +399,7 @@ class AbstractAsyncAuth(ABC):
                 f"{error.get('message')} "
                 f"({error_code}) "
                 f"when accessing '{url}'"
-                f"{home_suffix}"
+                f"{suffix}"
             )
 
             if (
@@ -428,7 +432,7 @@ class AbstractAsyncAuth(ABC):
                 f"{resp_status} - "
                 f"{ERRORS.get(resp_status, '')} - "
                 f"when accessing '{url}'"
-                f"{home_suffix}"
+                f"{suffix}"
             )
             # No code: the body that would have carried it could not be read.
             raise ApiError(msg, status=resp_status) from exc

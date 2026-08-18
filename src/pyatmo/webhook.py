@@ -182,9 +182,10 @@ def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
     """Route a webhook payload to a WebhookKind by event_type/push_type."""
     if push_type in (WEBHOOK_ACTIVATION, WEBHOOK_DEACTIVATION):
         return WebhookKind.LIFECYCLE
-    if push_type in CAMERA_CONNECTION_WEBHOOKS or event_type in (
-        "connection",
-        "disconnection",
+    if (
+        push_type in CAMERA_CONNECTION_WEBHOOKS
+        or event_type == "connection"
+        or _is_disconnection(event_type, push_type)
     ):
         return WebhookKind.LIFECYCLE
     if event_type in STATE_EVENT_TYPES:

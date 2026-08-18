@@ -9,6 +9,7 @@ import warnings
 
 from pyatmo import modules
 from pyatmo.const import (
+    BAD_REQUEST_ERROR_CODE,
     GETEVENTS_ENDPOINT,
     GETHOMECOACHDATA_ENDPOINT,
     GETHOMESDATA_ENDPOINT,
@@ -158,10 +159,20 @@ class AsyncAccount:
                 params={"home_id": home_id},
             )
         except ApiError as exc:
-            # InvalidHomeError is itself an ApiError, so it is let through
-            # rather than wrapped in a second one.
-            if isinstance(exc, InvalidHomeError) or exc.code != INVALID_HOME_ERROR_CODE:
+            # InvalidHomeError is itself an ApiError. It is let through rather
+            # than wrapped in a second one -- reachable when a consumer's
+            # AbstractAsyncAuth subclass raises it directly.
+            if isinstance(exc, InvalidHomeError):
                 raise
+
+            # Netatmo answers with an int here and a string elsewhere, so
+            # compare as text. The status matters too: code 21 is a generic
+            # invalid-parameter code, and only 400 states the id was rejected.
+            if exc.status != BAD_REQUEST_ERROR_CODE or str(exc.code) != str(
+                INVALID_HOME_ERROR_CODE
+            ):
+                raise
+
             raise InvalidHomeError(
                 str(exc),
                 status=exc.status,

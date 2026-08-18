@@ -798,11 +798,15 @@ async def test_handle_error_400_code_21_stays_generic(auth):
 async def test_addwebhook_rejected_url_is_not_an_invalid_home():
     """A URL Netatmo refuses must not surface as a rejected home.
 
-    ``addwebhook`` answers a URL whose host does not resolve with the very same
-    ``400`` + code 21 that ``/homestatus`` answers a rejected home id with
-    (both measured 2026-08-14). A consumer acting on ``InvalidHomeError`` would
-    stop polling a perfectly good home because of a webhook registration
-    mistake.
+    The legacy ``api/addwebhook`` answered a URL whose host does not resolve
+    with the very same ``400`` + code 21 that ``/homestatus`` answers a
+    rejected home id with (both measured 2026-08-14, against the legacy
+    endpoint; whether ``POST webhooks/v1`` rejects an unresolvable host the
+    same way is assumed, not measured). What this pins does not depend on that:
+    code 21 must not become ``InvalidHomeError`` anywhere, and that pairing is
+    still reachable from ``/homestatus``. A consumer acting on
+    ``InvalidHomeError`` would stop polling a perfectly good home because of a
+    webhook registration mistake.
     """
 
     class _Session:
@@ -1280,3 +1284,52 @@ async def test_addwebhook_surfaces_a_non_conflict_error(auth):
 
     assert exc_info.value.status == 400
     assert deleted == {}
+
+
+async def test_handle_error_names_the_home_from_a_json_body(auth):
+    """Write endpoints nest the home id in the JSON body, not the params."""
+    resp = MockResponse({"error": {"code": 7, "message": "nope"}}, 500)
+    params = {"json": {"home": {"id": "5ed02c730474377f3443794a", "foo": "bar"}}}
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(resp, 500, "https://x/y", params=params)
+
+    assert "for home 5ed02c730474377f3443794a" in str(exc_info.value)
+
+
+async def test_handle_error_json_body_without_a_home_is_unchanged(auth):
+    """A JSON body carrying no home adds no suffix."""
+    resp = MockResponse({"error": {"code": 7, "message": "nope"}}, 500)
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.handle_error_response(
+            resp,
+            500,
+            "https://x/y",
+            params={"json": {"url": "https://example.com/hook"}},
+        )
+
+    assert "for home" not in str(exc_info.value)
+    assert "example.com" not in str(exc_info.value)
+
+
+async def test_too_many_request_error_carries_status_and_code(auth):
+    """The retryable errors carry the discriminator too, not just ApiError."""
+    resp = MockResponse({"error": {"code": 11, "message": "concurrency"}}, 429)
+
+    with pytest.raises(ApiTooManyRequestError) as exc_info:
+        await auth.handle_error_response(resp, 429, "https://x/y")
+
+    assert exc_info.value.status == 429
+    assert exc_info.value.code == 11
+
+
+async def test_throttling_error_carries_status_and_code(auth):
+    """Same for the 403 throttling case."""
+    resp = MockResponse({"error": {"code": 26, "message": "throttled"}}, 403)
+
+    with pytest.raises(ApiThrottlingError) as exc_info:
+        await auth.handle_error_response(resp, 403, "https://x/y")
+
+    assert exc_info.value.status == 403
+    assert exc_info.value.code == 26

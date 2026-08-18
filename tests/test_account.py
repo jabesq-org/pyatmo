@@ -356,3 +356,53 @@ async def test_update_devices_does_not_search_when_the_home_is_known(async_accou
         await async_account.update_devices({"devices": [device_data]})
 
     mock_find.assert_not_called()
+
+
+async def test_update_status_translates_a_string_error_code(async_account):
+    """Netatmo is inconsistent about code types; both must translate."""
+    message = "400 - Bad request - Invalid home_id (21)"
+
+    async def _rejected(*_args, **_kwargs):
+        raise pyatmo.exceptions.ApiError(message, status=400, code="21")
+
+    with (
+        patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request", _rejected),
+        pytest.raises(pyatmo.exceptions.InvalidHomeError),
+    ):
+        await async_account.async_update_status("whatever")
+
+
+async def test_update_status_ignores_code_21_from_another_status(async_account):
+    """The contract is 400 plus code 21, not code 21 on any status."""
+    message = "500 - Internal Server Error - (21)"
+
+    async def _rejected(*_args, **_kwargs):
+        raise pyatmo.exceptions.ApiError(message, status=500, code=21)
+
+    with (
+        patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request", _rejected),
+        pytest.raises(pyatmo.exceptions.ApiError) as exc_info,
+    ):
+        await async_account.async_update_status("whatever")
+
+    assert not isinstance(exc_info.value, pyatmo.exceptions.InvalidHomeError)
+
+
+async def test_update_status_passes_through_an_invalid_home_error(async_account):
+    """An InvalidHomeError from below is not wrapped in a second one."""
+    original = pyatmo.exceptions.InvalidHomeError(
+        "already specific",
+        status=400,
+        code=21,
+    )
+
+    async def _rejected(*_args, **_kwargs):
+        raise original
+
+    with (
+        patch("pyatmo.auth.AbstractAsyncAuth.async_post_api_request", _rejected),
+        pytest.raises(pyatmo.exceptions.InvalidHomeError) as exc_info,
+    ):
+        await async_account.async_update_status("whatever")
+
+    assert exc_info.value is original

@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 from json import JSONDecodeError
 import logging
+from urllib.parse import quote
 
 from aiohttp import ContentTypeError
 import pytest
@@ -350,6 +351,29 @@ def test_redact_webhook_url_never_raises(value):
     assert isinstance(_redact_webhook_url(value), str)
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        "https://ha:Passw0rd@ha.example.org/api/webhook/abcdefghij",
+        "https://ha:Passw0rd@ha.example.org:8123/api/webhook/abcdefghij",
+        "https://token@ha.example.org/api/webhook/abcdefghij",
+    ],
+)
+def test_redact_webhook_url_drops_userinfo(value):
+    """Credentials in the authority must never reach a log.
+
+    urlsplit keeps userinfo in netloc, so rendering the netloc verbatim
+    would publish the password of anyone fronting Home Assistant with a
+    basic-auth reverse proxy.
+    """
+    redacted = _redact_webhook_url(value)
+
+    assert "Passw0rd" not in redacted
+    assert "token" not in redacted
+    assert "@" not in redacted
+    assert redacted.startswith("https://ha.example.org")
+
+
 def _stub_get(auth, payload=None, exc=None):
     """Replace the auth GET transport with a stub returning ``payload``."""
     seen = {}
@@ -624,6 +648,10 @@ async def test_addwebhook_debug_log_does_not_leak_the_url(caplog):
         await auth.async_addwebhook(FAKE_CLOUDHOOK)
 
     assert FAKE_SECRET not in caplog.text
+    # Percent-encoded too: a URL smuggled into the query string reaches the
+    # response repr with its "=" as "%3D", so the raw secret would not match.
+    assert quote(FAKE_SECRET, safe="") not in caplog.text
+    assert FAKE_SECRET.rstrip("=") not in caplog.text
     assert "hooks.nabu.casa" not in caplog.text
     assert "addwebhook:" in caplog.text
 

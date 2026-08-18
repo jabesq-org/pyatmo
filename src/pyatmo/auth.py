@@ -8,7 +8,7 @@ from email.utils import parsedate_to_datetime
 from json import JSONDecodeError
 import logging
 from typing import Any, Final
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlunsplit
 
 from aiohttp import (
     ClientError,
@@ -115,13 +115,20 @@ def _redact_webhook_url(url: str) -> str:
     """
     try:
         parts = urlsplit(url)
-        if not parts.scheme or not parts.netloc:
+        # hostname, never netloc: netloc carries userinfo, and a webhook URL
+        # behind a basic-auth proxy would otherwise publish its password.
+        host: str | None = parts.hostname
+        if not parts.scheme or not host:
             return REDACTED_PLACEHOLDER
 
-        # urlsplit lowercases only the scheme, so the origin keeps its length
-        # and the remainder can be sliced off by it.
-        origin: str = f"{parts.scheme}://{parts.netloc}"
-        path: str = url[len(origin) :]
+        origin: str = f"{parts.scheme}://{host}"
+        if parts.port is not None:
+            origin = f"{origin}:{parts.port}"
+
+        # Everything after the authority is the capability secret. Rebuilt from
+        # the parsed parts rather than sliced off the input, because the
+        # rendered origin is no longer the same length as what it replaced.
+        path: str = urlunsplit(("", "", parts.path, parts.query, parts.fragment))
     except (AttributeError, TypeError, ValueError):
         return REDACTED_PLACEHOLDER
 

@@ -6,7 +6,14 @@ import logging
 
 import pytest
 
-from pyatmo.helpers import dict_entries, fix_id, number_or_none, str_or_none
+from pyatmo.exceptions import NoDeviceError
+from pyatmo.helpers import (
+    dict_entries,
+    extract_raw_data,
+    fix_id,
+    number_or_none,
+    str_or_none,
+)
 
 
 @pytest.mark.parametrize(
@@ -165,3 +172,98 @@ def test_number_or_none_stays_quiet_for_absent_value(caplog):
         assert number_or_none(None) is None
 
     assert caplog.text == ""
+
+
+HOME_ID = "5ed02c730474377f3443794a"
+
+# A real /homestatus 200 that answered without a `body` - the production case.
+NO_BODY_RESPONSE = {"status": "ok", "time_server": 1786656837}
+
+
+def test_extract_raw_data_absent_body_names_the_home(caplog):
+    """A body-less 200 names the home in both the log line and the exception.
+
+    This is the production case: /homestatus answers 200 with no `body`, and
+    without the home id two homes on the same account are indistinguishable.
+    """
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.helpers"),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        extract_raw_data(NO_BODY_RESPONSE, "home", home_id=HOME_ID)
+
+    assert (
+        str(exc_info.value) == f"No device found, errors in response for home {HOME_ID}"
+    )
+    assert f"for home {HOME_ID}" in caplog.text
+
+
+def test_extract_raw_data_absent_body_unchanged_without_home_id(caplog):
+    """With no home id the log line and message are byte-identical to before."""
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.helpers"),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        extract_raw_data(NO_BODY_RESPONSE, "home")
+
+    assert str(exc_info.value) == "No device found, errors in response"
+    assert caplog.messages == [
+        f"Server response (tag: home): {NO_BODY_RESPONSE}",
+    ]
+
+
+def test_extract_raw_data_empty_tag_data_names_the_home(caplog):
+    """An empty payload for the requested tag names the home too."""
+    resp = {"body": {"home": []}}
+
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.helpers"),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        extract_raw_data(resp, "home", home_id=HOME_ID)
+
+    assert str(exc_info.value) == f"No device data available for home {HOME_ID}"
+    assert f"for home {HOME_ID}" in caplog.text
+
+
+def test_extract_raw_data_empty_tag_data_unchanged_without_home_id(caplog):
+    """The same branch is untouched when no home id is known."""
+    resp = {"body": {"home": []}}
+
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.helpers"),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        extract_raw_data(resp, "home")
+
+    assert str(exc_info.value) == "No device data available"
+    assert caplog.messages == [f"Server response (tag: home): {resp}"]
+
+
+def test_extract_raw_data_empty_homes_unchanged_without_home_id(caplog):
+    """/homesdata is account-wide, so its message keeps its exact old wording."""
+    resp = {"body": {"homes": []}}
+
+    with (
+        caplog.at_level(logging.DEBUG, logger="pyatmo.helpers"),
+        pytest.raises(NoDeviceError) as exc_info,
+    ):
+        extract_raw_data(resp, "homes")
+
+    assert str(exc_info.value) == "No homes found"
+    assert caplog.messages == [f"Server response (tag: homes): {resp}"]
+
+
+def test_extract_raw_data_home_id_is_keyword_only_and_last():
+    """Existing positional calls keep working unchanged."""
+    resp = {"body": {"home": [{"id": "a"}]}}
+
+    assert extract_raw_data(resp, "home") == {"home": [{"id": "a"}], "errors": []}
+
+
+def test_extract_raw_data_falsy_home_id_adds_no_noise():
+    """An empty home id renders like no home id at all, not `for home `."""
+    with pytest.raises(NoDeviceError) as exc_info:
+        extract_raw_data(NO_BODY_RESPONSE, "home", home_id="")
+
+    assert str(exc_info.value) == "No device found, errors in response"

@@ -36,6 +36,25 @@ jobs:
           ref: development
           fetch-depth: 0
 
+      - name: Ensure master is an ancestor of development
+        run: |
+          set -euo pipefail
+          # A squashed mergeback leaves master unreachable from development. That
+          # pins this PR's merge base before the previous release, so both sides
+          # insert a section at the same [unreleased] anchor and CHANGELOG.md
+          # conflicts every time. It also strands the release tags, so
+          # setuptools_scm versions development builds from a stale tag.
+          #
+          # checkout above uses fetch-depth: 0, which already fetches every
+          # branch; the explicit fetch keeps this step correct on its own. The
+          # refspec is spelled out because a bare `git fetch origin master` only
+          # updates refs/remotes/origin/master opportunistically, when a
+          # configured remote.origin.fetch happens to match -- otherwise it
+          # writes FETCH_HEAD alone and the check below dies on an unresolvable
+          # ref, blocking the release for the wrong reason.
+          git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
+          python3 scripts/release.py --check-ancestry origin/master HEAD
+
       - name: Ensure CI is green on the development head
         env:
           GH_TOKEN: ${{ github.token }}
@@ -85,8 +104,15 @@ jobs:
           git switch -c "${branch}"
           git commit -am "chore(release): v${VERSION}"
           git push --force-with-lease origin "${branch}"
+          instructions="$(cat <<'EOF'
+          **Merge this PR with "Create a merge commit"** -- not "Squash and merge",
+          not "Rebase and merge" -- so `master` stays reachable from `development`
+          for the mergeback that follows.
+          EOF
+          )"
+          printf -v body '%s\n\n%s' "${instructions}" "${NOTES}"
           gh pr create \
             --base master \
             --head "${branch}" \
             --title "Release v${VERSION}" \
-            --body "${NOTES}"
+            --body "${body}"

@@ -10,6 +10,8 @@ ERRORS: dict[int, str] = {
     403: "Forbidden",
     404: "Not found",
     406: "Not Acceptable",
+    409: "Conflict",
+    429: "Too Many Requests",
     500: "Internal Server Error",
     502: "Bad Gateway",
     503: "Service Unavailable",
@@ -27,8 +29,9 @@ SIREN_BASE_URL: str = "https://app.netatmo.net/"
 # Endpoints
 AUTH_REQ_ENDPOINT = "oauth2/token"
 AUTH_URL_ENDPOINT = "oauth2/authorize"
-WEBHOOK_URL_ADD_ENDPOINT = "api/addwebhook"
-WEBHOOK_URL_DROP_ENDPOINT = "api/dropwebhook"
+# Note: the REST webhook surface carries no "api/" prefix, unlike every other
+# endpoint here; it serves GET, POST and DELETE for the single registration.
+WEBHOOK_ENDPOINT = "webhooks/v1"
 
 GETHOMESDATA_ENDPOINT = "api/homesdata"
 GETHOMESTATUS_ENDPOINT = "api/homestatus"
@@ -136,8 +139,11 @@ UNKNOWN = "unknown"
 
 # Error codes
 CONCURRENCY_ERROR_CODE = 11
+INVALID_HOME_ERROR_CODE = 21
 THROTTLING_ERROR_CODE = 26
+BAD_REQUEST_ERROR_CODE = 400
 FORBIDDEN_ERROR_CODE = 403
+CONFLICT_ERROR_CODE = 409
 TOO_MANY_REQUESTS_ERROR_CODE = 429
 
 # Location constants

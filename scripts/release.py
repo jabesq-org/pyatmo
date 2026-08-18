@@ -12,6 +12,7 @@ or pushes -- that is done by the CI workflow (or a maintainer for a local run).
 Usage:
     release.py --bump {patch,minor,major} [--dry-run]
     release.py --notes X.Y.Z
+    release.py --check-ancestry ANCESTOR DESCENDANT
 """
 
 from __future__ import annotations
@@ -143,6 +144,40 @@ def _latest_tag() -> str:
     return tags[0]
 
 
+def _is_shallow() -> bool:
+    """Return whether the current repository is a shallow clone."""
+    out = subprocess.run(
+        ["git", "rev-parse", "--is-shallow-repository"],
+        check=False,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    return out == "true"
+
+
+def is_ancestor(ancestor: str, descendant: str) -> bool:
+    """Return whether ``ancestor`` is reachable from ``descendant``.
+
+    Raises ``ReleaseError`` when git cannot answer -- a bad ref, or a shallow
+    clone whose graft boundary hides the merge that would prove reachability.
+    """
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    # 0 = reachable, 1 = not reachable; anything else is a git failure (bad ref,
+    # not a repository) and must not be read as "not reachable".
+    if result.returncode not in (0, 1):
+        msg = f"git merge-base failed: {result.stderr.strip()}"
+        raise ReleaseError(msg)
+    if result.returncode == 1 and _is_shallow():
+        msg = "cannot determine ancestry in a shallow clone; fetch full history"
+        raise ReleaseError(msg)
+    return result.returncode == 0
+
+
 def finalize_changelog(
     text: str,
     version: str,
@@ -208,6 +243,22 @@ def _emit_output(version: str, notes: str) -> None:
         fh.write(f"notes<<{delimiter}\n{notes}\n{delimiter}\n")
 
 
+def _fail(msg: str) -> int:
+    """Report a fatal error on stderr and return the process exit code.
+
+    Emits a GitHub Actions annotation under CI and a plain message otherwise. A
+    workflow command must be one line, so newlines are percent-encoded -- git can
+    produce multi-line stderr (e.g. the "dubious ownership" hint), and without
+    this only its first line would reach the annotation.
+    """
+    if os.environ.get("GITHUB_ACTIONS"):
+        encoded = msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::error::{encoded}", file=sys.stderr)
+    else:
+        print(f"error: {msg}", file=sys.stderr)
+    return 1
+
+
 def _cmd_bump(args: argparse.Namespace) -> int:
     text = CHANGELOG.read_text(encoding="utf-8")
     current = _latest_tag()
@@ -215,12 +266,7 @@ def _cmd_bump(args: argparse.Namespace) -> int:
     version = bump_version(current, args.bump)
     date = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d")
 
-    try:
-        new_text = finalize_changelog(text, version, date, prev)
-    except ReleaseError as err:
-        print(f"error: {err}", file=sys.stderr)
-        return 1
-
+    new_text = finalize_changelog(text, version, date, prev)
     notes = extract_notes(new_text, version)
 
     if args.dry_run:
@@ -243,6 +289,28 @@ def _cmd_notes(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_check_ancestry(args: argparse.Namespace) -> int:
+    """Fail unless ANCESTOR is reachable from DESCENDANT.
+
+    Guards a release against a squashed mergeback. A squash leaves ``master``
+    unreachable from ``development``, which pins the release PR's merge base
+    before the previous release: both sides then insert a section at the same
+    ``[unreleased]`` anchor and ``CHANGELOG.md`` conflicts every time. It also
+    strands the release tags, so setuptools_scm versions development builds from
+    a stale tag.
+    """
+    ancestor, descendant = args.check_ancestry
+    if is_ancestor(ancestor, descendant):
+        print(f"{ancestor} is an ancestor of {descendant}")
+        return 0
+    return _fail(
+        f"{ancestor} is not an ancestor of {descendant}. The last mergeback was "
+        f"squashed or rebased, or {ancestor} has commits that never came back. Merge "
+        f"{ancestor} into {descendant} with a real merge commit (not a squash or "
+        f"rebase) before releasing. See docs/release-process.md for recovery steps."
+    )
+
+
 def _print_diff(before: str, after: str) -> None:
     diff = difflib.unified_diff(
         before.splitlines(keepends=True),
@@ -255,10 +323,19 @@ def _print_diff(before: str, after: str) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     """Parse arguments and dispatch to the requested subcommand."""
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--bump", choices=_BUMP_PARTS, help="version part to bump")
     group.add_argument("--notes", metavar="X.Y.Z", help="print notes for a version")
+    group.add_argument(
+        "--check-ancestry",
+        nargs=2,
+        metavar=("ANCESTOR", "DESCENDANT"),
+        help="exit non-zero unless ANCESTOR is reachable from DESCENDANT",
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -266,9 +343,22 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    if args.notes:
-        return _cmd_notes(args)
-    return _cmd_bump(args)
+    if args.dry_run and not args.bump:
+        parser.error("--dry-run only applies to --bump")
+
+    try:
+        if args.check_ancestry:
+            return _cmd_check_ancestry(args)
+        if args.notes:
+            return _cmd_notes(args)
+        if args.bump:
+            return _cmd_bump(args)
+    except ReleaseError as err:
+        return _fail(str(err))
+    # Unreachable while the argument group is required=True; parser.error() raises
+    # SystemExit, and the return only satisfies the "all paths return" check.
+    parser.error("no command given")
+    return 1
 
 
 if __name__ == "__main__":

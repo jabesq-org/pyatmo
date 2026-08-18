@@ -22,6 +22,10 @@ class MockResponse:
         self.status = status
         self.headers = headers or {}
 
+    @property
+    def ok(self):
+        return self.status < 400
+
     async def json(self):
         return self._text
 

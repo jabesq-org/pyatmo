@@ -18,6 +18,7 @@ from pyatmo.enums import (
     WindUnit,
 )
 from pyatmo.home import Home, get_temperature_control_mode
+from pyatmo.modules.device_types import DeviceCategory
 from tests.common import MockResponse, load_fixture
 
 
@@ -834,3 +835,41 @@ async def test_async_home_module_reachable_absent_key_preserved(async_account):
         await async_account.async_update_status(home_id)
 
     assert module.reachable is True
+
+
+async def test_home_with_modules_has_status(async_home):
+    """A home carrying modules is pollable."""
+    assert async_home.modules
+    assert async_home.has_status is True
+
+
+async def test_home_without_modules_has_no_status(async_home):
+    """A home carrying no modules has nothing for /homestatus to report."""
+    async_home.modules = {}
+
+    assert async_home.has_status is False
+
+
+async def test_weather_modules_do_not_disqualify_a_home(async_home):
+    """Regression guard: /homestatus does report weather modules.
+
+    Measured 2026-08-13 -- home 6a61e0986124db53ca0248fa holds NAMain and
+    NAModule1, and its /homestatus returns all 7 modules including both. An
+    earlier draft excluded the weather category and would have hidden it.
+    """
+    for module in async_home.modules.values():
+        module.device_category = DeviceCategory.weather
+
+    assert async_home.has_status is True
+
+
+async def test_unmapped_module_keeps_the_home_pollable(async_home):
+    """An unrecognised device type must never hide a home.
+
+    DEVICE_CATEGORY_MAP.get() returns None for mapped types such as NLG and
+    NAPlug, so a missing category cannot mean "not pollable".
+    """
+    for module in async_home.modules.values():
+        module.device_category = None
+
+    assert async_home.has_status is True

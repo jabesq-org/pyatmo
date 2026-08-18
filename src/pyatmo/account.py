@@ -9,6 +9,7 @@ import warnings
 
 from pyatmo import modules
 from pyatmo.const import (
+    BAD_REQUEST_ERROR_CODE,
     GETEVENTS_ENDPOINT,
     GETHOMECOACHDATA_ENDPOINT,
     GETHOMESDATA_ENDPOINT,
@@ -16,10 +17,12 @@ from pyatmo.const import (
     GETPUBLIC_DATA_ENDPOINT,
     GETSTATIONDATA_ENDPOINT,
     HOME,
+    INVALID_HOME_ERROR_CODE,
     SETSTATE_ENDPOINT,
     RawData,
 )
 from pyatmo.enums import PressureUnit, UnitSystem, WindUnit
+from pyatmo.exceptions import ApiError, InvalidHomeError
 from pyatmo.helpers import extract_raw_data
 from pyatmo.home import Home
 from pyatmo.modules.module import Energy, MeasureInterval, Module
@@ -60,6 +63,7 @@ class AsyncAccount:
         self.favorite_stations: bool = favorite_stations
         self.public_weather_areas: dict[str, modules.PublicWeatherArea] = {}
         self.modules: dict[str, Module] = {}
+        self.last_webhook_at: float | None = None
 
     def __repr__(self) -> str:
         """Return the representation."""
@@ -139,14 +143,42 @@ class AsyncAccount:
         self.process_topology()
 
     async def async_update_status(self, home_id: str) -> None:
-        """Retrieve status data from /homestatus."""
+        """Retrieve status data from /homestatus.
+
+        Raises ``InvalidHomeError`` when the API refuses the home id. That
+        verdict can only be reached here: the API answers with the generic
+        invalid-parameter code 21, which other endpoints also use for their own
+        parameters, so it means "invalid home id" only because this call sent
+        one.
+        """
         if self._warn_if_disabled(home_id):
             return
-        resp: ClientResponse = await self.auth.async_post_api_request(
-            endpoint=GETHOMESTATUS_ENDPOINT,
-            params={"home_id": home_id},
-        )
-        raw_data: RawData = extract_raw_data(await resp.json(), HOME)
+        try:
+            resp: ClientResponse = await self.auth.async_post_api_request(
+                endpoint=GETHOMESTATUS_ENDPOINT,
+                params={"home_id": home_id},
+            )
+        except ApiError as exc:
+            # InvalidHomeError is itself an ApiError. It is let through rather
+            # than wrapped in a second one -- reachable when a consumer's
+            # AbstractAsyncAuth subclass raises it directly.
+            if isinstance(exc, InvalidHomeError):
+                raise
+
+            # Netatmo answers with an int here and a string elsewhere, so
+            # compare as text. The status matters too: code 21 is a generic
+            # invalid-parameter code, and only 400 states the id was rejected.
+            if exc.status != BAD_REQUEST_ERROR_CODE or str(exc.code) != str(
+                INVALID_HOME_ERROR_CODE
+            ):
+                raise
+
+            raise InvalidHomeError(
+                str(exc),
+                status=exc.status,
+                code=exc.code,
+            ) from exc
+        raw_data: RawData = extract_raw_data(await resp.json(), HOME, home_id)
         await self.homes[home_id].update(raw_data, do_raise_for_reachability_error=True)
 
     async def async_update_events(self, home_id: str) -> None:
@@ -157,7 +189,7 @@ class AsyncAccount:
             endpoint=GETEVENTS_ENDPOINT,
             params={"home_id": home_id},
         )
-        raw_data: RawData = extract_raw_data(await resp.json(), HOME)
+        raw_data: RawData = extract_raw_data(await resp.json(), HOME, home_id)
         await self.homes[home_id].update(raw_data)
 
     async def process_webhook(self, payload: dict[str, Any]) -> WebhookResult:
@@ -286,9 +318,10 @@ class AsyncAccount:
     ) -> None:
         """Update device states."""
         for device_data in raw_data.get("devices", {}):
-            if home_id := device_data.get(
-                "home_id",
-                self.find_home_of_device(device_data),
+            # `or`, not `get(..., default)`: the fallback scans every home and must
+            # not run for a device that already named the home it belongs to.
+            if home_id := device_data.get("home_id") or self.find_home_of_device(
+                device_data
             ):
                 home_name: str = device_data.get("home_name", "Unknown")
                 self.all_home_names.setdefault(home_id, home_name)
@@ -315,7 +348,14 @@ class AsyncAccount:
                     {HOME: {"modules": [normalize_weather_attributes(device_data)]}},
                 )
             else:
-                LOG.debug("No home %s (%s) found.", home_id, home_id)
+                # home_id is falsy here by definition, so name the device
+                # instead -- it is the only thing that could lead someone to the
+                # cause.
+                LOG.debug(
+                    "Skipping device %s (%s): belongs to no known home",
+                    device_data.get("_id"),
+                    device_data.get("type"),
+                )
 
             for module_data in device_data.get("modules", []):
                 module_data["home_id"] = home_id

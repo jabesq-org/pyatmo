@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from enum import Enum
 import logging
+from time import time
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from pyatmo.event import EventTypes
@@ -181,9 +182,10 @@ def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
     """Route a webhook payload to a WebhookKind by event_type/push_type."""
     if push_type in (WEBHOOK_ACTIVATION, WEBHOOK_DEACTIVATION):
         return WebhookKind.LIFECYCLE
-    if push_type in CAMERA_CONNECTION_WEBHOOKS or event_type in (
-        "connection",
-        "disconnection",
+    if (
+        push_type in CAMERA_CONNECTION_WEBHOOKS
+        or event_type == "connection"
+        or _is_disconnection(event_type, push_type)
     ):
         return WebhookKind.LIFECYCLE
     if event_type in STATE_EVENT_TYPES:
@@ -333,6 +335,10 @@ async def process_webhook(
     payload: dict[str, Any],
 ) -> WebhookResult:
     """Parse, normalize, and merge a Netatmo webhook payload."""
+    # Delivery of anything, including a payload this library cannot classify,
+    # proves the webhook path works end to end.
+    account.last_webhook_at = time()
+
     event_type = str_or_none(payload.get("event_type"))
     push_type = str_or_none(payload.get("push_type"))
     home_id = resolve_home_id(payload)

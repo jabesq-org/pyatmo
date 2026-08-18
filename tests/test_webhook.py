@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from time import time
+
 import pytest
 
 import pyatmo
@@ -77,6 +79,9 @@ def test_webhook_types_exported_from_package():
         ("connection", "connection", WebhookKind.LIFECYCLE),
         ("disconnection", "disconnection", WebhookKind.LIFECYCLE),
         (None, "NPC-connection", WebhookKind.LIFECYCLE),
+        (None, "NPC-disconnection", WebhookKind.LIFECYCLE),
+        (None, "NACamera-disconnection", WebhookKind.LIFECYCLE),
+        (None, "disconnection", WebhookKind.LIFECYCLE),
         ("something_new", "brand_new_push", WebhookKind.UNKNOWN),
     ],
 )
@@ -242,6 +247,32 @@ async def test_process_webhook_camera_disconnection_then_connection_flips_reacha
     assert result.touched_ids == [camera_id]
     assert len(result.events) == 1
     assert result.events[0].event_type == "connection"
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_camera_disconnection_push_type_only(async_account):
+    """A `*-disconnection` push type with no event_type must still be LIFECYCLE."""
+    home_id = "91763b24c43d3e344f424e8b"
+    camera_id = "12:34:56:00:f1:62"
+    camera = async_account.homes[home_id].modules[camera_id]
+    assert camera.reachable is True
+
+    result = await process_webhook(
+        async_account,
+        {
+            "camera_id": camera_id,
+            "device_id": camera_id,
+            "home_id": home_id,
+            "push_type": "NACamera-disconnection",
+        },
+    )
+    assert result.kind is WebhookKind.LIFECYCLE
+    assert result.lifecycle is LifecycleStatus.DISCONNECTION
+    assert result.refresh_scope == frozenset()
+    assert camera.reachable is False
+    assert result.touched_ids == [camera_id]
+    # No event_type in the payload -> nothing to surface as an event.
+    assert result.events == []
 
 
 async def test_process_webhook_unknown(async_account):
@@ -1856,3 +1887,46 @@ async def test_process_webhook_device_event_diagnosis_event_surfaces(async_accou
     assert result.touched_ids == ["12:34:56:3c:63:b2"]
     assert result.refresh_scope == frozenset()
     assert len(async_account.homes[home_id].modules) == module_count_before
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_records_delivery_time(async_account):
+    """Any processed payload records when it arrived."""
+    assert async_account.last_webhook_at is None
+
+    await process_webhook(async_account, {"push_type": "webhook_activation"})
+
+    assert async_account.last_webhook_at is not None
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_records_delivery_time_for_unknown_payloads(
+    async_account,
+):
+    """An unrecognised payload still proves the webhook path is delivering."""
+    await process_webhook(async_account, {"push_type": "display_change"})
+
+    assert async_account.last_webhook_at is not None
+
+
+async def test_last_webhook_at_records_an_unclassifiable_payload(async_account):
+    """Delivery of anything proves the path works, even if nothing parses.
+
+    The stamp is the first statement of process_webhook for this reason:
+    a payload with no event_type and no push_type returns UNKNOWN through an
+    early return, and must still count as a delivery.
+    """
+    before = time()
+
+    result = await process_webhook(async_account, {})
+
+    assert result.kind is WebhookKind.UNKNOWN
+    assert async_account.last_webhook_at is not None
+    assert async_account.last_webhook_at >= before
+
+
+async def test_last_webhook_at_is_wall_clock(async_account):
+    """Consumers compute an age from it, so it must be comparable to time()."""
+    await async_account.process_webhook({"push_type": "webhook_activation"})
+
+    assert async_account.last_webhook_at == pytest.approx(time(), abs=5)

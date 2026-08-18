@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Report which webhook URLs are registered, so a registration that was dropped
+  or overwritten can be detected. A banned webhook is still listed, so this
+  proves a webhook is registered - not that anything reaches it
+- Record when the last webhook payload arrived, including payloads the library
+  cannot classify
+- `Home.has_status` tells you up front whether a home can be polled, so the ones
+  Netatmo refuses need never be called
+
+### Changed
+
+- A home Netatmo permanently refuses now fails in its own distinct way, so it
+  can be dropped rather than retried forever. Existing error handling still
+  catches it
+- Errors now carry the status and error code Netatmo sent back, so one kind of
+  failure can be told apart from another
+- Error logs and messages now name the home they came from
+- Webhooks are managed through Netatmo's new endpoints
+
+### Fixed
+
+- Error messages for HTTP 409 and 429 name the status instead of leaving a
+  blank where it should be
+- Webhook URLs are redacted in logs. They are secrets, and debug logs end up in
+  bug reports
+- Devices belonging to no known home are named in the log
+- Stop searching every home for a device that already said which home it is in
+
 ## [9.8.0] - 2026-08-13
 
 ### Added

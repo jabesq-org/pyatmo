@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 from json import JSONDecodeError
 import logging
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode, urlsplit
 
 from aiohttp import ContentTypeError
 import pytest
@@ -368,10 +368,16 @@ def test_redact_webhook_url_drops_userinfo(value):
     """
     redacted = _redact_webhook_url(value)
 
+    # Parsed rather than prefix-matched: startswith would also accept
+    # "https://ha.example.org.evil.test/", so it does not pin the host.
+    parsed = urlsplit(redacted)
+
+    assert parsed.scheme == "https"
+    assert parsed.hostname == "ha.example.org"
+    assert parsed.username is None
+    assert parsed.password is None
     assert "Passw0rd" not in redacted
     assert "token" not in redacted
-    assert "@" not in redacted
-    assert redacted.startswith("https://ha.example.org")
 
 
 # The transport method each verb reaches, so a stub can replace one by name.

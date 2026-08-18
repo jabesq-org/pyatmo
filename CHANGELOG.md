@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   proves a webhook is registered - not that anything reaches it
 - Record when the last webhook payload arrived, including payloads the library
   cannot classify
-- Support authenticated JSON GET requests, alongside the existing POST support
 - `Home.has_status` tells you up front whether a home can be polled, so the ones
   Netatmo refuses need never be called
 
@@ -26,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Errors now carry the status and error code Netatmo sent back, so one kind of
   failure can be told apart from another
 - Error logs and messages now name the home they came from
+- Webhooks are managed through Netatmo's new endpoints
 
 ### Fixed
 

@@ -31,14 +31,13 @@ from tenacity import (
 from pyatmo.const import (
     AUTHORIZATION_HEADER,
     CONCURRENCY_ERROR_CODE,
+    CONFLICT_ERROR_CODE,
     DEFAULT_BASE_URL,
     ERRORS,
     FORBIDDEN_ERROR_CODE,
     THROTTLING_ERROR_CODE,
     TOO_MANY_REQUESTS_ERROR_CODE,
-    WEBHOOK_URL_ADD_ENDPOINT,
-    WEBHOOK_URL_DROP_ENDPOINT,
-    WEBHOOK_URL_LIST_ENDPOINT,
+    WEBHOOK_ENDPOINT,
 )
 from pyatmo.exceptions import ApiError, ApiThrottlingError, ApiTooManyRequestError
 from pyatmo.helpers import home_suffix
@@ -296,6 +295,37 @@ class AbstractAsyncAuth(ABC):
         ) as resp:
             return await self.process_response(resp, url, params=params)
 
+    @retry(
+        retry=retry_if_exception_type(ApiTooManyRequestError),
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=_wait_retry_after,
+        before_sleep=before_sleep_log(LOG, logging.DEBUG),
+        reraise=True,
+    )
+    async def async_delete_api_request(
+        self,
+        endpoint: str,
+        base_url: str | None = None,
+    ) -> ClientResponse:
+        """Wrap async delete requests."""
+
+        return await self.async_delete_request(
+            url=(base_url or self.base_url) + endpoint,
+        )
+
+    async def async_delete_request(self, url: str) -> ClientResponse:
+        """Wrap async delete requests."""
+
+        access_token: str = await self.get_access_token()
+        headers: dict[str, str] = {AUTHORIZATION_HEADER: f"Bearer {access_token}"}
+
+        async with self.websession.delete(
+            url,
+            headers=headers,
+            timeout=DEFAULT_TIMEOUT,
+        ) as resp:
+            return await self.process_response(resp, url)
+
     async def get_access_token(self) -> str:
         """Get access token."""
         try:
@@ -422,47 +452,53 @@ class AbstractAsyncAuth(ABC):
         return resp
 
     async def async_addwebhook(self, webhook_url: str) -> None:
-        """Register webhook."""
+        """Register a webhook URL for this application."""
         try:
-            resp: ClientResponse = await self.async_post_api_request(
-                endpoint=WEBHOOK_URL_ADD_ENDPOINT,
-                params={"url": webhook_url},
+            resp: ClientResponse = await self._async_post_webhook(webhook_url)
+        except ApiError as exc:
+            if exc.status != CONFLICT_ERROR_CODE:
+                raise
+
+            # One webhook per application: clear the incumbent and try once
+            # more. A second conflict is surfaced rather than retried.
+            try:
+                await self.async_delete_api_request(endpoint=WEBHOOK_ENDPOINT)
+            except TimeoutError as timeout:
+                msg = "Webhook removal during replacement timed out"
+                raise ApiError(msg) from timeout
+
+            resp = await self._async_post_webhook(webhook_url)
+
+        LOG.debug("addwebhook: %s", resp)
+
+    async def _async_post_webhook(self, webhook_url: str) -> ClientResponse:
+        """POST the registration, reporting a timeout as an ApiError."""
+        try:
+            return await self.async_post_api_request(
+                endpoint=WEBHOOK_ENDPOINT,
+                params={"json": {"url": webhook_url}},
             )
         except TimeoutError as exc:
             msg: str = "Webhook registration timed out"
             raise ApiError(msg) from exc
-        else:
-            LOG.debug("addwebhook: %s", resp)
 
     async def async_dropwebhook(self) -> None:
-        """Unregister webhook."""
+        """Unregister this application's webhook."""
         try:
-            resp: ClientResponse = await self.async_post_api_request(
-                endpoint=WEBHOOK_URL_DROP_ENDPOINT,
-                params={"app_types": "app_security"},
+            resp: ClientResponse = await self.async_delete_api_request(
+                endpoint=WEBHOOK_ENDPOINT,
             )
         except TimeoutError as exc:
-            msg: str = "Webhook registration timed out"
+            msg: str = "Webhook removal timed out"
             raise ApiError(msg) from exc
         else:
             LOG.debug("dropwebhook: %s", resp)
 
     async def async_list_webhooks(self) -> list[str]:
-        """Return the webhook URLs currently registered for this application.
-
-        An empty list is positive evidence that no webhook is registered. A
-        banned webhook still appears here, so this proves a webhook is
-        registered - not that anything is delivered to it.
-
-        Raises ``ApiError`` whenever the check could not be completed, which
-        includes a payload that cannot be parsed or does not have the expected
-        shape: an unreadable answer is not evidence of an absent registration,
-        and callers deciding on webhook health must be able to tell the two
-        apart.
-        """
+        """Return the webhook URLs currently registered for this application."""
         try:
             resp: ClientResponse = await self.async_get_api_request(
-                endpoint=WEBHOOK_URL_LIST_ENDPOINT,
+                endpoint=WEBHOOK_ENDPOINT,
             )
         except TimeoutError as exc:
             msg: str = "Webhook listing timed out"

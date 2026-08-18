@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 from json import JSONDecodeError
 import logging
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from aiohttp import ContentTypeError
 import pytest
@@ -374,47 +374,80 @@ def test_redact_webhook_url_drops_userinfo(value):
     assert redacted.startswith("https://ha.example.org")
 
 
-def _stub_get(auth, payload=None, exc=None):
-    """Replace the auth GET transport with a stub returning ``payload``."""
+# The transport method each verb reaches, so a stub can replace one by name.
+_TRANSPORT = {
+    "get": "async_get_request",
+    "post": "async_post_request",
+    "delete": "async_delete_request",
+}
+
+
+def _stub(auth, verb, payload=None, exc=None):
+    """Replace one auth transport with a stub, returning the kwargs it saw.
+
+    The returned dict is updated in place on every call, so a test reads it
+    after awaiting the code under test. Use ``_stub_sequence`` instead when the
+    call count matters or successive calls must answer differently.
+    """
     seen = {}
 
-    async def fake_get(*_args, **kwargs):
+    async def fake_request(*_args, **kwargs):
         seen.update(kwargs)
         if exc is not None:
             raise exc
-        return MockResponse(payload, 200)
+        return MockResponse({"status": "ok"} if payload is None else payload, 200)
 
-    auth.async_get_request = fake_get
+    setattr(auth, _TRANSPORT[verb], fake_request)
     return seen
+
+
+def _stub_sequence(auth, verb, results):
+    """Return each result in turn: an exception is raised, else a response.
+
+    Every call is recorded separately, unlike ``_stub``, so a test can assert
+    how many times the transport was reached and with what.
+    """
+    calls = []
+
+    async def fake_request(*_args, **kwargs):
+        calls.append(kwargs)
+        result = results[len(calls) - 1]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    setattr(auth, _TRANSPORT[verb], fake_request)
+    return calls
 
 
 async def test_list_webhooks_returns_registered_url(auth):
     """A registered webhook is returned as a single-entry list."""
-    _stub_get(auth, {"status": "ok", "body": [{"url": "https://example.com/hook"}]})
+    _stub(auth, "get", {"status": "ok", "body": [{"url": "https://example.com/hook"}]})
 
     assert await auth.async_list_webhooks() == ["https://example.com/hook"]
 
 
 async def test_list_webhooks_hits_expected_url(auth):
     """The listing endpoint is appended to the base URL without an api/ prefix."""
-    seen = _stub_get(auth, {"status": "ok", "body": []})
+    seen = _stub(auth, "get", {"status": "ok", "body": []})
 
     await auth.async_list_webhooks()
 
-    assert seen["url"] == "https://api.netatmo.com/webhooks/v1/"
+    assert seen["url"] == "https://api.netatmo.com/webhooks/v1"
 
 
 async def test_list_webhooks_empty_body(auth):
     """No registered webhook yields an empty list."""
-    _stub_get(auth, {"status": "ok", "body": []})
+    _stub(auth, "get", {"status": "ok", "body": []})
 
     assert await auth.async_list_webhooks() == []
 
 
 async def test_list_webhooks_multiple_urls_in_order(auth):
     """Several registered webhooks are all returned, in payload order."""
-    _stub_get(
+    _stub(
         auth,
+        "get",
         {
             "status": "ok",
             "body": [
@@ -447,7 +480,7 @@ async def test_list_webhooks_unexpected_shape_raises_api_error(auth, payload):
     Returning [] here would tell a caller no webhook is registered, which an
     unreadable answer does not prove.
     """
-    _stub_get(auth, payload)
+    _stub(auth, "get", payload)
 
     with pytest.raises(ApiError, match="Unexpected payload when listing webhooks"):
         await auth.async_list_webhooks()
@@ -466,8 +499,9 @@ async def test_list_webhooks_unexpected_entry_raises_api_error(auth, entry):
 
     Skipping it could hide our own registration and read as an absence.
     """
-    _stub_get(
+    _stub(
         auth,
+        "get",
         {"status": "ok", "body": [entry, {"url": "https://example.com/hook"}]},
     )
 
@@ -480,8 +514,9 @@ async def test_list_webhooks_error_message_omits_urls(auth):
 
     A webhook URL is a capability URL; it must not reach an exception message.
     """
-    _stub_get(
+    _stub(
         auth,
+        "get",
         {
             "status": "ok",
             "body": [{"uri": "https://secret.example.com/hook"}],
@@ -498,7 +533,7 @@ async def test_list_webhooks_error_message_omits_urls(auth):
 async def test_list_webhooks_propagates_api_error(auth):
     """An API error from the request path propagates untouched."""
     boom = "boom"
-    _stub_get(auth, exc=ApiError(boom))
+    _stub(auth, "get", exc=ApiError(boom))
 
     with pytest.raises(ApiError, match=boom):
         await auth.async_list_webhooks()
@@ -506,7 +541,7 @@ async def test_list_webhooks_propagates_api_error(auth):
 
 async def test_list_webhooks_timeout_raises_api_error(auth):
     """A TimeoutError surfaces as ApiError, like the add/drop helpers."""
-    _stub_get(auth, exc=TimeoutError)
+    _stub(auth, "get", exc=TimeoutError)
 
     with pytest.raises(ApiError, match="timed out"):
         await auth.async_list_webhooks()
@@ -552,7 +587,7 @@ async def test_list_webhooks_debug_log_redacts_the_url(auth, caplog):
     The registered URL must therefore never reach the log in full: anyone
     holding it can POST forged Netatmo events into that user's instance.
     """
-    _stub_get(auth, {"status": "ok", "body": [{"url": FAKE_CLOUDHOOK}]})
+    _stub(auth, "get", {"status": "ok", "body": [{"url": FAKE_CLOUDHOOK}]})
 
     with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"):
         await auth.async_list_webhooks()
@@ -566,8 +601,9 @@ async def test_list_webhooks_debug_log_redacts_the_url(auth, caplog):
 
 async def test_list_webhooks_debug_log_counts_every_url(auth, caplog):
     """The count is the useful part, and it stays truthful for several hooks."""
-    _stub_get(
+    _stub(
         auth,
+        "get",
         {
             "status": "ok",
             "body": [
@@ -588,7 +624,7 @@ async def test_list_webhooks_debug_log_counts_every_url(auth, caplog):
 
 async def test_list_webhooks_debug_log_reports_zero(auth, caplog):
     """An empty listing is the interesting case for a health check."""
-    _stub_get(auth, {"status": "ok", "body": []})
+    _stub(auth, "get", {"status": "ok", "body": []})
 
     with caplog.at_level(logging.DEBUG, logger="pyatmo.auth"):
         await auth.async_list_webhooks()
@@ -621,23 +657,36 @@ class _RecordingSession:
     def post(self, url, **kwargs):
         self.seen["url"] = url
         self.seen.update(kwargs)
-        return _ReprResponse(url)
+        query = kwargs.get("params") or {}
+        rendered = f"{url}?{urlencode(query)}" if query else url
+        return _ReprResponse(rendered)
 
 
 async def test_addwebhook_sends_the_url_in_the_body_not_the_query():
     """The registration URL must stay out of the request URL.
 
-    ``async_addwebhook`` logs the ClientResponse, whose repr renders the
-    request URL. That is only safe while the webhook URL travels as form data.
+    A webhook URL is a capability URL - possession of it is the whole
+    credential. ``async_addwebhook`` finishes with ``LOG.debug("addwebhook:
+    %s", resp)``, and an aiohttp ``ClientResponse`` repr renders the *request*
+    URL, so that debug line is only safe while the webhook URL travels in the
+    JSON body. Moving it to ``params`` would put it in the query string, the
+    response repr and every debug log from there on.
+
+    ``test_addwebhook_debug_log_does_not_leak_the_url`` does not cover this:
+    ``_RecordingSession.post`` builds its ``_ReprResponse`` from the bare
+    ``url`` argument, so a regression to ``params={"url": ...}`` would still
+    leave that test green.
     """
     session = _RecordingSession()
     auth = _Auth(websession=session)
 
     await auth.async_addwebhook(FAKE_CLOUDHOOK)
 
-    assert session.seen["url"] == "https://api.netatmo.com/api/addwebhook"
-    assert session.seen["data"] == {"url": FAKE_CLOUDHOOK}
+    assert session.seen["url"] == "https://api.netatmo.com/webhooks/v1"
+    assert session.seen["json"] == {"url": FAKE_CLOUDHOOK}
     assert "params" not in session.seen
+    assert "data" not in session.seen
+    assert FAKE_SECRET not in session.seen["url"]
 
 
 async def test_addwebhook_debug_log_does_not_leak_the_url(caplog):
@@ -674,7 +723,7 @@ async def test_get_request_uses_bearer_token_and_returns_response():
     auth = _Auth(websession=_Session())
 
     assert await auth.async_list_webhooks() == ["https://example.com/hook"]
-    assert seen["url"] == "https://api.netatmo.com/webhooks/v1/"
+    assert seen["url"] == "https://api.netatmo.com/webhooks/v1"
     assert seen["headers"] == {"Authorization": "Bearer token"}
 
 
@@ -996,3 +1045,238 @@ async def test_get_request_passes_params_to_the_error_path():
         )
 
     assert "for home 5ed02c730474377f3443794a" in str(exc_info.value)
+
+
+class _FakeDeleteSession:
+    """Minimal websession recording the delete call it received.
+
+    ``MockResponse`` is itself an async context manager (``tests/common.py``),
+    so it can be returned straight from ``delete()``.
+    """
+
+    def __init__(self, payload, status=200):
+        self.payload = payload
+        self.status = status
+        self.seen = {}
+
+    def delete(self, url, **kwargs):
+        self.seen = {"url": url, **kwargs}
+        return MockResponse(self.payload, self.status)
+
+
+async def test_delete_request_issues_a_delete_with_the_bearer_token():
+    """A DELETE carries the access token and reaches the given url."""
+    session = _FakeDeleteSession({"status": "ok"})
+    auth = _Auth(websession=session)
+
+    await auth.async_delete_request(url="https://api.netatmo.com/webhooks/v1")
+
+    assert session.seen["url"] == "https://api.netatmo.com/webhooks/v1"
+    assert session.seen["headers"]["Authorization"] == "Bearer token"
+
+
+async def test_delete_api_request_appends_the_endpoint_to_the_base_url():
+    """The endpoint is joined to the base url, as the get wrapper does."""
+    session = _FakeDeleteSession({"status": "ok"})
+    auth = _Auth(websession=session)
+
+    await auth.async_delete_api_request(endpoint="webhooks/v1")
+
+    assert session.seen["url"] == "https://api.netatmo.com/webhooks/v1"
+
+
+async def test_delete_request_raises_api_error_on_error_status():
+    """A DELETE goes through the same error handling as every other verb."""
+    session = _FakeDeleteSession({"error": {"code": "WH404", "message": "nope"}}, 404)
+    auth = _Auth(websession=session)
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.async_delete_request(url="https://api.netatmo.com/webhooks/v1")
+
+    assert exc_info.value.status == 404
+    assert exc_info.value.code == "WH404"
+
+
+async def test_delete_api_request_retries_then_succeeds(auth):
+    """A transient 429/code-11 on the DELETE path is retried, then succeeds.
+
+    ``DELETE /webhooks/v1`` takes no body and clears the application's single
+    webhook, so repeating it converges on the same state - retrying is safe on
+    the merits, not merely for symmetry with the get and post wrappers.
+    """
+    success = MockResponse({"status": "ok"}, 200)
+    calls = 0
+    busy = "busy"
+
+    async def flaky(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise ApiTooManyRequestError(busy, retry_after=0.0)
+        return success
+
+    auth.async_delete_request = flaky
+
+    result = await auth.async_delete_api_request(endpoint="webhooks/v1")
+
+    assert result is success
+    assert calls == 3
+
+
+async def test_dropwebhook_issues_a_delete_to_webhooks_v1(auth):
+    """Unregistering uses DELETE, not a post to the legacy endpoint."""
+    seen = _stub(auth, "delete")
+
+    await auth.async_dropwebhook()
+
+    assert seen["url"] == "https://api.netatmo.com/webhooks/v1"
+
+
+async def test_dropwebhook_sends_no_app_types_parameter(auth):
+    """The legacy app_types parameter has no meaning on the v1 endpoint."""
+    seen = _stub(auth, "delete")
+
+    await auth.async_dropwebhook()
+
+    assert seen.get("params") is None
+
+
+async def test_dropwebhook_timeout_raises_api_error(auth):
+    """A timeout is still reported as an ApiError, as before."""
+    _stub(auth, "delete", exc=TimeoutError)
+
+    with pytest.raises(ApiError, match="timed out"):
+        await auth.async_dropwebhook()
+
+
+async def test_addwebhook_posts_json_to_webhooks_v1(auth):
+    """Nothing registered: a single POST with a JSON body."""
+    posted = _stub(auth, "post")
+
+    await auth.async_addwebhook("https://example.com/hook")
+
+    assert posted["url"] == "https://api.netatmo.com/webhooks/v1"
+    assert posted["params"] == {"json": {"url": "https://example.com/hook"}}
+
+
+async def test_addwebhook_surfaces_a_failure_after_the_delete_succeeded(auth):
+    """A retry POST that fails after a successful delete reaches the caller unchanged.
+
+    Nothing is rolled back: the old registration is gone and the new one was
+    never made. A plain retry then finds nothing registered, so its first POST
+    succeeds and the call self-heals.
+    """
+    conflict = ApiError("409 - Conflict - limit (WH009)", status=409, code="WH009")
+    failure = ApiError("400 - Bad Request - nope (21)", status=400, code=21)
+    posts = _stub_sequence(auth, "post", [conflict, failure])
+    deleted = _stub(auth, "delete")
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.async_addwebhook("https://example.com/hook")
+
+    assert deleted["url"] == "https://api.netatmo.com/webhooks/v1"
+    assert len(posts) == 2
+    assert exc_info.value.code == 21
+
+
+async def test_addwebhook_delete_timeout_does_not_claim_registration_timed_out(auth):
+    """A timeout removing the incumbent must not be reported as a registration one.
+
+    The retry registration was never attempted, and the delete may well have
+    gone through - so the caller may have been left with no webhook at all, the
+    opposite of what "registration timed out" implies.
+    """
+    conflict = ApiError("409 - Conflict - limit (WH009)", status=409, code="WH009")
+    posts = _stub_sequence(auth, "post", [conflict])
+    _stub(auth, "delete", exc=TimeoutError)
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.async_addwebhook("https://example.com/hook")
+
+    message = str(exc_info.value).lower()
+    assert "timed out" in message
+    assert "removal" in message
+    assert "registration timed out" not in message
+    assert len(posts) == 1
+
+
+async def test_addwebhook_timeout_raises_api_error(auth):
+    """A timeout is still reported as an ApiError, as before.
+
+    The POST is the step that names registration - the removal reports its own
+    timeout, so a caller can tell the two apart.
+    """
+    _stub(auth, "post", exc=TimeoutError)
+
+    with pytest.raises(ApiError, match="registration timed out"):
+        await auth.async_addwebhook("https://example.com/hook")
+
+
+async def test_addwebhook_registers_without_listing_first(auth):
+    """Nothing registered: one POST, and the listing is never consulted."""
+    listed = _stub(auth, "get", {"status": "ok", "body": []})
+    posted = _stub(auth, "post")
+
+    await auth.async_addwebhook("https://example.com/hook")
+
+    assert posted["params"] == {"json": {"url": "https://example.com/hook"}}
+    assert listed == {}
+
+
+async def test_addwebhook_clears_and_retries_on_conflict(auth):
+    """409 means one is already registered: clear it, then register again."""
+    conflict = ApiError("409 - Conflict - limit (WH009)", status=409, code="WH009")
+    posts = _stub_sequence(
+        auth, "post", [conflict, MockResponse({"status": "ok"}, 200)]
+    )
+    deleted = _stub(auth, "delete")
+
+    await auth.async_addwebhook("https://example.com/hook")
+
+    assert len(posts) == 2
+    assert deleted["url"] == "https://api.netatmo.com/webhooks/v1"
+    assert posts[1]["params"] == {"json": {"url": "https://example.com/hook"}}
+
+
+async def test_addwebhook_re_registers_the_same_url(auth):
+    """Re-registering an unchanged URL is NOT a no-op.
+
+    The listing reports deliverable hooks, not registered ones, so a hook
+    Netatmo has stopped delivering to still has to be cleared and posted
+    again -- that is the only way to re-arm it.
+    """
+    conflict = ApiError("409 - Conflict - limit (WH009)", status=409, code="WH009")
+    posts = _stub_sequence(
+        auth, "post", [conflict, MockResponse({"status": "ok"}, 200)]
+    )
+    deleted = _stub(auth, "delete")
+
+    await auth.async_addwebhook("https://example.com/hook")
+
+    assert len(posts) == 2
+    assert deleted != {}
+
+
+async def test_addwebhook_does_not_retry_a_second_conflict(auth):
+    """A conflict surviving the removal is surfaced, not retried forever."""
+    conflict = ApiError("409 - Conflict - limit (WH009)", status=409, code="WH009")
+    posts = _stub_sequence(auth, "post", [conflict, conflict])
+    _stub(auth, "delete")
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.async_addwebhook("https://example.com/hook")
+
+    assert exc_info.value.status == 409
+    assert len(posts) == 2
+
+
+async def test_addwebhook_surfaces_a_non_conflict_error(auth):
+    """Any other error propagates without touching the registration."""
+    _stub(auth, "post", exc=ApiError("400 - Bad request", status=400, code=21))
+    deleted = _stub(auth, "delete")
+
+    with pytest.raises(ApiError) as exc_info:
+        await auth.async_addwebhook("https://example.com/hook")
+
+    assert exc_info.value.status == 400
+    assert deleted == {}

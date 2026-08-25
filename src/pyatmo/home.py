@@ -131,6 +131,19 @@ class Home:
                 module=module,
             )
 
+    @property
+    def has_status(self) -> bool:
+        """Whether `/homestatus` can be called for this home.
+
+        A home carrying no modules has nothing to report: `/homestatus` answers
+        `200 {"status": "ok"}` with no `body`, which raises `NoDeviceError` on
+        every call, so a caller should not schedule it.
+
+        Device category deliberately plays no part: `/homestatus` does report
+        weather modules, so excluding them would hide a home that polls fine.
+        """
+        return bool(self.modules)
+
     def update_topology(self, raw_data: RawData) -> None:
         """Update topology."""
 

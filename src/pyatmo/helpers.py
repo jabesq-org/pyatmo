@@ -73,21 +73,38 @@ def fix_id(raw_data: list[RawData | str]) -> list[RawData | str]:
     return raw_data
 
 
-def extract_raw_data(resp: RawData, tag: str) -> RawData:
-    """Extract raw data from server response."""
+def home_suffix(home_id: str | None) -> str:
+    """Return ``" for home <id>"`` for a home id, else ``""``.
+
+    Shared by every log line and error message that can name a home, so the
+    wording stays identical across modules and an absent home id costs no
+    trailing noise.
+    """
+    return f" for home {home_id}" if home_id else ""
+
+
+def extract_raw_data(resp: RawData, tag: str, home_id: str | None = None) -> RawData:
+    """Extract raw data from server response.
+
+    ``home_id`` is optional and used solely to name the home the request was
+    for: the id travels in the request body, never in the response, so a
+    body-less 200 is otherwise unattributable on a multi-home account.
+    """
     if tag == "body":
         return {"public": resp["body"], "errors": []}
 
+    suffix: str = home_suffix(home_id)
+
     if resp is None or "body" not in resp or tag not in resp["body"]:
-        LOG.debug("Server response (tag: %s): %s", tag, resp)
-        msg = "No device found, errors in response"
+        LOG.debug("Server response (tag: %s)%s: %s", tag, suffix, resp)
+        msg = f"No device found, errors in response{suffix}"
         raise NoDeviceError(msg)
 
     if tag == "homes":
         homes: list[RawData | str] = fix_id(resp["body"].get(tag))
         if not homes:
-            LOG.debug("Server response (tag: %s): %s", tag, resp)
-            msg = "No homes found"
+            LOG.debug("Server response (tag: %s)%s: %s", tag, suffix, resp)
+            msg = f"No homes found{suffix}"
             raise NoDeviceError(msg)
         return {
             tag: homes,
@@ -95,8 +112,8 @@ def extract_raw_data(resp: RawData, tag: str) -> RawData:
         }
 
     if not (raw_data := fix_id(resp["body"].get(tag))):
-        LOG.debug("Server response (tag: %s): %s", tag, resp)
-        msg = "No device data available"
+        LOG.debug("Server response (tag: %s)%s: %s", tag, suffix, resp)
+        msg = f"No device data available{suffix}"
         raise NoDeviceError(msg)
 
     return {tag: raw_data, "errors": resp["body"].get("errors", [])}

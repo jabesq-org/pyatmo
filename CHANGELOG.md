@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Keep `target_position:step` across topology updates, which do not report it
+- Report a room that `/homestatus` returns but the home topology never declared
+  once per room instead of on every poll. Some homes carry a room the user cannot
+  delete, which filled the log with the same warning every minute
 
 ## [9.9.0] - 2026-08-18
 

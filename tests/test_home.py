@@ -873,3 +873,86 @@ async def test_unmapped_module_keeps_the_home_pollable(async_home):
         module.device_category = None
 
     assert async_home.has_status is True
+
+
+def _home_warnings(caplog) -> list[str]:
+    """Return the WARNING messages pyatmo.home emitted."""
+    return [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "pyatmo.home" and record.levelno == logging.WARNING
+    ]
+
+
+async def test_unknown_status_room_warns_once(async_home, caplog):
+    """A /homestatus room absent from the topology is reported once, not per poll.
+
+    Legrand/Bubendorff homes get a phantom room id 0 the API never declares in
+    /homesdata and the user cannot delete, so warning per poll meant one warning
+    a minute forever (jabesq-org/pyatmo#657).
+    """
+    assert "0" not in async_home.rooms
+    status = {"home": {"id": async_home.entity_id, "rooms": [{"id": "0"}]}}
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.home"):
+        for _ in range(3):
+            await async_home.update(status)
+
+    warnings = _home_warnings(caplog)
+    assert len(warnings) == 1
+    assert "Room id (0) not found in known rooms" in warnings[0]
+
+    repeats = [
+        record
+        for record in caplog.records
+        if record.name == "pyatmo.home"
+        and record.levelno == logging.DEBUG
+        and "still not found" in record.getMessage()
+    ]
+    assert len(repeats) == 2
+
+
+async def test_unknown_status_room_warns_again_after_topology_churn(async_home, caplog):
+    """Declaring the room in the topology re-arms the warning.
+
+    Dedupe must not turn into permanent silence: an id that becomes known and
+    later drops out of the topology again is fresh news.
+
+    The topology payloads here are deliberately partial, so they also drop the
+    home's modules and schedules -- irrelevant to what this test asserts.
+    """
+    status = {"home": {"id": async_home.entity_id, "rooms": [{"id": "0"}]}}
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.home"):
+        await async_home.update(status)
+        assert len(_home_warnings(caplog)) == 1
+
+        # Topology declares room 0: the status room now resolves, which clears
+        # the dedupe entry.
+        async_home.update_topology({"rooms": [{"id": "0"}]})
+        await async_home.update(status)
+        assert len(_home_warnings(caplog)) == 1
+        assert async_home.rooms["0"].entity_id == "0"
+
+        # Withdrawn again: unknown once more, so it warns a second time.
+        async_home.update_topology({"rooms": []})
+        await async_home.update(status)
+        assert len(_home_warnings(caplog)) == 2
+
+
+async def test_known_status_rooms_never_warn(async_home, caplog):
+    """Rooms the topology declares must not trip the unknown-room warning."""
+    known = list(async_home.rooms)
+    assert known
+
+    with caplog.at_level(logging.DEBUG, logger="pyatmo.home"):
+        await async_home.update(
+            {
+                "home": {
+                    "id": async_home.entity_id,
+                    "rooms": [{"id": room_id} for room_id in known],
+                },
+            },
+        )
+
+    assert _home_warnings(caplog) == []

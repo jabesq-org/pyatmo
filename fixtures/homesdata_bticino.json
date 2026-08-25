@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "body": {
+    "homes": [
+      {
+        "id": "bticino_home_id",
+        "name": "BTicino Test Home",
+        "modules": [
+          {
+            "id": "bticino_gateway_id",
+            "type": "BNMH",
+            "name": "MyHome Server 1",
+            "modules_bridged": [
+              "bticino_shutter_uncalibrated",
+              "bticino_shutter_calibrated",
+              "bticino_blind_calibrated",
+              "bticino_shade_uncalibrated"
+            ]
+          },
+          {
+            "id": "bticino_shutter_uncalibrated",
+            "type": "BNAS",
+            "name": "Uncalibrated Shutter",
+            "bridge": "bticino_gateway_id",
+            "room_id": "bticino_room_id"
+          },
+          {
+            "id": "bticino_shutter_calibrated",
+            "type": "BNAS",
+            "name": "Calibrated Shutter",
+            "bridge": "bticino_gateway_id",
+            "room_id": "bticino_room_id"
+          },
+          {
+            "id": "bticino_blind_calibrated",
+            "type": "BNAB",
+            "name": "Calibrated Blind",
+            "bridge": "bticino_gateway_id",
+            "room_id": "bticino_room_id"
+          },
+          {
+            "id": "bticino_shade_uncalibrated",
+            "type": "BNMS",
+            "name": "Uncalibrated Shade",
+            "bridge": "bticino_gateway_id",
+            "room_id": "bticino_room_id"
+          }
+        ],
+        "rooms": [
+          {
+            "id": "bticino_room_id",
+            "name": "Living Room",
+            "module_ids": [
+              "bticino_shutter_uncalibrated",
+              "bticino_shutter_calibrated",
+              "bticino_blind_calibrated",
+              "bticino_shade_uncalibrated"
+            ]
+          }
+        ],
+        "schedules": [],
+        "persons": []
+      }
+    ],
+    "user": {
+      "email": "bticino@example.com"
+    },
+    "errors": []
+  }
+}

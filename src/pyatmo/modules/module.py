@@ -511,7 +511,14 @@ class FanSpeedMixin(EntityBase):
 
 
 class ShutterMixin(EntityBase):
-    """Mixin for shutter data."""
+    """Mixin for shutter data.
+
+    The capability properties below all default to True. That is a fallback,
+    not a positive assertion: the API describes no shutter type's abilities,
+    so every module is assumed capable unless it says otherwise, which keeps
+    each type behaving as it always has. A type known to lack one of them
+    should override it rather than have it inferred.
+    """
 
     __open_position = 100
     __close_position = 0
@@ -522,6 +529,9 @@ class ShutterMixin(EntityBase):
         """Initialize shutter mixin."""
 
         super().__init__(home, module)
+        # when can_report_position is False, this is not a real position - it
+        # mirrors the last commanded target, and 101 means never instructed,
+        # so it can fall outside the normal 0-100 range
         self.current_position: int | None = None
         self.target_position: int | None = None
         self.target_position__step: int | None = None
@@ -564,6 +574,36 @@ class ShutterMixin(EntityBase):
         """Move shutter to preferred position."""
 
         return await self.async_set_target_position(self.__preferred_position)
+
+    @property
+    def can_set_target_position(self) -> bool:
+        """Return whether the actor accepts an arbitrary target position.
+
+        False for actors that only support open/close/stop, where sending a
+        percentage is either rejected or silently coerced by the hardware.
+        """
+
+        return True
+
+    @property
+    def can_report_position(self) -> bool:
+        """Return whether `current_position` reflects the actor's real position.
+
+        False for actors that only echo the last commanded target instead of
+        reporting an actual, physically measured position.
+        """
+
+        return True
+
+    @property
+    def can_move_to_preferred_position(self) -> bool:
+        """Return whether the actor accepts `async_move_to_preferred_position`.
+
+        False for actors that reject the preset command outright, even though
+        they otherwise support open/close/stop and exact positioning.
+        """
+
+        return True
 
 
 class CameraMixinBase(EntityBase):

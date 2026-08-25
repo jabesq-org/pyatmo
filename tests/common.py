@@ -95,3 +95,8 @@ async def fake_post_request_ac(*args, **kwargs):
 async def fake_post_request_bridged(*args, **kwargs):
     kwargs["POSTFIX"] = "bridged"
     return await fake_post_request(*args, **kwargs)
+
+
+async def fake_post_request_bticino(*args, **kwargs):
+    kwargs["POSTFIX"] = "bticino"
+    return await fake_post_request(*args, **kwargs)

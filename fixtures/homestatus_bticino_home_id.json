@@ -1,0 +1,59 @@
+{
+  "status": "ok",
+  "body": {
+    "home": {
+      "modules": [
+        {
+          "id": "bticino_gateway_id",
+          "type": "BNMH",
+          "reachable": true,
+          "last_seen": 1776675797
+        },
+        {
+          "id": "bticino_shutter_uncalibrated",
+          "type": "BNAS",
+          "bridge": "bticino_gateway_id",
+          "reachable": true,
+          "current_position": 101,
+          "target_position": 100,
+          "target_position:step": 100,
+          "last_seen": 1776675797
+        },
+        {
+          "id": "bticino_shutter_calibrated",
+          "type": "BNAS",
+          "bridge": "bticino_gateway_id",
+          "reachable": true,
+          "current_position": 42,
+          "target_position": 42,
+          "target_position:step": 5,
+          "last_seen": 1776675797
+        },
+        {
+          "id": "bticino_blind_calibrated",
+          "type": "BNAB",
+          "bridge": "bticino_gateway_id",
+          "reachable": true,
+          "current_position": 30,
+          "target_position": 30,
+          "target_position:step": 5,
+          "last_seen": 1776675797
+        },
+        {
+          "id": "bticino_shade_uncalibrated",
+          "type": "BNMS",
+          "bridge": "bticino_gateway_id",
+          "reachable": true,
+          "current_position": 101,
+          "target_position": 100,
+          "target_position:step": 100,
+          "last_seen": 1776675797
+        }
+      ],
+      "rooms": [],
+      "persons": [],
+      "events": []
+    },
+    "errors": []
+  }
+}

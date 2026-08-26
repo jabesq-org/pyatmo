@@ -98,6 +98,9 @@ class Home:
             s["id"]: Person(home=self, raw_data=s) for s in raw_data.get("persons", [])
         }
         self.events = {}
+        # Room ids seen in /homestatus that the topology never declared. Tracked
+        # so each one is reported once instead of on every poll; see Home.update.
+        self._unknown_room_ids: set[str] = set()
 
         self.temperature_control_mode = get_temperature_control_mode(
             raw_data.get("temperature_control_mode"),
@@ -258,15 +261,28 @@ class Home:
 
         for room in data.get("rooms", []):
             has_an_update = True
-            if room["id"] in self.rooms:
-                self.rooms[room["id"]].update(room)
-            else:
+            room_id = room["id"]
+            if room_id in self.rooms:
+                self.rooms[room_id].update(room)
+                # Re-arm the warning: the topology declares this room again, so
+                # should it drop out later that is fresh news worth reporting.
+                self._unknown_room_ids.discard(room_id)
+            elif room_id not in self._unknown_room_ids:
+                # Some homes (seen on Legrand/Bubendorff) carry a room in
+                # /homestatus that /homesdata never declares, on every poll
+                # forever. The room is skipped either way -- building one needs
+                # the name and type only the topology carries -- but the
+                # condition is not user-fixable, so report it once per id
+                # instead of once per poll.
+                self._unknown_room_ids.add(room_id)
                 LOG.warning(
                     "Room id (%s) not found in known rooms. Known room ids: %s (count=%d)",
-                    room["id"],
+                    room_id,
                     list(self.rooms.keys()),
                     len(self.rooms),
                 )
+            else:
+                LOG.debug("Room id (%s) still not found in known rooms", room_id)
 
         for person_status in data.get("persons", []):
             # if there is a person update, it means the house has been updated

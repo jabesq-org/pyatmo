@@ -55,7 +55,9 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
     "battery_level": lambda x, _: x.get("battery_vp", x.get("battery_level")),
     "place": lambda x, y: Place(x["place"]) if isinstance(x.get("place"), dict) else y,
-    "target_position__step": lambda x, _: x.get("target_position:step"),
+    # /homesdata never carries the step, so keep the last known value instead of
+    # dropping it: consumers derive shutter capabilities from it.
+    "target_position__step": lambda x, y: x.get("target_position:step", y),
     "appliance_type": lambda x, y: ApplianceType(x.get("appliance_type", y)),
     "doortag_category": lambda x, y: DoorTagCategory(x.get("category", y)),
     # Coerce only when present so absent fields keep their default (no spurious

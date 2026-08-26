@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [9.9.1] - 2026-08-26
+
+### Added
+
+- Advertise shutter capabilities on `ShutterMixin`: `can_set_target_position`,
+  `can_report_position` and `can_move_to_preferred_position`, so consumers no longer
+  have to branch on device type
+- Derive BTicino MyHome Server 1 shutter capabilities per actor from the
+  `target_position:step` the actor reports
+
+### Fixed
+
+- Keep `target_position:step` across topology updates, which do not report it
+- Report a room that `/homestatus` returns but the home topology never declared
+  once per room instead of on every poll. Some homes carry a room the user cannot
+  delete, which filled the log with the same warning every minute
+
 ## [9.9.0] - 2026-08-18
 
 ### Added
@@ -607,6 +624,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix crash when station name is not contained in the backend data
 
+[9.9.1]: https://github.com/jabesq-org/pyatmo/compare/v9.9.0...v9.9.1
 [9.9.0]: https://github.com/jabesq-org/pyatmo/compare/v9.8.0...v9.9.0
 [9.8.0]: https://github.com/jabesq-org/pyatmo/compare/v9.7.0...v9.8.0
 [9.7.0]: https://github.com/jabesq-org/pyatmo/compare/v9.6.0...v9.7.0

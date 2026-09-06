@@ -26,6 +26,7 @@ class VeluxGatewayMixin(EntityBase):
         """Initialize VELUX gateway data."""
         super().__init__(home, module)
         self.subtype: str | None = None
+        self.wifi_state: str | None = None
         self.firmware_revision_netatmo: int | None = None
         self.firmware_revision_thirdparty: int | None = None
         self.hardware_version: int | None = None
@@ -50,6 +51,8 @@ class VeluxOpenerMixin(EntityBase):
         self.last_seen: int | None = None
         self.manufacturer: str | None = None
         self.mode: str | None = None
+        self.secure_position: int | None = None
+        self.rain_position: int | None = None
         self.silent: bool | None = None
         self.velux_type: str | None = None
 

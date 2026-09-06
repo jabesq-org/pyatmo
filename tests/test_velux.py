@@ -37,12 +37,14 @@ async def test_async_velux_modules(async_auth):
     assert gateway.device_type == DeviceType.NXG
     assert gateway.device_category is None
     assert gateway.wifi_strength == 44
+    assert gateway.wifi_state == "full"
     assert gateway.locked is True
     assert gateway.locking is False
     assert gateway.secure is True
     assert gateway.modules == [
         "velux_opener_awning",
         "velux_opener_blind",
+        "velux_opener_window",
         "velux_climate_sensor",
         "velux_departure_switch",
     ]
@@ -63,6 +65,20 @@ async def test_async_velux_modules(async_auth):
 
     blind = home.modules["velux_opener_blind"]
     assert blind.name == "Bedroom Blind"
+    assert blind.secure_position is None
+    assert blind.rain_position is None
+
+    window = home.modules["velux_opener_window"]
+    assert isinstance(window, pyatmo.modules.NXO)
+    assert {
+        "velux_type": window.velux_type,
+        "secure_position": window.secure_position,
+        "rain_position": window.rain_position,
+    } == {
+        "velux_type": "window",
+        "secure_position": 10,
+        "rain_position": 50,
+    }
 
     sensor = home.modules["velux_climate_sensor"]
     assert isinstance(sensor, pyatmo.modules.NXS)
@@ -163,6 +179,37 @@ async def test_async_velux_modules(async_auth):
         "max_comfort_humidity": 70,
         "max_comfort_co2": 1150,
     }
+
+
+async def test_velux_status_fields_partial_updates(async_auth):
+    """Preserve optional status values on partial updates, including zero and null."""
+    homesdata = json.loads(load_fixture("homesdata_velux.json"))
+    home = pyatmo.Home(async_auth, homesdata["body"]["homes"][0])
+    gateway = home.modules["velux_gateway_id"]
+    window = home.modules["velux_opener_window"]
+
+    assert gateway.wifi_state is None
+    assert window.secure_position is None
+    assert window.rain_position is None
+
+    await gateway.update({"wifi_state": "low"})
+    await window.update({"secure_position": 0, "rain_position": 50})
+    await gateway.update({"wifi_strength": 65})
+    await window.update({"current_position": 0})
+
+    assert gateway.wifi_state == "low"
+    assert window.secure_position == 0
+    assert window.rain_position == 50
+
+    await window.update({"secure_position": 10, "rain_position": 0})
+    assert window.secure_position == 10
+    assert window.rain_position == 0
+
+    await gateway.update({"wifi_state": None})
+    await window.update({"secure_position": None, "rain_position": None})
+    assert gateway.wifi_state is None
+    assert window.secure_position is None
+    assert window.rain_position is None
 
 
 async def test_async_shutter_nxo(async_auth):

@@ -80,9 +80,11 @@ def default(key: str, val: Any) -> Callable[[dict[str, Any], Any], Any]:  # noqa
     return lambda x, _: x.get(key, val)
 
 
-def update_name(name: str, pre_fix: str) -> str:
-    """Remove duplicates from string."""
+def update_name(name: str | None, pre_fix: str) -> str:
+    """Prefix a module name, using the bridge name when the module is unnamed."""
 
+    if not name:
+        return pre_fix
     if name.startswith(pre_fix):
         return name
     return f"{pre_fix} {name}"

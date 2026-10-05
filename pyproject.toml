@@ -16,7 +16,7 @@ license-files = ["LICENSE.txt"]
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.7.4,<4.0.0",
-    "oauthlib~=3.1",
+    "oauthlib>=3.1,<5.0",
     "requests-oauthlib>=1.3,<3.0",
     "requests~=2.24",
     "tenacity>=8.1,<10",

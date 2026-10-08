@@ -1,6 +1,31 @@
 """Tests for pyatmo.modules.base_class Place and reflection map."""
 
-from pyatmo.modules.base_class import NETATMO_ATTRIBUTES_MAP, Location, Place
+import pytest
+
+from pyatmo.modules.base_class import (
+    NETATMO_ATTRIBUTES_MAP,
+    Location,
+    Place,
+    update_name,
+)
+
+
+@pytest.mark.parametrize("name", [None, ""])
+def test_update_name_without_module_name_returns_prefix(name: str | None) -> None:
+    """An unnamed bridged module uses its bridge name instead of crashing."""
+    assert update_name(name, "Weather Station") == "Weather Station"
+
+
+def test_update_name_does_not_duplicate_prefix() -> None:
+    """A module name that already starts with its bridge stays unchanged."""
+    assert update_name("Weather Station Outdoor", "Weather Station") == (
+        "Weather Station Outdoor"
+    )
+
+
+def test_update_name_adds_prefix_once() -> None:
+    """A named module is prefixed by its bridge name."""
+    assert update_name("Outdoor", "Weather Station") == "Weather Station Outdoor"
 
 
 def test_place_none_assigns_all_fields() -> None:

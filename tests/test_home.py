@@ -255,6 +255,18 @@ async def test_home_event_update(async_account):
     assert events[1].event_type == "connection"
 
 
+async def test_home_events_survive_status_update(async_account):
+    """A /homestatus update carries no events and must not wipe stored ones."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "12:34:56:10:b9:0e"
+    await async_account.async_update_events(home_id=home_id)
+    await async_account.async_update_status(home_id)
+    home = async_account.homes[home_id]
+
+    assert len(home.events) == 8
+    assert len(home.modules[module_id].events) == 5
+
+
 async def test_async_home_module_error_code(async_account):
     """Test that per-module error code from homestatus errors[] is surfaced."""
     home_id = "91763b24c43d3e344f424e8b"

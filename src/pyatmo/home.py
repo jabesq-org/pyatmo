@@ -290,18 +290,21 @@ class Home:
             if person := self.persons.get(person_status["id"]):
                 person.update(person_status)
 
-        self.events = {
-            s["id"]: Event(home_id=self.entity_id, raw_data=s)
-            for s in data.get(EVENTS, [])
-        }
-        if len(self.events) > 0:
-            has_an_update = True
+        # Only /getevents carries events. A /homestatus response has no events key,
+        # and must leave the events stored by the last /getevents update in place.
+        has_events = EVENTS in data
+        if has_events:
+            self.events = {
+                s["id"]: Event(home_id=self.entity_id, raw_data=s) for s in data[EVENTS]
+            }
+            if len(self.events) > 0:
+                has_an_update = True
 
         has_one_module_reachable = False
         for module in self.modules.values():
             if module.reachable:
                 has_one_module_reachable = True
-            if hasattr(module, "events"):
+            if has_events and hasattr(module, "events"):
                 module = cast("NACamera", module)
                 module.events = [
                     event

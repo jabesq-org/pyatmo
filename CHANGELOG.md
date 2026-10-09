@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Keep camera events across `/homestatus` updates, which do not report them. Each
+  status poll used to replace the events from the last `/getevents` update with an
+  empty list, so `NACamera.events` was almost always empty
+
 ## [9.9.1] - 2026-08-26
 
 ### Added

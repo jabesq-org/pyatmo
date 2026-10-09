@@ -267,6 +267,30 @@ async def test_home_events_survive_status_update(async_account):
     assert len(home.modules[module_id].events) == 5
 
 
+async def test_home_events_survive_empty_events_in_status(async_account):
+    """Some homes report events: [] in /homestatus; that must not wipe events."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "12:34:56:10:b9:0e"
+    await async_account.async_update_events(home_id=home_id)
+    home = async_account.homes[home_id]
+    await home.update({"home": {"id": home_id, "events": []}})
+
+    assert len(home.events) == 8
+    assert len(home.modules[module_id].events) == 5
+
+
+async def test_home_status_update_syncs_stored_events_to_camera(async_account):
+    """A camera without its events gets the stored ones on the next update."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "12:34:56:10:b9:0e"
+    await async_account.async_update_events(home_id=home_id)
+    home = async_account.homes[home_id]
+    home.modules[module_id].events = []
+    await async_account.async_update_status(home_id)
+
+    assert len(home.modules[module_id].events) == 5
+
+
 async def test_async_home_module_error_code(async_account):
     """Test that per-module error code from homestatus errors[] is surfaced."""
     home_id = "91763b24c43d3e344f424e8b"

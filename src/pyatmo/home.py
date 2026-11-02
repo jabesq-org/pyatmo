@@ -290,24 +290,14 @@ class Home:
             if person := self.persons.get(person_status["id"]):
                 person.update(person_status)
 
-        self.events = {
-            s["id"]: Event(home_id=self.entity_id, raw_data=s)
-            for s in data.get(EVENTS, [])
-        }
-        if len(self.events) > 0:
-            has_an_update = True
-
         has_one_module_reachable = False
         for module in self.modules.values():
             if module.reachable:
                 has_one_module_reachable = True
-            if hasattr(module, "events"):
-                module = cast("NACamera", module)
-                module.events = [
-                    event
-                    for event in self.events.values()
-                    if event.module_id == module.entity_id
-                ]
+
+        # Events are replaced only by update_events(). Re-sync here so a camera
+        # that this update added picks up the events already stored for it.
+        self._sync_camera_events()
 
         if (
             do_raise_for_reachability_error
@@ -319,6 +309,30 @@ class Home:
             raise ApiHomeReachabilityError(
                 msg,
             )
+
+    def update_events(self, raw_data: RawData) -> None:
+        """Replace the stored events with those from a /getevents response.
+
+        Only /getevents is authoritative for events. /homestatus either omits the
+        events key or, for some homes, reports an empty list, so update() leaves
+        the stored events alone.
+        """
+        self.events = {
+            s["id"]: Event(home_id=self.entity_id, raw_data=s)
+            for s in raw_data["home"].get(EVENTS, [])
+        }
+        self._sync_camera_events()
+
+    def _sync_camera_events(self) -> None:
+        """Give each camera the stored events that belong to it."""
+        for module in self.modules.values():
+            if hasattr(module, "events"):
+                camera = cast("NACamera", module)
+                camera.events = [
+                    event
+                    for event in self.events.values()
+                    if event.module_id == camera.entity_id
+                ]
 
     def get_selected_schedule(self) -> Schedule | None:
         """Return selected schedule for given home."""

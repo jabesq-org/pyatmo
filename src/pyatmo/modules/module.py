@@ -488,6 +488,7 @@ class ChargingStationMixin(EntityBase):
     """Mixin for EV charging station data."""
 
     def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize charging station mixin."""
         super().__init__(home, module)
         self.charging_station_status: ChargingStationStatus | None = None
         self.charging_station_error: int | None = None

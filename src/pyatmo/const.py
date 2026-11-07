@@ -69,6 +69,7 @@ ALL_SCOPES: list[str] = [
     "access_camerapro",  # Netatmo Indoor Camera Advance
     "read_bubendorff",  # Bubbendorf shutters
     "read_bfi",  # BTicino IP
+    "read_boreal", # Green'UP Home Charging Station
     "read_camera",  # Netatmo camera products
     "read_carbonmonoxidedetector",  # Netatmo CO sensor
     "read_doorbell",  # Netatmo Smart Video Doorbell

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from pyatmo.modules.module import (
     BatteryMixin,
+    ChargingStationMixin,
     ContactorMixin,
     Dimmer,
     EnergyHistoryLegacyMixin,
@@ -185,3 +186,7 @@ class NLJ(FirmwareMixin, ShutterMixin, Module):
 
 class NLY(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand connected 3 phases energy meter."""
+
+
+class NLEVSE(FirmwareMixin, WifiMixin, PowerMixin, EnergyHistoryMixin, ChargingStationMixin, Module):
+    """Legrand EV charging station."""

@@ -31,6 +31,7 @@ from pyatmo.modules.device_types import (
     ApplianceType,
     BoilerControl,
     BoilerError,
+    ChargingStationStatus,
     DeviceCategory,
     DeviceType,
     DhwControl,
@@ -481,6 +482,23 @@ class SwitchMixin(EntityBase):
         """Switch off."""
 
         return await self.async_set_switch(False)
+
+
+class ChargingStationMixin(EntityBase):
+    """Mixin for EV charging station data."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        super().__init__(home, module)
+        self.charging_station_status: ChargingStationStatus | None = None
+        self.charging_station_error: int | None = None
+        self.current_charge_duration: int | None = None
+        self.current_charge_instant_consumption: int | None = None
+        self.current_total_charge_consumption: int | None = None
+        self.rs485_link_state: bool | None = None
+        self.tic_link_state: bool | None = None
+        self.hardware_version: int | None = None
+        self.connection: str | None = None
+        self.sequence_id: int | None = None
 
 
 class FanSpeedMixin(EntityBase):

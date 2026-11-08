@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, tzinfo
 import logging
 from typing import TYPE_CHECKING, Any, cast
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pyatmo import modules
 from pyatmo.const import (
@@ -27,7 +29,7 @@ from pyatmo.exceptions import (
 )
 from pyatmo.person import Person
 from pyatmo.room import Room
-from pyatmo.schedule import Schedule
+from pyatmo.schedule import MINUTES_PER_DAY, Schedule
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
@@ -35,6 +37,7 @@ if TYPE_CHECKING:
     from pyatmo.auth import AbstractAsyncAuth
     from pyatmo.modules import Module
     from pyatmo.modules.netatmo import NACamera
+    from pyatmo.schedule import Zone
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -396,6 +399,55 @@ class Home:
         if (schedule := self.get_selected_schedule()) is None:
             return None
         return schedule.away_temp
+
+    def get_local_timezone(self) -> tzinfo:
+        """Return the home time zone, falling back to UTC when unknown."""
+
+        if self.timezone:
+            try:
+                return ZoneInfo(self.timezone)
+            except (ZoneInfoNotFoundError, ValueError):
+                LOG.warning(
+                    "Unknown time zone %s for home %s, using UTC",
+                    self.timezone,
+                    self.entity_id,
+                )
+        return UTC
+
+    def get_active_schedule_zone(self, at: datetime | None = None) -> Zone | None:
+        """Return the zone the selected schedule sets at the given time.
+
+        Defaults to now. A naive `at` is taken as home local time. This only
+        reads the timetable: it ignores any manual, away or frost guard
+        override currently applied to the home or its rooms.
+        """
+
+        if (schedule := self.get_selected_schedule()) is None:
+            return None
+
+        tz = self.get_local_timezone()
+        if at is None:
+            local = datetime.now(tz)
+        elif at.tzinfo is None:
+            local = at.replace(tzinfo=tz)
+        else:
+            local = at.astimezone(tz)
+        week_minute = local.weekday() * MINUTES_PER_DAY + local.hour * 60 + local.minute
+        return schedule.get_zone_at(week_minute)
+
+    def get_scheduled_temperature(
+        self,
+        room_id: str,
+        at: datetime | None = None,
+    ) -> float | None:
+        """Return the setpoint the selected schedule sets for a room.
+
+        See `get_active_schedule_zone` for how `at` is handled.
+        """
+
+        if (zone := self.get_active_schedule_zone(at)) is None:
+            return None
+        return zone.get_room_setpoint(room_id)
 
     async def async_set_thermmode(
         self,

@@ -406,7 +406,7 @@ class Home:
         if self.timezone:
             try:
                 return ZoneInfo(self.timezone)
-            except (ZoneInfoNotFoundError, ValueError):
+            except (ZoneInfoNotFoundError, TypeError, ValueError):
                 LOG.warning(
                     "Unknown time zone %s for home %s, using UTC",
                     self.timezone,

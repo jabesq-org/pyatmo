@@ -215,6 +215,19 @@ async def test_get_active_schedule_zone_unknown_timezone(async_auth, caplog):
     assert home.get_active_schedule_zone(MONDAY + timedelta(hours=8)).name == "Comfort"
 
 
+async def test_get_active_schedule_zone_malformed_timezone(async_auth, caplog):
+    """A time zone that is not a string falls back to UTC with a warning."""
+    home = _home(
+        async_auth,
+        [{"zone_id": 1, "m_offset": 0}, {"zone_id": 0, "m_offset": 420}],
+    )
+    home.timezone = 3600
+    with caplog.at_level(logging.WARNING):
+        assert home.get_local_timezone() is UTC
+    assert "Unknown time zone 3600 for home schedule-home" in caplog.text
+    assert home.get_active_schedule_zone(MONDAY + timedelta(hours=8)).name == "Comfort"
+
+
 @pytest.mark.parametrize(
     ("at", "expected"),
     [
@@ -291,6 +304,12 @@ async def test_get_scheduled_temperature_setpoint_kinds(async_auth, room, expect
         pytest.param({"rooms_temp": [{"temp": 18.5}]}, None, id="no_room_id"),
         pytest.param(
             {"rooms_temp": [{"room_id": 1, "temp": 18.5}]}, 18.5, id="numeric_room_id"
+        ),
+        pytest.param({"rooms_temp": None}, None, id="rooms_temp_null"),
+        pytest.param(
+            {"rooms_temp": ["1", None, {"room_id": "1", "temp": 18.5}]},
+            18.5,
+            id="rooms_temp_malformed_entries",
         ),
     ],
 )

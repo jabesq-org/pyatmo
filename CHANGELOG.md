@@ -12,7 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `NRV.motor_position`: the radiator valve's raw motor position from
   `motor_data_event` webhooks (not reported by `/homestatus`). It was dropped
   because only covers with `current_position` received the value
-  
+- `Home.get_active_schedule_zone()` returns the zone (temperature set such as
+  Comfort, Night or Eco) the selected schedule's timetable sets at a given time,
+  now by default, in the home's time zone, and `Home.get_scheduled_temperature()`
+  the setpoint it sets for a room. Both are computed locally from the topology,
+  without any API call, and ignore manual, away and frost guard overrides
+- `Schedule.get_zone()` / `Schedule.get_zone_at()` and `Zone.get_room_setpoint()`
+  building blocks, and `Home.get_local_timezone()`
+- Parse zone setpoints from `rooms_temp` as well (`Zone.rooms_temp`), as some
+  `/homesdata` payloads only carry that list
+
 ### Fixed
 
 - Keep camera events across `/homestatus` updates, which omit them or report an

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from bisect import bisect_right
 from dataclasses import dataclass
 import logging
+from operator import itemgetter
 from typing import TYPE_CHECKING
 
 from pyatmo.enums import ScheduleType
@@ -16,6 +18,10 @@ if TYPE_CHECKING:
     from .home import Home
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
+# Timetable offsets are minutes since Monday 00:00, home local time.
+MINUTES_PER_DAY = 24 * 60
+MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY
 
 
 @dataclass
@@ -98,6 +104,41 @@ class Schedule(NetatmoBase):
 
         self.zones = [Zone(self.home, r) for r in raw_data.get("zones", [])]
 
+    def get_zone(self, zone_id: int | str | None) -> Zone | None:
+        """Return the zone with the given id, if any.
+
+        Zone ids are integers in timetables but may come back as strings in
+        zone definitions, so they are compared as strings.
+        """
+        if zone_id is None:
+            return None
+        return next(
+            (zone for zone in self.zones if str(zone.entity_id) == str(zone_id)),
+            None,
+        )
+
+    def get_zone_at(self, week_minute: int) -> Zone | None:
+        """Return the zone the timetable sets at the given minute of the week.
+
+        `week_minute` counts minutes since Monday 00:00, home local time, like
+        the timetable `m_offset`. The timetable repeats every week, so a minute
+        before the first entry belongs to the last entry of the week.
+        """
+        entries = sorted(
+            (
+                (entry.m_offset, entry.zone_id)
+                for entry in self.timetable
+                if entry.m_offset is not None
+            ),
+            key=itemgetter(0),
+        )
+        if not entries:
+            return None
+
+        # Index -1 (a minute before the first entry) wraps to the last entry.
+        index = bisect_right(entries, week_minute % MINUTES_PER_WEEK, key=itemgetter(0))
+        return self.get_zone(entries[index - 1][1])
+
 
 @dataclass
 class TimetableEntry:
@@ -156,6 +197,7 @@ class Zone(NetatmoBase):
 
     type: int
     rooms: list[Room]
+    rooms_temp: dict[str, float]
 
     # electricity schedule zone fields
     price_type: str | None
@@ -179,3 +221,24 @@ class Zone(NetatmoBase):
             return room
 
         self.rooms = [room_factory(home, r) for r in raw_data.get("rooms", [])]
+        # Zone setpoints are also listed in `rooms_temp`, the only list some
+        # payloads carry. Malformed entries are skipped rather than failing the
+        # whole topology update.
+        self.rooms_temp = {
+            str(r["room_id"]): r["temp"]
+            for r in raw_data.get("rooms_temp") or []
+            if isinstance(r, dict) and "room_id" in r and "temp" in r
+        }
+
+    def get_room_setpoint(self, room_id: str) -> float | None:
+        """Return the setpoint this zone sets for the given room, if any."""
+        room = next(
+            (room for room in self.rooms if str(room.entity_id) == str(room_id)),
+            None,
+        )
+        if room is not None:
+            if room.therm_setpoint_temperature is not None:
+                return room.therm_setpoint_temperature
+            if room.cooling_setpoint_temperature is not None:
+                return room.cooling_setpoint_temperature
+        return self.rooms_temp.get(str(room_id))

@@ -222,11 +222,12 @@ class Zone(NetatmoBase):
 
         self.rooms = [room_factory(home, r) for r in raw_data.get("rooms", [])]
         # Zone setpoints are also listed in `rooms_temp`, the only list some
-        # payloads carry.
+        # payloads carry. Malformed entries are skipped rather than failing the
+        # whole topology update.
         self.rooms_temp = {
             str(r["room_id"]): r["temp"]
-            for r in raw_data.get("rooms_temp", [])
-            if "room_id" in r and "temp" in r
+            for r in raw_data.get("rooms_temp") or []
+            if isinstance(r, dict) and "room_id" in r and "temp" in r
         }
 
     def get_room_setpoint(self, room_id: str) -> float | None:

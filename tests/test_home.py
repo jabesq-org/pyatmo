@@ -136,7 +136,7 @@ async def test_async_sync_schedule(async_home):
                 "params": {
                     "home_id": "91763b24c43d3e344f424e8b",
                     "schedule_id": schedule_id,
-                    "name": "Default",
+                    "name": "Winter",
                 },
                 "json": json_fixture,
             },

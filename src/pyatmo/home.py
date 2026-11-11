@@ -569,7 +569,9 @@ class Home:
                 "params": {
                     "home_id": self.entity_id,
                     "schedule_id": schedule.entity_id,
-                    "name": "Default",
+                    # /synchomeschedule renames the schedule to this value, so
+                    # send the schedule's own name rather than a fixed one.
+                    "name": schedule.name,
                 },
                 "json": request_json,
             },

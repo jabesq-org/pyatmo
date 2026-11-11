@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Send `filter` instead of `filtering` to `/getpublicdata`, so excluding stations
+  with abnormal temperature measures takes effect, and send `required_data` when a
+  public weather area is registered with `required_data_type`
+
 ## [9.9.1] - 2026-08-26
 
 ### Added

@@ -1,5 +1,9 @@
 """Define tests for weaather module."""
 
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 import pyatmo
 from pyatmo import DeviceType
 from pyatmo.modules.base_class import Location, Place
@@ -397,3 +401,40 @@ async def test_async_public_weather_update(async_account):
     assert area.get_latest_gust_strengths() == {"70:ee:50:36:a9:fc": 31}
 
     assert area.get_latest_gust_angles() == {"70:ee:50:36:a9:fc": 217}
+
+
+@pytest.mark.parametrize(
+    ("required_data_type", "filtering", "expected"),
+    [
+        (None, False, {"filter": "false"}),
+        ("rain", True, {"filter": "true", "required_data": "rain"}),
+    ],
+)
+async def test_async_public_weather_update_params(
+    async_account,
+    required_data_type,
+    filtering,
+    expected,
+):
+    """Test that /getpublicdata gets Netatmo's documented parameter names."""
+    area_id = async_account.register_public_weather_area(
+        "46.610870",
+        "6.221652",
+        "46.596485",
+        "6.217828",
+        required_data_type,
+        filtering,
+    )
+    with patch.object(
+        async_account,
+        "_async_update_data",
+        AsyncMock(),
+    ) as update:
+        await async_account.async_update_public_weather(area_id)
+
+    params = update.call_args.kwargs["params"]
+    assert "filtering" not in params
+    for key, value in expected.items():
+        assert params[key] == value
+    if required_data_type is None:
+        assert "required_data" not in params

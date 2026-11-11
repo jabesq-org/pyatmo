@@ -54,6 +54,9 @@ _DEVICE_ENERGY_EVENT_TYPES = frozenset(
 
 WEBHOOK_ACTIVATION = "webhook_activation"
 WEBHOOK_DEACTIVATION = "webhook_deactivation"
+# Sent by Netatmo when it removes the webhook (e.g. after repeated delivery
+# failures); handled like a deactivation.
+WEBHOOK_DELETION = "webhook_deletion"
 WEBHOOK_DEVICE_EVENT = "device_event"
 WEBHOOK_TOPOLOGY_CHANGED = "topology_changed"
 CAMERA_CONNECTION_WEBHOOKS = frozenset(
@@ -180,7 +183,7 @@ class WebhookResult:
 
 def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
     """Route a webhook payload to a WebhookKind by event_type/push_type."""
-    if push_type in (WEBHOOK_ACTIVATION, WEBHOOK_DEACTIVATION):
+    if push_type in (WEBHOOK_ACTIVATION, WEBHOOK_DEACTIVATION, WEBHOOK_DELETION):
         return WebhookKind.LIFECYCLE
     if (
         push_type in CAMERA_CONNECTION_WEBHOOKS
@@ -812,6 +815,7 @@ def _is_disconnection(event_type: str | None, push_type: str | None) -> bool:
 _PUSH_LIFECYCLE: dict[str | None, LifecycleStatus] = {
     WEBHOOK_ACTIVATION: LifecycleStatus.ACTIVATION,
     WEBHOOK_DEACTIVATION: LifecycleStatus.DEACTIVATION,
+    WEBHOOK_DELETION: LifecycleStatus.DEACTIVATION,
 }
 
 

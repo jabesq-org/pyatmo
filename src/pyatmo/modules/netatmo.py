@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pyatmo.const import (
     ACCESSORY_GUST_ANGLE_TYPE,
@@ -46,11 +46,23 @@ from pyatmo.modules.module import (
     WindMixin,
 )
 
+if TYPE_CHECKING:
+    from pyatmo.home import Home
+    from pyatmo.modules.module import ModuleT
+
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class NRV(FirmwareMixin, RfMixin, BatteryMixin, Module):
     """Class to represent a Netatmo NRV."""
+
+    def __init__(self, home: Home, module: ModuleT) -> None:
+        """Initialize the valve."""
+
+        super().__init__(home, module)
+        # Raw motor position from `motor_data_event` webhooks. Netatmo does
+        # not report it in /homestatus and does not document its scale.
+        self.motor_position: int | None = None
 
 
 class NAC(FirmwareMixin, RfMixin, BatteryMixin, Module):

@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `extra_params.modules` is also present; a Legrand/BTicino scenario
   notification (e.g. a scene remote button press) carries both, and the type
   was discarded
+- Treat the `webhook_deletion` push Netatmo sends when it removes a webhook as a
+  lifecycle deactivation instead of an unknown payload
 
 ## [9.9.1] - 2026-08-26
 

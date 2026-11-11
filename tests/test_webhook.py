@@ -1930,3 +1930,40 @@ async def test_last_webhook_at_is_wall_clock(async_account):
     await async_account.process_webhook({"push_type": "webhook_activation"})
 
     assert async_account.last_webhook_at == pytest.approx(time(), abs=5)
+
+
+async def test_process_webhook_nested_home_event_changed(async_account):
+    """home_event_changed with all fields under extra_params is merged too."""
+    home_id = "91763b24c43d3e344f424e8b"
+    home = async_account.homes[home_id]
+    assert home.therm_mode == "schedule"
+
+    result = await process_webhook(
+        async_account,
+        {
+            "push_type": "home_event_changed",
+            "user_id": "u",
+            "home_id": home_id,
+            "extra_params": {
+                "event_type": "therm_mode",
+                "home": {"id": home_id, "therm_mode": "away"},
+                "home_id": home_id,
+                "mode": "away",
+                "previous_mode": "schedule",
+            },
+        },
+    )
+
+    assert result.kind is WebhookKind.STATE
+    assert result.event_type == "therm_mode"
+    assert result.touched_ids == [home_id]
+    assert home.therm_mode == "away"
+
+
+async def test_process_webhook_nested_without_event_type_is_unknown(async_account):
+    """Only payloads that actually carry a nested event_type are lifted."""
+    result = await process_webhook(
+        async_account,
+        {"push_type": "home_event_changed", "extra_params": {"foo": "bar"}},
+    )
+    assert result.kind is WebhookKind.UNKNOWN

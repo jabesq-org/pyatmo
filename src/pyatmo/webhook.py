@@ -56,6 +56,7 @@ WEBHOOK_ACTIVATION = "webhook_activation"
 WEBHOOK_DEACTIVATION = "webhook_deactivation"
 WEBHOOK_DEVICE_EVENT = "device_event"
 WEBHOOK_TOPOLOGY_CHANGED = "topology_changed"
+WEBHOOK_HOME_EVENT_CHANGED = "home_event_changed"
 CAMERA_CONNECTION_WEBHOOKS = frozenset(
     {"NACamera-connection", "NOC-connection", "NDB-connection", "NPC-connection"},
 )
@@ -195,6 +196,24 @@ def classify(event_type: str | None, push_type: str | None) -> WebhookKind:
     if event_type in EVENT_EVENT_TYPES:
         return WebhookKind.EVENT
     return WebhookKind.UNKNOWN
+
+
+def _lift_nested_home_event(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return `home_event_changed` with its `extra_params` fields at the top.
+
+    Netatmo sends this push both flat (`event_type`, `home` at the top level)
+    and nested, with everything under `extra_params` and no top-level
+    `event_type`. The nested form is lifted so both take the same path.
+    """
+    extra = payload.get("extra_params")
+    if (
+        payload.get("push_type") == WEBHOOK_HOME_EVENT_CHANGED
+        and not payload.get("event_type")
+        and isinstance(extra, dict)
+        and extra.get("event_type")
+    ):
+        return {**payload, **extra}
+    return payload
 
 
 def resolve_home_id(payload: dict[str, Any]) -> str | None:
@@ -339,6 +358,7 @@ async def process_webhook(
     # proves the webhook path works end to end.
     account.last_webhook_at = time()
 
+    payload = _lift_nested_home_event(payload)
     event_type = str_or_none(payload.get("event_type"))
     push_type = str_or_none(payload.get("push_type"))
     home_id = resolve_home_id(payload)

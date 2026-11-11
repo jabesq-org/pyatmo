@@ -75,6 +75,7 @@ def test_webhook_types_exported_from_package():
         ("disconnection", "NACamera-disconnection", WebhookKind.LIFECYCLE),
         (None, "webhook_activation", WebhookKind.LIFECYCLE),
         (None, "webhook_deactivation", WebhookKind.LIFECYCLE),
+        (None, "webhook_deletion", WebhookKind.LIFECYCLE),
         ("connection", "NACamera-connection", WebhookKind.LIFECYCLE),
         ("connection", "connection", WebhookKind.LIFECYCLE),
         ("disconnection", "disconnection", WebhookKind.LIFECYCLE),
@@ -157,6 +158,18 @@ async def test_process_webhook_deactivation(async_account):
     assert result.lifecycle is LifecycleStatus.DEACTIVATION
     assert result.needs_refresh is False
     assert result.refresh_scope == frozenset()
+    assert result.events == []
+
+
+async def test_process_webhook_deletion(async_account):
+    """Netatmo removing the webhook is reported as a deactivation."""
+    result = await process_webhook(
+        async_account,
+        {"push_type": "webhook_deletion", "user_id": "u"},
+    )
+    assert result.kind is WebhookKind.LIFECYCLE
+    assert result.lifecycle is LifecycleStatus.DEACTIVATION
+    assert result.needs_refresh is False
     assert result.events == []
 
 

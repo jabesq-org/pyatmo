@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Keep the schedule's name in `Home.async_sync_schedule`. It always sent
+  `name=Default` to `/synchomeschedule`, which renamed every edited schedule to
+  "Default"
+
 ## [9.9.1] - 2026-08-26
 
 ### Added

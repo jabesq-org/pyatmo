@@ -261,15 +261,18 @@ class AsyncAccount:
 
     async def async_update_public_weather(self, area_id: str) -> None:
         """Retrieve status data from /getpublicdata."""
+        area = self.public_weather_areas[area_id]
+        # Query parameter names as documented by Netatmo for /getpublicdata:
+        # "filter" (not "filtering") and "required_data".
         params: dict[str, str] = {
-            "lat_ne": self.public_weather_areas[area_id].location.lat_ne,
-            "lon_ne": self.public_weather_areas[area_id].location.lon_ne,
-            "lat_sw": self.public_weather_areas[area_id].location.lat_sw,
-            "lon_sw": self.public_weather_areas[area_id].location.lon_sw,
-            "filtering": (
-                "true" if self.public_weather_areas[area_id].filtering else "false"
-            ),
+            "lat_ne": area.location.lat_ne,
+            "lon_ne": area.location.lon_ne,
+            "lat_sw": area.location.lat_sw,
+            "lon_sw": area.location.lon_sw,
+            "filter": "true" if area.filtering else "false",
         }
+        if area.required_data_type:
+            params["required_data"] = area.required_data_type
         await self._async_update_data(
             GETPUBLIC_DATA_ENDPOINT,
             tag="body",

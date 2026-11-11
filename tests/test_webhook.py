@@ -1930,3 +1930,33 @@ async def test_last_webhook_at_is_wall_clock(async_account):
     await async_account.process_webhook({"push_type": "webhook_activation"})
 
     assert async_account.last_webhook_at == pytest.approx(time(), abs=5)
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_motor_data_event_nrv(async_account):
+    """Real capture: a radiator valve's motor position lands on motor_position."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "12:34:56:03:a5:54"
+    valve = async_account.homes[home_id].modules[module_id]
+    assert valve.motor_position is None
+    assert not hasattr(valve, "current_position")
+
+    payload = {
+        "extra_params": {
+            "event_type": "motor_data_event",
+            "module_id": module_id,
+            "current_position": 2095,
+            "motor_cmd": 0,
+            "device_type": "NAPlug",
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == [module_id]
+    assert valve.motor_position == 2095
+    assert result.refresh_scope == frozenset()

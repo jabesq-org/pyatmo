@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Merge `home_event_changed` webhooks that carry `event_type` and `home` under
+  `extra_params` instead of at the top level; they were reported as unknown
+
 ## [9.9.1] - 2026-08-26
 
 ### Added

@@ -287,8 +287,10 @@ def build_webhook_events(
     modules = dict_entries(extra.get("modules"))
     if modules:
         device_id = str_or_none(payload.get("device_id"))
-        modules_event_type = str_or_none(extra.get("event_type")) or str_or_none(
-            extra.get("type"),
+        modules_event_type = (
+            str_or_none(payload.get("event_type"))
+            or str_or_none(extra.get("event_type"))
+            or str_or_none(extra.get("type"))
         )
         return [
             WebhookEvent(

@@ -16,6 +16,7 @@ from pyatmo.modules.device_types import (
     ApplianceType,
     BoilerControl,
     BoilerError,
+    ChargingStationStatus,
     DeviceType,
     DhwControl,
     DoorTagCategory,
@@ -44,6 +45,15 @@ def bridged_module_ids(
     return raw_data.get("modules_bridged", raw_data.get("module_bridged", default))
 
 
+CHARGING_STATION_STATUS_MAP: dict[int, str] = {
+    0: "available",
+    1: "waiting",
+    2: "charging",
+    3: "finished",
+    4: "error",
+}
+
+
 NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "entity_id": lambda x, y: x.get("id", y),
     "modules": bridged_module_ids,
@@ -54,6 +64,19 @@ NETATMO_ATTRIBUTES_MAP: dict[str, Callable[[dict[str, Any], Any], Any]] = {
     "_reachable": lambda x, y: x.get("reachable", y),
     "monitoring": lambda x, _: x.get("monitoring", False) == "on",
     "battery_level": lambda x, _: x.get("battery_vp", x.get("battery_level")),
+    "power": lambda x, y: x.get(
+        "power", x.get("current_charge_instant_consumption", y)
+    ),
+    "charging_station_status": lambda x, y: (
+        ChargingStationStatus(
+            CHARGING_STATION_STATUS_MAP.get(
+                x["charging_station_status"],
+                x["charging_station_status"],
+            )
+        )
+        if "charging_station_status" in x
+        else y
+    ),
     "place": lambda x, y: Place(x["place"]) if isinstance(x.get("place"), dict) else y,
     # /homesdata never carries the step, so keep the last known value instead of
     # dropping it: consumers derive shutter capabilities from it.

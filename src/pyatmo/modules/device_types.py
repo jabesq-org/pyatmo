@@ -77,6 +77,7 @@ class DeviceType(StrEnum):
     NLTS = "NLTS"  # Legrand motion sensor stub
     NLJ = "NLJ"  # Legrand garage door opener
     NLY = "NLY"  # Connected 3 phases energy meter
+    NLEVSE = "NLEVSE" # Legrand EV charging station
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway
@@ -208,6 +209,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NIS: DeviceCategory.siren,
     DeviceType.BNCS: DeviceCategory.switch,
     DeviceType.NLLF: DeviceCategory.fan,
+    DeviceType.NLEVSE: DeviceCategory.meter,
 }
 
 
@@ -269,6 +271,7 @@ DEVICE_DESCRIPTION_MAP: dict[DeviceType, tuple[str, str]] = {
     DeviceType.NLTS: ("Legrand", "Motion sensor"),
     DeviceType.NLUF: ("Legrand", "In-Wall dimmer"),
     DeviceType.NLJ: ("Legrand", "Garage door opener"),
+    DeviceType.NLEVSE: ("Legrand", "EV Charging Station"),
     # BTicino Classe 300 EOS
     DeviceType.BNCX: ("BTicino", "Internal Panel"),
     DeviceType.BNEU: ("BTicino", "External Unit"),
@@ -410,3 +413,21 @@ class DhwControl(StrEnum):
         msg: str = f"{key} dhw control is unknown"
         LOG.warning(msg)
         return DhwControl.unknown
+
+
+class ChargingStationStatus(StrEnum):
+    """Charging station operational status."""
+
+    available = "available"
+    waiting = "waiting"
+    charging = "charging"
+    finished = "finished"
+    error = "error"
+    unknown = "unknown"
+
+    @classmethod
+    def _missing_(cls, key: object) -> Literal[ChargingStationStatus.unknown]:
+        """Handle unknown status values."""
+        msg: str = f"{key} charging station status is unknown"
+        LOG.warning(msg)
+        return ChargingStationStatus.unknown

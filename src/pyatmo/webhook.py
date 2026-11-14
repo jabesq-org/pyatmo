@@ -287,9 +287,14 @@ def build_webhook_events(
     modules = dict_entries(extra.get("modules"))
     if modules:
         device_id = str_or_none(payload.get("device_id"))
+        modules_event_type = (
+            str_or_none(payload.get("event_type"))
+            or str_or_none(extra.get("event_type"))
+            or str_or_none(extra.get("type"))
+        )
         return [
             WebhookEvent(
-                event_type=None,
+                event_type=modules_event_type,
                 push_type=push_type,
                 home_id=home_id,
                 module_id=str_or_none(module.get("id")),
@@ -432,7 +437,7 @@ async def _process_device_event(
         refresh_scope = _topology_if_unresolved(unresolved)
         return WebhookResult(
             home_id,
-            str_or_none(extra.get("event_type")),
+            str_or_none(extra.get("event_type")) or str_or_none(extra.get("type")),
             WEBHOOK_DEVICE_EVENT,
             WebhookKind.STATE,
             touched_ids=touched,

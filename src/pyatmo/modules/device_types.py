@@ -147,6 +147,7 @@ class DeviceCategory(StrEnum):
     dimmer = "dimmer"
     opening = "opening"
     fan = "fan"
+    ev_charger = "ev_charger"
 
 
 DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
@@ -209,7 +210,7 @@ DEVICE_CATEGORY_MAP: dict[DeviceType, DeviceCategory] = {
     DeviceType.NIS: DeviceCategory.siren,
     DeviceType.BNCS: DeviceCategory.switch,
     DeviceType.NLLF: DeviceCategory.fan,
-    DeviceType.NLEVSE: DeviceCategory.meter,
+    DeviceType.NLEVSE: DeviceCategory.ev_charger,
 }
 
 

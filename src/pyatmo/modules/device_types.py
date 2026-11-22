@@ -77,7 +77,7 @@ class DeviceType(StrEnum):
     NLTS = "NLTS"  # Legrand motion sensor stub
     NLJ = "NLJ"  # Legrand garage door opener
     NLY = "NLY"  # Connected 3 phases energy meter
-    NLEVSE = "NLEVSE" # Legrand EV charging station
+    NLEVSE = "NLEVSE"  # Legrand EV charging station
 
     # BTicino Classe 300 EOS
     BNCX = "BNCX"  # internal panel = gateway

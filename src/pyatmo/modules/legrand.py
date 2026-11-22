@@ -188,5 +188,12 @@ class NLY(FirmwareMixin, EnergyHistoryMixin, PowerMixin, Module):
     """Legrand connected 3 phases energy meter."""
 
 
-class NLEVSE(FirmwareMixin, WifiMixin, PowerMixin, EnergyHistoryMixin, ChargingStationMixin, Module):
+class NLEVSE(
+    FirmwareMixin,
+    WifiMixin,
+    PowerMixin,
+    EnergyHistoryMixin,
+    ChargingStationMixin,
+    Module,
+):
     """Legrand EV charging station."""

@@ -75,13 +75,14 @@ Matrix produced by running each payload shape, not read off the code:
 | `STATE` | `set_point`, `cancel_set_point`, `therm_mode`, `on`, `off`, `light_mode` | `False` | 0 | Model already merged — notify subscribers |
 | `EVENT` | 36 types (`person`, `movement`, `smoke`, `siren_sounding`, …) | `False` | 1 | Fire the bus event; no model change |
 | `TOPOLOGY_DIRTY` | `schedule` | **`True`** | 0 | `async_force_update(...)` |
-| `LIFECYCLE` | `webhook_activation`, `webhook_deactivation`, `*-connection` | see below | 0 | Track webhook state; force update on reconnect |
+| `LIFECYCLE` | `webhook_activation`, `webhook_deactivation`, `webhook_deletion`, `*-connection` | see below | 0 | Track webhook state; force update on reconnect |
 | `UNKNOWN` | anything unrecognised or malformed | `False` | 0 | Debug-log and drop |
 
 | `push_type` | `lifecycle` | `needs_refresh` |
 |---|---|---|
 | `webhook_activation` | `ACTIVATION` | `False` |
 | `webhook_deactivation` | `DEACTIVATION` | `False` |
+| `webhook_deletion` | `DEACTIVATION` | `False` |
 | `NACamera-connection`, `NOC-connection`, `NDB-connection` | `CONNECTION` | **`True`** |
 
 This maps **1:1 onto `NetatmoDataHandler.handle_event`** (`coordinator.py:235`), which already sets

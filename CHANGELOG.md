@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- `NRV.motor_position`: the radiator valve's raw motor position from
+  `motor_data_event` webhooks (not reported by `/homestatus`). It was dropped
+  because only covers with `current_position` received the value
+  
 ### Fixed
 
 - Surface the `device_event` type (`extra_params.event_type` / `extra_params.type`)

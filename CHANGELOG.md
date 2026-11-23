@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   
 ### Fixed
 
+- Keep camera events across `/homestatus` updates, which omit them or report an
+  empty list. Each status poll used to replace the events from the last
+  `/getevents` update, so `NACamera.events` was almost always empty. Events are now
+  replaced only by `/getevents`
 - Surface the `device_event` type (`extra_params.event_type` / `extra_params.type`)
   in `build_webhook_events()` and `_process_device_event()` even when
   `extra_params.modules` is also present; a Legrand/BTicino scenario

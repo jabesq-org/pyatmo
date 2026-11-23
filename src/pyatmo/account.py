@@ -190,7 +190,7 @@ class AsyncAccount:
             params={"home_id": home_id},
         )
         raw_data: RawData = extract_raw_data(await resp.json(), HOME, home_id)
-        await self.homes[home_id].update(raw_data)
+        self.homes[home_id].update_events(raw_data)
 
     async def process_webhook(self, payload: dict[str, Any]) -> WebhookResult:
         """Parse and merge a Netatmo webhook payload into the account model."""

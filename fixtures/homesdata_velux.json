@@ -15,6 +15,7 @@
             "modules_bridged": [
               "velux_opener_awning",
               "velux_opener_blind",
+              "velux_opener_window",
               "velux_climate_sensor",
               "velux_departure_switch"
             ],
@@ -35,6 +36,14 @@
             "bridge": "velux_gateway_id",
             "room_id": "velux_room_id",
             "velux_type": "blind"
+          },
+          {
+            "id": "velux_opener_window",
+            "type": "NXO",
+            "name": "Bedroom Window",
+            "bridge": "velux_gateway_id",
+            "room_id": "velux_room_id",
+            "velux_type": "window"
           },
           {
             "id": "velux_climate_sensor",
@@ -59,6 +68,7 @@
             "module_ids": [
               "velux_opener_awning",
               "velux_opener_blind",
+              "velux_opener_window",
               "velux_climate_sensor"
             ]
           }

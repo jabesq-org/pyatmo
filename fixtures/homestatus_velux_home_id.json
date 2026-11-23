@@ -7,6 +7,7 @@
           "id": "velux_gateway_id",
           "type": "NXG",
           "wifi_strength": 44,
+          "wifi_state": "full",
           "locked": true,
           "locking": false,
           "secure": true,
@@ -46,6 +47,21 @@
           "manufacturer": "Netatmo",
           "last_seen": 1776675797,
           "firmware_revision": 14
+        },
+        {
+          "id": "velux_opener_window",
+          "type": "NXO",
+          "bridge": "velux_gateway_id",
+          "current_position": 10,
+          "target_position": 10,
+          "secure_position": 10,
+          "rain_position": 50,
+          "mode": "algo_available",
+          "reachable": true,
+          "velux_type": "window",
+          "manufacturer": "VELUX",
+          "last_seen": 1776675797,
+          "firmware_revision": 48
         },
         {
           "id": "velux_climate_sensor",

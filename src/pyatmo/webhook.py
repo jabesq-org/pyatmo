@@ -287,9 +287,14 @@ def build_webhook_events(
     modules = dict_entries(extra.get("modules"))
     if modules:
         device_id = str_or_none(payload.get("device_id"))
+        modules_event_type = (
+            str_or_none(payload.get("event_type"))
+            or str_or_none(extra.get("event_type"))
+            or str_or_none(extra.get("type"))
+        )
         return [
             WebhookEvent(
-                event_type=None,
+                event_type=modules_event_type,
                 push_type=push_type,
                 home_id=home_id,
                 module_id=str_or_none(module.get("id")),
@@ -432,7 +437,7 @@ async def _process_device_event(
         refresh_scope = _topology_if_unresolved(unresolved)
         return WebhookResult(
             home_id,
-            str_or_none(extra.get("event_type")),
+            str_or_none(extra.get("event_type")) or str_or_none(extra.get("type")),
             WEBHOOK_DEVICE_EVENT,
             WebhookKind.STATE,
             touched_ids=touched,
@@ -512,7 +517,13 @@ def _merge_motor_data_event(
     if module is None:
         return MergeOutcome([], True)
     position = number_or_none(extra.get("current_position"))
-    if position is None or not hasattr(module, "current_position"):
+    if position is None:
+        return MergeOutcome([], False)
+    if hasattr(module, "motor_position"):
+        # Radiator valve (NRV): a raw motor value, not a 0-100 cover position.
+        module.motor_position = int(position)
+        return MergeOutcome([module_id], False)
+    if not hasattr(module, "current_position"):
         return MergeOutcome([], False)
     cast("ShutterMixin", module).current_position = int(position)
     return MergeOutcome([module_id], False)

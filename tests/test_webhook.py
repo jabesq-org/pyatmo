@@ -139,6 +139,36 @@ def test_build_webhook_events_person_fan_out():
     assert second.is_known is False
 
 
+def test_build_webhook_events_modules_with_type_surfaces_it():
+    """A scenario notification carries both `modules` and `extra_params.type`."""
+    payload = {
+        "push_type": "device_event",
+        "device_id": "00:04:74:22:29:ca",
+        "home_id": "h1",
+        "extra_params": {
+            "type": "scenario_play_event",
+            "modules": [{"id": "00:04:74:22:29:ca", "scenario": "wake_up"}],
+        },
+    }
+    events = build_webhook_events(payload, home=None)
+    assert len(events) == 1
+    assert events[0].event_type == "scenario_play_event"
+    assert events[0].module_id == "00:04:74:22:29:ca"
+    assert events[0].device_id == "00:04:74:22:29:ca"
+
+
+def test_build_webhook_events_modules_without_type_stays_none():
+    payload = {
+        "push_type": "device_event",
+        "device_id": "d1",
+        "home_id": "h1",
+        "extra_params": {"modules": [{"id": "m1", "on": True}]},
+    }
+    events = build_webhook_events(payload, home=None)
+    assert len(events) == 1
+    assert events[0].event_type is None
+
+
 async def test_process_webhook_activation(async_account):
     result = await process_webhook(async_account, {"push_type": "webhook_activation"})
     assert result.kind is WebhookKind.LIFECYCLE
@@ -1424,6 +1454,31 @@ async def test_process_webhook_device_event_modules_merges_dimmer(async_account)
     assert result.refresh_scope == frozenset()
 
 
+async def test_process_webhook_device_event_scenario_play_surfaces_type(async_account):
+    """A scene remote button press keeps its type despite also carrying modules."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "00:11:22:33:00:11:45:fe"
+
+    payload = {
+        "extra_params": {
+            "type": "scenario_play_event",
+            "source": "zigbee_any",
+            "sequence_id": 34591,
+            "modules": [{"id": module_id, "scenario": "wake_up"}],
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:3c:63:b2",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.event_type == "scenario_play_event"
+    assert len(result.events) == 1
+    assert result.events[0].event_type == "scenario_play_event"
+    assert result.events[0].module_id == module_id
+
+
 @pytest.mark.usefixtures("async_home")
 async def test_process_webhook_device_event_modules_unknown_module_self_heals(
     async_account,
@@ -1930,3 +1985,33 @@ async def test_last_webhook_at_is_wall_clock(async_account):
     await async_account.process_webhook({"push_type": "webhook_activation"})
 
     assert async_account.last_webhook_at == pytest.approx(time(), abs=5)
+
+
+@pytest.mark.usefixtures("async_home")
+async def test_process_webhook_device_event_motor_data_event_nrv(async_account):
+    """Real capture: a radiator valve's motor position lands on motor_position."""
+    home_id = "91763b24c43d3e344f424e8b"
+    module_id = "12:34:56:03:a5:54"
+    valve = async_account.homes[home_id].modules[module_id]
+    assert valve.motor_position is None
+    assert not hasattr(valve, "current_position")
+
+    payload = {
+        "extra_params": {
+            "event_type": "motor_data_event",
+            "module_id": module_id,
+            "current_position": 2095,
+            "motor_cmd": 0,
+            "device_type": "NAPlug",
+            "ts": 1786426877,
+        },
+        "push_type": "device_event",
+        "device_id": "12:34:56:00:bc:24",
+        "home_id": home_id,
+    }
+    result = await process_webhook(async_account, payload)
+
+    assert result.kind is WebhookKind.STATE
+    assert result.touched_ids == [module_id]
+    assert valve.motor_position == 2095
+    assert result.refresh_scope == frozenset()
